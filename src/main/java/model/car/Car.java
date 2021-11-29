@@ -37,12 +37,12 @@ public class Car {
     private Optional<Decision> decision;
 
     public void decide(RoadStructureProvider roadStructureProvider){
-        // make local decision
+        // make local decision based on read only road structure (watch environment) and save it locally
     }
 
     public CarUpdateResult update() {
-        // apply made decision and clear it out
-        throw new Error("method not implemented!");
+        // extract information from decision and apply those changes to car
+        throw new UnsupportedOperationException("method not implemented!");
     }
 
 }

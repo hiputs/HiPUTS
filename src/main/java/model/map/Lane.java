@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
-class LaneLocal implements LaneReadWrite {
+class Lane implements LaneReadWrite {
 
     /**
      * Unique lane identifier.

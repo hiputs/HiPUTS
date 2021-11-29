@@ -7,7 +7,7 @@ import model.map.LaneReadOnly;
 
 public interface RoadStructureProvider {
 
-    LaneReadOnly getReadableOnlyLane(LaneId laneId);
+    LaneReadOnly getLane(LaneId laneId);
 
     Junction getJunction(JunctionId junctionId);
 

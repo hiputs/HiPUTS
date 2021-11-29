@@ -20,7 +20,7 @@ public class Junction {
      * Lanes incoming into this junction
      * ------> j <------
      */
-    private Map<LaneId, LaneLocal> incomingLanes;
+    private Map<LaneId, LaneReadWrite> incomingLanes;
 
     /**
      * Lanes outgoing from this junction
