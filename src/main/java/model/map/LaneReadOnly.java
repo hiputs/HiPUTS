@@ -1,5 +1,5 @@
 package model.map;
 
-public interface LaneR {
+public interface LaneReadOnly {
     // readable interface for Lane class
 }

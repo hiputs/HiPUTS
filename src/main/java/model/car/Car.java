@@ -40,8 +40,9 @@ public class Car {
         // make local decision
     }
 
-    public void update(){
+    public CarUpdateResult update() {
         // apply made decision and clear it out
+        throw new Error("method not implemented!");
     }
 
 }

@@ -7,6 +7,7 @@ import model.id.LaneId;
 import model.id.PatchId;
 
 import java.util.Map;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -17,14 +18,15 @@ public class Patch {
      * Junctions within this patch
      */
     private Map<JunctionId, Junction> junctions;
+
     /**
      * Lanes within this patch
      */
-    private Map<LaneId, LaneLocal> lanes;
+    private Map<LaneId, LaneReadWrite> lanes;
 
 
     /**
      * Patches that are adjacent/neighbours to this patch
      */
-    private Map<PatchId, Patch> neighboringPatches;
+    private Set<PatchId> neighboringPatches;
 }

@@ -3,11 +3,11 @@ package model.actor;
 import model.id.JunctionId;
 import model.id.LaneId;
 import model.map.Junction;
-import model.map.LaneRW;
+import model.map.LaneReadOnly;
 
 public interface RoadStructureProvider {
 
-    LaneRW getLane(LaneId laneId);
+    LaneReadOnly getReadableOnlyLane(LaneId laneId);
 
     Junction getJunction(JunctionId junctionId);
 

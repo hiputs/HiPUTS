@@ -1,5 +1,5 @@
 package model.map;
 
-public interface LaneRW extends LaneR {
+public interface LaneReadWrite extends LaneReadOnly {
     // writable interface for Lane class + readable interface
 }

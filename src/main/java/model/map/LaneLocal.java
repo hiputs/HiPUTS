@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
-class LaneLocal implements LaneRW {
+class LaneLocal implements LaneReadWrite {
 
     /**
      * Unique lane identifier.
@@ -22,7 +22,7 @@ class LaneLocal implements LaneRW {
     /**
      * Reference to lane that goes in opposite direction and is closest to this one.
      */
-    private Optional<LaneRW> oppositeLaneRef = Optional.empty();
+    private Optional<LaneId> oppositeLane = Optional.empty();
 
     /**
      * Reference to junction that is at the begging of lane

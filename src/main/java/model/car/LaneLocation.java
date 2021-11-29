@@ -1,12 +1,12 @@
 package model.car;
 
-import model.map.LaneR;
+import model.id.LaneId;
 
 class LaneLocation {
     /**
      * Lane on which car is currently situated.
      */
-    private LaneR lane = null;
+    private LaneId lane = null;
     /**
      * Position of car at its lane.
      */

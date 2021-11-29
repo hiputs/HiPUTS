@@ -9,7 +9,7 @@ import model.map.*;
 import java.util.Collection;
 import java.util.Map;
 
-public class ActorContext implements LaneHandler, RoadStructureProvider {
+public class ActorContext implements LaneEditor, RoadStructureProvider {
 
     /**
      * All patches within this ActorContext - they represent patches that are situated within the same JVM
@@ -31,28 +31,25 @@ public class ActorContext implements LaneHandler, RoadStructureProvider {
     private Collection<ActorContext> neighbours;
 
 
+    @Override
+    public LaneReadOnly getReadableOnlyLane(LaneId laneId) {
+        throw new Error("method not implemented!");
+    }
 
     @Override
-    public LaneRW getLane(LaneId laneId) {
-        return null; // if lane is local return RW, else R
+    public LaneReadWrite getLaneReadWrite(LaneId laneId) {
+        throw new Error("method not implemented!");
     }
 
     @Override
     public Junction getJunction(JunctionId junctionId) {
-        return null;
-    }
-
-    @Override
-    public LaneR getRLane(LaneId laneId) {
-        return null;
+        throw new Error("method not implemented!");
     }
 
     @Override
     public void stage(Car car) {
+        throw new Error("method not implemented!");
         // Add car to some collection to send it
     }
 
-    private LaneRemote getRemoteLane(LaneId laneId){
-        return null;
-    }
 }

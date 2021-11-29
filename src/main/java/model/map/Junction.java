@@ -20,13 +20,13 @@ public class Junction {
      * Lanes incoming into this junction
      * ------> j <------
      */
-    private Map<LaneId, LaneLocal> inLanes;
+    private Map<LaneId, LaneLocal> incomingLanes;
 
     /**
      * Lanes outgoing from this junction
      * <------ j ------>
      */
-    private Map<LaneId, LaneRW> outLanes;
+    private Map<LaneId, LaneReadWrite> outgoingLanes;
 
 
 }

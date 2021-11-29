@@ -1,15 +1,14 @@
 package model.map;
 
-import model.actor.ActorContext;
+import model.actor.LaneEditor;
 import model.id.LaneId;
 
-public class LaneRemote implements LaneRW {
+public class LaneRemote implements LaneReadWrite {
 
     /**
      * Unique lane identifier.
      */
     private LaneId id;
 
-    private ActorContext actorContext;
-
+    private LaneEditor laneEditor;
 }
