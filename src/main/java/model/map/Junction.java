@@ -6,6 +6,7 @@ import model.id.JunctionId;
 import model.id.LaneId;
 
 import java.util.Map;
+import java.util.Set;
 
 
 @Getter
@@ -20,13 +21,13 @@ public class Junction {
      * Lanes incoming into this junction
      * ------> j <------
      */
-    private Map<LaneId, LaneReadWrite> incomingLanes;
+    private Set<LaneId> incomingLanes;
 
     /**
      * Lanes outgoing from this junction
      * <------ j ------>
      */
-    private Map<LaneId, LaneReadWrite> outgoingLanes;
+    private Set<LaneId> outgoingLanes;
 
 
 }
