@@ -1,6 +1,7 @@
 package model.map;
 
 import model.car.Car;
+import model.id.JunctionId;
 import model.id.LaneId;
 
 import java.util.ArrayList;
@@ -25,16 +26,16 @@ class Lane implements LaneReadWrite {
     private Optional<LaneId> oppositeLane = Optional.empty();
 
     /**
-     * Reference to junction that is at the begging of lane
+     * Reference to junction id that is at the begging of lane
      * j --------->
      */
-    private Junction incomingJunction;
+    private JunctionId incomingJunction;
 
     /**
-     * Reference to junction that is at the end of lane
+     * Reference to junction id that is at the end of lane
      * ---------> j
      */
-    private Junction outgoingJunction;
+    private JunctionId outgoingJunction;
 
     /**
      * Sign at the end of lane
