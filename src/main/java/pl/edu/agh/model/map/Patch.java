@@ -1,6 +1,7 @@
 package pl.edu.agh.model.map;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
@@ -11,8 +12,9 @@ import java.util.Set;
 
 @Getter
 @Setter
+@RequiredArgsConstructor
 public class Patch {
-    private PatchId id;
+    private final PatchId id;
 
     /**
      * Junctions within this patch
@@ -29,4 +31,8 @@ public class Patch {
      * Patches that are adjacent/neighbours to this patch
      */
     private Set<PatchId> neighboringPatches;
+
+    public Patch() {
+        this(new PatchId());
+    }
 }

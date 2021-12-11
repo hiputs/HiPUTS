@@ -1,12 +1,18 @@
 package pl.edu.agh.model.id;
 
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@AllArgsConstructor
+import java.util.UUID;
+
+@RequiredArgsConstructor
 @Getter
 @EqualsAndHashCode
 public class PatchId {
-    private String id;
+    private final String id;
+
+    public PatchId() {
+        this(UUID.randomUUID().toString());
+    }
 }
