@@ -1,11 +1,13 @@
 package model.map;
 
 import model.car.Car;
+import model.car.CarData;
 import model.id.JunctionId;
 import model.id.LaneId;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Optional;
 
 class Lane implements LaneReadWrite {
@@ -18,7 +20,7 @@ class Lane implements LaneReadWrite {
     /**
      * Collection of cars traveling on this lane.
      */
-    private Collection<Car> carsQueue = new ArrayList<>();
+    private LinkedList<Car> carsQueue = new LinkedList<>();
 
     /**
      * Reference to lane that goes in opposite direction and is closest to this one.
@@ -47,4 +49,25 @@ class Lane implements LaneReadWrite {
      */
     private LightSignal outSignal;
 
+    public Optional<CarData> getNextCarData(Car car){
+        double carPosition = car.getPosition();
+        Car found = null;
+        for(Car nextCar : carsQueue){
+            if(nextCar.getPosition() > carPosition){
+                found = nextCar;
+                break;
+            }
+        }
+        Optional<CarData> carData;
+        if(found != null)
+            carData = Optional.of(new CarData(found.getPosition(), found.getSpeed()));
+        else
+            carData = Optional.empty();
+
+        return carData;
+    }
+
+    public void addCarToLane(Car car) {
+        this.carsQueue.addFirst(car);
+    }
 }
