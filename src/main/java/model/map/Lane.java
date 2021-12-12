@@ -1,6 +1,7 @@
 package model.map;
 
 import model.car.Car;
+import model.car.CarData;
 import model.id.JunctionId;
 import model.id.LaneId;
 
@@ -47,4 +48,25 @@ class Lane implements LaneReadWrite {
      */
     private LightSignal outSignal;
 
+    public Optional<CarData> getNextCarData(Car car){
+        double carPosition = car.getPosition();
+        Car found = null;
+        for(Car nextCar : carsQueue){
+            if(nextCar.getPosition() > carPosition){
+                found = nextCar;
+                break;
+            }
+        }
+        Optional<CarData> carData;
+        if(found != null)
+            carData = Optional.of(new CarData(found.getPosition(), found.getSpeed()));
+        else
+            carData = Optional.empty();
+
+        return carData;
+    }
+
+    public void addCarToLane(Car car) {
+        this.carsQueue.add(car);
+    }
 }

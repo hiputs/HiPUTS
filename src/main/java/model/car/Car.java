@@ -45,4 +45,21 @@ public class Car {
         throw new UnsupportedOperationException("method not implemented!");
     }
 
+    public double getPosition(){
+        return this.location.getPositionOnLane();
+    }
+
+    public void setPosition(double position){
+        if(this.location == null)
+            this.location = new LaneLocation();
+        this.location.setPositionOnLane(position);
+    }
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = speed;
+    }
 }

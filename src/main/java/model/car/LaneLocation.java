@@ -11,4 +11,12 @@ class LaneLocation {
      * Position of car at its lane.
      */
     private double positionOnLane = 0;
+
+    public double getPositionOnLane() {
+        return positionOnLane;
+    }
+
+    public void setPositionOnLane(double positionOnLane) {
+        this.positionOnLane = positionOnLane;
+    }
 }
