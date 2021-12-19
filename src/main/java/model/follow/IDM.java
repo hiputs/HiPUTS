@@ -3,16 +3,16 @@ package model.follow;
 import model.car.CarData;
 
 public class IDM implements IFollowingModel{
-    private final double distanceHeadway; // #TODO set parameter
-    private final double timeHeadway; // #TODO set parameter
-    private final double maxAcceleration; // #TODO set parameter
-    private final double maxDeceleration; // #TODO set parameter
+    private final double distanceHeadway; // #TODO check value of parameter
+    private final double timeHeadway; // #TODO check value of parameter
+    private final double maxAcceleration;
+    private final double maxDeceleration;
 
     public IDM(){
         distanceHeadway = 2.0;
         timeHeadway = 2.0;
-        maxAcceleration = 0.3;
-        maxDeceleration = 0.3;
+        maxAcceleration = 2.0;
+        maxDeceleration = 3.5;
     }
 
     public IDM(double distanceHeadway, double timeHeadway, double maxAcceleration, double maxDeceleration){

@@ -6,8 +6,8 @@ import lombok.Data;
 public class CarData {
     private double position;
     private double speed;
-    private final double length;// #TODO set parameter
-    private final double maxSpeed;// #TODO set parameter
+    private final double length;    // #TODO check value of parameter
+    private final double maxSpeed;  // #TODO check value of parameter
 
 
     public CarData(double position, double speed){

@@ -12,8 +12,8 @@ class IDMDeciderTest {
     void makeDecision_toCloseStopped() {
         double distanceHeadway = 2.0;
         double timeHeadway = 2.0;
-        double maxAcceleration = 0.3;
-        double maxDeceleration = 0.3;
+        double maxAcceleration = 2.0;
+        double maxDeceleration = 3.5;
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
@@ -30,8 +30,8 @@ class IDMDeciderTest {
     void makeDecision_freeStart() {
         double distanceHeadway = 2.0;
         double timeHeadway = 2.0;
-        double maxAcceleration = 0.3;
-        double maxDeceleration = 0.3;
+        double maxAcceleration = 2.0;
+        double maxDeceleration = 3.5;
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
@@ -48,8 +48,8 @@ class IDMDeciderTest {
     void makeDecision_maxSpeed() {
         double distanceHeadway = 2.0;
         double timeHeadway = 2.0;
-        double maxAcceleration = 0.3;
-        double maxDeceleration = 0.3;
+        double maxAcceleration = 2.0;
+        double maxDeceleration = 3.5;
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
@@ -66,8 +66,8 @@ class IDMDeciderTest {
     void makeDecision_toCloseMoving() {
         double distanceHeadway = 2.0;
         double timeHeadway = 2.0;
-        double maxAcceleration = 0.3;
-        double maxDeceleration = 0.3;
+        double maxAcceleration = 2.0;
+        double maxDeceleration = 3.5;
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
@@ -84,8 +84,8 @@ class IDMDeciderTest {
     void makeDecision_breakSafety() {
         double distanceHeadway = 2.0;
         double timeHeadway = 2.0;
-        double maxAcceleration = 0.3;
-        double maxDeceleration = 0.3;
+        double maxAcceleration = 2.0;
+        double maxDeceleration = 3.5;
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
@@ -94,7 +94,7 @@ class IDMDeciderTest {
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(managedCar, aheadCar);
         double acceleration = decider.makeDecision(environment);
-        double res = Math.abs(acceleration + maxDeceleration);
+        double res = Math.abs(acceleration + maxAcceleration);
         assertTrue(res <= 0.001, "Result was: " + res + ", but should be lower than 0");
     }
 }
