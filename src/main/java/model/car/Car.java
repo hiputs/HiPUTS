@@ -1,6 +1,8 @@
 package model.car;
 
 import model.actor.RoadStructureProvider;
+import model.follow.IDMDecider;
+import model.follow.IDecider;
 import model.id.CarId;
 
 import java.util.Optional;
@@ -38,6 +40,14 @@ public class Car {
 
     public void decide(RoadStructureProvider roadStructureProvider){
         // make local decision based on read only road structure (watch environment) and save it locally
+
+        //First prepare CarEnvironment
+        CarEnvironment environment = new CarEnvironment();
+
+        //Second call Decider
+
+        IDecider decider = new IDMDecider();
+        decider.makeDecision(environment);
     }
 
     public CarUpdateResult update() {
