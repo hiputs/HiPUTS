@@ -9,6 +9,7 @@ public class CarData {
     private final double length;// #TODO set parameter
     private final double maxSpeed;// #TODO set parameter
 
+
     public CarData(double position, double speed){
         this.position = position;
         this.speed = speed;
