@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class IDMTest {
 
     @Test
-    void calculateAcceleration_toClose() {
+    void calculateAcceleration_toCloseStopped() {
         double distanceHeadway = 2.0;
         double timeHeadway = 2.0;
         double maxAcceleration = 0.3;
@@ -17,7 +17,7 @@ class IDMTest {
         double maxSpeed = 20.0;
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarData managedCar = new CarData(10, 0, length, maxSpeed);
-        CarData aheadCar = new CarData(17, 0, length, maxSpeed);
+        CarData aheadCar = new CarData(10 + length + distanceHeadway, 0, length, maxSpeed);
         double acceleration = model.calculateAcceleration(managedCar, aheadCar);
         double res = Math.abs(acceleration);
         assertTrue(res <= 0.001, "Result was: " + res + ", but should be close to 0.");
@@ -65,9 +65,25 @@ class IDMTest {
         double maxSpeed = 20.0;
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarData managedCar = new CarData(10, maxSpeed, length, maxSpeed);
-        CarData aheadCar = new CarData(18, maxSpeed, length, maxSpeed);
+        CarData aheadCar = new CarData(10  + length + distanceHeadway, maxSpeed, length, maxSpeed);
         double acceleration = model.calculateAcceleration(managedCar, aheadCar);
         double res = acceleration;  //acceleration is lover than  (-lowestDeceleration)
         assertTrue(res <= 0.001 - maxDeceleration, "Result was: " + res + ", but should be lower than: " + (-maxDeceleration));
+    }
+
+    @Test
+    void calculateAcceleration_breakSafety() {
+        double distanceHeadway = 2.0;
+        double timeHeadway = 2.0;
+        double maxAcceleration = 0.3;
+        double maxDeceleration = 0.3;
+        double length = 5.0;
+        double maxSpeed = 20.0;
+        IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+        CarData managedCar = new CarData(10, maxSpeed, length, maxSpeed);
+        CarData aheadCar = new CarData(10 + length + distanceHeadway + maxSpeed * timeHeadway, maxSpeed, length, maxSpeed);
+        double acceleration = model.calculateAcceleration(managedCar, aheadCar);
+        double res = Math.abs(acceleration + maxDeceleration);
+        assertTrue(res <= 0.001, "Result was: " + res + ", but should be lower than 0");
     }
 }
