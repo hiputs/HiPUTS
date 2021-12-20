@@ -1,12 +1,20 @@
 package model.follow;
 
-import model.car.CarData;
+import model.car.Car;
 import model.car.CarEnvironment;
+import model.car.CarReadOnly;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class IDMDeciderTest {
+
+    private CarReadOnly createCar(double position, double speed, double length, double maxSpeed) {
+        Car managedCar = new Car(length, maxSpeed);
+        managedCar.setPosition(position);
+        managedCar.setSpeed(speed);
+        return managedCar;
+    }
 
     @Test
     void makeDecision_toCloseStopped() {
@@ -17,8 +25,8 @@ class IDMDeciderTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarData managedCar = new CarData(10, 0, length, maxSpeed);
-        CarData aheadCar = new CarData(10 + length + distanceHeadway, 0, length, maxSpeed);
+        CarReadOnly managedCar = createCar(10, 0, length, maxSpeed);
+        CarReadOnly aheadCar = createCar(10 + length + distanceHeadway, 0, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(managedCar, aheadCar);
         double acceleration = decider.makeDecision(environment);
@@ -35,8 +43,8 @@ class IDMDeciderTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarData managedCar = new CarData(10, 0, length, maxSpeed);
-        CarData aheadCar = new CarData(517, maxSpeed, length, maxSpeed);
+        CarReadOnly managedCar = createCar(10, 0, length, maxSpeed);
+        CarReadOnly aheadCar = createCar(517, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(managedCar, aheadCar);
         double acceleration = decider.makeDecision(environment);
@@ -53,8 +61,8 @@ class IDMDeciderTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarData managedCar = new CarData(10, maxSpeed, length, maxSpeed);
-        CarData aheadCar = new CarData(5017, maxSpeed, length, maxSpeed);
+        CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
+        CarReadOnly aheadCar = createCar(5017, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(managedCar, aheadCar);
         double acceleration = decider.makeDecision(environment);
@@ -71,8 +79,8 @@ class IDMDeciderTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarData managedCar = new CarData(10, maxSpeed, length, maxSpeed);
-        CarData aheadCar = new CarData(10  + length + distanceHeadway, maxSpeed, length, maxSpeed);
+        CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
+        CarReadOnly aheadCar = createCar(10  + length + distanceHeadway, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(managedCar, aheadCar);
         double acceleration = decider.makeDecision(environment);
@@ -89,8 +97,8 @@ class IDMDeciderTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarData managedCar = new CarData(10, maxSpeed, length, maxSpeed);
-        CarData aheadCar = new CarData(10 + length + distanceHeadway + maxSpeed * timeHeadway, maxSpeed, length, maxSpeed);
+        CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
+        CarReadOnly aheadCar = createCar(10 + length + distanceHeadway + maxSpeed * timeHeadway, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(managedCar, aheadCar);
         double acceleration = decider.makeDecision(environment);

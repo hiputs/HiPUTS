@@ -1,7 +1,7 @@
 package model.follow;
 
-import model.car.CarData;
+import model.car.CarReadOnly;
 
 public interface IFollowingModel {
-    double calculateAcceleration(final CarData managedCar, final CarData aheadCar) ;
+    double calculateAcceleration(final CarReadOnly managedCar, final CarReadOnly aheadCar) ;
 }

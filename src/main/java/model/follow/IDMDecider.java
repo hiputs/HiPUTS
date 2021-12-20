@@ -1,7 +1,7 @@
 package model.follow;
 
-import model.car.CarData;
 import model.car.CarEnvironment;
+import model.car.CarReadOnly;
 
 public class IDMDecider implements IDecider{
     IFollowingModel followingModel;
@@ -16,8 +16,8 @@ public class IDMDecider implements IDecider{
 
     @Override
     public double makeDecision(CarEnvironment environment) {    //Unpack environment and call IDM calculation
-        CarData managedCar = environment.getManagedCar();
-        CarData carAhead = environment.getCarAhead();
+        CarReadOnly managedCar = environment.getManagedCar();
+        CarReadOnly carAhead = environment.getCarAhead();
 
         return followingModel.calculateAcceleration(managedCar, carAhead);
     }
