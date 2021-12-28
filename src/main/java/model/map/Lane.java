@@ -1,12 +1,10 @@
 package model.map;
 
 import model.car.Car;
-import model.car.CarData;
+import model.car.CarReadOnly;
 import model.id.JunctionId;
 import model.id.LaneId;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Optional;
 
@@ -49,18 +47,18 @@ class Lane implements LaneReadWrite {
      */
     private LightSignal outSignal;
 
-    public Optional<CarData> getNextCarData(Car car){
+    public Optional<CarReadOnly> getNextCarData(CarReadOnly car){
         double carPosition = car.getPosition();
-        Car found = null;
-        for(Car nextCar : carsQueue){
+        CarReadOnly found = null;
+        for(CarReadOnly nextCar : carsQueue){
             if(nextCar.getPosition() > carPosition){
                 found = nextCar;
                 break;
             }
         }
-        Optional<CarData> carData;
+        Optional<CarReadOnly> carData;
         if(found != null)
-            carData = Optional.of(new CarData(found.getPosition(), found.getSpeed()));
+            carData = Optional.of(found);
         else
             carData = Optional.empty();
 

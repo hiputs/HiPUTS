@@ -1,8 +1,7 @@
 package model.map;
 
 import model.car.Car;
-import model.car.CarData;
-import org.junit.jupiter.api.BeforeAll;
+import model.car.CarReadOnly;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,8 +41,8 @@ class LaneTest {
 
     @Test
     void getNextCarData() {
-        Optional<CarData> optional1 = lane.getNextCarData(car1);
-        Optional<CarData> optional2 = lane.getNextCarData(car2);
+        Optional<CarReadOnly> optional1 = lane.getNextCarData(car1);
+        Optional<CarReadOnly> optional2 = lane.getNextCarData(car2);
         assertAll(
                 () -> assertFalse(optional1.isEmpty()),
                 () -> assertEquals(optional1.get().getPosition(), car2_pos),
@@ -56,7 +55,7 @@ class LaneTest {
 
     @Test
     void getNextCarEmpty() {
-        Optional<CarData> optional = lane.getNextCarData(car3);
+        Optional<CarReadOnly> optional = lane.getNextCarData(car3);
         assertTrue(optional.isEmpty());
     }
 }
