@@ -1,5 +1,10 @@
+import org.springframework.boot.SpringApplication;
+
+import javax.annotation.PostConstruct;
+
 public class Main {
+
     public static void main(String[] args) {
-        System.out.println("Initial project");
+        SpringApplication.run(Main.class, args);
     }
 }
