@@ -1,11 +1,13 @@
 package model.car;
 
 import model.actor.RoadStructureProvider;
+import model.follow.IDMDecider;
+import model.follow.IDecider;
 import model.id.CarId;
 
 import java.util.Optional;
 
-public class Car {
+public class Car implements CarReadOnly{
     /**
      * Unique car identifier.
      */
@@ -28,16 +30,38 @@ public class Car {
     /**
      * Length of the car.
      */
-    private double length = 0;
+    private double length = 5;
+    /**
+     * Maximum possible speed of the car.
+     */
+    private double maxSpeed = 20;
     /**
      * Current acceleration of car.
      */
     private double acceleration = 0;
 
     private Optional<Decision> decision;
+    /**
+     * Decider instance
+     */
+    private IDecider decider = new IDMDecider();    // #TODO Use autowire
+
+    public Car(){
+    }
+
+    public Car(double length, double maxSpeed){
+        this.length = length;
+        this.maxSpeed = maxSpeed;
+    }
 
     public void decide(RoadStructureProvider roadStructureProvider){
         // make local decision based on read only road structure (watch environment) and save it locally
+
+        //First prepare CarEnvironment
+        CarEnvironment environment = new CarEnvironment();
+
+        //Second call Decider
+        decider.makeDecision(environment);
     }
 
     public CarUpdateResult update() {
@@ -61,5 +85,15 @@ public class Car {
 
     public void setSpeed(double speed) {
         this.speed = speed;
+    }
+
+    @Override
+    public double getLength() {
+        return length;
+    }
+
+    @Override
+    public double getMaxSpeed() {
+        return maxSpeed;
     }
 }
