@@ -4,6 +4,7 @@ import pl.edu.agh.model.car.Car;
 import pl.edu.agh.model.car.CarReadOnly;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.edu.agh.model.id.LaneId;
 import pl.edu.agh.model.map.Lane;
 
 import java.util.Optional;

@@ -1,5 +1,8 @@
 package pl.edu.agh.model.map;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import pl.edu.agh.model.car.Car;
 import pl.edu.agh.model.car.CarReadOnly;
 import pl.edu.agh.model.id.JunctionId;
@@ -8,12 +11,15 @@ import pl.edu.agh.model.id.LaneId;
 import java.util.LinkedList;
 import java.util.Optional;
 
+@Getter
+@Setter
+@RequiredArgsConstructor
 public class Lane implements LaneReadWrite {
 
     /**
      * Unique lane identifier.
      */
-    private LaneId id;
+    private final LaneId id;
 
     /**
      * Collection of cars traveling on this lane.
@@ -47,17 +53,21 @@ public class Lane implements LaneReadWrite {
      */
     private LightSignal outSignal;
 
-    public Optional<CarReadOnly> getNextCarData(CarReadOnly car){
+    public Lane() {
+        this(new LaneId());
+    }
+
+    public Optional<CarReadOnly> getNextCarData(CarReadOnly car) {
         double carPosition = car.getPosition();
         CarReadOnly found = null;
-        for(CarReadOnly nextCar : carsQueue){
-            if(nextCar.getPosition() > carPosition){
+        for (CarReadOnly nextCar : carsQueue) {
+            if (nextCar.getPosition()>carPosition) {
                 found = nextCar;
                 break;
             }
         }
         Optional<CarReadOnly> carData;
-        if(found != null)
+        if (found != null)
             carData = Optional.of(found);
         else
             carData = Optional.empty();
