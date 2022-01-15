@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LaneTest {
     private Lane lane;
+    private double lane_length = 1000.0;
     private double car1_speed = 10.4;
     private double car1_pos = 153.2;
     private double car2_speed = 15.2;
@@ -27,6 +28,7 @@ class LaneTest {
     @BeforeEach
     void setupLane(){
         lane = new Lane();
+        lane.setLength(lane_length);
         car1 = new Car();
         car2 = new Car();
         car3 = new Car();

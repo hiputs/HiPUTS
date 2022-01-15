@@ -53,6 +53,11 @@ public class Lane implements LaneReadWrite {
      */
     private LightSignal outSignal;
 
+    /**
+     * Length of lane in meters
+     */
+    private double length;
+
     public Lane() {
         this(new LaneId());
     }

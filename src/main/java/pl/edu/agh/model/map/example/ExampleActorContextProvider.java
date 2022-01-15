@@ -7,7 +7,9 @@ import pl.edu.agh.model.map.Lane;
 import pl.edu.agh.model.map.Patch;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -15,19 +17,27 @@ import java.util.stream.Stream;
 
 public class ExampleActorContextProvider {
 
+    private static final Double DEFAULT_LANE_LENGTH = 1000.0;
+
     public static ActorContext getSimpleMap1() {
         String mapStructure = "(1->2) (2->3) (3->1)";
-        return fromStringRepresentation(mapStructure);
+        return fromStringRepresentation(mapStructure, Collections.emptyMap());
     }
 
     public static ActorContext getSimpleMap2() {
         String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
-        return fromStringRepresentation(mapStructure);
+        Map<String, Double> laneLengths = Stream.of(new String[][] {
+                { "1->2", "3400.0" },
+                { "2->3", "1200.0" },
+        }).collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
+        return fromStringRepresentation(mapStructure, laneLengths);
     }
 
-    public static ActorContext fromStringRepresentation(String mapStructure) {
+    public static ActorContext fromStringRepresentation(String mapStructure, Map<String, Double> laneLengths) {
         Map<String, Lane> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
         Map<String, Junction> stringJunctionMap = getStringJunctionMapFromStringRepresentation(mapStructure);
+
+        setLaneLengths(stringLaneMap, laneLengths);
 
         stringLaneMap.forEach((key, value) -> putOnMap(key, value, stringJunctionMap));
 
@@ -50,6 +60,11 @@ public class ExampleActorContextProvider {
                 .flatMap(edge -> Stream.of(edge.split("->")))
                 .collect(Collectors.toSet()).stream()
                 .collect(Collectors.toMap(Function.identity(), v -> new Junction()));
+    }
+
+    private static void setLaneLengths(Map<String, Lane> stringLaneMap, Map<String, Double> laneLengths) {
+        stringLaneMap.forEach(
+                (key, lane) -> lane.setLength(Optional.ofNullable(laneLengths.get(key)).orElse(DEFAULT_LANE_LENGTH)));
     }
 
     private static void putOnMap(String edge, Lane lane, Map<String, Junction> stringJunctionMap) {
