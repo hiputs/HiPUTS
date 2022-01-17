@@ -1,8 +1,10 @@
 package pl.edu.agh.model.follow;
 
+import org.springframework.stereotype.Component;
 import pl.edu.agh.model.car.CarEnvironment;
 import pl.edu.agh.model.car.CarReadOnly;
 
+@Component
 public class IDMDecider implements IDecider{
     IFollowingModel followingModel;
 
