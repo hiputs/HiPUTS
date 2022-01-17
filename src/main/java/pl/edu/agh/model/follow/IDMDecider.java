@@ -15,10 +15,13 @@ public class IDMDecider implements IDMecider {
     }
 
     @Override
-    public double makeDecision(CarEnvironment environment) {    //Unpack environment and call IDM calculation
-        CarReadOnly managedCar = environment.getManagedCar();
-        CarReadOnly carAhead = environment.getCarAhead();
-
-        return followingModel.calculateAcceleration(managedCar, carAhead);
+    public double makeDecision(CarReadOnly car, CarEnvironment environment) {    //Unpack environment and call IDM calculation
+        double speed = car.getSpeed();
+        double desiredSpeed = car.getMaxSpeed();
+        double distance = environment.getDistance();
+        double deltaSpeed = environment.getPrecedingCar()
+                .map(precedingCar -> precedingCar.getSpeed() - car.getSpeed())
+                .orElse(0.0);
+        return followingModel.calculateAcceleration(speed, desiredSpeed, distance, deltaSpeed);
     }
 }

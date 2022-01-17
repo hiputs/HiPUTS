@@ -20,4 +20,7 @@ public class Route {
      */
     private List<RouteElement> routeElements;
 
+    public LaneId getNextLaneId(){
+        throw new UnsupportedOperationException("method not implemented!");
+    }
 }

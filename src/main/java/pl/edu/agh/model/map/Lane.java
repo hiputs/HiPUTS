@@ -87,6 +87,16 @@ public class Lane implements LaneReadWrite {
         return carData;
     }
 
+    public Optional<CarReadOnly> getFirstCar() {
+        Optional<CarReadOnly> firstCar;
+        try{
+            firstCar = Optional.of(this.carsQueue.getFirst());
+        } catch (Exception e) {
+            firstCar = Optional.empty();
+        }
+        return firstCar;
+    }
+
     public void addCarToLane(Car car) {
         this.carsQueue.addFirst(car);
     }

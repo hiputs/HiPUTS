@@ -17,4 +17,8 @@ public class JunctionId {
     public JunctionId() {
         this(UUID.randomUUID().toString(), JunctionType.CROSSROAD);
     }
+
+    public boolean isCrossroad(){ // TODO #15 add method or anyway to check junction type
+        throw new UnsupportedOperationException("method not implemented!");
+    }
 }
