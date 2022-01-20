@@ -83,8 +83,7 @@ public class Car implements CarReadOnly, Comparable<Car> {
         //First prepare CarEnvironment
         CarEnvironment environment = this.getPrecedingCar();
 
-        //Second call Decider
-        decider.makeDecision(this, environment);
+        this.acceleration = this.decider.makeDecision(this, environment);
     }
 
     public CarUpdateResult update() {

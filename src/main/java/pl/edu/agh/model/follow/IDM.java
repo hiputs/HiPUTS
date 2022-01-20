@@ -22,18 +22,8 @@ public class IDM implements IFollowingModel{
 
     @Override
     public double calculateAcceleration(double speed, double desiredSpeed, double distance, double deltaSpeed) {
-        //final double distance = aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition();
-        //final double speed = managedCar.getSpeed();
-        //final double deltaSpeed = managedCar.getSpeed() - aheadCar.getSpeed();
-
         double minimumDistance = distanceHeadway + speed * timeHeadway + ((speed * deltaSpeed) / (2 * Math.sqrt(normalAcceleration * normalDeceleration)));
-
-        //double desiredSpeed = managedCar.getMaxSpeed();
-
         final double delta = 4;
-
-        final double acceleration = normalAcceleration * (1 - Math.pow(speed/desiredSpeed, delta) - Math.pow(minimumDistance/distance, 2));
-
-        return acceleration;
+        return  normalAcceleration * (1 - Math.pow(speed/desiredSpeed, delta) - Math.pow(minimumDistance/distance, 2));
     }
 }
