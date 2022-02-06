@@ -10,7 +10,7 @@ import java.util.UUID;
 @Getter
 @EqualsAndHashCode
 public class LaneId {
-    private final String id;
+    private final String value;
 
     public LaneId() {
         this(UUID.randomUUID().toString());

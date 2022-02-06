@@ -1,12 +1,18 @@
 package pl.edu.agh.model.id;
 
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@AllArgsConstructor
+import java.util.UUID;
+
+@RequiredArgsConstructor
 @Getter
 @EqualsAndHashCode
 public class CarId {
-    private String id;
+    private final String value;
+
+    public CarId() {
+        this(UUID.randomUUID().toString());
+    }
 }

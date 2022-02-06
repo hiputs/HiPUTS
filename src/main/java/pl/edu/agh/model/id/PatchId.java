@@ -10,7 +10,7 @@ import java.util.UUID;
 @Getter
 @EqualsAndHashCode
 public class PatchId {
-    private final String id;
+    private final String value;
 
     public PatchId() {
         this(UUID.randomUUID().toString());

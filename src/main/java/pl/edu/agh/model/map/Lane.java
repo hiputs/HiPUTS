@@ -10,6 +10,8 @@ import pl.edu.agh.model.id.LaneId;
 
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 @Getter
 @Setter
@@ -58,6 +60,11 @@ public class Lane implements LaneReadWrite {
      */
     private double length;
 
+    /**
+     * Set for cars incoming onto this lane
+     */
+    private Set<Car> incomingCarsSet = new ConcurrentSkipListSet<Car>();
+
     public Lane() {
         this(new LaneId());
     }
@@ -82,5 +89,17 @@ public class Lane implements LaneReadWrite {
 
     public void addCarToLane(Car car) {
         this.carsQueue.addFirst(car);
+    }
+
+    public Set<Car> getIncomingCars(){
+        return this.incomingCarsSet;
+    }
+
+    public boolean addToIncomingCars(Car car){
+        return this.incomingCarsSet.add(car);
+    }
+
+    public void clearIncomingCars(){
+        this.incomingCarsSet.clear();
     }
 }

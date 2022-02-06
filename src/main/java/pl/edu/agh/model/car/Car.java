@@ -5,13 +5,14 @@ import pl.edu.agh.model.follow.IDMDecider;
 import pl.edu.agh.model.follow.IDecider;
 import pl.edu.agh.model.id.CarId;
 
+import java.util.Objects;
 import java.util.Optional;
 
-public class Car implements CarReadOnly{
+public class Car implements CarReadOnly, Comparable<Car> {
     /**
      * Unique car identifier.
      */
-    private CarId id;
+    private final CarId id;
 
     /**
      * Route that car will follow.
@@ -46,15 +47,21 @@ public class Car implements CarReadOnly{
      */
     private IDecider decider = new IDMDecider();    // #TODO Use autowire
 
-    public Car(){
+    public Car() {
+        this.id = new CarId();
     }
 
-    public Car(double length, double maxSpeed){
+    public Car(CarId carId) {
+        this.id = carId;
+    }
+
+    public Car(double length, double maxSpeed) {
+        this.id = new CarId();
         this.length = length;
         this.maxSpeed = maxSpeed;
     }
 
-    public void decide(RoadStructureProvider roadStructureProvider){
+    public void decide(RoadStructureProvider roadStructureProvider) {
         // make local decision based on read only road structure (watch environment) and save it locally
 
         //First prepare CarEnvironment
@@ -95,5 +102,27 @@ public class Car implements CarReadOnly{
     @Override
     public double getMaxSpeed() {
         return maxSpeed;
+    }
+
+    public CarId getCarId() {
+        return this.id;
+    }
+
+    @Override
+    public int compareTo(Car anotherCar) {
+        return this.id.getValue().compareTo(anotherCar.getCarId().getValue());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Car car = (Car) o;
+        return Objects.equals(id, car.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
