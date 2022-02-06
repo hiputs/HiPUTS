@@ -14,13 +14,13 @@ public class RouteLocation {
      */
     private final Route route;
 
-    /*
-     * Contains first routeElement index in path not yet visited by car.
-     * JunctionId in this element is the same junctionId as outgoingJunctionId of lane where vehicle is currently situated.
-     * Example:
-     *  map: Lane1 -> JunctionX -> Lane2
-     *  car is on Lane1
-     *  current position points to element (JunctionX, Lane2)
+    /**
+     * <p> Contains first routeElement index in path not yet visited by car. </p>
+     * <p> JunctionId in this element is the same junctionId as outgoingJunctionId of lane where vehicle is currently situated. </p>
+     * <p> Example: </p>
+     * <p> map: Lane1 -> JunctionX -> Lane2 </p>
+     * <p> car is on Lane1 </p>
+     * <p> current position points to element (JunctionX, Lane2)</p>
      */
     private int currentPosition = 0;
 

@@ -1,12 +1,14 @@
 package pl.edu.agh.model.car;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 import pl.edu.agh.model.actor.RoadStructureProvider;
 import pl.edu.agh.model.follow.IDecider;
 import pl.edu.agh.model.id.CarId;
 
+import javax.inject.Inject;
 import java.util.Optional;
 
+@Configurable
 public class Car implements CarReadOnly {
 
     /**
@@ -44,12 +46,15 @@ public class Car implements CarReadOnly {
      */
     private double acceleration = 0;
 
+    /**
+     * Decision on how car state should be changed. Calculated by decider.
+     */
     private Optional<Decision> decision;
 
     /**
      * Decider instance
      */
-    @Autowired
+    @Inject
     private IDecider decider;
 
     public Car() {
