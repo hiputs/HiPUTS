@@ -17,15 +17,15 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ActorContext implements RoadStructureProvider {
+public class MapFragment implements RoadStructureProvider {
 
     /**
-     * All patches within this ActorContext - they represent patches that are situated within the same JVM
+     * All patches within this MapFragment - they represent patches that are situated within the same JVM
      */
     private Map<PatchId, Patch> localPatches;
 
     /**
-     * All remote patches (shadow patches from neighboring Actor Contexts) to this ActorContext
+     * All remote patches (shadow patches from neighboring Actor Contexts) to this MapFragment
      */
     private Map<PatchId, Patch> remotePatches;
 
@@ -81,11 +81,11 @@ public class ActorContext implements RoadStructureProvider {
             return this;
         }
 
-        public ActorContext build() {
-            ActorContext actorContext = new ActorContext();
-            actorContext.localPatches = this.localPatches;
-            actorContext.remotePatches = this.remotePatches;
-            actorContext.lane2Patch = Stream.concat(
+        public MapFragment build() {
+            MapFragment mapFragment = new MapFragment();
+            mapFragment.localPatches = this.localPatches;
+            mapFragment.remotePatches = this.remotePatches;
+            mapFragment.lane2Patch = Stream.concat(
                             this.localPatches.values().stream(),
                             this.remotePatches.values().stream())
                     .map(patch -> patch.getLanes()
@@ -93,7 +93,7 @@ public class ActorContext implements RoadStructureProvider {
                             .collect(Collectors.toMap(Function.identity(), laneId -> patch.getId())))
                     .flatMap(map -> map.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            return actorContext;
+            return mapFragment;
         }
     }
 }

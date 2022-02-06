@@ -1,8 +1,7 @@
 package pl.edu.agh.model.map.example;
 
-import pl.edu.agh.model.actor.ActorContext;
+import pl.edu.agh.model.actor.MapFragment;
 import pl.edu.agh.model.car.Car;
-
 import pl.edu.agh.model.map.Junction;
 import pl.edu.agh.model.map.Lane;
 import pl.edu.agh.model.map.Patch;
@@ -20,12 +19,12 @@ public class ExampleActorContextProvider {
 
     private static final Double DEFAULT_LANE_LENGTH = 1000.0;
 
-    public static ActorContext getSimpleMap1() {
+    public static MapFragment getSimpleMap1() {
         String mapStructure = "(1->2) (2->3) (3->1)";
         return fromStringRepresentation(mapStructure, Collections.emptyMap(), 2);
     }
 
-    public static ActorContext getSimpleMap2() {
+    public static MapFragment getSimpleMap2() {
         String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
         Map<String, Double> laneLengths = Stream.of(new String[][]{
                 {"1->2", "3400.0"},
@@ -34,7 +33,7 @@ public class ExampleActorContextProvider {
         return fromStringRepresentation(mapStructure, laneLengths, 2);
     }
 
-    public static ActorContext fromStringRepresentation(String mapStructure, Map<String, Double> laneLengths, int randomCarsPerLane) {
+    public static MapFragment fromStringRepresentation(String mapStructure, Map<String, Double> laneLengths) {
         Map<String, Lane> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
         Map<String, Junction> stringJunctionMap = getStringJunctionMapFromStringRepresentation(mapStructure);
 
@@ -44,18 +43,18 @@ public class ExampleActorContextProvider {
 
         Patch patch = createPatch(stringLaneMap, stringJunctionMap);
 
-        ActorContext actorContext = ActorContext.builder()
+        MapFragment mapFragment = MapFragment.builder()
                 .addLocalPatch(patch)
                 .build();
 
         for (int i = 0; i < randomCarsPerLane; i++) {
             for (Lane lane : stringLaneMap.values()) {
-                Car car = new ExampleCarProvider(actorContext).generateCar(lane.getId(), ThreadLocalRandom.current().nextInt(10));
+                Car car = new ExampleCarProvider(mapFragment).generateCar(lane.getId(), ThreadLocalRandom.current().nextInt(10));
                 lane.addCarToLane(car);
             }
         }
 
-        return actorContext;
+        return mapFragment;
     }
 
     private static Map<String, Lane> getStringLaneMapFromStringRepresentation(String mapStructure) {
