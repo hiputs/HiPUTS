@@ -7,17 +7,19 @@ import pl.edu.agh.model.id.LaneId;
 import pl.edu.agh.model.id.PatchId;
 import pl.edu.agh.model.map.Junction;
 import pl.edu.agh.model.map.LaneReadOnly;
+import pl.edu.agh.model.map.LaneReadWrite;
 import pl.edu.agh.model.map.Patch;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MapFragment implements RoadStructureProvider {
+public class MapFragment implements RoadStructureProvider, LaneStateModifier {
 
     /**
      * All patches within this MapFragment - they represent patches that are situated within the same JVM
@@ -65,6 +67,25 @@ public class MapFragment implements RoadStructureProvider {
     private void stage(Car car) {
         throw new UnsupportedOperationException("method not implemented!");
         // Add car to some collection for future sending
+    }
+
+    @Override
+    public void addCarToLane(LaneId laneId, Car car) {
+        findLaneById(laneId).addFirstCar(car);
+    }
+
+    @Override
+    public Car removeLastCarFromLane(LaneId laneId) {
+        return findLaneById(laneId).removeLastCar();
+    }
+
+    private LaneReadWrite findLaneById(LaneId laneId) {
+        return findPatchById(lane2Patch.get(laneId)).getLanes().get(laneId);
+    }
+
+    private Patch findPatchById(PatchId patchId) {
+        return Optional.ofNullable(localPatches.get(patchId))
+                .orElse(remotePatches.get(patchId));
     }
 
     public static final class Builder {

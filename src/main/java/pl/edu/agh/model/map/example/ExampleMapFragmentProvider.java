@@ -15,7 +15,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ExampleActorContextProvider {
+public class ExampleMapFragmentProvider {
 
     private static final Double DEFAULT_LANE_LENGTH = 1000.0;
 
