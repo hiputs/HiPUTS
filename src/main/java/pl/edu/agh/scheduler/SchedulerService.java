@@ -16,7 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Service
 public class SchedulerService implements TaskReceptionUseCase{
 
-    private ThreadPoolExecutor mailSenderExecutor;
+    private ForkJoinPool pool;
     private final List<Future<?>> futures = new LinkedList<>();
     private static final int RESERVED_THREADS_NUMBER = 1;
 
@@ -27,7 +27,7 @@ public class SchedulerService implements TaskReceptionUseCase{
         if (cores <= 0) {
             throw new InsufficientSystemResourcesException("Insufficient number of cores");
         }
-        mailSenderExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(cores);
+        pool = new ForkJoinPool(cores);
     }
 
     private int getFreeCore() {
