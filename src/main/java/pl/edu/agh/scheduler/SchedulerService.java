@@ -7,16 +7,13 @@ import pl.edu.agh.scheduler.exception.InsufficientSystemResourcesException;
 import javax.annotation.PostConstruct;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 @Slf4j
 @Service
 public class SchedulerService implements TaskReceptionUseCase{
 
-    private ThreadPoolExecutor mailSenderExecutor;
+    private ForkJoinPool threadPool;
     private final List<Future<?>> futures = new LinkedList<>();
     private static final int RESERVED_THREADS_NUMBER = 1;
 
@@ -27,7 +24,7 @@ public class SchedulerService implements TaskReceptionUseCase{
         if (cores <= 0) {
             throw new InsufficientSystemResourcesException("Insufficient number of cores");
         }
-        mailSenderExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(cores);
+        threadPool = new ForkJoinPool(cores);
     }
 
     private int getFreeCore() {
@@ -35,7 +32,7 @@ public class SchedulerService implements TaskReceptionUseCase{
     }
 
     public void addTask(Runnable task) {
-        futures.add(mailSenderExecutor.submit(task));
+        futures.add(threadPool.submit(task));
     }
 
     @Override
