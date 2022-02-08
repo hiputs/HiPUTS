@@ -12,7 +12,9 @@ import java.util.UUID;
 public class JunctionId {
     private final String value;
 
+    private final JunctionType junctionType;
+
     public JunctionId() {
-        this(UUID.randomUUID().toString());
+        this(UUID.randomUUID().toString(), JunctionType.CROSSROAD);
     }
 }
