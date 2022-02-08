@@ -10,7 +10,7 @@ import java.util.UUID;
 @Getter
 @EqualsAndHashCode
 public class JunctionId {
-    private final String id;
+    private final String value;
 
     private final JunctionType junctionType;
 

@@ -2,14 +2,15 @@ package pl.edu.agh.model.car;
 
 import org.springframework.beans.factory.annotation.Configurable;
 import pl.edu.agh.model.actor.RoadStructureProvider;
-import pl.edu.agh.model.follow.IDecider;
+import pl.edu.agh.model.follow.IDMecider;
 import pl.edu.agh.model.id.CarId;
 
 import javax.inject.Inject;
+import java.util.Objects;
 import java.util.Optional;
 
 @Configurable
-public class Car implements CarReadOnly {
+public class Car implements CarReadOnly, Comparable<Car> {
 
     /**
      * Unique car identifier.
@@ -55,7 +56,7 @@ public class Car implements CarReadOnly {
      * Decider instance
      */
     @Inject
-    private IDecider decider;
+    private IDMecider decider;
 
     public Car() {
     }
@@ -106,5 +107,27 @@ public class Car implements CarReadOnly {
     @Override
     public double getMaxSpeed() {
         return maxSpeed;
+    }
+
+    public CarId getCarId() {
+        return this.id;
+    }
+
+    @Override
+    public int compareTo(Car anotherCar) {
+        return this.id.getValue().compareTo(anotherCar.getCarId().getValue());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Car car = (Car) o;
+        return Objects.equals(id, car.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
