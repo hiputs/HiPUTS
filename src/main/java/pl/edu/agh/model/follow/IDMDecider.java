@@ -3,7 +3,7 @@ package pl.edu.agh.model.follow;
 import pl.edu.agh.model.car.CarEnvironment;
 import pl.edu.agh.model.car.CarReadOnly;
 
-public class IDMDecider implements IDecider{
+public class IDMDecider implements IDMecider {
     IFollowingModel followingModel;
 
     public IDMDecider(){

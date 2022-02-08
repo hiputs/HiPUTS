@@ -2,12 +2,11 @@ package pl.edu.agh.model.car;
 
 import org.springframework.beans.factory.annotation.Configurable;
 import pl.edu.agh.model.actor.RoadStructureProvider;
-import pl.edu.agh.model.follow.IDMDecider;
-import pl.edu.agh.model.follow.IDecider;
+import pl.edu.agh.model.follow.IDMecider;
 import pl.edu.agh.model.id.CarId;
 
-import java.util.Objects;
 import javax.inject.Inject;
+import java.util.Objects;
 import java.util.Optional;
 
 @Configurable
@@ -16,7 +15,7 @@ public class Car implements CarReadOnly, Comparable<Car> {
     /**
      * Unique car identifier.
      */
-    private final CarId id;
+    private CarId id;
 
     /**
      * Lane on which car is currently situated and its location on this lane.
@@ -57,7 +56,7 @@ public class Car implements CarReadOnly, Comparable<Car> {
      * Decider instance
      */
     @Inject
-    private IDecider decider;
+    private IDMecider decider;
 
     public Car() {
     }
