@@ -63,7 +63,7 @@ public class Lane implements LaneReadWrite {
     /**
      * Set for cars incoming onto this lane
      */
-    private Set<Car> incomingCarsSet = new ConcurrentSkipListSet<Car>();
+    private Set<Car> incomingCars = new ConcurrentSkipListSet<Car>();
 
     public Lane() {
         this(new LaneId());
@@ -73,7 +73,7 @@ public class Lane implements LaneReadWrite {
         double carPosition = car.getPosition();
         CarReadOnly found = null;
         for (CarReadOnly nextCar : carsQueue) {
-            if (nextCar.getPosition()>carPosition) {
+            if (nextCar.getPosition() > carPosition) {
                 found = nextCar;
                 break;
             }
@@ -91,15 +91,17 @@ public class Lane implements LaneReadWrite {
         this.carsQueue.addFirst(car);
     }
 
-    public Set<Car> getIncomingCars(){
-        return this.incomingCarsSet;
+    public void addToIncomingCars(Car car) throws CarAlreadyAddedException {
+        if (this.incomingCars.add(car))
+            throw new CarAlreadyAddedException();
     }
 
-    public boolean addToIncomingCars(Car car){
-        return this.incomingCarsSet.add(car);
+    public void clearIncomingCars() {
+        this.incomingCars.clear();
     }
 
-    public void clearIncomingCars(){
-        this.incomingCarsSet.clear();
-    }
+
+}
+
+class CarAlreadyAddedException extends Exception {
 }
