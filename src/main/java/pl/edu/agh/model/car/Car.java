@@ -103,19 +103,21 @@ public class Car implements CarReadOnly, Comparable<Car> {
         if(nextJunctionId.isCrossroad() || precedingCar.isPresent())
             distance = precedingCar.map(car -> car.getPosition() - car.getLength()).orElse(lane.getLength()) - this.getPosition();
         else {
-            distance = lane.getLength() - this.getPosition();
-            LaneId nextLaneId = route.getNextLaneId();
-            lane = this.actorContext.getLane(nextLaneId);
-            nextJunctionId = lane.getOutgoingJunction();
-            precedingCar = lane.getFirstCar();
-            // start searching precedingCar up to first crossroad TODO nextJunctionId.isCrossroad()
+            distance = 0;
+            int offset = 0;
+            LaneId nextLaneId;
             while(precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
-                distance += lane.getLength();
-                nextLaneId = route.getNextLaneId();
+                try {
+                    nextLaneId = routeLocation.getOffsetLaneId(offset++);
+                } catch (IndexOutOfBoundsException indexOutOfBoundsException){
+                    break;
+                }
+                distance += lane.getLength(); // adds previous lane length
                 lane = this.actorContext.getLane(nextLaneId);
+                nextJunctionId = lane.getOutgoingJunction();
                 precedingCar = lane.getFirstCar();
             }
-            distance += precedingCar.map(car -> car.getPosition() - car.getLength()).orElse(lane.getLength()); // distance to car or to crossroad
+            distance += precedingCar.map(car -> car.getPosition() - car.getLength()).orElse(lane.getLength()) - this.getPosition();// distance to car or to crossroad
         }
         return new CarEnvironment(precedingCar, distance);
     }

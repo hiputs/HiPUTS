@@ -45,6 +45,16 @@ public class RouteLocation {
         return getNextRouteElement().getOutgoingLaneId();
     }
 
+    /**
+     *
+     * @param offset by which increase car currentPosition
+     * @return offseted LaneId if exists or throws IndexOutOfBoundsException
+     */
+    public LaneId getOffsetLaneId(int offset) {
+        int index = Objects.checkIndex(currentPosition + offset, this.route.getRouteElements().size());
+        return route.getRouteElements().get(index).getOutgoingLaneId();
+    }
+
     /*
      * Increment position on route by one route element.
      */

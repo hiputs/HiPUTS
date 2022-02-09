@@ -33,7 +33,7 @@ class IDMDeciderTest {
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, 0, length, maxSpeed);
         CarReadOnly aheadCar = createCar(10 + length + distanceHeadway, 0, length, maxSpeed);
-        IDecider decider = new IDMDecider(model);
+        IDMecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
                 Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
         double acceleration = decider.makeDecision(managedCar, environment);
@@ -52,7 +52,7 @@ class IDMDeciderTest {
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, 0, length, maxSpeed);
         CarReadOnly aheadCar = createCar(517, maxSpeed, length, maxSpeed);
-        IDecider decider = new IDMDecider(model);
+        IDMecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
                 Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
         double acceleration = decider.makeDecision(managedCar, environment);
@@ -71,7 +71,7 @@ class IDMDeciderTest {
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
         CarReadOnly aheadCar = createCar(5017, maxSpeed, length, maxSpeed);
-        IDecider decider = new IDMDecider(model);
+        IDMecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
                 Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
         double acceleration = decider.makeDecision(managedCar, environment);
@@ -90,7 +90,7 @@ class IDMDeciderTest {
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
         CarReadOnly aheadCar = createCar(10  + length + distanceHeadway, maxSpeed, length, maxSpeed);
-        IDecider decider = new IDMDecider(model);
+        IDMecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
                 Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
         double acceleration = decider.makeDecision(managedCar, environment);
@@ -109,7 +109,7 @@ class IDMDeciderTest {
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
         CarReadOnly aheadCar = createCar(10 + length + distanceHeadway + maxSpeed * timeHeadway, maxSpeed, length, maxSpeed);
-        IDecider decider = new IDMDecider(model);
+        IDMecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
                 Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
         double acceleration = decider.makeDecision(managedCar, environment);
