@@ -79,7 +79,7 @@ public class ExampleActorContextProvider {
 
         Set<LaneId> incomingJunctionOutgoingLanes = incomingJunction.getOutgoingLanes();
         incomingJunctionOutgoingLanes.add(lane.getId());
-        incomingJunction.setIncomingLanes(incomingJunctionOutgoingLanes);
+        incomingJunction.setOutgoingLanes(incomingJunctionOutgoingLanes);
 
         Set<LaneId> outgoingJunctionIncomingLanes = outgoingJunction.getIncomingLanes();
         outgoingJunctionIncomingLanes.add(lane.getId());

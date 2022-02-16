@@ -64,9 +64,10 @@ public class Car implements CarReadOnly, Comparable<Car> {
     public Car(){
     }
 
-    public Car(double length, double maxSpeed) {
+    public Car(double length, double maxSpeed, RouteLocation routeLocation) {
         this.length = length;
         this.maxSpeed = maxSpeed;
+        this.routeLocation = routeLocation;
     }
 
     public void decide(RoadStructureProvider roadStructureProvider) {
@@ -168,5 +169,10 @@ public class Car implements CarReadOnly, Comparable<Car> {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public void setNewLocation(LaneId startLane) {
+        this.location = new LaneLocation();
+        this.location.setLane(startLane);
     }
 }

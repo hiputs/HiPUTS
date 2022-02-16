@@ -9,6 +9,7 @@ import pl.edu.agh.model.map.Junction;
 import pl.edu.agh.model.map.LaneReadOnly;
 import pl.edu.agh.model.map.Patch;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +52,10 @@ public class ActorContext implements RoadStructureProvider {
     @Override
     public Junction getJunction(JunctionId junctionId) {
         throw new UnsupportedOperationException("method not implemented!");
+    }
+
+    public Collection<Patch> getLocalPatches() {
+        return this.localPatches.values();
     }
 
     public static Builder builder() {
