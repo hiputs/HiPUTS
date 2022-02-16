@@ -9,6 +9,7 @@ public interface LaneReadOnly {
     // readable interface for Lane class
 
     Optional<CarReadOnly> getNextCarData(CarReadOnly car);
+
     Optional<CarReadOnly> getFirstCar();
 
     JunctionId getOutgoingJunction();

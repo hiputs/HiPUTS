@@ -1,14 +1,11 @@
 package pl.edu.agh.model.car;
 
 import org.springframework.beans.factory.annotation.Configurable;
-import pl.edu.agh.model.actor.ActorContext;
 import pl.edu.agh.model.actor.RoadStructureProvider;
-import pl.edu.agh.model.follow.IDMecider;
+import pl.edu.agh.model.follow.IDecider;
 import pl.edu.agh.model.id.CarId;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
-import pl.edu.agh.model.map.Junction;
-import pl.edu.agh.model.map.Lane;
 import pl.edu.agh.model.map.LaneReadOnly;
 
 import javax.inject.Inject;
@@ -62,12 +59,7 @@ public class Car implements CarReadOnly, Comparable<Car> {
      * Decider instance
      */
     @Inject
-    private IDMecider decider;
-
-    /**
-     * ActorContext instance
-     */
-    private ActorContext actorContext; // TODO provide actorContext
+    private IDecider decider;
 
     public Car(){
     }
@@ -81,7 +73,7 @@ public class Car implements CarReadOnly, Comparable<Car> {
         // make local decision based on read only road structure (watch environment) and save it locally
 
         //First prepare CarEnvironment
-        CarEnvironment environment = this.getPrecedingCar();
+        CarEnvironment environment = this.getPrecedingCar(roadStructureProvider);
 
         this.acceleration = this.decider.makeDecision(this, environment);
     }
@@ -95,29 +87,35 @@ public class Car implements CarReadOnly, Comparable<Car> {
      * Search for preceding car on the way counting distance to car, or distance to crossroad
      * @return precedingCar and distance
      */
-    private CarEnvironment getPrecedingCar () {
-        LaneReadOnly lane = this.actorContext.getLane(this.location.getLane());
-        JunctionId nextJunctionId = lane.getOutgoingJunction();
-        Optional<CarReadOnly> precedingCar = lane.getNextCarData(this);
+    private CarEnvironment getPrecedingCar (RoadStructureProvider roadStructureProvider) {
+        LaneReadOnly currentLane = roadStructureProvider.getLane(this.location.getLane());
+        JunctionId nextJunctionId = currentLane.getOutgoingJunction();
+        Optional<CarReadOnly> precedingCar = currentLane.getNextCarData(this);
         double distance;
         if(nextJunctionId.isCrossroad() || precedingCar.isPresent())
-            distance = precedingCar.map(car -> car.getPosition() - car.getLength()).orElse(lane.getLength()) - this.getPosition();
+            distance = precedingCar
+                    .map(car -> car.getPosition() - car.getLength())
+                    .orElse(currentLane.getLength()) - this.getPosition();
         else {
             distance = 0;
             int offset = 0;
             LaneId nextLaneId;
+            LaneReadOnly nextLane;
             while(precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
                 try {
                     nextLaneId = routeLocation.getOffsetLaneId(offset++);
                 } catch (IndexOutOfBoundsException indexOutOfBoundsException){
                     break;
                 }
-                distance += lane.getLength(); // adds previous lane length
-                lane = this.actorContext.getLane(nextLaneId);
-                nextJunctionId = lane.getOutgoingJunction();
-                precedingCar = lane.getFirstCar();
+                distance += currentLane.getLength(); // adds previous lane length
+                nextLane = roadStructureProvider.getLane(nextLaneId);
+                nextJunctionId = nextLane.getOutgoingJunction();
+                precedingCar = nextLane.getFirstCar();
+                currentLane = nextLane;
             }
-            distance += precedingCar.map(car -> car.getPosition() - car.getLength()).orElse(lane.getLength()) - this.getPosition();// distance to car or to crossroad
+            distance += precedingCar
+                    .map(car -> car.getPosition() - car.getLength())
+                    .orElse(currentLane.getLength()) - this.getPosition();
         }
         return new CarEnvironment(precedingCar, distance);
     }

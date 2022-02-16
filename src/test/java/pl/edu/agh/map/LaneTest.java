@@ -73,4 +73,11 @@ class LaneTest {
                 () -> assertEquals(optional.map(car -> car.getSpeed()).get(), car1_speed)
         );
     }
+
+    @Test
+    void getFirstCarEmpty() {
+        Lane emptyLane = new Lane();
+        Optional<CarReadOnly> optional = emptyLane.getFirstCar();
+        assertTrue(optional.isEmpty());
+    }
 }

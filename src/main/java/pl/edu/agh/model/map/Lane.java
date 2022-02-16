@@ -89,7 +89,7 @@ public class Lane implements LaneReadWrite {
 
     public Optional<CarReadOnly> getFirstCar() {
         Optional<CarReadOnly> firstCar;
-        try{
+        try {
             firstCar = Optional.of(this.carsQueue.getFirst());
         } catch (Exception e) {
             firstCar = Optional.empty();

@@ -48,11 +48,15 @@ public class RouteLocation {
     /**
      *
      * @param offset by which increase car currentPosition
-     * @return offseted LaneId if exists or throws IndexOutOfBoundsException
+     * @return offseted LaneId if exists or throws RouteExceededException if out of range
      */
     public LaneId getOffsetLaneId(int offset) {
-        int index = Objects.checkIndex(currentPosition + offset, this.route.getRouteElements().size());
-        return route.getRouteElements().get(index).getOutgoingLaneId();
+        if (currentPosition + offset >= route.getRouteElements().size() || currentPosition + offset < 0)
+        {
+            throw new RouteExceededException("Size: " + this.route.getRouteElements().size()
+                    + " current position: " + currentPosition + " offset: " + offset);
+        }
+        return route.getRouteElements().get(currentPosition + offset).getOutgoingLaneId();
     }
 
     /*
@@ -68,7 +72,16 @@ public class RouteLocation {
      * @param currentPosition is index on route to be assigned
      */
     public void setCurrentPosition(int currentPosition) {
-        Objects.checkIndex(currentPosition, this.route.getRouteElements().size());
+        if (currentPosition >= route.getRouteElements().size() || currentPosition < 0) {
+            throw new RouteExceededException("Size: " + this.route.getRouteElements().size()
+                    + " new position: " + currentPosition );
+        }
         this.currentPosition = currentPosition;
+    }
+}
+
+class RouteExceededException extends RuntimeException {
+    public RouteExceededException(String message) {
+        super(message);
     }
 }
