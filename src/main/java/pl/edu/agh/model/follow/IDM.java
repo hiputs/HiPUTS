@@ -1,7 +1,5 @@
 package pl.edu.agh.model.follow;
 
-import pl.edu.agh.model.car.CarReadOnly;
-
 public class IDM implements IFollowingModel{
     private final double distanceHeadway;
     private final double timeHeadway;
@@ -23,19 +21,9 @@ public class IDM implements IFollowingModel{
     }
 
     @Override
-    public double calculateAcceleration(final CarReadOnly managedCar, final CarReadOnly aheadCar) {
-        final double distance = aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition();
-        final double speed = managedCar.getSpeed();
-        final double deltaSpeed = managedCar.getSpeed() - aheadCar.getSpeed();
-
+    public double calculateAcceleration(double speed, double desiredSpeed, double distance, double deltaSpeed) {
         double minimumDistance = distanceHeadway + speed * timeHeadway + ((speed * deltaSpeed) / (2 * Math.sqrt(normalAcceleration * normalDeceleration)));
-
-        double desiredSpeed = managedCar.getMaxSpeed();
-
         final double delta = 4;
-
-        final double acceleration = normalAcceleration * (1 - Math.pow(speed/desiredSpeed, delta) - Math.pow(minimumDistance/distance, 2));
-
-        return acceleration;
+        return  normalAcceleration * (1 - Math.pow(speed/desiredSpeed, delta) - Math.pow(minimumDistance/distance, 2));
     }
 }

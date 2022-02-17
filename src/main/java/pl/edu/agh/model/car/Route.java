@@ -3,6 +3,7 @@ package pl.edu.agh.model.car;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import pl.edu.agh.model.id.LaneId;
 
 import java.util.List;
 
@@ -19,5 +20,4 @@ public class Route {
      * and maintained in RouteLocation object situated in vehicle.
      */
     private List<RouteElement> routeElements;
-
 }

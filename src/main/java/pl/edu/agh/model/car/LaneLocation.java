@@ -1,7 +1,11 @@
 package pl.edu.agh.model.car;
 
+import lombok.Getter;
+import lombok.Setter;
 import pl.edu.agh.model.id.LaneId;
 
+@Getter
+@Setter
 class LaneLocation {
     /**
      * Lane on which car is currently situated.
@@ -11,12 +15,4 @@ class LaneLocation {
      * Position of car at its lane.
      */
     private double positionOnLane = 0;
-
-    public double getPositionOnLane() {
-        return positionOnLane;
-    }
-
-    public void setPositionOnLane(double positionOnLane) {
-        this.positionOnLane = positionOnLane;
-    }
 }
