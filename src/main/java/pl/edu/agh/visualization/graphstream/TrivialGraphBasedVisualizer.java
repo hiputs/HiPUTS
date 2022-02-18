@@ -5,11 +5,11 @@ import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.spriteManager.Sprite;
 import org.graphstream.ui.spriteManager.SpriteManager;
 import pl.edu.agh.model.actor.MapFragment;
-import pl.edu.agh.model.car.CarReadOnly;
+import pl.edu.agh.model.car.CarRead;
 import pl.edu.agh.model.id.LaneId;
 import pl.edu.agh.model.map.ILaneOnJunction;
 import pl.edu.agh.model.map.Junction;
-import pl.edu.agh.model.map.LaneReadOnly;
+import pl.edu.agh.model.map.LaneRead;
 import pl.edu.agh.model.map.Patch;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class TrivialGraphBasedVisualizer {
 
     private final String graphStyles = """
             node { fill-color: rgb(0,50,200); text-color: rgb(255,255,255); shape: box; size: 25; text-size: 15; }
-            edge {  fill-color: rgb(150,150,150); text-size: 15;}
+            edge {  fill-color: rgb(150,150,150); text-size: 15;}              
             sprite { text-color: rgb(255,255,255); size: 18; text-size: 15;  }
             """;
 
@@ -54,9 +54,8 @@ public class TrivialGraphBasedVisualizer {
                 this.graph.addNode(junction.getId().getValue()).setAttribute("label", junction.getId().getValue().substring(0, 3));
             }
             for (Junction junction : patch.getJunctions().values()) {
-                for (ILaneOnJunction laneOnJunction : junction.getOutgoingLanes()) {
-                    LaneId outgoinglaneId = laneOnJunction.getLaneId();
-                    LaneReadOnly outgoingLane = patch.getLanes().get(outgoinglaneId);
+                for (LaneId outgoinglaneId : junction.getOutgoingLanesIds()) {
+                    LaneRead outgoingLane = patch.getLanes().get(outgoinglaneId);
                     this.graph.addEdge(outgoinglaneId.getValue(), junction.getId().getValue(), outgoingLane.getOutgoingJunction().getValue(), true);
                 }
             }
@@ -69,8 +68,8 @@ public class TrivialGraphBasedVisualizer {
         ArrayList<Sprite> spritesInThisUpdate = new ArrayList<>();
 
         for (Patch patch : mapFragment.getLocalPatches()) {
-            for (LaneReadOnly lane : patch.getLanes().values()) {
-                CarReadOnly car = lane.getFirstCar().orElse(null);
+            for (LaneRead lane : patch.getLanes().values()) {
+                CarRead car = lane.getFirstCar().orElse(null);
                 while (car != null) {
                     Sprite sprite = spriteManager.getSprite(car.getId().getValue());
                     if (sprite == null) {

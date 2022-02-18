@@ -33,6 +33,6 @@ public class CarMapperTask implements Runnable {
                         .map(SCar::new)
                         .collect(Collectors.toList()))
                 .flatMap(List::stream)
-                .toList());
+                .collect(Collectors.toList()));
     }
 }

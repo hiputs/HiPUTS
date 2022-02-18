@@ -13,6 +13,6 @@ import java.util.Optional;
 @Data
 @AllArgsConstructor
 public class CarEnvironment {
-    Optional<CarReadOnly> precedingCar;
+    Optional<CarRead> precedingCar;
     double distance;
 }

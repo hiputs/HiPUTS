@@ -8,8 +8,8 @@ import pl.edu.agh.model.id.LaneId;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class LaneLocation {
     /**
      * Lane on which car is currently situated.

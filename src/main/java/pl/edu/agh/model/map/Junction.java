@@ -7,12 +7,14 @@ import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class Junction {
+public class Junction implements JunctionRead, JunctionReadWrite {
     /**
      * Unique junction identifier.
      */
@@ -44,5 +46,11 @@ public class Junction {
 
     public void addOutgoingLane(LaneId laneId) {
         outgoingLanes.add(new LaneOnJunction(lanesCount++, laneId));
+    }
+
+    public Set<LaneId> getOutgoingLanesIds() {
+        return outgoingLanes.stream()
+                .map(ILaneOnJunction::getLaneId)
+                .collect(Collectors.toSet());
     }
 }

@@ -8,7 +8,11 @@ import pl.edu.agh.model.id.ActorId;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 import pl.edu.agh.model.id.PatchId;
-import pl.edu.agh.model.map.*;
+import pl.edu.agh.model.map.JunctionRead;
+import pl.edu.agh.model.map.JunctionReadWrite;
+import pl.edu.agh.model.map.LaneRead;
+import pl.edu.agh.model.map.LaneReadWrite;
+import pl.edu.agh.model.map.Patch;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,7 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-public class MapFragment implements RoadStructureProvider, LaneStateModifier {
+public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapFragmentReadWrite {
 
     /**
      * All patches within this MapFragment - they represent patches that are situated within the same JVM
@@ -49,27 +53,33 @@ public class MapFragment implements RoadStructureProvider, LaneStateModifier {
     private Set<ActorId> neighbours;
 
     /**
-     *  Patch to actor mapper
+     * Patch to actor mapper
      */
     @Getter
     private Map<PatchId, ActorId> patch2Actor;
 
-    @Override
-    public LaneReadOnly getLane(LaneId laneId) {
-        throw new UnsupportedOperationException("method not implemented!");
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
-    public Junction getJunction(JunctionId junctionId) {
-        throw new UnsupportedOperationException("method not implemented!");
+    public LaneRead getLaneReadById(LaneId laneId) {
+        return getLaneReadWriteById(laneId);
+    }
+
+    @Override
+    public JunctionRead getJunctionReadById(JunctionId junctionId) {
+        // todo improve performance
+        Collection<Patch> allPatches = this.localPatches.values();
+        allPatches.addAll(this.remotePatches.values());
+
+        return allPatches.stream().filter(
+                patch -> patch.getJunctions().containsKey(junctionId)
+        ).findAny().get().getJunctions().get(junctionId);
     }
 
     public Collection<Patch> getLocalPatches() {
         return this.localPatches.values();
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 
     private void stage(Car car) {
@@ -79,15 +89,16 @@ public class MapFragment implements RoadStructureProvider, LaneStateModifier {
 
     @Override
     public void addCar(LaneId laneId, Car car) {
-        findLocalLaneById(laneId).addFirstCar(car);
+        getLaneReadWriteById(laneId).addFirstCar(car);
     }
 
     @Override
     public Car removeLastCarFromLane(LaneId laneId) {
-        return findLocalLaneById(laneId).removeLastCar();
+        return getLaneReadWriteById(laneId).removeLastCar();
     }
 
-    private LaneReadWrite findLocalLaneById(LaneId laneId) {
+    @Override
+    public LaneReadWrite getLaneReadWriteById(LaneId laneId) {
         PatchId patchId = lane2Patch.get(laneId);
         if (!isLocalPatch(patchId)) {
             throw new IllegalPatchWriteAccessException(
@@ -96,12 +107,23 @@ public class MapFragment implements RoadStructureProvider, LaneStateModifier {
         return localPatches.get(patchId).getLanes().get(laneId);
     }
 
+    @Override
+    public JunctionReadWrite getJunctionReadWriteById(JunctionId junctionId) {
+        throw new UnsupportedOperationException("Method not implemented");
+    }
+
+    public Set<LaneId> getAllManagedLaneIds() {
+        return localPatches.values().stream()
+                .flatMap(patch -> patch.getLanes().keySet().stream())
+                .collect(Collectors.toSet());
+    }
+
     private boolean isLocalPatch(PatchId patchId) {
         return localPatches.containsKey(patchId);
     }
 
     @SneakyThrows
-    public void insertCar(Car car){
+    public void insertCar(Car car) {
         PatchId patchId = lane2Patch.get(car.getLocation().getLane());
         LaneReadWrite lane = localPatches.get(patchId).getLanes().get(car.getLocation().getLane());
         lane.addToIncomingCars(car);
@@ -126,8 +148,8 @@ public class MapFragment implements RoadStructureProvider, LaneStateModifier {
             mapFragment.localPatches = this.localPatches;
             mapFragment.remotePatches = this.remotePatches;
             mapFragment.lane2Patch = Stream.concat(
-                    this.localPatches.values().stream(),
-                    this.remotePatches.values().stream())
+                            this.localPatches.values().stream(),
+                            this.remotePatches.values().stream())
                     .map(patch -> patch.getLanes()
                             .keySet().stream()
                             .collect(Collectors.toMap(Function.identity(), laneId -> patch.getId())))

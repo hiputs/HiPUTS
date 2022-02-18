@@ -4,7 +4,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import pl.edu.agh.model.car.Car;
-import pl.edu.agh.model.car.CarReadOnly;
+import pl.edu.agh.model.car.CarRead;
+import pl.edu.agh.model.car.CarReadWrite;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 
@@ -67,16 +68,16 @@ public class Lane implements LaneReadWrite {
         this(new LaneId());
     }
 
-    public Optional<CarReadOnly> getNextCarData(CarReadOnly car) {
+    public Optional<CarRead> getNextCarData(CarRead car) {
         double carPosition = car.getPosition();
-        CarReadOnly found = null;
-        for (CarReadOnly nextCar : carsQueue) {
+        CarRead found = null;
+        for (CarRead nextCar : carsQueue) {
             if (nextCar.getPosition() > carPosition) {
                 found = nextCar;
                 break;
             }
         }
-        Optional<CarReadOnly> carData;
+        Optional<CarRead> carData;
         if (found != null)
             carData = Optional.of(found);
         else
@@ -85,8 +86,8 @@ public class Lane implements LaneReadWrite {
         return carData;
     }
 
-    public Optional<CarReadOnly> getFirstCar() {
-        Optional<CarReadOnly> firstCar;
+    public Optional<CarRead> getFirstCar() {
+        Optional<CarRead> firstCar;
         try {
             firstCar = Optional.of(this.carsQueue.getFirst());
         } catch (Exception e) {
@@ -104,12 +105,17 @@ public class Lane implements LaneReadWrite {
     }
 
     public void addToIncomingCars(Car car) throws CarAlreadyAddedException {
-        if (this.incomingCars.add(car))
+        if (!this.incomingCars.add(car))
             throw new CarAlreadyAddedException();
     }
 
     public void clearIncomingCars() {
         this.incomingCars.clear();
+    }
+
+    @Override
+    public List<Car> getCars() {
+        return getCarsQueue();
     }
 
 }

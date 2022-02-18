@@ -4,12 +4,13 @@ import pl.edu.agh.model.car.Car;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 
+import java.util.List;
 import java.util.Set;
 
 /**
  * writable interface for Lane class + readable interface
  */
-public interface LaneReadWrite extends LaneReadOnly {
+public interface LaneReadWrite extends LaneRead {
 
     void addFirstCar(Car car);
 
@@ -20,6 +21,8 @@ public interface LaneReadWrite extends LaneReadOnly {
     void clearIncomingCars();
 
     Set<Car> getIncomingCars();
+
+    List<Car> getCars();
 
     LaneId getId();
 

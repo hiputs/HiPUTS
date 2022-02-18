@@ -3,12 +3,18 @@ package pl.edu.agh.map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.model.car.Car;
-import pl.edu.agh.model.car.CarReadOnly;
+import pl.edu.agh.model.car.Car;
+import pl.edu.agh.model.car.CarRead;
 import pl.edu.agh.model.map.Lane;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 class LaneTest {
@@ -44,8 +50,8 @@ class LaneTest {
 
     @Test
     void getNextCarData() {
-        Optional<CarReadOnly> optional1 = lane.getNextCarData(car1);
-        Optional<CarReadOnly> optional2 = lane.getNextCarData(car2);
+        Optional<CarRead> optional1 = lane.getNextCarData(car1);
+        Optional<CarRead> optional2 = lane.getNextCarData(car2);
         assertAll(
                 () -> assertFalse(optional1.isEmpty()),
                 () -> assertEquals(optional1.get().getPosition(), car2_pos),
@@ -58,13 +64,13 @@ class LaneTest {
 
     @Test
     void getNextCarEmpty() {
-        Optional<CarReadOnly> optional = lane.getNextCarData(car3);
+        Optional<CarRead> optional = lane.getNextCarData(car3);
         assertTrue(optional.isEmpty());
     }
 
     @Test
     void getFirstCar() {
-        Optional<CarReadOnly> optional = lane.getFirstCar();
+        Optional<CarRead> optional = lane.getFirstCar();
         assertAll(
                 () -> assertFalse(optional.isEmpty()),
                 () -> assertEquals(optional.map(car -> car.getPosition()).get(), car1_pos),
@@ -75,7 +81,13 @@ class LaneTest {
     @Test
     void getFirstCarEmpty() {
         Lane emptyLane = new Lane();
-        Optional<CarReadOnly> optional = emptyLane.getFirstCar();
+        Optional<CarRead> optional = emptyLane.getFirstCar();
         assertTrue(optional.isEmpty());
+    }
+
+    @Test
+    void addToIncomingCarsTwice() {
+        assertDoesNotThrow(() -> lane.addToIncomingCars(car1));
+        assertThrows(Exception.class, () -> lane.addToIncomingCars(car1));
     }
 }
