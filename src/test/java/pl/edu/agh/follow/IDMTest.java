@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class IDMTest {
 
     private CarReadOnly createCar(double position, double speed, double length, double maxSpeed) {
-        Car managedCar = new Car(length, maxSpeed);
+        Car managedCar = new Car(length, maxSpeed, null);
         managedCar.setPosition(position);
         managedCar.setSpeed(speed);
         return managedCar;
