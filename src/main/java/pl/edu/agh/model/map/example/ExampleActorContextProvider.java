@@ -71,9 +71,9 @@ public class ExampleActorContextProvider {
         lane.setIncomingJunction(incomingJunction.getId());
         lane.setOutgoingJunction(outgoingJunction.getId());
 
-        outgoingJunction.addIncomingLane(lane.getId(), false);
+        incomingJunction.addOutgoingLane(lane.getId());
 
-        outgoingJunction.addOutgoingLane(lane.getId());
+        outgoingJunction.addIncomingLane(lane.getId(), false);
     }
 
     private static Patch createPatch(Map<String, Lane> stringLaneMap, Map<String, Junction> stringJunctionMap) {
