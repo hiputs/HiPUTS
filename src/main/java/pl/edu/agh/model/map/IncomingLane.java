@@ -10,13 +10,11 @@ public class IncomingLane extends LaneOnJunction{
 
     /**
      * light color on line (green if no trafic lights)
-     * <------ j ------>
      */
     private TrafficLightColor LightColor;
 
     /**
-     * True if incoming lane is subordinated
-     * <------ j ------>
+     * True if incoming lane is subordinated on junction
      */
     private boolean isSubordinated;
 
