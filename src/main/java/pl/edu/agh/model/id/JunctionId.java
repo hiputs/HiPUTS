@@ -17,4 +17,13 @@ public class JunctionId {
     public JunctionId() {
         this(UUID.randomUUID().toString(), JunctionType.CROSSROAD);
     }
+
+    public boolean isCrossroad() {
+        return this.junctionType == JunctionType.CROSSROAD;
+    }
+
+    @Override
+    public String toString() {
+        return "JunctionId{" + value + " type=" + junctionType + '}';
+    }
 }

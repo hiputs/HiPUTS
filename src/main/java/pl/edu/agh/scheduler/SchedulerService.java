@@ -5,16 +5,16 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.scheduler.exception.InsufficientSystemResourcesException;
 
 import javax.annotation.PostConstruct;
-import java.util.LinkedList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class SchedulerService implements TaskReceptionUseCase{
+public class SchedulerService implements TaskExecutorUseCase {
 
-    private ForkJoinPool threadPool;
-    private final List<Future<?>> futures = new LinkedList<>();
+    private ForkJoinPool threadPoolExecutor;
     private static final int RESERVED_THREADS_NUMBER = 1;
 
     @PostConstruct
@@ -24,19 +24,24 @@ public class SchedulerService implements TaskReceptionUseCase{
         if (cores <= 0) {
             throw new InsufficientSystemResourcesException("Insufficient number of cores");
         }
-        threadPool = new ForkJoinPool(cores);
+        threadPoolExecutor = new ForkJoinPool(cores);
     }
 
     private int getFreeCore() {
         return Runtime.getRuntime().availableProcessors() - RESERVED_THREADS_NUMBER;
     }
 
-    public void addTask(Runnable task) {
-        futures.add(threadPool.submit(task));
+    @Override
+    public void executeBatch(Collection<Runnable> tasks) {
+        List<Future<?>> futures = tasks
+                .stream()
+                .map(t -> threadPoolExecutor.submit(t))
+                .collect(Collectors.toList());
+
+        waitForAllTaskFinished(futures);
     }
 
-    @Override
-    public void waitForAllTaskFinished() {
+    private void waitForAllTaskFinished(List<Future<?>> futures) {
         for (Future<?> future : futures) {
             try {
                 future.get();

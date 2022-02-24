@@ -71,10 +71,8 @@ public class ExampleActorContextProvider {
         lane.setIncomingJunction(incomingJunction.getId());
         lane.setOutgoingJunction(outgoingJunction.getId());
 
-        incomingJunction.addIncomingLane(lane.getId(), false);
-        incomingJunction.addOutgoingLane(lane.getId());
-
         outgoingJunction.addIncomingLane(lane.getId(), false);
+
         outgoingJunction.addOutgoingLane(lane.getId());
     }
 

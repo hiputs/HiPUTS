@@ -15,4 +15,9 @@ public class LaneId {
     public LaneId() {
         this(UUID.randomUUID().toString());
     }
+
+    @Override
+    public String toString() {
+        return "LaneId{" + value +'}';
+    }
 }

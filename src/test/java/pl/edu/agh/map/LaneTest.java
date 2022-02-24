@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.model.id.LaneId;
 import pl.edu.agh.model.map.Lane;
+import pl.edu.agh.model.map.LaneReadOnly;
 
 import java.util.Optional;
 
@@ -60,6 +61,23 @@ class LaneTest {
     @Test
     void getNextCarEmpty() {
         Optional<CarReadOnly> optional = lane.getNextCarData(car3);
+        assertTrue(optional.isEmpty());
+    }
+
+    @Test
+    void getFirstCar() {
+        Optional<CarReadOnly> optional = lane.getFirstCar();
+        assertAll(
+                () -> assertFalse(optional.isEmpty()),
+                () -> assertEquals(optional.map(car -> car.getPosition()).get(), car1_pos),
+                () -> assertEquals(optional.map(car -> car.getSpeed()).get(), car1_speed)
+        );
+    }
+
+    @Test
+    void getFirstCarEmpty() {
+        Lane emptyLane = new Lane();
+        Optional<CarReadOnly> optional = emptyLane.getFirstCar();
         assertTrue(optional.isEmpty());
     }
 }

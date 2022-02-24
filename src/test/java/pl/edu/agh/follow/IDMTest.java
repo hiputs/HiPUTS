@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class IDMTest {
 
     private CarReadOnly createCar(double position, double speed, double length, double maxSpeed) {
-        Car managedCar = new Car(length, maxSpeed);
+        Car managedCar = new Car(length, maxSpeed, null);
         managedCar.setPosition(position);
         managedCar.setSpeed(speed);
         return managedCar;
@@ -28,7 +28,10 @@ class IDMTest {
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, 0, length, maxSpeed);
         CarReadOnly aheadCar = createCar(10 + length + distanceHeadway, 0, length, maxSpeed);
-        double acceleration = model.calculateAcceleration(managedCar, aheadCar);
+        double acceleration = model.calculateAcceleration(
+                managedCar.getSpeed(), managedCar.getMaxSpeed(),
+                aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition(),
+                managedCar.getSpeed() - aheadCar.getSpeed());
         double res = Math.abs(acceleration);
         assertTrue(res <= 0.001, "Result was: " + res + ", but should be close to 0.");
     }
@@ -45,7 +48,10 @@ class IDMTest {
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, 0, length, maxSpeed);
         CarReadOnly aheadCar = createCar(517, maxSpeed, length, maxSpeed);
-        double acceleration = model.calculateAcceleration(managedCar, aheadCar);
+        double acceleration = model.calculateAcceleration(
+                managedCar.getSpeed(), managedCar.getMaxSpeed(),
+                aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition(),
+                managedCar.getSpeed() - aheadCar.getSpeed());
         double res = Math.abs(acceleration - maxAcceleration);
         assertTrue(res <= 0.001, "Result was: " + res + ", but should be close to 0.");
     }
@@ -61,7 +67,10 @@ class IDMTest {
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
         CarReadOnly aheadCar = createCar(5017, maxSpeed, length, maxSpeed);
-        double acceleration = model.calculateAcceleration(managedCar, aheadCar);
+        double acceleration = model.calculateAcceleration(
+                managedCar.getSpeed(), managedCar.getMaxSpeed(),
+                aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition(),
+                managedCar.getSpeed() - aheadCar.getSpeed());
         double res = Math.abs(acceleration);
         assertTrue(res <= 0.001, "Result was: " + res + ", but should be close to 0.");
     }
@@ -77,7 +86,10 @@ class IDMTest {
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
         CarReadOnly aheadCar = createCar(10  + length + distanceHeadway, maxSpeed, length, maxSpeed);
-        double acceleration = model.calculateAcceleration(managedCar, aheadCar);
+        double acceleration = model.calculateAcceleration(
+                managedCar.getSpeed(), managedCar.getMaxSpeed(),
+                aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition(),
+                managedCar.getSpeed() - aheadCar.getSpeed());
         double res = acceleration;  //acceleration is lover than  (-lowestDeceleration)
         assertTrue(res <= 0.001 - maxDeceleration, "Result was: " + res + ", but should be lower than: " + (-maxDeceleration));
     }
@@ -93,7 +105,10 @@ class IDMTest {
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
         CarReadOnly aheadCar = createCar(10 + length + distanceHeadway + maxSpeed * timeHeadway, maxSpeed, length, maxSpeed);
-        double acceleration = model.calculateAcceleration(managedCar, aheadCar);
+        double acceleration = model.calculateAcceleration(
+                managedCar.getSpeed(), managedCar.getMaxSpeed(),
+                aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition(),
+                managedCar.getSpeed() - aheadCar.getSpeed());
         double res = Math.abs(acceleration + maxAcceleration);
         assertTrue(res <= 0.001, "Result was: " + res + ", but should be lower than 0");
     }
