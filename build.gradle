@@ -22,6 +22,8 @@ dependencies {
     implementation 'org.junit.jupiter:junit-jupiter:5.8.2'
     implementation 'org.springframework.boot:spring-boot-starter:2.6.2'
     implementation 'javax.inject:javax.inject:1'
+    implementation 'org.graphstream:gs-core:2.0'
+    implementation 'org.graphstream:gs-ui-swing:2.0'
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
 
@@ -33,3 +35,5 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+sourceCompatibility = JavaVersion.VERSION_15
+targetCompatibility = JavaVersion.VERSION_15
