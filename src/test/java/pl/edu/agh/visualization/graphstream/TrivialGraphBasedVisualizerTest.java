@@ -5,34 +5,29 @@ import org.junit.jupiter.api.Test;
 import pl.edu.agh.model.actor.ActorContext;
 import pl.edu.agh.model.map.Lane;
 import pl.edu.agh.model.map.example.ExampleActorContextProvider;
+import pl.edu.agh.model.map.example.ExampleCarProvider;
 
 import javax.xml.stream.FactoryConfigurationError;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TrivialGraphBasedVisualizerTest {
-
-    protected TrivialGraphBasedVisualizer trivialGraphBasedVisualizer = null;
-
-
-    @BeforeEach
-    void setUp() {
-        trivialGraphBasedVisualizer = new TrivialGraphBasedVisualizer(ExampleActorContextProvider.getSimpleMap2());
-    }
-
     @Test
     void showGui() {
+
+        ActorContext ac = ExampleActorContextProvider.getSimpleMap2();
+        TrivialGraphBasedVisualizer trivialGraphBasedVisualizer = new TrivialGraphBasedVisualizer(ac);
+
         trivialGraphBasedVisualizer.showGui();
 
-        try {
-
-            for (int i = 0 ; i < 100 ; i ++)
-            {
-                Thread.sleep(100);
-                //          s.setPosition((float)i/100);
-            }
-        } catch (InterruptedException e) {
+        for (int i = 0 ; i < 10 ; i ++)
+        {
+            try { Thread.sleep(1000);} catch (InterruptedException e) {}
+            trivialGraphBasedVisualizer.updateCarsState();
         }
+
 
 
     }

@@ -1,32 +1,36 @@
 package pl.edu.agh.visualization.graphstream;
 
-import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.spriteManager.Sprite;
 import org.graphstream.ui.spriteManager.SpriteManager;
 import pl.edu.agh.model.actor.ActorContext;
+import pl.edu.agh.model.car.CarReadOnly;
 import pl.edu.agh.model.id.LaneId;
 import pl.edu.agh.model.map.Junction;
 import pl.edu.agh.model.map.LaneReadOnly;
 import pl.edu.agh.model.map.Patch;
 
+import java.util.ArrayList;
 
-//https://graphstream-project.org/doc/Tutorials/Graph-Visualisation/
-
-// does not support changes in pathes structure !
+/**
+ * Simple visualization
+ * <p> based on https://graphstream-project.org/doc/Tutorials/Graph-Visualisation/
+ * <p> Usage: construct, call showGui() and call updateCarsState when needed.
+ * <p> Does not support changes in patches structure !
+**/
 
 public class TrivialGraphBasedVisualizer {
 
     private final String graphStyles = """
-                node { fill-color: rgb(0,50,200); text-color: rgb(255,255,255); size: 25; text-size: 15; }
+                node { fill-color: rgb(0,50,200); text-color: rgb(255,255,255); shape: box; size: 25; text-size: 15; }
                 edge {  fill-color: rgb(150,150,150); text-size: 15;}
-                sprite { text-color: rgb(255,255,255); size: 20; text-size: 15;  }                
+                sprite { text-color: rgb(255,255,255); size: 18; text-size: 15;  }               
                 """;
 
     protected Graph graph;
     protected SpriteManager spriteManager;
+
     protected ActorContext actorContext;
 
 
@@ -42,7 +46,6 @@ public class TrivialGraphBasedVisualizer {
         spriteManager = new SpriteManager(this.graph);
 
         buildGraphStructure();
-
     }
 
     protected void buildGraphStructure()
@@ -63,44 +66,43 @@ public class TrivialGraphBasedVisualizer {
         }
     }
 
+    protected ArrayList<Sprite> spritesInPrevUpdate = new ArrayList<>();
+    public void updateCarsState()
+    {
+        ArrayList<Sprite> spritesInThisUpdate = new ArrayList<>();
+
+        for (Patch patch : actorContext.getLocalPatches())
+        {
+            for (LaneReadOnly lane : patch.getLanes().values())
+            {
+                CarReadOnly car = lane.getFirstCar().orElse(null);
+                while (car != null) {
+                    Sprite sprite = spriteManager.getSprite(car.getId().getValue());
+                    if (sprite == null)
+                    {
+                        sprite = spriteManager.addSprite(car.getId().getValue());
+                        sprite.setAttribute("label", car.getId().getValue().substring(0, 3));
+                        sprite.attachToEdge(lane.getId().getValue());
+                    }
+                    spritesInThisUpdate.add(sprite);
+                    sprite.setPosition(car.getPosition()/lane.getLength());
+                    int speedByte = (int)Math.min(car.getSpeed()*10, 255);
+                    sprite.setAttribute("ui.style", "fill-color: rgb("+speedByte+","+(255-speedByte)+",0);");
+
+                    car = lane.getNextCarData(car).orElse(null);
+                }
+            }
+        }
+
+        spritesInPrevUpdate.removeAll(spritesInThisUpdate);
+        spritesInPrevUpdate.forEach(sprite -> spriteManager.removeSprite(sprite.getId()));
+        spritesInPrevUpdate = spritesInThisUpdate;
+    }
 
 
-    public void showGui()  {
-
-
+    public void showGui()
+    {
         this.graph.display();
-
-//
-//
-//
-//        this.graph.addNode("A" );
-//        this.graph.addNode("B" );
-//        this.graph.addNode("C" );
-//        this.graph.addEdge("AB", "A", "B", true);
-//        this.graph.addEdge("BC", "B", "C", true);
-//        this.graph.addEdge("CA", "C", "A", true);
-//        this.graph.addEdge("AC", "A", "C", true);
-//
-//        Edge AB = this.graph.getEdge("AB");
-//        AB.setAttribute("label", "lane-3");
-//        for (Node node : this.graph) {
-//            node.setAttribute("label", "3");
-//        }
-//
-//        SpriteManager sman = new SpriteManager(this.graph);
-//        Sprite s = sman.addSprite("S1");
-//
-//        s.attachToEdge("AB");
-//        s.setAttribute("label", "      car-1");
-//        s.setAttribute("ui.style", "fill-color: rgb(0,100,0);");
-//
-//
-//
-//
-
-
-
-
     }
 
 
