@@ -13,7 +13,6 @@ import pl.edu.agh.model.map.Patch;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -70,22 +69,26 @@ public class MapFragment implements RoadStructureProvider, LaneStateModifier {
     }
 
     @Override
-    public void addCarToLane(LaneId laneId, Car car) {
-        findLaneById(laneId).addFirstCar(car);
+    public void addCar(LaneId laneId, Car car) {
+        findLocalLaneById(laneId).addFirstCar(car);
     }
 
     @Override
     public Car removeLastCarFromLane(LaneId laneId) {
-        return findLaneById(laneId).removeLastCar();
+        return findLocalLaneById(laneId).removeLastCar();
     }
 
-    private LaneReadWrite findLaneById(LaneId laneId) {
-        return findPatchById(lane2Patch.get(laneId)).getLanes().get(laneId);
+    private LaneReadWrite findLocalLaneById(LaneId laneId) {
+        PatchId patchId = lane2Patch.get(laneId);
+        if (!isLocalPatch(patchId)) {
+            throw new IllegalPatchWriteAccessException(
+                    String.format("Lane with id %s cannot be modified from this map fragment", laneId.toString()));
+        }
+        return localPatches.get(patchId).getLanes().get(laneId);
     }
 
-    private Patch findPatchById(PatchId patchId) {
-        return Optional.ofNullable(localPatches.get(patchId))
-                .orElse(remotePatches.get(patchId));
+    private boolean isLocalPatch(PatchId patchId) {
+        return localPatches.containsKey(patchId);
     }
 
     public static final class Builder {

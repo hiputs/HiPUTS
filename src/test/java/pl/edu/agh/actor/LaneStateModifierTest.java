@@ -71,7 +71,7 @@ public class LaneStateModifierTest {
         Car car = new Car();
 
         //when
-        mapFragment.addCarToLane(lane.getId(), car);
+        mapFragment.addCar(lane.getId(), car);
 
         //then
         assertThat(lane.getCarsQueue().size()).isEqualTo(1);
@@ -90,8 +90,8 @@ public class LaneStateModifierTest {
         Car car2 = new Car();
 
         //when
-        mapFragment.addCarToLane(lane.getId(), car1);
-        mapFragment.addCarToLane(lane.getId(), car2);
+        mapFragment.addCar(lane.getId(), car1);
+        mapFragment.addCar(lane.getId(), car2);
         Car car3 = mapFragment.removeLastCarFromLane(lane.getId());
         Car car4 = mapFragment.removeLastCarFromLane(lane.getId());
 

@@ -38,9 +38,9 @@ class LaneTest {
         car2.setSpeed(car2_speed);
         car3.setPosition(car3_pos);
         car3.setSpeed(car3_speed);
-        lane.addCar(car3);
-        lane.addCar(car2);
-        lane.addCar(car1);
+        lane.addFirstCar(car3);
+        lane.addFirstCar(car2);
+        lane.addFirstCar(car1);
     }
 
     @Test
