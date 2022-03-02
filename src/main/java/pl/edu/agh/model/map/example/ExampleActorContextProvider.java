@@ -28,9 +28,9 @@ public class ExampleActorContextProvider {
 
     public static ActorContext getSimpleMap2() {
         String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
-        Map<String, Double> laneLengths = Stream.of(new String[][] {
-                { "1->2", "3400.0" },
-                { "2->3", "1200.0" },
+        Map<String, Double> laneLengths = Stream.of(new String[][]{
+                {"1->2", "3400.0"},
+                {"2->3", "1200.0"},
         }).collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
         return fromStringRepresentation(mapStructure, laneLengths, 2);
     }
@@ -49,10 +49,11 @@ public class ExampleActorContextProvider {
                 .addLocalPatch(patch)
                 .build();
 
-        for (Lane lane : stringLaneMap.values())
-        {
-            Car car = new ExampleCarProvider(actorContext).generateCar(lane.getId(), ThreadLocalRandom.current().nextInt(10));
-            lane.addCarToLane(car);
+        for (int i = 0; i < randomCarsPerLane; i++) {
+            for (Lane lane : stringLaneMap.values()) {
+                Car car = new ExampleCarProvider(actorContext).generateCar(lane.getId(), ThreadLocalRandom.current().nextInt(10));
+                lane.addCarToLane(car);
+            }
         }
 
         return actorContext;

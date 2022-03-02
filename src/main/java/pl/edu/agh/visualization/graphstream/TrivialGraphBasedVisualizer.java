@@ -15,18 +15,18 @@ import java.util.ArrayList;
 
 /**
  * Simple visualization
- * <p> based on https://graphstream-project.org/doc/Tutorials/Graph-Visualisation/
- * <p> Usage: construct, call showGui() and call updateCarsState when needed.
- * <p> Does not support changes in patches structure !
-**/
+ * <p> based on https://graphstream-project.org/doc/Tutorials/Graph-Visualisation/ </p>
+ * <p> Usage: construct, call showGui() and call updateCarsState when needed. </p>
+ * <p> Does not support changes in patches structure ! </p>
+ **/
 
 public class TrivialGraphBasedVisualizer {
 
     private final String graphStyles = """
-                node { fill-color: rgb(0,50,200); text-color: rgb(255,255,255); shape: box; size: 25; text-size: 15; }
-                edge {  fill-color: rgb(150,150,150); text-size: 15;}
-                sprite { text-color: rgb(255,255,255); size: 18; text-size: 15;  }               
-                """;
+            node { fill-color: rgb(0,50,200); text-color: rgb(255,255,255); shape: box; size: 25; text-size: 15; }
+            edge {  fill-color: rgb(150,150,150); text-size: 15;}
+            sprite { text-color: rgb(255,255,255); size: 18; text-size: 15;  }               
+            """;
 
     protected Graph graph;
     protected SpriteManager spriteManager;
@@ -34,8 +34,7 @@ public class TrivialGraphBasedVisualizer {
     protected ActorContext actorContext;
 
 
-    public TrivialGraphBasedVisualizer(ActorContext actorContext)
-    {
+    public TrivialGraphBasedVisualizer(ActorContext actorContext) {
         this.actorContext = actorContext;
 
         this.graph = new SingleGraph("The city");
@@ -48,17 +47,13 @@ public class TrivialGraphBasedVisualizer {
         buildGraphStructure();
     }
 
-    protected void buildGraphStructure()
-    {
+    protected void buildGraphStructure() {
         for (Patch patch : actorContext.getLocalPatches()) {
-            for (Junction junction : patch.getJunctions().values())
-            {
-                this.graph.addNode(junction.getId().getValue()).setAttribute("label", junction.getId().getValue().substring(0,3));
+            for (Junction junction : patch.getJunctions().values()) {
+                this.graph.addNode(junction.getId().getValue()).setAttribute("label", junction.getId().getValue().substring(0, 3));
             }
-            for (Junction junction : patch.getJunctions().values())
-            {
-                for (LaneId outgoinglaneId : junction.getOutgoingLanes())
-                {
+            for (Junction junction : patch.getJunctions().values()) {
+                for (LaneId outgoinglaneId : junction.getOutgoingLanes()) {
                     LaneReadOnly outgoingLane = patch.getLanes().get(outgoinglaneId);
                     this.graph.addEdge(outgoinglaneId.getValue(), junction.getId().getValue(), outgoingLane.getOutgoingJunction().getValue(), true);
                 }
@@ -67,27 +62,24 @@ public class TrivialGraphBasedVisualizer {
     }
 
     protected ArrayList<Sprite> spritesInPrevUpdate = new ArrayList<>();
-    public void updateCarsState()
-    {
+
+    public void redrawCars() {
         ArrayList<Sprite> spritesInThisUpdate = new ArrayList<>();
 
-        for (Patch patch : actorContext.getLocalPatches())
-        {
-            for (LaneReadOnly lane : patch.getLanes().values())
-            {
+        for (Patch patch : actorContext.getLocalPatches()) {
+            for (LaneReadOnly lane : patch.getLanes().values()) {
                 CarReadOnly car = lane.getFirstCar().orElse(null);
                 while (car != null) {
                     Sprite sprite = spriteManager.getSprite(car.getId().getValue());
-                    if (sprite == null)
-                    {
+                    if (sprite == null) {
                         sprite = spriteManager.addSprite(car.getId().getValue());
                         sprite.setAttribute("label", car.getId().getValue().substring(0, 3));
                         sprite.attachToEdge(lane.getId().getValue());
                     }
                     spritesInThisUpdate.add(sprite);
-                    sprite.setPosition(car.getPosition()/lane.getLength());
-                    int speedByte = (int)Math.min(car.getSpeed()*10, 255);
-                    sprite.setAttribute("ui.style", "fill-color: rgb("+speedByte+","+(255-speedByte)+",0);");
+                    sprite.setPosition(car.getPosition() / lane.getLength());
+                    int speedByte = (int) Math.min(car.getSpeed() * 10, 255);
+                    sprite.setAttribute("ui.style", "fill-color: rgb(" + speedByte + "," + (255 - speedByte) + ",0);");
 
                     car = lane.getNextCarData(car).orElse(null);
                 }
@@ -100,8 +92,7 @@ public class TrivialGraphBasedVisualizer {
     }
 
 
-    public void showGui()
-    {
+    public void showGui() {
         this.graph.display();
     }
 
