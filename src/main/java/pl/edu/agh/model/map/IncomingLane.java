@@ -9,7 +9,7 @@ import pl.edu.agh.model.id.LaneId;
 public class IncomingLane extends LaneOnJunction{
 
     /**
-     * light color on line (green if no trafic lights)
+     * light color on lane (green if no traffic lights)
      */
     private TrafficLightColor LightColor;
 

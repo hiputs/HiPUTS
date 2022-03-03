@@ -20,13 +20,11 @@ public class Junction {
 
     /**
      * Lanes incoming into this junction
-     * ------> j <------
      */
     private ArrayList<IncomingLane> incomingLanes = new ArrayList<>();
 
     /**
      * Lanes outgoing from this junction
-     * <------ j ------>
      */
     private ArrayList<ILaneOnJunction> outgoingLanes = new ArrayList<>();
 

@@ -4,12 +4,12 @@ import pl.edu.agh.model.id.LaneId;
 
 public interface ILaneOnJunction {
     /**
-     * Order of line on junction
+     * Order of lane on junction
      */
     int getLaneOrder();
 
     /**
-     * Global line Id
+     * Global lane Id
      */
     LaneId getLaneId();
 }
