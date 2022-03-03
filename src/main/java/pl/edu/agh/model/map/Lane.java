@@ -92,8 +92,12 @@ public class Lane implements LaneReadWrite {
         return firstCar;
     }
 
-    public void addCarToLane(Car car) {
+    public void addFirstCar(Car car) {
         this.carsQueue.addFirst(car);
+    }
+
+    public Car removeLastCar() {
+        return this.carsQueue.removeLast();
     }
 
     public void addToIncomingCars(Car car) throws CarAlreadyAddedException {
@@ -104,7 +108,6 @@ public class Lane implements LaneReadWrite {
     public void clearIncomingCars() {
         this.incomingCars.clear();
     }
-
 
 }
 

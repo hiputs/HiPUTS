@@ -4,7 +4,6 @@ import pl.edu.agh.model.car.Car;
 import pl.edu.agh.model.car.CarReadOnly;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pl.edu.agh.model.id.LaneId;
 import pl.edu.agh.model.map.Lane;
 import pl.edu.agh.model.map.LaneReadOnly;
 
@@ -39,9 +38,9 @@ class LaneTest {
         car2.setSpeed(car2_speed);
         car3.setPosition(car3_pos);
         car3.setSpeed(car3_speed);
-        lane.addCarToLane(car3);
-        lane.addCarToLane(car2);
-        lane.addCarToLane(car1);
+        lane.addFirstCar(car3);
+        lane.addFirstCar(car2);
+        lane.addFirstCar(car1);
     }
 
     @Test
