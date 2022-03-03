@@ -23,6 +23,7 @@ public class ExampleCarProvider {
 
     private Map<JunctionId, List<LaneId>> junctionId2outgoingLaneId;
     private Map<LaneId, JunctionId> laneId2outgoingJunctionId;
+    private Map<LaneId, LaneReadWrite> laneId2laneReadWrite;
     private List<LaneId> laneIdList;
 
     public ExampleCarProvider(ActorContext actorContext) {
@@ -37,6 +38,10 @@ public class ExampleCarProvider {
         this.laneId2outgoingJunctionId = actorContext.getLocalPatches().stream()
                 .flatMap(patch -> patch.getLanes().values().stream())
                 .collect(Collectors.toMap(LaneReadWrite::getId, LaneReadWrite::getOutgoingJunction));
+
+        this.laneId2laneReadWrite = actorContext.getLocalPatches().stream()
+                .flatMap(patch -> patch.getLanes().values().stream())
+                .collect(Collectors.toMap(LaneReadWrite::getId, laneReadWrite -> laneReadWrite));
 
         this.laneIdList = actorContext.getLocalPatches().stream()
                 .flatMap(patch -> patch.getLanes().keySet().stream())
@@ -64,6 +69,8 @@ public class ExampleCarProvider {
         RouteLocation routeLocation = this.generateRoute(startLane, hops);
         Car car = new Car(length, maxSpeed, routeLocation);
         car.setNewLocation(startLane);
+        car.setPosition(ThreadLocalRandom.current().nextDouble(laneId2laneReadWrite.get(startLane).getLength()));
+        car.setSpeed(ThreadLocalRandom.current().nextDouble(DEFAULT_MAX_SPEED));
         return car;
     }
 

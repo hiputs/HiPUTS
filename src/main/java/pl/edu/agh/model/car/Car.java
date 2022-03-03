@@ -61,10 +61,12 @@ public class Car implements CarReadOnly, Comparable<Car> {
     @Inject
     private IDecider decider;
 
-    public Car(){
+    public Car() {
+        this.id = new CarId();
     }
 
     public Car(double length, double maxSpeed, RouteLocation routeLocation) {
+        this();
         this.length = length;
         this.maxSpeed = maxSpeed;
         this.routeLocation = routeLocation;
@@ -149,13 +151,13 @@ public class Car implements CarReadOnly, Comparable<Car> {
         return maxSpeed;
     }
 
-    public CarId getCarId() {
-        return this.id;
+    @Override
+    public CarId getId() {
+        return id;
     }
-
     @Override
     public int compareTo(Car anotherCar) {
-        return this.id.getValue().compareTo(anotherCar.getCarId().getValue());
+        return this.id.getValue().compareTo(anotherCar.getId().getValue());
     }
 
     @Override
