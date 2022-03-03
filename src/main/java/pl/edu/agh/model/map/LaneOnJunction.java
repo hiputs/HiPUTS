@@ -5,11 +5,19 @@ import pl.edu.agh.model.id.LaneId;
 
 @Getter
 public class LaneOnJunction implements ILaneOnJunction{
-    private int laneOrder;
+
+    /**
+     * Index of lane on junction
+     */
+    private int laneIndexOnJunction;
+
+    /**
+     * Global lane Id
+     */
     private LaneId laneId;
 
     public LaneOnJunction(int laneOrder, LaneId laneId) {
-        this.laneOrder = laneOrder;
+        this.laneIndexOnJunction = laneOrder;
         this.laneId = laneId;
     }
 }
