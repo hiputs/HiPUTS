@@ -6,8 +6,7 @@ import lombok.Setter;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
 
 
 @Getter
@@ -21,17 +20,29 @@ public class Junction {
 
     /**
      * Lanes incoming into this junction
-     * ------> j <------
      */
-    private Set<LaneId> incomingLanes = new HashSet<>();
+    private ArrayList<IncomingLane> incomingLanes = new ArrayList<>();
 
     /**
      * Lanes outgoing from this junction
-     * <------ j ------>
      */
-    private Set<LaneId> outgoingLanes = new HashSet<>();
+    private ArrayList<ILaneOnJunction> outgoingLanes = new ArrayList<>();
+
+    /**
+     * Amount of all lanes on this junction
+     */
+    private int lanesCount = 0;
 
     public Junction() {
         this(new JunctionId());
+    }
+
+
+    public void addIncomingLane(LaneId laneId, boolean isSubordinated) {
+        incomingLanes.add(new IncomingLane(lanesCount++, laneId, isSubordinated));
+    }
+
+    public void addOutgoingLane(LaneId laneId) {
+        outgoingLanes.add(new LaneOnJunction(lanesCount++, laneId));
     }
 }

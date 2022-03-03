@@ -33,7 +33,7 @@ public class ExampleCarProvider {
     void readPatches(ActorContext actorContext) {
         this.junctionId2outgoingLaneId = actorContext.getLocalPatches().stream()
                 .flatMap(patch -> patch.getJunctions().values().stream())
-                .collect(Collectors.toMap(Junction::getId, junction -> new ArrayList<>(junction.getOutgoingLanes())));
+                .collect(Collectors.toMap(Junction::getId, junction -> new ArrayList<>(junction.getOutgoingLanes().stream().map(el->el.getLaneId()).collect(Collectors.toList()))));
 
         this.laneId2outgoingJunctionId = actorContext.getLocalPatches().stream()
                 .flatMap(patch -> patch.getLanes().values().stream())

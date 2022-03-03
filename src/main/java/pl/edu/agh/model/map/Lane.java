@@ -51,11 +51,6 @@ public class Lane implements LaneReadWrite {
     private Sign outSign;
 
     /**
-     * Light signal at the end of lane
-     */
-    private LightSignal outSignal;
-
-    /**
      * Length of lane in meters
      */
     private double length;

@@ -2,7 +2,7 @@ package pl.edu.agh.model.map.example;
 
 import pl.edu.agh.model.actor.ActorContext;
 import pl.edu.agh.model.car.Car;
-import pl.edu.agh.model.id.LaneId;
+
 import pl.edu.agh.model.map.Junction;
 import pl.edu.agh.model.map.Lane;
 import pl.edu.agh.model.map.Patch;
@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -88,13 +87,9 @@ public class ExampleActorContextProvider {
         lane.setIncomingJunction(incomingJunction.getId());
         lane.setOutgoingJunction(outgoingJunction.getId());
 
-        Set<LaneId> incomingJunctionOutgoingLanes = incomingJunction.getOutgoingLanes();
-        incomingJunctionOutgoingLanes.add(lane.getId());
-        incomingJunction.setOutgoingLanes(incomingJunctionOutgoingLanes);
+        incomingJunction.addOutgoingLane(lane.getId());
 
-        Set<LaneId> outgoingJunctionIncomingLanes = outgoingJunction.getIncomingLanes();
-        outgoingJunctionIncomingLanes.add(lane.getId());
-        outgoingJunction.setIncomingLanes(outgoingJunctionIncomingLanes);
+        outgoingJunction.addIncomingLane(lane.getId(), false);
     }
 
     private static Patch createPatch(Map<String, Lane> stringLaneMap, Map<String, Junction> stringJunctionMap) {
