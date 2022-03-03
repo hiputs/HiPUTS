@@ -30,7 +30,6 @@ public class Junction {
 
     /**
      * Amount of all lanes on this junction
-     * <------ j ------>
      */
     private int lanesCount = 0;
 
