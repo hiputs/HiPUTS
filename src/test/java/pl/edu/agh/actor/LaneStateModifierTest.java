@@ -1,13 +1,16 @@
 package pl.edu.agh.actor;
 
+import org.assertj.core.util.Arrays;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import pl.edu.agh.model.actor.MapFragment;
 import pl.edu.agh.model.car.Car;
+import pl.edu.agh.model.map.IncomingLane;
 import pl.edu.agh.model.map.Junction;
 import pl.edu.agh.model.map.Lane;
 import pl.edu.agh.model.map.Patch;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class LaneStateModifierTest {
 
-
     private TestData prepareTestData() {
         Lane lane1 = new Lane();
         Lane lane2 = new Lane();
@@ -24,20 +26,20 @@ public class LaneStateModifierTest {
         Lane lane4 = new Lane();
 
         Junction junction1 = new Junction();
-        junction1.setIncomingLanes(Collections.singleton(lane1.getId()));
-        junction1.setOutgoingLanes(Collections.singleton(lane2.getId()));
+        junction1.addIncomingLane(lane1.getId(), false);
+        junction1.addOutgoingLane(lane2.getId());
         lane1.setOutgoingJunction(junction1.getId());
         lane2.setIncomingJunction(junction1.getId());
 
         Junction junction2 = new Junction();
-        junction1.setIncomingLanes(Collections.singleton(lane2.getId()));
-        junction1.setOutgoingLanes(Collections.singleton(lane3.getId()));
+        junction1.addIncomingLane(lane2.getId(), false);
+        junction1.addOutgoingLane(lane3.getId());
         lane2.setOutgoingJunction(junction2.getId());
         lane3.setIncomingJunction(junction2.getId());
 
         Junction junction3 = new Junction();
-        junction1.setIncomingLanes(Collections.singleton(lane3.getId()));
-        junction1.setOutgoingLanes(Collections.singleton(lane4.getId()));
+        junction1.addIncomingLane(lane3.getId(), false);
+        junction1.addOutgoingLane(lane4.getId());
         lane3.setOutgoingJunction(junction3.getId());
         lane4.setIncomingJunction(junction3.getId());
 
@@ -61,7 +63,7 @@ public class LaneStateModifierTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {0, 1, 2, 3})
+    @ValueSource(ints = {0, 1})
     public void addCarToLaneTest(int index) {
         //given
         TestData testData = prepareTestData();
@@ -79,7 +81,7 @@ public class LaneStateModifierTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {0, 1, 2, 3})
+    @ValueSource(ints = {0, 1})
     public void removeCarFromLaneTest(int index) {
         //given
         TestData testData = prepareTestData();

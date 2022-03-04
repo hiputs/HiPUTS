@@ -1,7 +1,7 @@
 package pl.edu.agh.model.map.example;
 
 import lombok.Getter;
-import pl.edu.agh.model.actor.ActorContext;
+import pl.edu.agh.model.actor.MapFragment;
 import pl.edu.agh.model.car.*;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
@@ -26,24 +26,24 @@ public class ExampleCarProvider {
     private Map<LaneId, LaneReadWrite> laneId2laneReadWrite;
     private List<LaneId> laneIdList;
 
-    public ExampleCarProvider(ActorContext actorContext) {
-        readPatches(actorContext);
+    public ExampleCarProvider(MapFragment mapFragment) {
+        readPatches(mapFragment);
     }
 
-    void readPatches(ActorContext actorContext) {
-        this.junctionId2outgoingLaneId = actorContext.getLocalPatches().stream()
+    void readPatches(MapFragment mapFragment) {
+        this.junctionId2outgoingLaneId = mapFragment.getLocalPatches().stream()
                 .flatMap(patch -> patch.getJunctions().values().stream())
                 .collect(Collectors.toMap(Junction::getId, junction -> new ArrayList<>(junction.getOutgoingLanes().stream().map(el->el.getLaneId()).collect(Collectors.toList()))));
 
-        this.laneId2outgoingJunctionId = actorContext.getLocalPatches().stream()
+        this.laneId2outgoingJunctionId = mapFragment.getLocalPatches().stream()
                 .flatMap(patch -> patch.getLanes().values().stream())
                 .collect(Collectors.toMap(LaneReadWrite::getId, LaneReadWrite::getOutgoingJunction));
 
-        this.laneId2laneReadWrite = actorContext.getLocalPatches().stream()
+        this.laneId2laneReadWrite = mapFragment.getLocalPatches().stream()
                 .flatMap(patch -> patch.getLanes().values().stream())
                 .collect(Collectors.toMap(LaneReadWrite::getId, laneReadWrite -> laneReadWrite));
 
-        this.laneIdList = actorContext.getLocalPatches().stream()
+        this.laneIdList = mapFragment.getLocalPatches().stream()
                 .flatMap(patch -> patch.getLanes().keySet().stream())
                 .collect(Collectors.toList());
     }

@@ -33,7 +33,7 @@ public class ExampleMapFragmentProvider {
         return fromStringRepresentation(mapStructure, laneLengths, 2);
     }
 
-    public static MapFragment fromStringRepresentation(String mapStructure, Map<String, Double> laneLengths) {
+    public static MapFragment fromStringRepresentation(String mapStructure, Map<String, Double> laneLengths, int randomCarsPerLane) {
         Map<String, Lane> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
         Map<String, Junction> stringJunctionMap = getStringJunctionMapFromStringRepresentation(mapStructure);
 
@@ -50,7 +50,7 @@ public class ExampleMapFragmentProvider {
         for (int i = 0; i < randomCarsPerLane; i++) {
             for (Lane lane : stringLaneMap.values()) {
                 Car car = new ExampleCarProvider(mapFragment).generateCar(lane.getId(), ThreadLocalRandom.current().nextInt(10));
-                lane.addCarToLane(car);
+                lane.addFirstCar(car);
             }
         }
 
