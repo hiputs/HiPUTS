@@ -6,7 +6,7 @@ import pl.edu.agh.model.id.LaneId;
 
 @Getter
 @Setter
-public class IncomingLane extends LaneOnJunction{
+public class IncomingLane extends LaneOnJunction {
 
     /**
      * light color on lane (green if no traffic lights)

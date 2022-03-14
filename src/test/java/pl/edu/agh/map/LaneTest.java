@@ -1,11 +1,10 @@
 package pl.edu.agh.map;
 
-import pl.edu.agh.model.car.Car;
-import pl.edu.agh.model.car.CarReadOnly;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.edu.agh.model.car.Car;
+import pl.edu.agh.model.car.CarReadOnly;
 import pl.edu.agh.model.map.Lane;
-import pl.edu.agh.model.map.LaneReadOnly;
 
 import java.util.Optional;
 
@@ -26,7 +25,7 @@ class LaneTest {
     private Car car3;
 
     @BeforeEach
-    void setupLane(){
+    void setupLane() {
         lane = new Lane();
         lane.setLength(lane_length);
         car1 = new Car();

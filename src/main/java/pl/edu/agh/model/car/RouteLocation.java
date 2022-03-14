@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 
-import java.util.Objects;
-
 @RequiredArgsConstructor
 public class RouteLocation {
 
@@ -46,13 +44,11 @@ public class RouteLocation {
     }
 
     /**
-     *
      * @param offset by which increase car currentPosition
      * @return offseted LaneId if exists or throws RouteExceededException if out of range
      */
     public LaneId getOffsetLaneId(int offset) {
-        if (currentPosition + offset >= route.getRouteElements().size() || currentPosition + offset < 0)
-        {
+        if (currentPosition + offset >= route.getRouteElements().size() || currentPosition + offset < 0) {
             throw new RouteExceededException("Size: " + this.route.getRouteElements().size()
                     + " current position: " + currentPosition + " offset: " + offset);
         }
@@ -74,7 +70,7 @@ public class RouteLocation {
     public void setCurrentPosition(int currentPosition) {
         if (currentPosition >= route.getRouteElements().size() || currentPosition < 0) {
             throw new RouteExceededException("Size: " + this.route.getRouteElements().size()
-                    + " new position: " + currentPosition );
+                    + " new position: " + currentPosition);
         }
         this.currentPosition = currentPosition;
     }

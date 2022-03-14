@@ -1,11 +1,11 @@
 package pl.edu.agh.communication.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.communication.NeighbourConnection;
 import pl.edu.agh.communication.Subscriber;
 import pl.edu.agh.communication.model.messages.Message;
 import pl.edu.agh.communication.model.messages.NeighbourConnectionMessage;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;

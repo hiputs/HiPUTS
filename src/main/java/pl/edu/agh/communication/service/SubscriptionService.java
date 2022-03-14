@@ -1,9 +1,9 @@
 package pl.edu.agh.communication.service;
 
-import pl.edu.agh.communication.Subscriber;
-import pl.edu.agh.communication.model.MessagesTypeEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.communication.Subscriber;
+import pl.edu.agh.communication.model.MessagesTypeEnum;
 
 @Service
 @RequiredArgsConstructor

@@ -4,7 +4,7 @@ import lombok.Getter;
 import pl.edu.agh.model.id.LaneId;
 
 @Getter
-public class LaneOnJunction implements ILaneOnJunction{
+public class LaneOnJunction implements ILaneOnJunction {
 
     /**
      * Index of lane on junction

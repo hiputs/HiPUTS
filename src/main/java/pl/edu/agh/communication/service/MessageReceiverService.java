@@ -1,12 +1,12 @@
 package pl.edu.agh.communication.service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.communication.Subscriber;
 import pl.edu.agh.communication.model.MessagesTypeEnum;
 import pl.edu.agh.communication.model.messages.Message;
 import pl.edu.agh.communication.utils.MessageConverter;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -55,7 +55,7 @@ public class MessageReceiverService {
                 //toDo create simply server to get port for worker
                 ServerSocket ss = new ServerSocket(6666);
 
-                while(true){
+                while (true) {
                     Socket s = ss.accept();
                     threadPoolExecutor.submit(new SingleConnectionExecutor(s));
                 }

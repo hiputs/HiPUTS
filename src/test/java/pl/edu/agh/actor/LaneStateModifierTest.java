@@ -1,17 +1,13 @@
 package pl.edu.agh.actor;
 
-import org.assertj.core.util.Arrays;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import pl.edu.agh.model.actor.MapFragment;
 import pl.edu.agh.model.car.Car;
-import pl.edu.agh.model.map.IncomingLane;
 import pl.edu.agh.model.map.Junction;
 import pl.edu.agh.model.map.Lane;
 import pl.edu.agh.model.map.Patch;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 

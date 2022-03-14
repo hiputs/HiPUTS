@@ -3,7 +3,6 @@ package pl.edu.agh.model.car;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import pl.edu.agh.model.id.LaneId;
 
 import java.util.List;
 

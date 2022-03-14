@@ -10,7 +10,8 @@ import java.util.Optional;
  * distance if preceding car is present then indicate distance between cars (includes car length) or distance to
  * nearest crossroad
  */
-@Data @AllArgsConstructor
+@Data
+@AllArgsConstructor
 public class CarEnvironment {
     Optional<CarReadOnly> precedingCar;
     double distance;

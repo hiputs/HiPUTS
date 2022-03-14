@@ -88,14 +88,15 @@ public class Car implements CarReadOnly, Comparable<Car> {
 
     /**
      * Search for preceding car on the way counting distance to car, or distance to crossroad
+     *
      * @return precedingCar and distance
      */
-    private CarEnvironment getPrecedingCar (RoadStructureProvider roadStructureProvider) {
+    private CarEnvironment getPrecedingCar(RoadStructureProvider roadStructureProvider) {
         LaneReadOnly currentLane = roadStructureProvider.getLane(this.location.getLane());
         JunctionId nextJunctionId = currentLane.getOutgoingJunction();
         Optional<CarReadOnly> precedingCar = currentLane.getNextCarData(this);
         double distance;
-        if(nextJunctionId.isCrossroad() || precedingCar.isPresent())
+        if (nextJunctionId.isCrossroad() || precedingCar.isPresent())
             distance = precedingCar
                     .map(car -> car.getPosition() - car.getLength())
                     .orElse(currentLane.getLength()) - this.getPosition();
@@ -104,10 +105,10 @@ public class Car implements CarReadOnly, Comparable<Car> {
             int offset = 0;
             LaneId nextLaneId;
             LaneReadOnly nextLane;
-            while(precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
+            while (precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
                 try {
                     nextLaneId = routeLocation.getOffsetLaneId(offset++);
-                } catch (IndexOutOfBoundsException indexOutOfBoundsException){
+                } catch (IndexOutOfBoundsException indexOutOfBoundsException) {
                     break;
                 }
                 distance += currentLane.getLength(); // adds previous lane length
@@ -123,7 +124,7 @@ public class Car implements CarReadOnly, Comparable<Car> {
         return new CarEnvironment(precedingCar, distance);
     }
 
-    public double getPosition(){
+    public double getPosition() {
         return this.location.getPositionOnLane();
     }
 
@@ -155,6 +156,7 @@ public class Car implements CarReadOnly, Comparable<Car> {
     public CarId getId() {
         return id;
     }
+
     @Override
     public int compareTo(Car anotherCar) {
         return this.id.getValue().compareTo(anotherCar.getId().getValue());

@@ -110,8 +110,8 @@ public class MapFragment implements RoadStructureProvider, LaneStateModifier {
             mapFragment.localPatches = this.localPatches;
             mapFragment.remotePatches = this.remotePatches;
             mapFragment.lane2Patch = Stream.concat(
-                            this.localPatches.values().stream(),
-                            this.remotePatches.values().stream())
+                    this.localPatches.values().stream(),
+                    this.remotePatches.values().stream())
                     .map(patch -> patch.getLanes()
                             .keySet().stream()
                             .collect(Collectors.toMap(Function.identity(), laneId -> patch.getId())))

@@ -1,12 +1,12 @@
 package pl.edu.agh.follow;
 
+import org.junit.jupiter.api.Test;
 import pl.edu.agh.model.car.Car;
 import pl.edu.agh.model.car.CarReadOnly;
-import org.junit.jupiter.api.Test;
 import pl.edu.agh.model.follow.IDM;
 import pl.edu.agh.model.follow.IFollowingModel;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class IDMTest {
 
@@ -85,7 +85,7 @@ class IDMTest {
         double maxSpeed = 20.0;
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
-        CarReadOnly aheadCar = createCar(10  + length + distanceHeadway, maxSpeed, length, maxSpeed);
+        CarReadOnly aheadCar = createCar(10 + length + distanceHeadway, maxSpeed, length, maxSpeed);
         double acceleration = model.calculateAcceleration(
                 managedCar.getSpeed(), managedCar.getMaxSpeed(),
                 aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition(),

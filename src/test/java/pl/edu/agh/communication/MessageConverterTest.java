@@ -1,9 +1,9 @@
 package pl.edu.agh.communication;
 
+import org.junit.jupiter.api.Test;
 import pl.edu.agh.communication.model.messages.Message;
 import pl.edu.agh.communication.model.messages.NeighbourConnectionMessage;
 import pl.edu.agh.communication.utils.MessageConverter;
-import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 

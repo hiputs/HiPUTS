@@ -8,8 +8,9 @@ import pl.edu.agh.model.follow.IDM;
 import pl.edu.agh.model.follow.IDMDecider;
 import pl.edu.agh.model.follow.IDecider;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class IDMDeciderTest {
 
@@ -87,7 +88,7 @@ class IDMDeciderTest {
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
         CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
-        CarReadOnly aheadCar = createCar(10  + length + distanceHeadway, maxSpeed, length, maxSpeed);
+        CarReadOnly aheadCar = createCar(10 + length + distanceHeadway, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
                 Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());

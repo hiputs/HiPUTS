@@ -2,7 +2,10 @@ package pl.edu.agh.model.map.example;
 
 import lombok.Getter;
 import pl.edu.agh.model.actor.MapFragment;
-import pl.edu.agh.model.car.*;
+import pl.edu.agh.model.car.Car;
+import pl.edu.agh.model.car.Route;
+import pl.edu.agh.model.car.RouteElement;
+import pl.edu.agh.model.car.RouteLocation;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 import pl.edu.agh.model.map.Junction;
@@ -33,7 +36,7 @@ public class ExampleCarProvider {
     void readPatches(MapFragment mapFragment) {
         this.junctionId2outgoingLaneId = mapFragment.getLocalPatches().stream()
                 .flatMap(patch -> patch.getJunctions().values().stream())
-                .collect(Collectors.toMap(Junction::getId, junction -> new ArrayList<>(junction.getOutgoingLanes().stream().map(el->el.getLaneId()).collect(Collectors.toList()))));
+                .collect(Collectors.toMap(Junction::getId, junction -> new ArrayList<>(junction.getOutgoingLanes().stream().map(el -> el.getLaneId()).collect(Collectors.toList()))));
 
         this.laneId2outgoingJunctionId = mapFragment.getLocalPatches().stream()
                 .flatMap(patch -> patch.getLanes().values().stream())
@@ -78,7 +81,7 @@ public class ExampleCarProvider {
         List<RouteElement> routeElements = new ArrayList<>();
         LaneId nextLaneId, laneId = startLane;
         JunctionId junctionId;
-        for(int i=0; i<hops; i++){
+        for (int i = 0; i < hops; i++) {
             junctionId = this.laneId2outgoingJunctionId.get(laneId);
             if (junctionId == null)
                 break;

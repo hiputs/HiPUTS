@@ -1,8 +1,8 @@
 package pl.edu.agh.communication.model.messages;
 
-import pl.edu.agh.communication.model.MessagesTypeEnum;
 import lombok.Builder;
 import lombok.Data;
+import pl.edu.agh.communication.model.MessagesTypeEnum;
 
 @Data
 @Builder

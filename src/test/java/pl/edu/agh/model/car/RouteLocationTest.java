@@ -19,7 +19,7 @@ public class RouteLocationTest {
     @BeforeAll
     public static void setup() {
         ArrayList<RouteElement> routeElements = new ArrayList<>();
-        for(int i=0; i<5; i++) {
+        for (int i = 0; i < 5; i++) {
             JunctionId junctionId = new JunctionId(String.valueOf(i), JunctionType.BEND);
             LaneId laneId = new LaneId(String.valueOf(i));
             orderedJunctionsOnRoute.add(junctionId);
@@ -59,7 +59,7 @@ public class RouteLocationTest {
     @Test
     public void traversWholeRouteByOneMoveForwardOnlyTest() {
         RouteLocation routeLocation = new RouteLocation(route);
-        for(int i=1; i<5; i++) {
+        for (int i = 1; i < 5; i++) {
             routeLocation.moveOneForward();
             Assertions.assertThat(routeLocation.getNextJunctionId()).isEqualTo(orderedJunctionsOnRoute.get(i));
             Assertions.assertThat(routeLocation.getNextLaneId()).isEqualTo(orderedLanesOnRoute.get(i));

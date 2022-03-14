@@ -18,6 +18,6 @@ public class LaneId {
 
     @Override
     public String toString() {
-        return "LaneId{" + value +'}';
+        return "LaneId{" + value + '}';
     }
 }

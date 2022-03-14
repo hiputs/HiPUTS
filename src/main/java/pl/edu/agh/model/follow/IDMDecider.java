@@ -6,11 +6,11 @@ import pl.edu.agh.model.car.CarReadOnly;
 public class IDMDecider implements IDecider {
     IFollowingModel followingModel;
 
-    public IDMDecider(){
+    public IDMDecider() {
         this.followingModel = new IDM();
     }
 
-    public IDMDecider(IDM followingModel){
+    public IDMDecider(IDM followingModel) {
         this.followingModel = followingModel;
     }
 
