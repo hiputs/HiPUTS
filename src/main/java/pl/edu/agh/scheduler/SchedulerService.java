@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class SchedulerService implements TaskExecutorUseCase {
+public class SchedulerService implements TaskExecutorService {
 
     private ForkJoinPool threadPoolExecutor;
     private static final int RESERVED_THREADS_NUMBER = 1;

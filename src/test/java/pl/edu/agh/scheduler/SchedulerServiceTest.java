@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SchedulerServiceTest {
 
     @Autowired
-    private TaskExecutorUseCase taskReceptionUseCase;
+    private TaskExecutorService taskReceptionUseCase;
 
     @Test
     void createFiveTaskAndWaitForIt() {
