@@ -1,5 +1,9 @@
 package pl.edu.agh.model.car;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Configurable;
 import pl.edu.agh.model.actor.RoadStructureProvider;
 import pl.edu.agh.model.follow.IDecider;
@@ -13,12 +17,16 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Configurable
+@Getter
+@Builder
+@AllArgsConstructor
 public class Car implements CarReadOnly, Comparable<Car> {
 
     /**
      * Unique car identifier.
      */
-    private CarId id;
+    @Builder.Default
+    private CarId id = new CarId();
 
     /**
      * Lane on which car is currently situated and its location on this lane.
@@ -33,21 +41,25 @@ public class Car implements CarReadOnly, Comparable<Car> {
     /**
      * Current speed of car.
      */
+    @Builder.Default
     private double speed = 0;
 
     /**
      * Length of the car.
      */
+    @Builder.Default
     private double length = 5;
 
     /**
      * Maximum possible speed of the car.
      */
+    @Builder.Default
     private double maxSpeed = 20;
 
     /**
      * Current acceleration of car.
      */
+    @Builder.Default
     private double acceleration = 0;
 
     /**
@@ -134,27 +146,8 @@ public class Car implements CarReadOnly, Comparable<Car> {
         this.location.setPositionOnLane(position);
     }
 
-    public double getSpeed() {
-        return speed;
-    }
-
     public void setSpeed(double speed) {
         this.speed = speed;
-    }
-
-    @Override
-    public double getLength() {
-        return length;
-    }
-
-    @Override
-    public double getMaxSpeed() {
-        return maxSpeed;
-    }
-
-    @Override
-    public CarId getId() {
-        return id;
     }
 
     @Override

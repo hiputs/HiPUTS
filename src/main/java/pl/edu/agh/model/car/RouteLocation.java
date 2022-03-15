@@ -1,13 +1,17 @@
 package pl.edu.agh.model.car;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 
+import java.util.Objects;
+
+@Getter
 @RequiredArgsConstructor
 public class RouteLocation {
 
-    /*
+    /**
      * Route that car will follow
      */
     private final Route route;

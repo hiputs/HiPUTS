@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.communication.model.messages.Message;
 import pl.edu.agh.communication.model.messages.NeighbourConnectionMessage;
 import pl.edu.agh.communication.utils.MessageConverter;
+import lombok.extern.slf4j.Slf4j;
+import pl.edu.agh.model.id.ActorId;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -19,10 +21,10 @@ import java.util.Objects;
 public class NeighbourConnection {
 
     private OutputStream output;
-    private final String id;
+    private final ActorId id;
 
     public NeighbourConnection(NeighbourConnectionMessage message) {
-        id = message.getId();
+        id = new ActorId(message.getId());
         try {
             Socket socket = new Socket(message.getAddress(), message.getPort());
             output = socket.getOutputStream();

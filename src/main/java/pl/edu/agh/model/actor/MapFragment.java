@@ -1,14 +1,14 @@
 package pl.edu.agh.model.actor;
 
+import lombok.Getter;
+import lombok.SneakyThrows;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.model.car.Car;
 import pl.edu.agh.model.id.ActorId;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 import pl.edu.agh.model.id.PatchId;
-import pl.edu.agh.model.map.Junction;
-import pl.edu.agh.model.map.LaneReadOnly;
-import pl.edu.agh.model.map.LaneReadWrite;
-import pl.edu.agh.model.map.Patch;
+import pl.edu.agh.model.map.*;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,6 +18,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Service
 public class MapFragment implements RoadStructureProvider, LaneStateModifier {
 
     /**
@@ -31,6 +32,12 @@ public class MapFragment implements RoadStructureProvider, LaneStateModifier {
     private Map<PatchId, Patch> remotePatches;
 
     /**
+     * only areas immediately  neighbouring/another actor
+     */
+    @Getter
+    private Map<PatchId, Patch> borderPatches;
+
+    /**
      * Lane to patch mapper
      */
     private Map<LaneId, PatchId> lane2Patch;
@@ -38,12 +45,14 @@ public class MapFragment implements RoadStructureProvider, LaneStateModifier {
     /**
      * Neighbors that have at least one directly connected junctions
      */
+    @Getter
     private Set<ActorId> neighbours;
 
     /**
-     * Actor to patch mapper
+     *  Patch to actor mapper
      */
-    private Map<ActorId, PatchId> actor2Patch;
+    @Getter
+    private Map<PatchId, ActorId> patch2Actor;
 
     @Override
     public LaneReadOnly getLane(LaneId laneId) {
@@ -89,6 +98,13 @@ public class MapFragment implements RoadStructureProvider, LaneStateModifier {
 
     private boolean isLocalPatch(PatchId patchId) {
         return localPatches.containsKey(patchId);
+    }
+
+    @SneakyThrows
+    public void insertCar(Car car){
+        PatchId patchId = lane2Patch.get(car.getLocation().getLane());
+        LaneReadWrite lane = localPatches.get(patchId).getLanes().get(car.getLocation().getLane());
+        lane.addToIncomingCars(car);
     }
 
     public static final class Builder {

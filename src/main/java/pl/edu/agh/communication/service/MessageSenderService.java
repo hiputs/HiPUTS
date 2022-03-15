@@ -6,6 +6,8 @@ import pl.edu.agh.communication.NeighbourConnection;
 import pl.edu.agh.communication.Subscriber;
 import pl.edu.agh.communication.model.messages.Message;
 import pl.edu.agh.communication.model.messages.NeighbourConnectionMessage;
+import org.springframework.stereotype.Service;
+import pl.edu.agh.model.id.ActorId;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -18,7 +20,7 @@ import static pl.edu.agh.communication.model.MessagesTypeEnum.WorkerConnectionMe
 @RequiredArgsConstructor
 public class MessageSenderService implements Subscriber {
 
-    private final Map<String, NeighbourConnection> neighbourRepository = new HashMap<>();
+    private final Map<ActorId, NeighbourConnection> neighbourRepository = new HashMap<>();
     private final SubscriptionService subscriptionService;
 
     @PostConstruct
@@ -31,7 +33,7 @@ public class MessageSenderService implements Subscriber {
      * @param message     - message to send
      * @throws IOException <p>Method send message to specific client</p>
      */
-    public void send(String neighbourId, Message message) throws IOException {
+    public void send(ActorId neighbourId, Message message) throws IOException {
         neighbourRepository.get(neighbourId)
                 .send(message);
     }
@@ -56,6 +58,6 @@ public class MessageSenderService implements Subscriber {
     public void notify(Message message) {
         NeighbourConnectionMessage workerConnectionMessage = (NeighbourConnectionMessage) message;
         NeighbourConnection connection = new NeighbourConnection(workerConnectionMessage);
-        neighbourRepository.put(workerConnectionMessage.getId(), connection);
+        neighbourRepository.put(new ActorId(workerConnectionMessage.getId()), connection);
     }
 }
