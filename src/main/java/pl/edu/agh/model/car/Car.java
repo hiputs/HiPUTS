@@ -112,8 +112,14 @@ public class Car implements CarReadWrite, Comparable<Car> {
     }
 
     public CarUpdateResult update() {
-        // extract information from decision and apply those changes to car
-        throw new UnsupportedOperationException("method not implemented!");
+        this.routeLocation.moveCurrentPositionWithOffset(decision.getOffsetToMoveOnRoute());
+        this.speed = decision.getSpeed();
+        this.acceleration = decision.getAcceleration();
+        CarUpdateResult carUpdateResult = new CarUpdateResult();
+        carUpdateResult.setOldLaneId(this.location.getLane());
+        this.location = decision.getLocation();
+        carUpdateResult.setNewLaneLocation(this.location);
+        return carUpdateResult;
     }
 
     /**

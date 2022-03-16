@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import pl.edu.agh.model.car.Car;
 import pl.edu.agh.model.car.CarRead;
-import pl.edu.agh.model.car.CarReadWrite;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 
