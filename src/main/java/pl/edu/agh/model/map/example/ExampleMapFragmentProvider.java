@@ -19,18 +19,27 @@ public class ExampleMapFragmentProvider {
 
     private static final Double DEFAULT_LANE_LENGTH = 1000.0;
 
+
     public static MapFragment getSimpleMap1() {
+        return getSimpleMap1(true);
+    }
+
+    public static MapFragment getSimpleMap1(boolean withCars) {
         String mapStructure = "(1->2) (2->3) (3->1)";
-        return fromStringRepresentation(mapStructure, Collections.emptyMap(), 2);
+        return fromStringRepresentation(mapStructure, Collections.emptyMap(), withCars ? 2 : 0);
     }
 
     public static MapFragment getSimpleMap2() {
+        return getSimpleMap2(true);
+    }
+
+    public static MapFragment getSimpleMap2(boolean withCars) {
         String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
         Map<String, Double> laneLengths = Stream.of(new String[][]{
                 {"1->2", "3400.0"},
                 {"2->3", "1200.0"},
         }).collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-        return fromStringRepresentation(mapStructure, laneLengths, 2);
+        return fromStringRepresentation(mapStructure, laneLengths, withCars ? 2 : 0);
     }
 
     public static MapFragment fromStringRepresentation(String mapStructure, Map<String, Double> laneLengths, int randomCarsPerLane) {

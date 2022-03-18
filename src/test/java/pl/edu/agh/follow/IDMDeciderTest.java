@@ -3,7 +3,7 @@ package pl.edu.agh.follow;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.model.car.Car;
 import pl.edu.agh.model.car.CarEnvironment;
-import pl.edu.agh.model.car.CarReadOnly;
+import pl.edu.agh.model.car.CarRead;
 import pl.edu.agh.model.follow.IDM;
 import pl.edu.agh.model.follow.IDMDecider;
 import pl.edu.agh.model.follow.IDecider;
@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class IDMDeciderTest {
 
-    private CarReadOnly createCar(double position, double speed, double length, double maxSpeed) {
+    private CarRead createCar(double position, double speed, double length, double maxSpeed) {
         Car managedCar = new Car(length, maxSpeed, null);
         managedCar.setPosition(position);
         managedCar.setSpeed(speed);
@@ -30,8 +30,8 @@ class IDMDeciderTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarReadOnly managedCar = createCar(10, 0, length, maxSpeed);
-        CarReadOnly aheadCar = createCar(10 + length + distanceHeadway, 0, length, maxSpeed);
+        CarRead managedCar = createCar(10, 0, length, maxSpeed);
+        CarRead aheadCar = createCar(10 + length + distanceHeadway, 0, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
                 Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
@@ -49,8 +49,8 @@ class IDMDeciderTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarReadOnly managedCar = createCar(10, 0, length, maxSpeed);
-        CarReadOnly aheadCar = createCar(517, maxSpeed, length, maxSpeed);
+        CarRead managedCar = createCar(10, 0, length, maxSpeed);
+        CarRead aheadCar = createCar(517, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
                 Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
@@ -68,8 +68,8 @@ class IDMDeciderTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
-        CarReadOnly aheadCar = createCar(5017, maxSpeed, length, maxSpeed);
+        CarRead managedCar = createCar(10, maxSpeed, length, maxSpeed);
+        CarRead aheadCar = createCar(5017, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
                 Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
@@ -87,8 +87,8 @@ class IDMDeciderTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
-        CarReadOnly aheadCar = createCar(10 + length + distanceHeadway, maxSpeed, length, maxSpeed);
+        CarRead managedCar = createCar(10, maxSpeed, length, maxSpeed);
+        CarRead aheadCar = createCar(10 + length + distanceHeadway, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
                 Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
@@ -106,8 +106,8 @@ class IDMDeciderTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IDM model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarReadOnly managedCar = createCar(10, maxSpeed, length, maxSpeed);
-        CarReadOnly aheadCar = createCar(10 + length + distanceHeadway + maxSpeed * timeHeadway, maxSpeed, length, maxSpeed);
+        CarRead managedCar = createCar(10, maxSpeed, length, maxSpeed);
+        CarRead aheadCar = createCar(10 + length + distanceHeadway + maxSpeed * timeHeadway, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
                 Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());

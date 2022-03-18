@@ -1,14 +1,17 @@
-package pl.edu.agh.model.actor;
+package pl.edu.agh.model.map;
 
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
-import pl.edu.agh.model.map.JunctionRead;
-import pl.edu.agh.model.map.LaneRead;
 
-public interface RoadStructureProvider {
+import java.util.Set;
+
+public interface PatchRead {
 
     LaneRead getLaneReadById(LaneId laneId);
 
     JunctionRead getJunctionReadById(JunctionId junctionId);
 
+    Set<LaneId> getLaneIds();
+
+    Set<JunctionId> getJunctionIds();
 }

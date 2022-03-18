@@ -1,20 +1,17 @@
 package pl.edu.agh.model.map;
 
-import pl.edu.agh.model.car.Car;
-import pl.edu.agh.model.car.CarReadOnly;
+import pl.edu.agh.model.car.CarRead;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-public interface LaneReadOnly {
+public interface LaneRead {
     // readable interface for Lane class
 
-    Optional<CarReadOnly> getNextCarData(CarReadOnly car);
+    Optional<CarRead> getNextCarData(CarRead car);
 
-    Optional<CarReadOnly> getFirstCar();
+    Optional<CarRead> getFirstCar();
 
     JunctionId getOutgoingJunction();
 

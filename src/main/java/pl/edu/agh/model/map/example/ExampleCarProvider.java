@@ -36,7 +36,7 @@ public class ExampleCarProvider {
     void readPatches(MapFragment mapFragment) {
         this.junctionId2outgoingLaneId = mapFragment.getLocalPatches().stream()
                 .flatMap(patch -> patch.getJunctions().values().stream())
-                .collect(Collectors.toMap(Junction::getId, junction -> new ArrayList<>(junction.getOutgoingLanes().stream().map(el -> el.getLaneId()).collect(Collectors.toList()))));
+                .collect(Collectors.toMap(Junction::getId, junction -> new ArrayList<>(junction.getOutgoingLanesIds())));
 
         this.laneId2outgoingJunctionId = mapFragment.getLocalPatches().stream()
                 .flatMap(patch -> patch.getLanes().values().stream())
