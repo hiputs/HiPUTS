@@ -5,13 +5,13 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Configurable;
 import pl.edu.agh.model.actor.RoadStructureProvider;
+import pl.edu.agh.model.follow.IDMDecider;
 import pl.edu.agh.model.follow.IDecider;
 import pl.edu.agh.model.id.CarId;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 import pl.edu.agh.model.map.LaneRead;
 
-import javax.inject.Inject;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -69,8 +69,7 @@ public class Car implements CarReadWrite, Comparable<Car> {
     /**
      * Decider instance
      */
-    @Inject
-    private IDecider decider;
+    private IDecider decider = new IDMDecider();
 
     public Car() {
         this.id = new CarId();
@@ -96,7 +95,7 @@ public class Car implements CarReadWrite, Comparable<Car> {
         int offset = -1;
         double desiredPosition = calculateFuturePosition();
 
-        while (desiredPosition > destinationCandidate.getLength()) {
+        while (desiredPosition>destinationCandidate.getLength()) {
             desiredPosition -= destinationCandidate.getLength();
             offset++;
             currentLaneId = routeLocation.getOffsetLaneId(offset);
