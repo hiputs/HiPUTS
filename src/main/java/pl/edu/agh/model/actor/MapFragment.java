@@ -8,11 +8,7 @@ import pl.edu.agh.model.id.ActorId;
 import pl.edu.agh.model.id.JunctionId;
 import pl.edu.agh.model.id.LaneId;
 import pl.edu.agh.model.id.PatchId;
-import pl.edu.agh.model.map.JunctionRead;
-import pl.edu.agh.model.map.JunctionReadWrite;
-import pl.edu.agh.model.map.LaneRead;
-import pl.edu.agh.model.map.LaneReadWrite;
-import pl.edu.agh.model.map.Patch;
+import pl.edu.agh.model.map.*;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,6 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
+@Getter
 public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapFragmentReadWrite {
 
     /**
@@ -38,7 +35,6 @@ public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapF
     /**
      * only areas immediately  neighbouring/another actor
      */
-    @Getter
     private Map<PatchId, Patch> borderPatches;
 
     /**
@@ -49,13 +45,11 @@ public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapF
     /**
      * Neighbors that have at least one directly connected junctions
      */
-    @Getter
     private Set<ActorId> neighbours;
 
     /**
      * Patch to actor mapper
      */
-    @Getter
     private Map<PatchId, ActorId> patch2Actor;
 
     public static Builder builder() {
