@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -116,6 +115,11 @@ public class Lane implements LaneReadWrite {
     @Override
     public List<Car> getCars() {
         return getCarsQueue();
+    }
+
+    @Override
+    public List<Car> getAllCars() {
+        return carsQueue;
     }
 
 }

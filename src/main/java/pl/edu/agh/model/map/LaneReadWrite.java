@@ -27,4 +27,6 @@ public interface LaneReadWrite extends LaneRead {
     LaneId getId();
 
     JunctionId getOutgoingJunction();
+
+    List<Car> getAllCars();
 }
