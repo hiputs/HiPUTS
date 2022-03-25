@@ -25,10 +25,10 @@ public class TrivialGraphBasedVisualizer {
 
     private final String graphStyles = """
             node { fill-color: rgb(0,50,200); text-color: rgb(255,255,255); shape: box; size: 25; text-size: 15; }
-            edge {  fill-color: rgb(150,150,150); text-size: 15;}              
+            edge {  fill-color: rgb(150,150,150); text-size: 15;}
             sprite { text-color: rgb(255,255,255); size: 18; text-size: 15;  }
             """;
-
+    
     protected Graph graph;
     protected SpriteManager spriteManager;
 

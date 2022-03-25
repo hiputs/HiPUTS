@@ -78,6 +78,10 @@ public class RouteLocation {
         }
         this.currentPosition = currentPosition;
     }
+
+    public void moveCurrentPositionWithOffset(int offset) {
+        this.setCurrentPosition(this.currentPosition + offset);
+    }
 }
 
 class RouteExceededException extends RuntimeException {

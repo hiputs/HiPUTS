@@ -15,4 +15,9 @@ public class CarId {
     public CarId() {
         this(UUID.randomUUID().toString());
     }
+
+    @Override
+    public String toString() {
+        return "CarId{" + value +'}';
+    }
 }
