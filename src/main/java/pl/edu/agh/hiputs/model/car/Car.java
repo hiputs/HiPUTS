@@ -88,7 +88,7 @@ public class Car implements CarEditable {
     LaneId currentLaneId = this.laneId;
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     int offset = -1;
-    double desiredPosition = calculateFuturePosition();
+    double desiredPosition = calculateFuturePosition(acceleration);
 
     while (desiredPosition > destinationCandidate.getLength()) {
       desiredPosition -= destinationCandidate.getLength();
@@ -161,8 +161,8 @@ public class Car implements CarEditable {
     return new CarEnvironment(precedingCar, nextCrossroadId, distance);
   }
 
-  public double calculateFuturePosition() {
-    return this.positionOnLane + this.speed + this.acceleration / 2;
+  public double calculateFuturePosition(double acceleration) {
+    return this.positionOnLane + this.speed + acceleration / 2;
   }
 
   @Override
