@@ -18,13 +18,15 @@ public interface LaneReadWrite extends LaneRead {
 
     void addToIncomingCars(Car car) throws CarAlreadyAddedException;
 
-    void clearIncomingCars();
-
     Set<Car> getIncomingCars();
+
+    void clearIncomingCars();
 
     List<Car> getCars();
 
     LaneId getId();
 
     JunctionId getOutgoingJunction();
+
+    List<Car> getAllCars();
 }

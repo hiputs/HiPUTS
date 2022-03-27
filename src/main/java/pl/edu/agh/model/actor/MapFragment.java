@@ -14,10 +14,7 @@ import pl.edu.agh.model.map.LaneRead;
 import pl.edu.agh.model.map.LaneReadWrite;
 import pl.edu.agh.model.map.Patch;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -58,8 +55,9 @@ public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapF
     @Getter
     private Map<PatchId, ActorId> patch2Actor;
 
-    public static Builder builder() {
-        return new Builder();
+    public LaneReadWrite getLaneReadWrite(LaneId laneId){
+        PatchId patchId= lane2Patch.get(laneId);
+        return localPatches.get(patchId).getLanes().get(laneId);
     }
 
     @Override
@@ -80,6 +78,14 @@ public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapF
 
     public Collection<Patch> getLocalPatches() {
         return this.localPatches.values();
+    }
+
+    public Patch getLocalPatch(PatchId patchId){
+        return localPatches.get(patchId);
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     private void stage(Car car) {
@@ -127,6 +133,44 @@ public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapF
         PatchId patchId = lane2Patch.get(car.getLocation().getLane());
         LaneReadWrite lane = localPatches.get(patchId).getLanes().get(car.getLocation().getLane());
         lane.addToIncomingCars(car);
+    }
+
+    public void migrateMyPatchToNeighbour(PatchId patchId, ActorId receiver) {
+        Patch patch = localPatches.remove(patchId);
+        remotePatches.put(patchId, patch);
+
+        patch2Actor.put(patchId, receiver);
+        refreshBorderPatches();
+    }
+
+    private void refreshBorderPatches() {
+        Set<PatchId> neighbourPatch = localPatches
+                .values()
+                .stream()
+                .map(Patch::getNeighboringPatches)
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet());
+
+        List<PatchId> localPatch = localPatches
+                .values()
+                .stream()
+                .map(Patch::getId)
+                .collect(Collectors.toList());
+
+        localPatch.forEach(neighbourPatch::remove);
+
+        borderPatches = remotePatches.values()
+                .parallelStream()
+                .filter(patch -> neighbourPatch.contains(patch.getId()))
+                .collect(Collectors.toMap(Patch::getId, Function.identity()));
+    }
+
+    public void migratePatchToMe(PatchId patchId) {
+        Patch patch = remotePatches.remove(patchId);
+        localPatches.put(patchId, patch);
+
+        patch2Actor.remove(patchId);
+        refreshBorderPatches();
     }
 
     public static final class Builder {
