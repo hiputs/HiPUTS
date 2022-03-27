@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.example;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.id.JunctionId;
+import pl.edu.agh.hiputs.model.id.JunctionType;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
@@ -74,12 +76,19 @@ public class ExampleMapFragmentProvider {
 
   private static Map<String, JunctionUnderConstruction> getStringJunctionMapFromStringRepresentation(
       String mapStructure) {
+    List<String> targets = getStringLaneMapFromStringRepresentation(mapStructure).keySet().stream()
+        .map(edge -> edge.split("->")[1]).collect(Collectors.toList());
+
     return getStringLaneMapFromStringRepresentation(mapStructure).keySet()
         .stream()
         .flatMap(edge -> Stream.of(edge.split("->")))
         .collect(Collectors.toSet())
         .stream()
-        .collect(Collectors.toMap(Function.identity(), v -> new JunctionUnderConstruction()));
+        .collect(Collectors.toMap(Function.identity(), v -> new JunctionUnderConstruction(getJunctionType(v, targets))));
+  }
+
+  private static JunctionType getJunctionType(String junctionStringRepr, List<String> targets) {
+    return targets.stream().filter(v -> v.equals(junctionStringRepr)).count() > 1 ? JunctionType.CROSSROAD : JunctionType.BEND;
   }
 
   private static void setLaneLengths(Map<String, LaneUnderConstruction> stringLaneMap,
@@ -136,8 +145,9 @@ public class ExampleMapFragmentProvider {
     JunctionId junctionId;
     Junction.JunctionBuilder junctionBuilder;
 
-    public JunctionUnderConstruction() {
-      this.junctionId = JunctionId.randomCrossroad();
+    public JunctionUnderConstruction(JunctionType junctionType) {
+      this.junctionId = junctionType == JunctionType.CROSSROAD ?
+          JunctionId.randomCrossroad() : JunctionId.randomBend();
       this.junctionBuilder = Junction.builder().junctionId(this.junctionId);
     }
   }
