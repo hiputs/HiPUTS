@@ -87,13 +87,18 @@ public class Car implements CarEditable {
 
     LaneId currentLaneId = this.laneId;
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
-    int offset = -1;
+    int offset = 0;
     double desiredPosition = calculateFuturePosition(acceleration);
 
     while (desiredPosition > destinationCandidate.getLength()) {
       desiredPosition -= destinationCandidate.getLength();
+      try {
+        currentLaneId = routeWithLocation.getOffsetLaneId(offset + 1);
+      } catch (RouteExceededException e) {
+        currentLaneId = null;
+        break;
+      }
       offset++;
-      currentLaneId = routeWithLocation.getOffsetLaneId(offset);
       destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     }
 
@@ -102,7 +107,7 @@ public class Car implements CarEditable {
         .speed(this.speed + acceleration)
         .laneId(currentLaneId)
         .positionOnLane(desiredPosition)
-        .offsetToMoveOnRoute(offset + 1)
+        .offsetToMoveOnRoute(offset)
         .build();
   }
 

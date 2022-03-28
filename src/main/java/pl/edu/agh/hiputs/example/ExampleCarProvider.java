@@ -68,6 +68,7 @@ public class ExampleCarProvider {
 
   private RouteWithLocation generateRoute(LaneId startLaneId, int hops) {
     List<RouteElement> routeElements = new ArrayList<>();
+    routeElements.add(new RouteElement(null, startLaneId));
     LaneId nextLaneId, laneId = startLaneId;
     JunctionId junctionId;
     for (int i = 0; i < hops; i++) {
