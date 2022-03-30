@@ -115,6 +115,11 @@ public class Lane implements LaneReadWrite {
         return getCarsQueue();
     }
 
+    @Override
+    public List<Car> getAllCars() {
+        return carsQueue;
+    }
+
 }
 
 class CarAlreadyAddedException extends Exception {

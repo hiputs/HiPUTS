@@ -112,19 +112,27 @@ public class Car implements CarReadWrite, Comparable<Car> {
     }
 
     public CarUpdateResult update() {
-        // extract information from decision and apply those changes to car
-        throw new UnsupportedOperationException("method not implemented!");
+        this.routeLocation.moveCurrentPositionWithOffset(decision.getOffsetToMoveOnRoute());
+        this.speed = decision.getSpeed();
+        this.acceleration = decision.getAcceleration();
+        CarUpdateResult carUpdateResult = new CarUpdateResult();
+        carUpdateResult.setOldLaneId(this.location.getLane());
+        this.location = decision.getLocation();
+        carUpdateResult.setNewLaneLocation(this.location);
+        return carUpdateResult;
     }
 
     /**
-     * Search for preceding car on the way counting distance to car, or distance to crossroad
+     * Search for preceding car or crossroad
+     * on the way counting distance to car or to crossroad
      *
-     * @return precedingCar and distance
+     * @return CarEnvironment
      */
-    private CarEnvironment getPrecedingCar(RoadStructureProvider roadStructureProvider) {
+    public CarEnvironment getPrecedingCar(RoadStructureProvider roadStructureProvider) {
         LaneRead currentLane = roadStructureProvider.getLaneReadById(this.location.getLane());
         JunctionId nextJunctionId = currentLane.getOutgoingJunction();
         Optional<CarRead> precedingCar = currentLane.getNextCarData(this);
+        Optional<JunctionId> nextCrossroadId;
         double distance;
         if (nextJunctionId.isCrossroad() || precedingCar.isPresent())
             distance = precedingCar
@@ -138,7 +146,7 @@ public class Car implements CarReadWrite, Comparable<Car> {
             while (precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
                 try {
                     nextLaneId = routeLocation.getOffsetLaneId(offset++);
-                } catch (IndexOutOfBoundsException indexOutOfBoundsException) {
+                } catch (RouteExceededException routeExceededException) {
                     break;
                 }
                 distance += currentLane.getLength(); // adds previous lane length
@@ -151,7 +159,11 @@ public class Car implements CarReadWrite, Comparable<Car> {
                     .map(car -> car.getPosition() - car.getLength())
                     .orElse(currentLane.getLength()) - this.getPosition();
         }
-        return new CarEnvironment(precedingCar, distance);
+        if (nextJunctionId.isCrossroad())
+            nextCrossroadId = Optional.of(nextJunctionId);
+        else
+            nextCrossroadId = Optional.empty();
+        return new CarEnvironment(precedingCar, nextCrossroadId, distance);
     }
 
     public double calculateFuturePosition() {

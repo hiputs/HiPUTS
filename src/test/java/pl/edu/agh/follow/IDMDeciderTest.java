@@ -34,7 +34,7 @@ class IDMDeciderTest {
         CarRead aheadCar = createCar(10 + length + distanceHeadway, 0, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
-                Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
+                Optional.of(aheadCar), Optional.empty(), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
         double acceleration = decider.makeDecision(managedCar, environment);
         double res = Math.abs(acceleration);
         assertTrue(res <= 0.001, "Result was: " + res + ", but should be close to 0.");
@@ -53,7 +53,7 @@ class IDMDeciderTest {
         CarRead aheadCar = createCar(517, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
-                Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
+                Optional.of(aheadCar), Optional.empty(), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
         double acceleration = decider.makeDecision(managedCar, environment);
         double res = Math.abs(acceleration - maxAcceleration);
         assertTrue(res <= 0.001, "Result was: " + res + ", but should be close to 0.");
@@ -72,7 +72,7 @@ class IDMDeciderTest {
         CarRead aheadCar = createCar(5017, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
-                Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
+                Optional.of(aheadCar), Optional.empty(), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
         double acceleration = decider.makeDecision(managedCar, environment);
         double res = Math.abs(acceleration);
         assertTrue(res <= 0.001, "Result was: " + res + ", but should be close to 0.");
@@ -91,7 +91,7 @@ class IDMDeciderTest {
         CarRead aheadCar = createCar(10 + length + distanceHeadway, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
-                Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
+                Optional.of(aheadCar), Optional.empty(), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
         double acceleration = decider.makeDecision(managedCar, environment);
         double res = acceleration;  //acceleration is lover than  (-lowestDeceleration)
         assertTrue(res <= 0.001 - maxDeceleration, "Result was: " + res + ", but should be lower than: " + (-maxDeceleration));
@@ -110,7 +110,7 @@ class IDMDeciderTest {
         CarRead aheadCar = createCar(10 + length + distanceHeadway + maxSpeed * timeHeadway, maxSpeed, length, maxSpeed);
         IDecider decider = new IDMDecider(model);
         CarEnvironment environment = new CarEnvironment(
-                Optional.of(aheadCar), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
+                Optional.of(aheadCar), Optional.empty(), aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition());
         double acceleration = decider.makeDecision(managedCar, environment);
         double res = Math.abs(acceleration + maxAcceleration);
         assertTrue(res <= 0.001, "Result was: " + res + ", but should be lower than 0");
