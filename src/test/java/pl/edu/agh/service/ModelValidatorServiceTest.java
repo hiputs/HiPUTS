@@ -21,6 +21,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import static pl.edu.agh.model.map.example.ExampleMapFragmentProvider.getSimpleMap2;
 
 @ExtendWith(MockitoExtension.class)
 public class ModelValidatorServiceTest {
@@ -83,6 +84,20 @@ public class ModelValidatorServiceTest {
 
         assertTrue(exception != null);
         assertEquals(2, exception.getErrors().size());
+    }
+
+    @Test
+    void shouldValidateRealModel(){
+        ModelValidatorServiceImpl modelValidatorService = new ModelValidatorServiceImpl(getSimpleMap2());
+        ModelValidationException exception = null;
+
+        try{
+            modelValidatorService.checkModel();
+        } catch (ModelValidationException e){
+            exception = e;
+        }
+
+        assertTrue(exception == null);
     }
 
     private Collection<Patch> getMockPatchWithJunctionFail() {

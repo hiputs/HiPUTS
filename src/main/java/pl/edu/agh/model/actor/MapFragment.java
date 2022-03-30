@@ -1,6 +1,7 @@
 package pl.edu.agh.model.actor;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.model.car.Car;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 
 @Service
 @Getter
+@Setter
 public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapFragmentReadWrite {
 
     /**
@@ -185,6 +187,9 @@ public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapF
             MapFragment mapFragment = new MapFragment();
             mapFragment.localPatches = this.localPatches;
             mapFragment.remotePatches = this.remotePatches;
+            mapFragment.patch2Actor = new HashMap<>();
+            mapFragment.borderPatches = new HashMap<>();
+            mapFragment.neighbours = new HashSet<>();
             mapFragment.lane2Patch = Stream.concat(
                             this.localPatches.values().stream(),
                             this.remotePatches.values().stream())
