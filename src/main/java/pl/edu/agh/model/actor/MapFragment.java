@@ -14,7 +14,12 @@ import pl.edu.agh.model.map.LaneRead;
 import pl.edu.agh.model.map.LaneReadWrite;
 import pl.edu.agh.model.map.Patch;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,13 +52,13 @@ public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapF
      * Neighbors that have at least one directly connected junctions
      */
     @Getter
-    private Set<ActorId> neighbours;
+    private Set<ActorId> neighbours = new HashSet<>();
 
     /**
      * Patch to actor mapper
      */
     @Getter
-    private Map<PatchId, ActorId> patch2Actor;
+    private Map<PatchId, ActorId> patch2Actor = new HashMap<>();
 
     public LaneReadWrite getLaneReadWrite(LaneId laneId){
         PatchId patchId= lane2Patch.get(laneId);
