@@ -108,14 +108,7 @@ public class LaneDecisionStageTaskTest {
     }
 
     private Decision getCarDecision(Car car) {
-        try {
-            Field decisionField = car.getClass().getDeclaredField("decision");
-            decisionField.setAccessible(true);
-            return (Decision) decisionField.get(car);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return car.getDecision();
     }
 
 }
