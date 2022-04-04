@@ -5,7 +5,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.JunctionRead;
 import pl.edu.agh.hiputs.model.map.LaneRead;
 
-public interface RoadStructureProvider {
+public interface RoadStructureReader {
 
     LaneRead getLaneReadById(LaneId laneId);
 

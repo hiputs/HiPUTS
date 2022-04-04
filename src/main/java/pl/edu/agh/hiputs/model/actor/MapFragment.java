@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapFragmentReadWrite {
+public class MapFragment implements RoadStructureReader, RoadStructureEditor {
 
     /**
      * All patches within this MapFragment - they represent patches that are situated within the same JVM
@@ -124,9 +124,9 @@ public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapF
     }
 
     public void insertCar(Car car) {
-        PatchId patchId = lane2Patch.get(car.getLocation().getLane());
-        LaneReadWrite lane = localPatches.get(patchId).getLanes().get(car.getLocation().getLane());
-        lane.addToIncomingCars(car);
+        car.getLaneId()
+                .getLaneReadWrite(this)
+                .addToIncomingCars(car);
     }
 
     public void migrateMyPatchToNeighbour(PatchId patchId, ActorId receiver) {

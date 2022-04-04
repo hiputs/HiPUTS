@@ -14,7 +14,7 @@ import java.util.Objects;
 /**
  * The class responsible for the connection with the neighbor.
  * The connection is one-way. You can only send a message to a neighbor.
- * Messages from all neighbors come on a proprietary socket.
+ * Messages from all neighbors come on a dedicated socket.
  */
 @Slf4j
 public class NeighbourConnection {

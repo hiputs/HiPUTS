@@ -6,7 +6,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.JunctionReadWrite;
 import pl.edu.agh.hiputs.model.map.LaneReadWrite;
 
-public interface MapFragmentReadWrite extends MapFragmentRead {
+public interface RoadStructureEditor extends RoadStructureReader {
 
     void addCar(LaneId laneId, Car car);
 

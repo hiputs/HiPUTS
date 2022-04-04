@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Configurable;
-import pl.edu.agh.hiputs.model.actor.RoadStructureProvider;
+import pl.edu.agh.hiputs.model.actor.RoadStructureReader;
 import pl.edu.agh.hiputs.model.follow.IDMDecider;
 import pl.edu.agh.hiputs.model.follow.IDecider;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -25,87 +25,76 @@ public class Car implements CarReadWrite, Comparable<Car> {
      * Unique car identifier.
      */
     @Builder.Default
-    private CarId id = new CarId();
-
+    private final CarId id = new CarId();
     /**
-     * Lane on which car is currently situated and its location on this lane.
+     * Length of the car.
      */
-    private LaneLocation location;
-
+    @Builder.Default
+    private final double length = 5;
+    /**
+     * Maximum possible speed of the car.
+     */
+    @Builder.Default
+    private final double maxSpeed = 20;
+    /**
+     * Decider instance
+     */
+    @Builder.Default
+    private final IDecider decider = new IDMDecider();
+    /**
+     * Lane on which car is currently situated.
+     */
+    @Builder.Default
+    private LaneId laneId = null;
+    /**
+     * Position of car at its lane.
+     */
+    @Builder.Default
+    private double positionOnLane = 0;
     /**
      * Route that car will follow and its location on this route.
      */
     private RouteLocation routeLocation;
-
     /**
      * Current speed of car.
      */
     @Builder.Default
     private double speed = 0;
-
-    /**
-     * Length of the car.
-     */
-    @Builder.Default
-    private double length = 5;
-
-    /**
-     * Maximum possible speed of the car.
-     */
-    @Builder.Default
-    private double maxSpeed = 20;
-
     /**
      * Current acceleration of car.
      */
     @Builder.Default
     private double acceleration = 0;
-
     /**
      * Decision on how car state should be changed. Calculated by decider.
      */
     private Decision decision;
 
-    /**
-     * Decider instance
-     */
-    private IDecider decider = new IDMDecider();
-
-    public Car() {
-        this.id = new CarId();
-    }
-
-    public Car(double length, double maxSpeed, RouteLocation routeLocation) {
-        this();
-        this.length = length;
-        this.maxSpeed = maxSpeed;
-        this.routeLocation = routeLocation;
-    }
-
-    public void decide(RoadStructureProvider roadStructureProvider) {
+    public void decide(RoadStructureReader roadStructureReader) {
         // make local decision based on read only road structure (watch environment) and save it locally
 
         //First prepare CarEnvironment
-        CarEnvironment environment = this.getPrecedingCar(roadStructureProvider);
+        CarEnvironment environment = this.getPrecedingCar(roadStructureReader);
 
         double acceleration = this.decider.makeDecision(this, environment);
 
-        LaneId currentLaneId = location.getLane();
-        LaneRead destinationCandidate = roadStructureProvider.getLaneReadById(currentLaneId);
+        LaneId currentLaneId = this.laneId;
+        LaneRead destinationCandidate = roadStructureReader.getLaneReadById(currentLaneId);
         int offset = -1;
         double desiredPosition = calculateFuturePosition();
 
-        while (desiredPosition>destinationCandidate.getLength()) {
+        while (desiredPosition > destinationCandidate.getLength()) {
             desiredPosition -= destinationCandidate.getLength();
             offset++;
             currentLaneId = routeLocation.getOffsetLaneId(offset);
-            destinationCandidate = roadStructureProvider.getLaneReadById(currentLaneId);
+            destinationCandidate = roadStructureReader.getLaneReadById(currentLaneId);
         }
 
         decision = Decision.builder()
                 .acceleration(acceleration)
                 .speed(this.speed + acceleration)
-                .location(new LaneLocation(currentLaneId, desiredPosition))
+                .laneId(currentLaneId)
+                .positionOnLane(desiredPosition)
                 .offsetToMoveOnRoute(offset + 1)
                 .build();
     }
@@ -114,10 +103,13 @@ public class Car implements CarReadWrite, Comparable<Car> {
         this.routeLocation.moveCurrentPositionWithOffset(decision.getOffsetToMoveOnRoute());
         this.speed = decision.getSpeed();
         this.acceleration = decision.getAcceleration();
-        CarUpdateResult carUpdateResult = new CarUpdateResult();
-        carUpdateResult.setOldLaneId(this.location.getLane());
-        this.location = decision.getLocation();
-        carUpdateResult.setNewLaneLocation(this.location);
+        CarUpdateResult carUpdateResult = new CarUpdateResult(
+                this.laneId,
+                decision.getLaneId(),
+                decision.getPositionOnLane()
+        );
+        this.laneId = decision.getLaneId();
+        this.positionOnLane = decision.getPositionOnLane();
         return carUpdateResult;
     }
 
@@ -127,16 +119,16 @@ public class Car implements CarReadWrite, Comparable<Car> {
      *
      * @return CarEnvironment
      */
-    public CarEnvironment getPrecedingCar(RoadStructureProvider roadStructureProvider) {
-        LaneRead currentLane = roadStructureProvider.getLaneReadById(this.location.getLane());
+    public CarEnvironment getPrecedingCar(RoadStructureReader roadStructureReader) {
+        LaneRead currentLane = roadStructureReader.getLaneReadById(this.laneId);
         JunctionId nextJunctionId = currentLane.getOutgoingJunction();
         Optional<CarRead> precedingCar = currentLane.getNextCarData(this);
         Optional<JunctionId> nextCrossroadId;
         double distance;
         if (nextJunctionId.isCrossroad() || precedingCar.isPresent())
             distance = precedingCar
-                    .map(car -> car.getPosition() - car.getLength())
-                    .orElse(currentLane.getLength()) - this.getPosition();
+                    .map(car -> car.getPositionOnLane() - car.getLength())
+                    .orElse(currentLane.getLength()) - this.positionOnLane;
         else {
             distance = 0;
             int offset = 0;
@@ -149,14 +141,14 @@ public class Car implements CarReadWrite, Comparable<Car> {
                     break;
                 }
                 distance += currentLane.getLength(); // adds previous lane length
-                nextLane = roadStructureProvider.getLaneReadById(nextLaneId);
+                nextLane = roadStructureReader.getLaneReadById(nextLaneId);
                 nextJunctionId = nextLane.getOutgoingJunction();
                 precedingCar = nextLane.getFirstCar();
                 currentLane = nextLane;
             }
             distance += precedingCar
-                    .map(car -> car.getPosition() - car.getLength())
-                    .orElse(currentLane.getLength()) - this.getPosition();
+                    .map(car -> car.getPositionOnLane() - car.getLength())
+                    .orElse(currentLane.getLength()) - this.positionOnLane;
         }
         if (nextJunctionId.isCrossroad())
             nextCrossroadId = Optional.of(nextJunctionId);
@@ -166,40 +158,7 @@ public class Car implements CarReadWrite, Comparable<Car> {
     }
 
     public double calculateFuturePosition() {
-        return getPosition() + this.speed + this.acceleration / 2;
-    }
-
-    public double getPosition() {
-        return this.location.getPositionOnLane();
-    }
-
-    public void setPosition(double position) {
-        if (this.location == null)
-            this.location = new LaneLocation();
-        this.location.setPositionOnLane(position);
-    }
-
-    public double getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(double speed) {
-        this.speed = speed;
-    }
-
-    @Override
-    public double getLength() {
-        return length;
-    }
-
-    @Override
-    public double getMaxSpeed() {
-        return maxSpeed;
-    }
-
-    @Override
-    public CarId getId() {
-        return id;
+        return this.positionOnLane + this.speed + this.acceleration / 2;
     }
 
     public RouteLocation getRouteLocation() {
@@ -208,14 +167,6 @@ public class Car implements CarReadWrite, Comparable<Car> {
 
     public void setRouteLocation(RouteLocation routeLocation) {
         this.routeLocation = routeLocation;
-    }
-
-    public void setLocation(LaneLocation location) {
-        this.location = location;
-    }
-
-    public Decision getDecision() {
-        return decision;
     }
 
     @Override
@@ -234,11 +185,6 @@ public class Car implements CarReadWrite, Comparable<Car> {
     @Override
     public int hashCode() {
         return Objects.hash(id);
-    }
-
-    public void setNewLocation(LaneId startLane) {
-        this.location = new LaneLocation();
-        this.location.setLane(startLane);
     }
 
 }

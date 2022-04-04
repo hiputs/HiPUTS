@@ -3,7 +3,10 @@ package pl.edu.agh.hiputs.communication.model.serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import pl.edu.agh.hiputs.model.car.*;
+import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.Route;
+import pl.edu.agh.hiputs.model.car.RouteElement;
+import pl.edu.agh.hiputs.model.car.RouteLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
@@ -60,8 +63,8 @@ public class SCar implements CustomSerializable<Car> {
         speed = realObject.getSpeed();
         length = realObject.getLength();
         maxSpeed = realObject.getMaxSpeed();
-        lineId = realObject.getLocation().getLane().getValue();
-        positionOnLine = realObject.getLocation().getPositionOnLane();
+        lineId = realObject.getLaneId().getValue();
+        positionOnLine = realObject.getPositionOnLane();
 
         currentRoutePosition = realObject.getRouteLocation().getCurrentPosition();
         routeElements = realObject.getRouteLocation()
@@ -77,7 +80,6 @@ public class SCar implements CustomSerializable<Car> {
 
     @Override
     public Car toRealObject() {
-        LaneLocation location = new LaneLocation(new LaneId(lineId), positionOnLine);
 
         List<RouteElement> routeElementList = routeElements
                 .stream()
@@ -92,12 +94,13 @@ public class SCar implements CustomSerializable<Car> {
         routeLocation.setCurrentPosition(currentRoutePosition);
 
         return Car.builder()
-                .maxSpeed(maxSpeed)
-                .speed(speed)
-                .length(length)
                 .id(new CarId(carId))
-                .location(location)
+                .length(length)
+                .maxSpeed(maxSpeed)
                 .routeLocation(routeLocation)
+                .speed(speed)
+                .laneId(new LaneId(lineId))
+                .positionOnLane(positionOnLine)
                 .build();
     }
 }

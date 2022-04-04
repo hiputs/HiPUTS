@@ -77,7 +77,7 @@ public class TrivialGraphBasedVisualizer {
                         sprite.attachToEdge(lane.getId().getValue());
                     }
                     spritesInThisUpdate.add(sprite);
-                    sprite.setPosition(car.getPosition() / lane.getLength());
+                    sprite.setPosition(car.getPositionOnLane() / lane.getLength());
                     int speedByte = (int) Math.min(car.getSpeed() * 10, 255);
                     sprite.setAttribute("ui.style", "fill-color: rgb(" + speedByte + "," + (255 - speedByte) + ",0);");
 

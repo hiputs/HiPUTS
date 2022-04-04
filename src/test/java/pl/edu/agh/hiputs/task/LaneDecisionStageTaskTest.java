@@ -61,10 +61,8 @@ public class LaneDecisionStageTaskTest {
     @Test
     public void laneDecisionStageTaskWithoutJumpsBetweenLanesTest() {
         //given
-        LaneLocation laneLocation = new LaneLocation();
-        laneLocation.setLane(laneId);
-        laneLocation.setPositionOnLane(0);
-        car.setLocation(laneLocation);
+        car.setLaneId(laneId);
+        car.setPositionOnLane(0);
 
         mapFragment.getLaneReadWriteById(laneId).addFirstCar(car);
 
@@ -83,10 +81,8 @@ public class LaneDecisionStageTaskTest {
         //given
         LaneReadWrite laneReadWrite = mapFragment.getLaneReadWriteById(laneId);
 
-        LaneLocation laneLocation = new LaneLocation();
-        laneLocation.setLane(laneId);
-        laneLocation.setPositionOnLane(laneReadWrite.getLength() - DISTANCE_TO_LANE_END);
-        car.setLocation(laneLocation);
+        car.setLaneId(laneId);
+        car.setPositionOnLane(laneReadWrite.getLength() - DISTANCE_TO_LANE_END);
 
         laneReadWrite.addFirstCar(car);
 
@@ -98,7 +94,7 @@ public class LaneDecisionStageTaskTest {
         Decision decision = getCarDecision(car);
         Assertions.assertThat(decision).isNotNull();
         Assertions.assertThat(decision.getAcceleration()).isEqualTo(1.0);
-        Assertions.assertThat(decision.getLocation().getLane()).isEqualTo(nextLaneId);
+        Assertions.assertThat(decision.getLocation().getLaneId()).isEqualTo(nextLaneId);
     }
 
     private Decision getCarDecision(Car car) {

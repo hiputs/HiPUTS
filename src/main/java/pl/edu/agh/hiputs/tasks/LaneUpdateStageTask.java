@@ -1,7 +1,7 @@
 package pl.edu.agh.hiputs.tasks;
 
 import lombok.RequiredArgsConstructor;
-import pl.edu.agh.hiputs.model.actor.MapFragmentReadWrite;
+import pl.edu.agh.hiputs.model.actor.RoadStructureEditor;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarUpdateResult;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -13,7 +13,7 @@ import java.util.ListIterator;
 
 @RequiredArgsConstructor
 public class LaneUpdateStageTask implements Runnable {
-    private final MapFragmentReadWrite mapFragment;
+    private final RoadStructureEditor mapFragment;
     private final LaneId laneId;
 
     @Override
@@ -29,7 +29,7 @@ public class LaneUpdateStageTask implements Runnable {
      * Removes from Lane.carsQueue all cars which decided to leave this lane
      */
     private void removeLeavingCars(LaneReadWrite lane) {
-        while (!lane.getLastCar().getDecision().getLocation().getLane().equals(this.laneId)) {
+        while (!lane.getLastCar().getDecision().getLaneId().equals(this.laneId)) {
             lane.removeLastCar();
         }
     }
@@ -57,7 +57,7 @@ public class LaneUpdateStageTask implements Runnable {
         lane.getIncomingCars()
                 .stream()
                 .sorted(Comparator.<Car>comparingDouble(car ->
-                                car.getDecision().getLocation().getPositionOnLane()
+                                car.getDecision().getPositionOnLane()
                         ).reversed()
                 ).forEach(currentCar -> {
             lane.addFirstCar(currentCar);

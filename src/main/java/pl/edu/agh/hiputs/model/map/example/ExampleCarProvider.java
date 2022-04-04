@@ -68,13 +68,16 @@ public class ExampleCarProvider {
         return this.generateCar(startLane, hops, length, maxSpeed);
     }
 
-    public Car generateCar(LaneId startLane, int hops, double length, double maxSpeed) {
-        RouteLocation routeLocation = this.generateRoute(startLane, hops);
-        Car car = new Car(length, maxSpeed, routeLocation);
-        car.setNewLocation(startLane);
-        car.setPosition(ThreadLocalRandom.current().nextDouble(laneId2laneReadWrite.get(startLane).getLength()));
-        car.setSpeed(ThreadLocalRandom.current().nextDouble(DEFAULT_MAX_SPEED));
-        return car;
+    public Car generateCar(LaneId startLaneId, int hops, double length, double maxSpeed) {
+        RouteLocation routeLocation = this.generateRoute(startLaneId, hops);
+        return Car.builder()
+                .length(length)
+                .maxSpeed(maxSpeed)
+                .routeLocation(routeLocation)
+                .laneId(startLaneId)
+                .positionOnLane(ThreadLocalRandom.current().nextDouble(laneId2laneReadWrite.get(startLaneId).getLength()))
+                .speed(ThreadLocalRandom.current().nextDouble(DEFAULT_MAX_SPEED))
+                .build();
     }
 
     private RouteLocation generateRoute(LaneId startLane, int hops) {

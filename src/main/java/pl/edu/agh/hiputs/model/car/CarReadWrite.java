@@ -1,11 +1,10 @@
 package pl.edu.agh.hiputs.model.car;
 
-import pl.edu.agh.hiputs.model.actor.RoadStructureProvider;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.actor.RoadStructureReader;
 
 public interface CarReadWrite extends CarRead {
 
-    void decide(RoadStructureProvider roadStructureProvider);
+    void decide(RoadStructureReader roadStructureReader);
 
     CarUpdateResult update();
 
@@ -13,14 +12,6 @@ public interface CarReadWrite extends CarRead {
 
     RouteLocation getRouteLocation();
 
-    void setPosition(double position);
-
-    void setSpeed(double speed);
-
     void setRouteLocation(RouteLocation routeLocation);
-
-    void setLocation(LaneLocation location);
-
-    void setNewLocation(LaneId startLane);
 
 }

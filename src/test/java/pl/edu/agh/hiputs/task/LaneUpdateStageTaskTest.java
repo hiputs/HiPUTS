@@ -10,7 +10,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.model.actor.MapFragment;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
-import pl.edu.agh.hiputs.model.car.LaneLocation;
 import pl.edu.agh.hiputs.model.car.RouteLocation;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.LaneReadWrite;
@@ -25,9 +24,9 @@ public class LaneUpdateStageTaskTest {
     private LaneId laneId1, laneId2;
     private LaneReadWrite lane1, lane2;
     private RouteLocation routeLocation = Mockito.mock(RouteLocation.class);
-    private Car car1 = new Car(4, 15, routeLocation);
-    private Car car2 = new Car(4, 15, routeLocation);
-    private Car car3 = new Car(4, 15, routeLocation);
+    private Car car1 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
+    private Car car2 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
+    private Car car3 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
     private Decision decision1, decision2, decision3;
     private LaneLocation location1, location2, location3;
 
@@ -86,11 +85,11 @@ public class LaneUpdateStageTaskTest {
 
         laneUpdateStageTask.run();
         Assertions.assertAll(
-                () -> Assertions.assertEquals(car1.getLocation().getLane(), decision1.getLocation().getLane()),
+                () -> Assertions.assertEquals(car1.getLocation().getLaneId(), decision1.getLocation().getLaneId()),
                 () -> Assertions.assertEquals(car1.getPosition(), decision1.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car2.getLocation().getLane(), decision2.getLocation().getLane()),
+                () -> Assertions.assertEquals(car2.getLocation().getLaneId(), decision2.getLocation().getLaneId()),
                 () -> Assertions.assertEquals(car2.getPosition(), decision2.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car3.getLocation().getLane(), decision3.getLocation().getLane()),
+                () -> Assertions.assertEquals(car3.getLocation().getLaneId(), decision3.getLocation().getLaneId()),
                 () -> Assertions.assertEquals(car3.getPosition(), decision3.getLocation().getPositionOnLane()),
                 () -> Assertions.assertEquals(lane2.getCars().size(), 3),
                 () -> Assertions.assertEquals(lane2.getCars().get(0), car1),
@@ -124,11 +123,11 @@ public class LaneUpdateStageTaskTest {
         laneUpdateStageTask2.run();
 
         Assertions.assertAll(
-                () -> Assertions.assertEquals(car1.getLocation().getLane(), decision1.getLocation().getLane()),
+                () -> Assertions.assertEquals(car1.getLocation().getLaneId(), decision1.getLocation().getLaneId()),
                 () -> Assertions.assertEquals(car1.getPosition(), decision1.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car2.getLocation().getLane(), decision2.getLocation().getLane()),
+                () -> Assertions.assertEquals(car2.getLocation().getLaneId(), decision2.getLocation().getLaneId()),
                 () -> Assertions.assertEquals(car2.getPosition(), decision2.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car3.getLocation().getLane(), decision3.getLocation().getLane()),
+                () -> Assertions.assertEquals(car3.getLocation().getLaneId(), decision3.getLocation().getLaneId()),
                 () -> Assertions.assertEquals(car3.getPosition(), decision3.getLocation().getPositionOnLane()),
                 () -> Assertions.assertEquals(lane2.getCars().size(), 3),
                 () -> Assertions.assertEquals(lane1.getCars().size(), 0),
@@ -169,11 +168,11 @@ public class LaneUpdateStageTaskTest {
         laneUpdateStageTask2.run();
 
         Assertions.assertAll(
-                () -> Assertions.assertEquals(car1.getLocation().getLane(), decision1.getLocation().getLane()),
+                () -> Assertions.assertEquals(car1.getLocation().getLaneId(), decision1.getLocation().getLaneId()),
                 () -> Assertions.assertEquals(car1.getPosition(), decision1.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car2.getLocation().getLane(), decision2.getLocation().getLane()),
+                () -> Assertions.assertEquals(car2.getLocation().getLaneId(), decision2.getLocation().getLaneId()),
                 () -> Assertions.assertEquals(car2.getPosition(), decision2.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car3.getLocation().getLane(), decision3.getLocation().getLane()),
+                () -> Assertions.assertEquals(car3.getLocation().getLaneId(), decision3.getLocation().getLaneId()),
                 () -> Assertions.assertEquals(car3.getPosition(), decision3.getLocation().getPositionOnLane()),
                 () -> Assertions.assertEquals(lane2.getCars().size(), 2),
                 () -> Assertions.assertEquals(lane1.getCars().size(), 1),

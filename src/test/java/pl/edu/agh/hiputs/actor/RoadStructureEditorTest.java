@@ -13,7 +13,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MapFragmentReadWriteTest {
+public class RoadStructureEditorTest {
 
     private TestData prepareTestData() {
         Lane lane1 = new Lane();

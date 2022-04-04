@@ -67,10 +67,10 @@ public class Lane implements LaneReadWrite {
     }
 
     public Optional<CarRead> getNextCarData(CarRead car) {
-        double carPosition = car.getPosition();
+        double carPosition = car.getPositionOnLane();
         CarRead found = null;
         for (CarRead nextCar : carsQueue) {
-            if (nextCar.getPosition() > carPosition) {
+            if (nextCar.getPositionOnLane() > carPosition) {
                 found = nextCar;
                 break;
             }
