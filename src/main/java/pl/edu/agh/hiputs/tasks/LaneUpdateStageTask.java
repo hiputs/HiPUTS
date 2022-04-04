@@ -7,7 +7,7 @@ import pl.edu.agh.hiputs.model.car.CarUpdateResult;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.LaneReadWrite;
 
-import java.util.Iterator;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -26,23 +26,11 @@ public class LaneUpdateStageTask implements Runnable {
     }
 
     /**
-     * Counts and removes from Lane.carsQueue all cars which decided to leave this lane
-     *
-     * @param lane
+     * Removes from Lane.carsQueue all cars which decided to leave this lane
      */
     private void removeLeavingCars(LaneReadWrite lane) {
-        int carsToRemove = 0;
-        List<Car> cars = lane.getCars();
-        ListIterator<Car> carsQueueIterator = cars.listIterator(cars.size());
-        while (carsQueueIterator.hasPrevious()) {
-            Car currentCar = carsQueueIterator.previous();
-            if (currentCar.getDecision().getLocation().getLane().equals(this.laneId)) {
-                break;
-            }
-            carsToRemove++;
-        }
-        for (int i = carsToRemove; i > 0; i--) {
-            Car car = lane.removeLastCar();
+        while (!lane.getLastCar().getDecision().getLocation().getLane().equals(this.laneId)) {
+            lane.removeLastCar();
         }
     }
 
@@ -66,18 +54,14 @@ public class LaneUpdateStageTask implements Runnable {
      * @param lane
      */
     private void handleIncomingCars(LaneReadWrite lane) {
-        Iterator<Car> incomingCarsIterator = lane
-                .getIncomingCars()
+        lane.getIncomingCars()
                 .stream()
-                .sorted((car1, car2) -> (int) (
-                        car2.getDecision().getLocation().getPositionOnLane()
-                                - car1.getDecision().getLocation().getPositionOnLane())
-                ).iterator();
-
-        while (incomingCarsIterator.hasNext()) {
-            Car currentCar = incomingCarsIterator.next();
+                .sorted(Comparator.<Car>comparingDouble(car ->
+                                car.getDecision().getLocation().getPositionOnLane()
+                        ).reversed()
+                ).forEach(currentCar -> {
             lane.addFirstCar(currentCar);
-            CarUpdateResult carUpdateResult = currentCar.update();
-        }
+            currentCar.update();
+        });
     }
 }

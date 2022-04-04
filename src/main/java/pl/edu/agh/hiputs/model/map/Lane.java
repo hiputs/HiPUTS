@@ -60,7 +60,7 @@ public class Lane implements LaneReadWrite {
      * Set for cars incoming onto this lane
      */
     @Getter
-    private Set<Car> incomingCars = new ConcurrentSkipListSet<Car>();
+    private Set<Car> incomingCars = new ConcurrentSkipListSet<>();
 
     public Lane() {
         this(new LaneId());
@@ -102,9 +102,13 @@ public class Lane implements LaneReadWrite {
         return this.carsQueue.removeLast();
     }
 
-    public void addToIncomingCars(Car car) throws CarAlreadyAddedException {
-        if (!this.incomingCars.add(car))
-            throw new CarAlreadyAddedException();
+    public Car getLastCar() {
+        return this.carsQueue.getLast();
+    }
+
+    public void addToIncomingCars(Car car) {
+        this.incomingCars.add(car);
+        //TODO validate if cars is added properly to set (look before this commit version)
     }
 
     public void clearIncomingCars() {
@@ -123,5 +127,3 @@ public class Lane implements LaneReadWrite {
 
 }
 
-class CarAlreadyAddedException extends Exception {
-}

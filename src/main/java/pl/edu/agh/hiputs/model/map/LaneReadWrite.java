@@ -16,7 +16,9 @@ public interface LaneReadWrite extends LaneRead {
 
     Car removeLastCar();
 
-    void addToIncomingCars(Car car) throws CarAlreadyAddedException;
+    Car getLastCar();
+
+    void addToIncomingCars(Car car);
 
     Set<Car> getIncomingCars();
 
