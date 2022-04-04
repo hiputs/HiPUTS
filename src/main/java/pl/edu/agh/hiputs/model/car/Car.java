@@ -19,7 +19,8 @@ import java.util.Optional;
 @Getter
 @Builder
 @AllArgsConstructor
-public class Car implements CarReadWrite, Comparable<Car> {
+public class
+Car implements CarReadWrite, Comparable<Car> {
 
     /**
      * Unique car identifier.
@@ -44,13 +45,11 @@ public class Car implements CarReadWrite, Comparable<Car> {
     /**
      * Lane on which car is currently situated.
      */
-    @Builder.Default
-    private LaneId laneId = null;
+    private LaneId laneId;
     /**
      * Position of car at its lane.
      */
-    @Builder.Default
-    private double positionOnLane = 0;
+    private double positionOnLane;
     /**
      * Route that car will follow and its location on this route.
      */

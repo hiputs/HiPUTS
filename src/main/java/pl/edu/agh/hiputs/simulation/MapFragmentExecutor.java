@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Service
 public class MapFragmentExecutor {
 
-    public MapFragment mf = ExampleMapFragmentProvider.getSimpleMap2();
+    public final MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap2();
 
     @Autowired
     TaskExecutorService taskExecutor;
@@ -30,11 +30,11 @@ public class MapFragmentExecutor {
         SubscriptionService subscriptionService = new SubscriptionService(messageReceiverService);
         TaskExecutorService taskExecutorService = new SchedulerService();
         MessageSenderService messageSenderService = new MessageSenderService(subscriptionService);
-        CarSynchronizedService carSynchronizedService = new CarSynchronizedServiceImpl(mf, subscriptionService, taskExecutorService, messageSenderService);
+        CarSynchronizedService carSynchronizedService = new CarSynchronizedServiceImpl(mapFragment, subscriptionService, taskExecutorService, messageSenderService);
 
         // 3. decision
-        List<Runnable> decisionStageTasks = mf.getAllManagedLaneIds().stream()
-                .map(laneId -> new LaneDecisionStageTask(mf, laneId))
+        List<Runnable> decisionStageTasks = mapFragment.getAllManagedLaneIds().stream()
+                .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId))
                 .collect(Collectors.toList());
         taskExecutor.executeBatch(decisionStageTasks);
 
@@ -44,8 +44,8 @@ public class MapFragmentExecutor {
         carSynchronizedService.synchronizedGetIncomingCar();
 
         // 6. 7. insert incoming cars & update lanes/cars
-        List<Runnable> updateStageTasks = mf.getAllManagedLaneIds().stream()
-                .map(laneId -> new LaneUpdateStageTask(mf, laneId))
+        List<Runnable> updateStageTasks = mapFragment.getAllManagedLaneIds().stream()
+                .map(laneId -> new LaneUpdateStageTask(mapFragment, laneId))
                 .collect(Collectors.toList());
         taskExecutor.executeBatch(updateStageTasks);
 

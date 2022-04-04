@@ -68,7 +68,7 @@ class LaneTest {
         assertAll(
                 () -> assertFalse(optional.isEmpty()),
                 () -> assertEquals(optional.map(car -> car.getPosition()).get(), car1_pos),
-                () -> assertEquals(optional.map(car -> car.getSpeed()).get(), car1_speed)
+                () -> assertEquals(optional.map(CarRead::getSpeed).get(), car1_speed)
         );
     }
 

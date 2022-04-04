@@ -13,5 +13,5 @@ public enum JunctionType {
     /**
      * Junction that have more than one incoming or/and more than one outgoing lane
      */
-    CROSSROAD;
+    CROSSROAD
 }

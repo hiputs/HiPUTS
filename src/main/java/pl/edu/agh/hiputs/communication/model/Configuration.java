@@ -6,6 +6,6 @@ import lombok.Getter;
 @Builder
 @Getter
 public class Configuration {
-    private String serverAddress;
+    private final String serverAddress;
 
 }

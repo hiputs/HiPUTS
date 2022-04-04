@@ -9,12 +9,12 @@ public class LaneOnJunction implements ILaneOnJunction {
     /**
      * Index of lane on junction
      */
-    private int laneIndexOnJunction;
+    private final int laneIndexOnJunction;
 
     /**
      * Global lane Id
      */
-    private LaneId laneId;
+    private final LaneId laneId;
 
     public LaneOnJunction(int laneOrder, LaneId laneId) {
         this.laneIndexOnJunction = laneOrder;

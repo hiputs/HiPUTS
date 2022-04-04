@@ -11,7 +11,7 @@ import java.util.LinkedList;
 @AllArgsConstructor
 public class CarTransferMessage implements Message{
 
-    private LinkedList<SCar> cars;
+    private final LinkedList<SCar> cars;
 
     @Override
     public MessagesTypeEnum getMessageType() {

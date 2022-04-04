@@ -4,7 +4,7 @@ import pl.edu.agh.hiputs.model.car.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.CarRead;
 
 public class IDMDecider implements IDecider {
-    IFollowingModel followingModel;
+    final IFollowingModel followingModel;
 
     public IDMDecider() {
         this.followingModel = new IDM();

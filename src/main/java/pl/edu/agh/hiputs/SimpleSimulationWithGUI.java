@@ -22,7 +22,7 @@ public class SimpleSimulationWithGUI implements Runnable {
 
     @PostConstruct
     public void init() {
-        graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.mf);
+        graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.mapFragment);
     }
 
     @EventListener(ApplicationReadyEvent.class)
