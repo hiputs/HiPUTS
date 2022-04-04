@@ -1,7 +1,6 @@
 package pl.edu.agh.hiputs.model.actor;
 
 import lombok.Getter;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.id.ActorId;
@@ -124,7 +123,6 @@ public class MapFragment implements RoadStructureProvider, MapFragmentRead, MapF
         return localPatches.containsKey(patchId);
     }
 
-    @SneakyThrows
     public void insertCar(Car car) {
         PatchId patchId = lane2Patch.get(car.getLocation().getLane());
         LaneReadWrite lane = localPatches.get(patchId).getLanes().get(car.getLocation().getLane());

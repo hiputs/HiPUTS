@@ -17,10 +17,9 @@ public class InjectIncomingCarsTask implements Runnable {
     public void run() {
         sCars
                 .parallelStream()
-                .map(sCar -> {
+                .forEach(sCar -> {
                     Car car = sCar.toRealObject();
                     mapFragment.insertCar(car);
-                    return null;
                 });
     }
 }
