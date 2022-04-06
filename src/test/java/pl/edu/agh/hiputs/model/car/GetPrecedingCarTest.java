@@ -19,18 +19,17 @@ public class GetPrecedingCarTest {
   private LaneId startLaneId;
   private LaneEditable startLane;
   private Car car1, car2;
+    @BeforeEach
+    public void setup() {
+        mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
+        carProvider = new ExampleCarProvider(mapFragment);
+        startLaneId = mapFragment.getLocalLaneIds().iterator().next();
+        startLane = mapFragment.getLaneEditable(startLaneId);
+        car1 = carProvider.generateCar(10.0, startLaneId, 3);
+        car2 = carProvider.generateCar(60.0, startLaneId, 4);
 
-  @BeforeEach
-  public void setup() {
-    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
-    carProvider = new ExampleCarProvider(mapFragment);
-    startLaneId = mapFragment.getLocalLaneIds().iterator().next();
-    startLane = mapFragment.getLaneEditable(startLaneId);
-    car1 = carProvider.generateCar(startLaneId, 3);
-    car2 = carProvider.generateCar(startLaneId, 4);
-    setPositionOnLane(car1, 10.0);
-    setPositionOnLane(car2, 60.0);
-  }
+    }
+
 
   @Test
   public void getPrecedingCarWhereCarIsFound() {
@@ -54,12 +53,10 @@ public class GetPrecedingCarTest {
         () -> Assertions.assertEquals(startLane.getOutgoingJunctionId(), carEnvironment.getNextCrossroadId().get()),
         () -> Assertions.assertEquals(startLane.getLength() - car1.getPositionOnLane(), carEnvironment.getDistance()));
   }
-
-  @Test
-  public void getPrecedingCarWhereCarIsNotFoundAndAllJunctionAreBend() {
-    car1 = carProvider.generateCar(startLaneId, 2);
-    this.setAllJunctionTypeBend();
-    setPositionOnLane(car1, 10.0);
+    @Test
+    public void getPrecedingCarWhereCarIsNotFoundAndAllJunctionAreBend() {
+        car1 = carProvider.generateCar(10.0, startLaneId, 2);
+        this.setAllJunctionTypeBend();
 
     startLane.addCarAtEntry(car1);
     CarEnvironment carEnvironment = car1.getPrecedingCar(mapFragment);
