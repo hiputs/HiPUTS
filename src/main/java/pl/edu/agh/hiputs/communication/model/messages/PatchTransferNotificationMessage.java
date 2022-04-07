@@ -6,7 +6,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 
 @Builder
 @Getter
-public class PatchTransferNotificationMessage implements Message{
+public class PatchTransferNotificationMessage implements Message {
 
     private final String senderId;
     private final String receiverId;

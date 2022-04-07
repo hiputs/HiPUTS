@@ -85,23 +85,23 @@ public class Lane implements LaneReadWrite {
     }
 
     public Optional<CarRead> getFirstCar() {
-        return carsQueue.isEmpty() ? Optional.empty() : Optional.of(this.carsQueue.getFirst());
+        return carsQueue.isEmpty() ? Optional.empty() : Optional.of(carsQueue.getFirst());
     }
 
     public void addFirstCar(Car car) {
-        this.carsQueue.addFirst(car);
+        carsQueue.addFirst(car);
     }
 
     public Optional<Car> removeLastCar() {
-        return carsQueue.isEmpty() ? Optional.empty() : Optional.of(this.carsQueue.removeLast());
+        return carsQueue.isEmpty() ? Optional.empty() : Optional.of(carsQueue.removeLast());
     }
 
     public Optional<Car> getLastCar() {
-        return carsQueue.isEmpty() ? Optional.empty() : Optional.of(this.carsQueue.getLast());
+        return carsQueue.isEmpty() ? Optional.empty() : Optional.of(carsQueue.getLast());
     }
 
     public void addToIncomingCars(Car car) {
-        this.incomingCars.add(car);
+        incomingCars.add(car);
         //TODO validate if cars is added properly to set (look before this commit version)
     }
 

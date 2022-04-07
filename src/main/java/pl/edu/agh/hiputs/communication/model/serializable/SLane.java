@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 @Getter
 @Builder
 @AllArgsConstructor
-public class SLane implements CustomSerializable<List<Car>>{
+public class SLane implements CustomSerializable<List<Car>> {
 
     String lineId;
     List<SCar> cars;
 
-    public SLane(LaneReadWrite line){
+    public SLane(LaneReadWrite line) {
         cars = line.getAllCars()
                 .stream()
                 .map(SCar::new)

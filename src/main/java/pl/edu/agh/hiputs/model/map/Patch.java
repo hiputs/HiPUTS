@@ -13,7 +13,7 @@ import java.util.Set;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class Patch implements PatchRead, PatchReadWrite{
+public class Patch implements PatchRead, PatchReadWrite {
     private final PatchId id;
 
     /**

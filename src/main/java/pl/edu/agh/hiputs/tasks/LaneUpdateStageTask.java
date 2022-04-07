@@ -29,8 +29,8 @@ public class LaneUpdateStageTask implements Runnable {
      * Removes from Lane.carsQueue all cars which decided to leave this lane
      */
     private void removeLeavingCars(LaneReadWrite lane) {
-        while (!lane.getLastCar()
-                .map(car -> car.getDecision().getLaneId().equals(this.laneId))
+        while (lane.getLastCar()
+                .map(car -> !car.getDecision().getLaneId().equals(laneId))
                 .orElse(false)
         ) {
             lane.removeLastCar();

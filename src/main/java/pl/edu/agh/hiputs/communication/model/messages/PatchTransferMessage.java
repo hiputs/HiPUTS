@@ -9,7 +9,7 @@ import java.util.List;
 
 @Builder
 @Getter
-public class PatchTransferMessage implements Message{
+public class PatchTransferMessage implements Message {
 
     /**
      * Transferred patch id

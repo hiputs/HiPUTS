@@ -42,16 +42,16 @@ public class MapFragment implements RoadStructureReader, RoadStructureEditor {
      * Neighbors that have at least one directly connected junctions
      */
     @Getter
-    private Set<ActorId> neighbours = new HashSet<>();
+    private final Set<ActorId> neighbours = new HashSet<>();
 
     /**
      * Patch to actor mapper
      */
     @Getter
-    private Map<PatchId, ActorId> patch2Actor = new HashMap<>();
+    private final Map<PatchId, ActorId> patch2Actor = new HashMap<>();
 
-    public LaneReadWrite getLaneReadWrite(LaneId laneId){
-        PatchId patchId= lane2Patch.get(laneId);
+    public LaneReadWrite getLaneReadWrite(LaneId laneId) {
+        PatchId patchId = lane2Patch.get(laneId);
         return localPatches.get(patchId).getLanes().get(laneId);
     }
 
@@ -75,7 +75,7 @@ public class MapFragment implements RoadStructureReader, RoadStructureEditor {
         return this.localPatches.values();
     }
 
-    public Patch getLocalPatch(PatchId patchId){
+    public Patch getLocalPatch(PatchId patchId) {
         return localPatches.get(patchId);
     }
 
@@ -168,8 +168,8 @@ public class MapFragment implements RoadStructureReader, RoadStructureEditor {
     }
 
     public static final class Builder {
-        private Map<PatchId, Patch> localPatches = new HashMap<>();
-        private Map<PatchId, Patch> remotePatches = new HashMap<>();
+        private final Map<PatchId, Patch> localPatches = new HashMap<>();
+        private final Map<PatchId, Patch> remotePatches = new HashMap<>();
 
         public Builder addLocalPatch(Patch localPatch) {
             this.localPatches.put(localPatch.getId(), localPatch);
@@ -186,8 +186,8 @@ public class MapFragment implements RoadStructureReader, RoadStructureEditor {
             mapFragment.localPatches = this.localPatches;
             mapFragment.remotePatches = this.remotePatches;
             mapFragment.lane2Patch = Stream.concat(
-                            this.localPatches.values().stream(),
-                            this.remotePatches.values().stream())
+                    this.localPatches.values().stream(),
+                    this.remotePatches.values().stream())
                     .map(patch -> patch.getLanes()
                             .keySet().stream()
                             .collect(Collectors.toMap(Function.identity(), laneId -> patch.getId())))

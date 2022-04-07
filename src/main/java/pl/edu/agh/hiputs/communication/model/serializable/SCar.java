@@ -58,7 +58,7 @@ public class SCar implements CustomSerializable<Car> {
     private final int currentRoutePosition;
 
 
-    public SCar (Car realObject) {
+    public SCar(Car realObject) {
         carId = realObject.getId().getValue();
         speed = realObject.getSpeed();
         length = realObject.getLength();
@@ -84,9 +84,9 @@ public class SCar implements CustomSerializable<Car> {
         List<RouteElement> routeElementList = routeElements
                 .stream()
                 .map(routeElement ->
-                    new RouteElement(
-                            new JunctionId(routeElement.getJunctionId(), JunctionType.valueOf(routeElement.getJunctionType())),
-                            new LaneId(routeElement.getOutgoingLaneId())))
+                        new RouteElement(
+                                new JunctionId(routeElement.getJunctionId(), JunctionType.valueOf(routeElement.getJunctionType())),
+                                new LaneId(routeElement.getOutgoingLaneId())))
                 .collect(Collectors.toList());
 
         Route route = new Route(routeElementList);

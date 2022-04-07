@@ -9,7 +9,7 @@ import java.util.LinkedList;
 
 @Getter
 @AllArgsConstructor
-public class CarTransferMessage implements Message{
+public class CarTransferMessage implements Message {
 
     private final LinkedList<SCar> cars;
 

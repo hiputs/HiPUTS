@@ -18,6 +18,6 @@ public class CarId {
 
     @Override
     public String toString() {
-        return "CarId{" + value +'}';
+        return "CarId{" + value + '}';
     }
 }
