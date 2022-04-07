@@ -10,6 +10,7 @@ import pl.edu.agh.hiputs.model.map.Patch;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -90,13 +91,13 @@ public class RoadStructureEditorTest {
         //when
         mapFragment.addCar(lane.getId(), car1);
         mapFragment.addCar(lane.getId(), car2);
-        Car car3 = mapFragment.removeLastCarFromLane(lane.getId());
-        Car car4 = mapFragment.removeLastCarFromLane(lane.getId());
+        Optional<Car> car3 = mapFragment.removeLastCarFromLane(lane.getId());
+        Optional<Car> car4 = mapFragment.removeLastCarFromLane(lane.getId());
 
         //then
         assertThat(lane.getCarsQueue().size()).isEqualTo(0);
-        assertThat(car3).isEqualTo(car1);
-        assertThat(car4).isEqualTo(car2);
+        assertThat(car3.get()).isEqualTo(car1);
+        assertThat(car4.get()).isEqualTo(car2);
     }
 
     private class TestData {

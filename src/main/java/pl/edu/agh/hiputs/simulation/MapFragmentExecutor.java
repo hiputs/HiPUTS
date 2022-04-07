@@ -40,6 +40,7 @@ public class MapFragmentExecutor {
 
         // 4. prepare messages
         carSynchronizedService.sendCarsToNeighbours();
+
         // 5. send & receive border patches
         carSynchronizedService.synchronizedGetIncomingCar();
 

@@ -85,21 +85,15 @@ public class Lane implements LaneReadWrite {
     }
 
     public Optional<CarRead> getFirstCar() {
-        Optional<CarRead> firstCar;
-        try {
-            firstCar = Optional.of(this.carsQueue.getFirst());
-        } catch (Exception e) {
-            firstCar = Optional.empty();
-        }
-        return firstCar;
+        return carsQueue.isEmpty() ? Optional.empty() : Optional.of(this.carsQueue.getFirst());
     }
 
     public void addFirstCar(Car car) {
         this.carsQueue.addFirst(car);
     }
 
-    public Car removeLastCar() {
-        return this.carsQueue.removeLast();
+    public Optional<Car> removeLastCar() {
+        return carsQueue.isEmpty() ? Optional.empty() : Optional.of(this.carsQueue.removeLast());
     }
 
     public Optional<Car> getLastCar() {

@@ -1,6 +1,5 @@
 package pl.edu.agh.hiputs.model.car;
 
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,8 +10,7 @@ import pl.edu.agh.hiputs.model.map.JunctionRead;
 import pl.edu.agh.hiputs.model.map.LaneReadWrite;
 import pl.edu.agh.hiputs.model.map.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.model.map.example.ExampleMapFragmentProvider;
-
-import java.lang.reflect.Field;
+import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
 public class GetPrecedingCarTest {
     private MapFragment mapFragment;
@@ -20,12 +18,6 @@ public class GetPrecedingCarTest {
     private LaneId startLaneId;
     private LaneReadWrite startLane;
     private Car car1, car2;
-
-    private void setPositionOnLane(Car car, Double position) throws Exception {
-        Field field = car.getClass().getDeclaredField("positionOnLane");
-        field.setAccessible(true);
-        field.set(car, position);
-    }
 
     @BeforeEach
     public void setup() {
@@ -36,8 +28,7 @@ public class GetPrecedingCarTest {
         car1 = carProvider.generateCar(startLaneId, 3);
         car2 = carProvider.generateCar(startLaneId, 4);
         setPositionOnLane(car1, 10.0);
-        car1.setPosition(10.0);
-        car2.setPosition(60.0);
+        setPositionOnLane(car2, 60.0);
     }
 
     @Test
@@ -70,7 +61,8 @@ public class GetPrecedingCarTest {
     public void getPrecedingCarWhereCarIsNotFoundAndAllJunctionAreBend() {
         car1 = carProvider.generateCar(startLaneId, 2);
         this.setAllJunctionTypeBend();
-        car1.setPosition(10.0);
+        setPositionOnLane(car1, 10.0);
+
         startLane.addFirstCar(car1);
         CarEnvironment carEnvironment = car1.getPrecedingCar(mapFragment);
         Assertions.assertAll(
@@ -94,7 +86,6 @@ public class GetPrecedingCarTest {
     }
 
 
-    @SneakyThrows
     private void setAllJunctionTypeBend() {
         for (LaneId laneId : mapFragment.getAllManagedLaneIds()) {
             JunctionRead junction = mapFragment.getJunctionReadById(mapFragment.getLaneReadWriteById(laneId).getOutgoingJunction());
@@ -102,12 +93,13 @@ public class GetPrecedingCarTest {
         }
     }
 
-    private void setJunctionTypeBend(JunctionRead junction) throws Exception {
-        Field field = junction.getClass().getDeclaredField("id");
-        field.setAccessible(true);
-        Object junctionId = field.get(junction);
-        field = junctionId.getClass().getDeclaredField("junctionType");
-        field.setAccessible(true);
-        field.set(junctionId, JunctionType.BEND);
+    private void setJunctionTypeBend(JunctionRead junction) {
+        Object junctionId = ReflectionUtil.getFieldValue(junction, "id");
+        System.out.println(junctionId);
+        ReflectionUtil.setFieldValue(junctionId, "junctionType", JunctionType.BEND);
+    }
+
+    private void setPositionOnLane(Car car, double position) {
+        ReflectionUtil.setFieldValue(car, "positionOnLane", position);
     }
 }

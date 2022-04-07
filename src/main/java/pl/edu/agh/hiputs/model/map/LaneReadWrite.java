@@ -15,7 +15,7 @@ public interface LaneReadWrite extends LaneRead {
 
     void addFirstCar(Car car);
 
-    Car removeLastCar();
+    Optional<Car> removeLastCar();
 
     Optional<Car> getLastCar();
 

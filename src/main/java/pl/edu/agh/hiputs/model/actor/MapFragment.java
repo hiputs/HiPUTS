@@ -94,7 +94,7 @@ public class MapFragment implements RoadStructureReader, RoadStructureEditor {
     }
 
     @Override
-    public Car removeLastCarFromLane(LaneId laneId) {
+    public Optional<Car> removeLastCarFromLane(LaneId laneId) {
         return getLaneReadWriteById(laneId).removeLastCar();
     }
 
