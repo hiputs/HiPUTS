@@ -3,10 +3,7 @@ package pl.edu.agh.hiputs.communication.model.serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.car.Route;
-import pl.edu.agh.hiputs.model.car.RouteElement;
-import pl.edu.agh.hiputs.model.car.RouteLocation;
+import pl.edu.agh.hiputs.model.car.*;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
@@ -41,14 +38,14 @@ public class SCar implements CustomSerializable<Car> {
     private final double maxSpeed;
 
     /**
-     * Line location id
+     * Lane location id
      */
-    private final String lineId;
+    private final String laneId;
 
     /**
-     * Line location position
+     * Lane location position
      */
-    private final double positionOnLine;
+    private final double positionOnLane;
 
     /**
      * Serialized route
@@ -58,13 +55,13 @@ public class SCar implements CustomSerializable<Car> {
     private final int currentRoutePosition;
 
 
-    public SCar(Car realObject) {
+    public SCar(CarEditable realObject) {
         carId = realObject.getId().getValue();
         speed = realObject.getSpeed();
         length = realObject.getLength();
         maxSpeed = realObject.getMaxSpeed();
-        lineId = realObject.getLaneId().getValue();
-        positionOnLine = realObject.getPositionOnLane();
+        laneId = realObject.getLaneId().getValue();
+        positionOnLane = realObject.getPositionOnLane();
 
         currentRoutePosition = realObject.getRouteLocation().getCurrentPosition();
         routeElements = realObject.getRouteLocation()
@@ -99,8 +96,8 @@ public class SCar implements CustomSerializable<Car> {
                 .maxSpeed(maxSpeed)
                 .routeLocation(routeLocation)
                 .speed(speed)
-                .laneId(new LaneId(lineId))
-                .positionOnLane(positionOnLine)
+                .laneId(new LaneId(laneId))
+                .positionOnLane(positionOnLane)
                 .build();
     }
 }

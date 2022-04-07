@@ -75,8 +75,8 @@ public class CarTransferMessageTest {
                 .length(12)
                 .speed(13)
                 .maxSpeed(14)
-                .lineId("abc")
-                .positionOnLine(0)
+                .laneId("abc")
+                .positionOnLane(0)
                 .routeElements(routeElementList)
                 .build();
     }

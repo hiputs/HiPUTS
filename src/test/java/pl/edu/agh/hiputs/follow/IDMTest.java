@@ -2,7 +2,7 @@ package pl.edu.agh.hiputs.follow;
 
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.car.CarRead;
+import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.follow.IDM;
 import pl.edu.agh.hiputs.model.follow.IFollowingModel;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -11,9 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class IDMTest {
 
-    private CarRead createCar(double position, double speed, double length, double maxSpeed) {
+    private CarReadable createCar(double position, double speed, double length, double maxSpeed) {
         return Car.builder()
-                .id(new CarId())
+                .id(CarId.random())
                 .length(length)
                 .maxSpeed(maxSpeed)
                 .positionOnLane(position)
@@ -30,8 +30,8 @@ class IDMTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarRead managedCar = createCar(10, 0, length, maxSpeed);
-        CarRead aheadCar = createCar(10 + length + distanceHeadway, 0, length, maxSpeed);
+        CarReadable managedCar = createCar(10, 0, length, maxSpeed);
+        CarReadable aheadCar = createCar(10 + length + distanceHeadway, 0, length, maxSpeed);
         double acceleration = model.calculateAcceleration(
                 managedCar.getSpeed(), managedCar.getMaxSpeed(),
                 aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane(),
@@ -50,8 +50,8 @@ class IDMTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarRead managedCar = createCar(10, 0, length, maxSpeed);
-        CarRead aheadCar = createCar(517, maxSpeed, length, maxSpeed);
+        CarReadable managedCar = createCar(10, 0, length, maxSpeed);
+        CarReadable aheadCar = createCar(517, maxSpeed, length, maxSpeed);
         double acceleration = model.calculateAcceleration(
                 managedCar.getSpeed(), managedCar.getMaxSpeed(),
                 aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane(),
@@ -69,8 +69,8 @@ class IDMTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarRead managedCar = createCar(10, maxSpeed, length, maxSpeed);
-        CarRead aheadCar = createCar(5017, maxSpeed, length, maxSpeed);
+        CarReadable managedCar = createCar(10, maxSpeed, length, maxSpeed);
+        CarReadable aheadCar = createCar(5017, maxSpeed, length, maxSpeed);
         double acceleration = model.calculateAcceleration(
                 managedCar.getSpeed(), managedCar.getMaxSpeed(),
                 aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane(),
@@ -88,8 +88,8 @@ class IDMTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarRead managedCar = createCar(10, maxSpeed, length, maxSpeed);
-        CarRead aheadCar = createCar(10 + length + distanceHeadway, maxSpeed, length, maxSpeed);
+        CarReadable managedCar = createCar(10, maxSpeed, length, maxSpeed);
+        CarReadable aheadCar = createCar(10 + length + distanceHeadway, maxSpeed, length, maxSpeed);
         double acceleration = model.calculateAcceleration(
                 managedCar.getSpeed(), managedCar.getMaxSpeed(),
                 aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane(),
@@ -109,9 +109,9 @@ class IDMTest {
         double length = 5.0;
         double maxSpeed = 20.0;
         IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
-        CarRead managedCar = createCar(10, maxSpeed, length, maxSpeed);
+        CarReadable managedCar = createCar(10, maxSpeed, length, maxSpeed);
         double aheadCarPosition = 10 + length + distanceHeadway + maxSpeed * timeHeadway;
-        CarRead aheadCar = createCar(aheadCarPosition, maxSpeed, length, maxSpeed);
+        CarReadable aheadCar = createCar(aheadCarPosition, maxSpeed, length, maxSpeed);
         double acceleration = model.calculateAcceleration(
                 managedCar.getSpeed(), managedCar.getMaxSpeed(),
                 aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane(),

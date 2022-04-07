@@ -6,7 +6,7 @@ import pl.edu.agh.hiputs.communication.NeighbourConnection;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.NeighbourConnectionMessage;
-import pl.edu.agh.hiputs.model.id.ActorId;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.WorkerConne
 @RequiredArgsConstructor
 public class MessageSenderService implements Subscriber {
 
-    private final Map<ActorId, NeighbourConnection> neighbourRepository = new HashMap<>();
+    private final Map<MapFragmentId, NeighbourConnection> neighbourRepository = new HashMap<>();
     private final SubscriptionService subscriptionService;
 
     @PostConstruct
@@ -32,7 +32,7 @@ public class MessageSenderService implements Subscriber {
      * @param message     - message to send
      * @throws IOException <p>Method send message to specific client</p>
      */
-    public void send(ActorId neighbourId, Message message) throws IOException {
+    public void send(MapFragmentId neighbourId, Message message) throws IOException {
         neighbourRepository.get(neighbourId)
                 .send(message);
     }
@@ -57,6 +57,6 @@ public class MessageSenderService implements Subscriber {
     public void notify(Message message) {
         NeighbourConnectionMessage workerConnectionMessage = (NeighbourConnectionMessage) message;
         NeighbourConnection connection = new NeighbourConnection(workerConnectionMessage);
-        neighbourRepository.put(new ActorId(workerConnectionMessage.getId()), connection);
+        neighbourRepository.put(new MapFragmentId(workerConnectionMessage.getId()), connection);
     }
 }

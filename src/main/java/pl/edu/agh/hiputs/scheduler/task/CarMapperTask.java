@@ -2,12 +2,10 @@ package pl.edu.agh.hiputs.scheduler.task;
 
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.communication.model.serializable.SCar;
-import pl.edu.agh.hiputs.model.map.LaneReadWrite;
+import pl.edu.agh.hiputs.model.map.LaneEditable;
 import pl.edu.agh.hiputs.model.map.Patch;
 
 import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class CarMapperTask implements Runnable {
@@ -20,19 +18,13 @@ public class CarMapperTask implements Runnable {
     /**
      * List to save collection after serialized
      */
-    private final LinkedList<SCar> serializedCar;
+    private final LinkedList<SCar> serializedCars;
 
     @Override
     public void run() {
-        serializedCar.addAll(patch.getLanes()
-                .values()
-                .stream()
-                .map(LaneReadWrite::getIncomingCars)
-                .map(cars -> cars
-                        .stream()
-                        .map(SCar::new)
-                        .collect(Collectors.toList()))
-                .flatMap(List::stream)
-                .collect(Collectors.toList()));
+        serializedCars.addAll(patch.streamLanesEditable()
+                .flatMap(LaneEditable::pollIncomingCars)
+                .map(SCar::new)
+                .toList());
     }
 }

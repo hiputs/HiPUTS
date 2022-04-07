@@ -1,11 +1,12 @@
 package pl.edu.agh.hiputs.service.usecase;
 
-import pl.edu.agh.hiputs.model.id.ActorId;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
+import pl.edu.agh.hiputs.model.map.Patch;
 
 public interface PatchTransferService {
 
-    void sendPatch(ActorId receiver, PatchId patchId);
+    void sendPatch(MapFragmentId receiver, Patch patch);
 
     void getReceivedPatch();
 }

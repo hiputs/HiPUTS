@@ -1,68 +1,90 @@
 package pl.edu.agh.hiputs.model.map;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-@Getter
-@Setter
-@RequiredArgsConstructor
-public class Patch implements PatchRead, PatchReadWrite {
-    private final PatchId id;
-
+@Builder
+@AllArgsConstructor
+public class Patch implements PatchReader, PatchEditor {
+    
+    /**
+     * Identifier of this Patch
+     */
+    @Getter
+    @Builder.Default
+    private final PatchId id = PatchId.random();
+    
     /**
      * Junctions within this patch
      */
     private Map<JunctionId, Junction> junctions;
-
+    
     /**
      * Lanes within this patch
      */
     private Map<LaneId, Lane> lanes;
-
-
+    
     /**
      * Patches that are adjacent/neighbours to this patch
      */
-    private Set<PatchId> neighboringPatches;
-
-    public Patch() {
-        this(new PatchId());
-    }
-
-    @Override
-    public LaneRead getLaneReadById(LaneId laneId) {
-        return lanes.get(laneId);
-    }
-
-    @Override
-    public JunctionRead getJunctionReadById(JunctionId junctionId) {
-        return junctions.get(junctionId);
-    }
-
-    @Override
-    public LaneReadWrite getLaneReadWriteById(LaneId laneId) {
-        return lanes.get(laneId);
-    }
-
-    @Override
-    public JunctionReadWrite getJunctionReadWriteById(JunctionId junctionId) {
-        return junctions.get(junctionId);
-    }
-
+    @Getter
+    @Builder.Default
+    private Set<PatchId> neighboringPatches = new HashSet<>();
+    
     @Override
     public Set<LaneId> getLaneIds() {
         return lanes.keySet();
     }
-
+    
+    @Override
+    public LaneReadable getLaneReadable(LaneId laneId) {
+        return lanes.get(laneId);
+    }
+    
+    @Override
+    public LaneEditable getLaneEditable(LaneId laneId) {
+        return lanes.get(laneId);
+    }
+    
+    @Override
+    public Stream<LaneReadable> streamLanesReadable() {
+        return lanes.values().stream().map(Function.identity());
+    }
+    
+    @Override
+    public Stream<LaneEditable> streamLanesEditable() {
+        return lanes.values().stream().map(Function.identity());
+    }
+    
     @Override
     public Set<JunctionId> getJunctionIds() {
         return junctions.keySet();
+    }
+    
+    @Override
+    public JunctionReadable getJunctionReadable(JunctionId junctionId) {
+        return junctions.get(junctionId);
+    }
+    
+    @Override
+    public JunctionEditable getJunctionEditable(JunctionId junctionId) {
+        return junctions.get(junctionId);
+    }
+    
+    @Override
+    public Stream<JunctionReadable> streamJunctionsReadable() {
+        return junctions.values().stream().map(Function.identity());
+    }
+    
+    public Stream<JunctionEditable> streamJunctionsEditable() {
+        return junctions.values().stream().map(Function.identity());
     }
 }

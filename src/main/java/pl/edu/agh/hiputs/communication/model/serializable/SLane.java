@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.map.LaneReadWrite;
+import pl.edu.agh.hiputs.model.map.LaneEditable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,15 +14,14 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class SLane implements CustomSerializable<List<Car>> {
 
-    String lineId;
+    String laneId;
     List<SCar> cars;
 
-    public SLane(LaneReadWrite line) {
-        cars = line.getAllCars()
-                .stream()
+    public SLane(LaneEditable lane) {
+        cars = lane.streamCarsFromExitEditable()
                 .map(SCar::new)
                 .collect(Collectors.toList());
-        lineId = line.getId().getValue();
+        laneId = lane.getId().getValue();
     }
 
     @Override

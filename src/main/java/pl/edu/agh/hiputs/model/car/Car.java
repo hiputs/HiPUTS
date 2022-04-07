@@ -10,7 +10,7 @@ import pl.edu.agh.hiputs.model.follow.IDecider;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.map.LaneRead;
+import pl.edu.agh.hiputs.model.map.LaneReadable;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -19,14 +19,13 @@ import java.util.Optional;
 @Getter
 @Builder
 @AllArgsConstructor
-public class
-Car implements CarReadWrite, Comparable<Car> {
+public class Car implements CarEditable {
 
     /**
      * Unique car identifier.
      */
     @Builder.Default
-    private final CarId id = new CarId();
+    private final CarId id = CarId.random();
     /**
      * Length of the car.
      */
@@ -78,7 +77,7 @@ Car implements CarReadWrite, Comparable<Car> {
         double acceleration = this.decider.makeDecision(this, environment);
 
         LaneId currentLaneId = this.laneId;
-        LaneRead destinationCandidate = roadStructureReader.getLaneReadById(currentLaneId);
+        LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
         int offset = -1;
         double desiredPosition = calculateFuturePosition();
 
@@ -86,7 +85,7 @@ Car implements CarReadWrite, Comparable<Car> {
             desiredPosition -= destinationCandidate.getLength();
             offset++;
             currentLaneId = routeLocation.getOffsetLaneId(offset);
-            destinationCandidate = roadStructureReader.getLaneReadById(currentLaneId);
+            destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
         }
 
         decision = Decision.builder()
@@ -119,9 +118,9 @@ Car implements CarReadWrite, Comparable<Car> {
      * @return CarEnvironment
      */
     public CarEnvironment getPrecedingCar(RoadStructureReader roadStructureReader) {
-        LaneRead currentLane = roadStructureReader.getLaneReadById(this.laneId);
+        LaneReadable currentLane = roadStructureReader.getLaneReadable(this.laneId);
         JunctionId nextJunctionId = currentLane.getOutgoingJunction();
-        Optional<CarRead> precedingCar = currentLane.getNextCarData(this);
+        Optional<CarReadable> precedingCar = currentLane.getCarInFrontReadable(this);
         Optional<JunctionId> nextCrossroadId;
         double distance;
         if (nextJunctionId.isCrossroad() || precedingCar.isPresent())
@@ -132,7 +131,7 @@ Car implements CarReadWrite, Comparable<Car> {
             distance = 0;
             int offset = 0;
             LaneId nextLaneId;
-            LaneRead nextLane;
+            LaneReadable nextLane;
             while (precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
                 try {
                     nextLaneId = routeLocation.getOffsetLaneId(offset++);
@@ -140,9 +139,9 @@ Car implements CarReadWrite, Comparable<Car> {
                     break;
                 }
                 distance += currentLane.getLength(); // adds previous lane length
-                nextLane = roadStructureReader.getLaneReadById(nextLaneId);
+                nextLane = roadStructureReader.getLaneReadable(nextLaneId);
                 nextJunctionId = nextLane.getOutgoingJunction();
-                precedingCar = nextLane.getFirstCar();
+                precedingCar = nextLane.getCarAtEntryReadable();
                 currentLane = nextLane;
             }
             distance += precedingCar
@@ -169,7 +168,7 @@ Car implements CarReadWrite, Comparable<Car> {
     }
 
     @Override
-    public int compareTo(Car anotherCar) {
+    public int compareTo(CarEditable anotherCar) {
         return this.id.getValue().compareTo(anotherCar.getId().getValue());
     }
 

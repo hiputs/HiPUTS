@@ -1,15 +1,15 @@
 package pl.edu.agh.hiputs.model.map.example;
 
+import lombok.Getter;
 import pl.edu.agh.hiputs.model.actor.MapFragment;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.Junction;
 import pl.edu.agh.hiputs.model.map.Lane;
 import pl.edu.agh.hiputs.model.map.Patch;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,69 +43,83 @@ public class ExampleMapFragmentProvider {
     }
 
     public static MapFragment fromStringRepresentation(String mapStructure, Map<String, Double> laneLengths, int randomCarsPerLane) {
-        Map<String, Lane> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
+        Map<String, LaneUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
         Map<String, Junction> stringJunctionMap = getStringJunctionMapFromStringRepresentation(mapStructure);
 
         setLaneLengths(stringLaneMap, laneLengths);
-
-        stringLaneMap.forEach((key, value) -> putOnMap(key, value, stringJunctionMap));
+        stringLaneMap.forEach((edge, laneUnderConstruction) -> putOnMap(edge, laneUnderConstruction, stringJunctionMap));
 
         Patch patch = createPatch(stringLaneMap, stringJunctionMap);
 
-        MapFragment mapFragment = MapFragment.builder()
-                .addLocalPatch(patch)
-                .build();
+        MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
+        ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragment);
 
-        for (int i = 0; i < randomCarsPerLane; i++) {
-            for (Lane lane : stringLaneMap.values()) {
-                Car car = new ExampleCarProvider(mapFragment).generateCar(lane.getId(), ThreadLocalRandom.current().nextInt(10));
-                lane.addFirstCar(car);
+        patch.streamLanesEditable().forEach(lane -> {
+            for (int i = 0; i < randomCarsPerLane; i++) {
+                Car car = exampleCarProvider.generateCar(lane.getId(), ThreadLocalRandom.current().nextInt(10));
+                lane.addCarAtEntry(car);
             }
-        }
-
+        });
+        
         return mapFragment;
     }
 
-    private static Map<String, Lane> getStringLaneMapFromStringRepresentation(String mapStructure) {
+    private static Map<String, LaneUnderConstruction> getStringLaneMapFromStringRepresentation(String mapStructure) {
         return Arrays.stream(mapStructure.split(" "))
                 .map(edge -> edge.substring(1, edge.length() - 1))
-                .collect(Collectors.toList()).stream()
-                .collect(Collectors.toMap(Function.identity(), e -> new Lane()));
+                .collect(Collectors.toMap(Function.identity(), e -> new LaneUnderConstruction()));
     }
 
     private static Map<String, Junction> getStringJunctionMapFromStringRepresentation(String mapStructure) {
         return getStringLaneMapFromStringRepresentation(mapStructure).keySet().stream()
                 .flatMap(edge -> Stream.of(edge.split("->")))
                 .collect(Collectors.toSet()).stream()
-                .collect(Collectors.toMap(Function.identity(), v -> new Junction()));
+                .collect(Collectors.toMap(Function.identity(), v -> Junction.builder().build()));
     }
 
-    private static void setLaneLengths(Map<String, Lane> stringLaneMap, Map<String, Double> laneLengths) {
-        stringLaneMap.forEach(
-                (key, lane) -> lane.setLength(Optional.ofNullable(laneLengths.get(key)).orElse(DEFAULT_LANE_LENGTH)));
+    private static void setLaneLengths(Map<String, LaneUnderConstruction> stringLaneMap,
+                                       Map<String, Double> laneLengths) {
+        stringLaneMap.forEach((key, laneUnderConstruction) ->
+                laneUnderConstruction.getLaneBuilder()
+                        .length(Optional.ofNullable(laneLengths.get(key)).orElse(DEFAULT_LANE_LENGTH))
+        );
     }
 
-    private static void putOnMap(String edge, Lane lane, Map<String, Junction> stringJunctionMap) {
+    private static void putOnMap(String edge, LaneUnderConstruction laneUnderConstruction,
+                                 Map<String, Junction> stringJunctionMap) {
         String begin = edge.split("->")[0];
         String end = edge.split("->")[1];
 
         Junction incomingJunction = stringJunctionMap.get(begin);
         Junction outgoingJunction = stringJunctionMap.get(end);
+    
+        laneUnderConstruction.getLaneBuilder().incomingJunction(incomingJunction.getId());
+        laneUnderConstruction.getLaneBuilder().outgoingJunction(outgoingJunction.getId());
 
-        lane.setIncomingJunction(incomingJunction.getId());
-        lane.setOutgoingJunction(outgoingJunction.getId());
+        incomingJunction.addOutgoingLane(laneUnderConstruction.getLaneId());
 
-        incomingJunction.addOutgoingLane(lane.getId());
-
-        outgoingJunction.addIncomingLane(lane.getId(), false);
+        outgoingJunction.addIncomingLane(laneUnderConstruction.getLaneId(), false);
     }
 
-    private static Patch createPatch(Map<String, Lane> stringLaneMap, Map<String, Junction> stringJunctionMap) {
-        Patch patch = new Patch();
-        patch.setJunctions(stringJunctionMap.values().stream()
-                .collect(Collectors.toMap(Junction::getId, Function.identity())));
-        patch.setLanes(stringLaneMap.values().stream()
-                .collect(Collectors.toMap(Lane::getId, Function.identity())));
-        return patch;
+    private static Patch createPatch(Map<String, LaneUnderConstruction> stringLaneMap,
+                                     Map<String, Junction> stringJunctionMap) {
+        return Patch.builder()
+                .junctions(stringJunctionMap.values().stream()
+                        .collect(Collectors.toMap(Junction::getId, Function.identity())))
+                .lanes(stringLaneMap.values().stream()
+                        .map(laneUnderConstruction -> laneUnderConstruction.getLaneBuilder().build())
+                        .collect(Collectors.toMap(Lane::getId, Function.identity())))
+                .build();
+    }
+    
+    @Getter
+    private static class LaneUnderConstruction {
+        LaneId laneId;
+        Lane.LaneBuilder laneBuilder;
+    
+        public LaneUnderConstruction() {
+            this.laneId = LaneId.random();
+            this.laneBuilder = Lane.builder().id(this.laneId);
+        }
     }
 }

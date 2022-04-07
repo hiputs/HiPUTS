@@ -1,7 +1,7 @@
 package pl.edu.agh.hiputs.model.follow;
 
 import pl.edu.agh.hiputs.model.car.CarEnvironment;
-import pl.edu.agh.hiputs.model.car.CarRead;
+import pl.edu.agh.hiputs.model.car.CarReadable;
 
 public class IDMDecider implements IDecider {
     final IFollowingModel followingModel;
@@ -15,7 +15,7 @@ public class IDMDecider implements IDecider {
     }
 
     @Override
-    public double makeDecision(CarRead managedCar, CarEnvironment environment) {    //Unpack environment and call IDM calculation
+    public double makeDecision(CarReadable managedCar, CarEnvironment environment) {    //Unpack environment and call IDM calculation
         double speed = managedCar.getSpeed();
         double desiredSpeed = managedCar.getMaxSpeed();
         double distance = environment.getDistance();

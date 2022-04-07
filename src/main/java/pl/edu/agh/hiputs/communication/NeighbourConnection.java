@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.NeighbourConnectionMessage;
 import pl.edu.agh.hiputs.communication.utils.MessageConverter;
-import pl.edu.agh.hiputs.model.id.ActorId;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -20,10 +20,10 @@ import java.util.Objects;
 public class NeighbourConnection {
 
     private OutputStream output;
-    private final ActorId id;
+    private final MapFragmentId id;
 
     public NeighbourConnection(NeighbourConnectionMessage message) {
-        id = new ActorId(message.getId());
+        id = new MapFragmentId(message.getId());
         try {
             Socket socket = new Socket(message.getAddress(), message.getPort());
             output = socket.getOutputStream();

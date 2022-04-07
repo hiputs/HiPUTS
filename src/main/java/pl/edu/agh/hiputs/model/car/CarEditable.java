@@ -2,7 +2,7 @@ package pl.edu.agh.hiputs.model.car;
 
 import pl.edu.agh.hiputs.model.actor.RoadStructureReader;
 
-public interface CarReadWrite extends CarRead {
+public interface CarEditable extends CarReadable, Comparable<CarEditable> {
 
     void decide(RoadStructureReader roadStructureReader);
 

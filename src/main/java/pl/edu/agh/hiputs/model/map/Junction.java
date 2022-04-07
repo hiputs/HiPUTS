@@ -1,8 +1,6 @@
 package pl.edu.agh.hiputs.model.map;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
@@ -12,33 +10,32 @@ import java.util.stream.Collectors;
 
 
 @Getter
-@Setter
-@RequiredArgsConstructor
-public class Junction implements JunctionRead, JunctionReadWrite {
+@Builder
+@AllArgsConstructor
+public class Junction implements JunctionReadable, JunctionEditable {
     /**
      * Unique junction identifier.
      */
-    private final JunctionId id;
+    @Builder.Default
+    private final JunctionId id = JunctionId.randomCrossroad();
 
     /**
      * Lanes incoming into this junction
      */
+    @Builder.Default
     private ArrayList<IncomingLane> incomingLanes = new ArrayList<>();
 
     /**
      * Lanes outgoing from this junction
      */
+    @Builder.Default
     private ArrayList<ILaneOnJunction> outgoingLanes = new ArrayList<>();
 
     /**
      * Amount of all lanes on this junction
      */
+    @Builder.Default
     private int lanesCount = 0;
-
-    public Junction() {
-        this(new JunctionId());
-    }
-
 
     public void addIncomingLane(LaneId laneId, boolean isSubordinated) {
         incomingLanes.add(new IncomingLane(lanesCount++, laneId, isSubordinated));
@@ -48,7 +45,8 @@ public class Junction implements JunctionRead, JunctionReadWrite {
         outgoingLanes.add(new LaneOnJunction(lanesCount++, laneId));
     }
 
-    public Set<LaneId> getOutgoingLanesIds() {
+    @Override
+    public Set<LaneId> getOutgoingLaneIds() {
         return outgoingLanes.stream()
                 .map(ILaneOnJunction::getLaneId)
                 .collect(Collectors.toSet());

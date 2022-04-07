@@ -12,27 +12,27 @@ import pl.edu.agh.hiputs.communication.model.serializable.SCar;
 import pl.edu.agh.hiputs.communication.service.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.SubscriptionService;
 import pl.edu.agh.hiputs.model.actor.MapFragment;
-import pl.edu.agh.hiputs.model.id.ActorId;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.Patch;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.CarMapperTask;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
 import pl.edu.agh.hiputs.service.usecase.CarSynchronizedService;
+import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
 @Slf4j
 @RequiredArgsConstructor
 public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subscriber {
 
     private final MapFragment mapFragment;
     private final SubscriptionService subscriptionService;
-    private final TaskExecutorService taskExecutorUseCase;
+    private final TaskExecutorService taskExecutorService;
     private final MessageSenderService messageSenderService;
 
     private final List<CarTransferMessage> incomingMessages = new ArrayList<>();
@@ -45,22 +45,24 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
 
     @Override
     public void sendCarsToNeighbours() {
-        Map<ActorId, LinkedList<SCar>> serializedCarMap = new HashMap<>();
+        Map<MapFragmentId, LinkedList<SCar>> serializedCarMap = new HashMap<>();
         List<Runnable> tasks = new ArrayList<>();
-        Map<PatchId, Patch> remotePatches = mapFragment.getBorderPatches();
+        Map<MapFragmentId, Set<Patch>> borderPatches = mapFragment.getBorderPatches();
 
-        for (Map.Entry<PatchId, ActorId> entry : mapFragment.getPatch2Actor().entrySet()) {
-            LinkedList<SCar> toSendCars = serializedCarMap.computeIfAbsent(entry.getValue(), k -> new LinkedList<>());
+        // TODO: tasks are operating on shared LinkedLists, which are not thread safe - refactor this code to either
+        //       use a thread-safe collection, or use some other approach without this risk
+        borderPatches.forEach((mapFragmentId, patches) -> {
+                    LinkedList<SCar> toSendCars = serializedCarMap.put(mapFragmentId, new LinkedList<>());
+                    patches.forEach(patch -> tasks.add(new CarMapperTask(patch, toSendCars)));
+                }
+        );
 
-            tasks.add(new CarMapperTask(remotePatches.get(entry.getKey()), toSendCars));
-        }
-
-        taskExecutorUseCase.executeBatch(tasks);
+        taskExecutorService.executeBatch(tasks);
         sendMessages(serializedCarMap);
     }
 
-    private void sendMessages(Map<ActorId, LinkedList<SCar>> serializedCarMap) {
-        for (Map.Entry<ActorId, LinkedList<SCar>> entry : serializedCarMap.entrySet()) {
+    private void sendMessages(Map<MapFragmentId, LinkedList<SCar>> serializedCarMap) {
+        for (Map.Entry<MapFragmentId, LinkedList<SCar>> entry : serializedCarMap.entrySet()) {
             CarTransferMessage carTransferMessage = new CarTransferMessage(entry.getValue());
             try {
                 messageSenderService.send(entry.getKey(), carTransferMessage);
@@ -73,7 +75,7 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
     @SneakyThrows
     @Override
     public void synchronizedGetIncomingCar() {
-        int countOfNeighbours = mapFragment.getNeighbours().size();
+        int countOfNeighbours = mapFragment.getNeighbors().size();
         while (incomingMessages.size() < countOfNeighbours) {
             this.wait();
         }
@@ -83,7 +85,7 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
                 .map(message -> new InjectIncomingCarsTask(message.getCars(), mapFragment))
                 .collect(Collectors.toList());
 
-        taskExecutorUseCase.executeBatch(injectIncomingCarTasks);
+        taskExecutorService.executeBatch(injectIncomingCarTasks);
 
         incomingMessages.clear();
         incomingMessages.addAll(featureIncomingMessages);

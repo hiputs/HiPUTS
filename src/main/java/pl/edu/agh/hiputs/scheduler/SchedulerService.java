@@ -21,7 +21,7 @@ public class SchedulerService implements TaskExecutorService {
 
     @PostConstruct
     void init() {
-        int cores = getFreeCore();
+        int cores = getFreeCores();
 
         if (cores <= 0) {
             throw new InsufficientSystemResourcesException("Insufficient number of cores");
@@ -29,7 +29,7 @@ public class SchedulerService implements TaskExecutorService {
         threadPoolExecutor = new ForkJoinPool(cores);
     }
 
-    private int getFreeCore() {
+    private int getFreeCores() {
         return Runtime.getRuntime().availableProcessors() - RESERVED_THREADS_NUMBER;
     }
 

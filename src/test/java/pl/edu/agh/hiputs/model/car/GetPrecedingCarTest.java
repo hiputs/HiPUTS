@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.actor.MapFragment;
 import pl.edu.agh.hiputs.model.id.JunctionType;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.map.JunctionRead;
-import pl.edu.agh.hiputs.model.map.LaneReadWrite;
+import pl.edu.agh.hiputs.model.map.JunctionReadable;
+import pl.edu.agh.hiputs.model.map.LaneEditable;
 import pl.edu.agh.hiputs.model.map.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.model.map.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
@@ -16,7 +16,7 @@ public class GetPrecedingCarTest {
     private MapFragment mapFragment;
     private ExampleCarProvider carProvider;
     private LaneId startLaneId;
-    private LaneReadWrite startLane;
+    private LaneEditable startLane;
     private Car car1, car2;
 
     @BeforeEach
@@ -24,7 +24,7 @@ public class GetPrecedingCarTest {
         mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
         carProvider = new ExampleCarProvider(mapFragment);
         startLaneId = mapFragment.getAllManagedLaneIds().iterator().next();
-        startLane = mapFragment.getLaneReadWrite(startLaneId);
+        startLane = mapFragment.getLaneEditable(startLaneId);
         car1 = carProvider.generateCar(startLaneId, 3);
         car2 = carProvider.generateCar(startLaneId, 4);
         setPositionOnLane(car1, 10.0);
@@ -88,12 +88,12 @@ public class GetPrecedingCarTest {
 
     private void setAllJunctionTypeBend() {
         for (LaneId laneId : mapFragment.getAllManagedLaneIds()) {
-            JunctionRead junction = mapFragment.getJunctionReadById(mapFragment.getLaneReadWriteById(laneId).getOutgoingJunction());
+            JunctionReadable junction = mapFragment.getJunctionReadable(mapFragment.getLaneEditable(laneId).getOutgoingJunction());
             this.setJunctionTypeBend(junction);
         }
     }
 
-    private void setJunctionTypeBend(JunctionRead junction) {
+    private void setJunctionTypeBend(JunctionReadable junction) {
         Object junctionId = ReflectionUtil.getFieldValue(junction, "id");
         System.out.println(junctionId);
         ReflectionUtil.setFieldValue(junctionId, "junctionType", JunctionType.BEND);

@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.model.actor.RoadStructureEditor;
 import pl.edu.agh.hiputs.model.actor.RoadStructureReader;
-import pl.edu.agh.hiputs.model.map.LaneRead;
-import pl.edu.agh.hiputs.model.map.LaneReadWrite;
+import pl.edu.agh.hiputs.model.map.LaneReadable;
+import pl.edu.agh.hiputs.model.map.LaneEditable;
 
 import java.util.UUID;
 
@@ -15,21 +15,21 @@ import java.util.UUID;
 @EqualsAndHashCode
 public class LaneId {
     private final String value;
-
-    public LaneId() {
-        this(UUID.randomUUID().toString());
+    
+    public static LaneId random() {
+        return new LaneId(UUID.randomUUID().toString());
     }
-
+    
+    public LaneEditable getEditable(RoadStructureEditor editor) {
+        return editor.getLaneEditable(this);
+    }
+    
+    public LaneReadable getReadable(RoadStructureReader reader) {
+        return reader.getLaneReadable(this);
+    }
+    
     @Override
     public String toString() {
         return "LaneId{" + value + '}';
-    }
-
-    public LaneReadWrite getLaneReadWrite(RoadStructureEditor editor) {
-        return editor.getLaneReadWriteById(this);
-    }
-
-    public LaneRead getLaneRead(RoadStructureReader reader) {
-        return reader.getLaneReadById(this);
     }
 }

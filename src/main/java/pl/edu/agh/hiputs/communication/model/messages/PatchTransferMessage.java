@@ -17,9 +17,9 @@ public class PatchTransferMessage implements Message {
     private final String patchId;
 
     /**
-     * All cars from transferred Patch grouped by Line
+     * All cars from transferred Patch grouped by Lane
      */
-    private final List<SLane> sLines;
+    private final List<SLane> sLanes;
 
     @Override
     public MessagesTypeEnum getMessageType() {

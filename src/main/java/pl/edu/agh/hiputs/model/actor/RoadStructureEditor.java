@@ -1,21 +1,14 @@
 package pl.edu.agh.hiputs.model.actor;
 
-import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.map.JunctionReadWrite;
-import pl.edu.agh.hiputs.model.map.LaneReadWrite;
-
-import java.util.Optional;
+import pl.edu.agh.hiputs.model.map.JunctionEditable;
+import pl.edu.agh.hiputs.model.map.LaneEditable;
 
 public interface RoadStructureEditor extends RoadStructureReader {
 
-    void addCar(LaneId laneId, Car car);
+    LaneEditable getLaneEditable(LaneId laneId);
 
-    Optional<Car> removeLastCarFromLane(LaneId laneId);
-
-    LaneReadWrite getLaneReadWriteById(LaneId laneId);
-
-    JunctionReadWrite getJunctionReadWriteById(JunctionId junctionId);
+    JunctionEditable getJunctionEditable(JunctionId junctionId);
 
 }

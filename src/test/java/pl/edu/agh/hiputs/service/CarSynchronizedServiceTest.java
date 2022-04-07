@@ -53,7 +53,7 @@ public class CarSynchronizedServiceTest {
         ArgumentCaptor<CarTransferMessage> argumentCaptor = ArgumentCaptor.forClass(CarTransferMessage.class);
 
         verify(messageSenderService, times(1))
-                .send(eq(new ActorId("Actor1")), argumentCaptor.capture());
+                .send(eq(new MapFragmentId("Actor1")), argumentCaptor.capture());
 
         assertEquals(8, argumentCaptor.getValue().getCars().size());
     }
@@ -76,26 +76,26 @@ public class CarSynchronizedServiceTest {
         ArgumentCaptor<CarTransferMessage> argumentCaptor2 = ArgumentCaptor.forClass(CarTransferMessage.class);
 
         verify(messageSenderService, times(1))
-                .send(eq(new ActorId("Actor1")), argumentCaptor.capture());
+                .send(eq(new MapFragmentId("Actor1")), argumentCaptor.capture());
 
         verify(messageSenderService, times(1))
-                .send(eq(new ActorId("Actor2")), argumentCaptor2.capture());
+                .send(eq(new MapFragmentId("Actor2")), argumentCaptor2.capture());
 
         assertEquals(4, argumentCaptor.getValue().getCars().size());
         assertEquals(4, argumentCaptor2.getValue().getCars().size());
     }
 
-    private Map<PatchId, ActorId> getAdjacentPatchesFor2Neighbour() {
+    private Map<PatchId, MapFragmentId> getAdjacentPatchesFor2Neighbour() {
         return Map.of(
-                new PatchId("Patch1"), new ActorId("Actor1"),
-                new PatchId("Patch2"), new ActorId("Actor2")
+                new PatchId("Patch1"), new MapFragmentId("Actor1"),
+                new PatchId("Patch2"), new MapFragmentId("Actor2")
         );
     }
 
-    private Map<PatchId, ActorId> getPatch2Actor() {
+    private Map<PatchId, MapFragmentId> getPatch2Actor() {
         return Map.of(
-                new PatchId("Patch1"), new ActorId("Actor1"),
-                new PatchId("Patch2"), new ActorId("Actor1")
+                new PatchId("Patch1"), new MapFragmentId("Actor1"),
+                new PatchId("Patch2"), new MapFragmentId("Actor1")
         );
 
     }

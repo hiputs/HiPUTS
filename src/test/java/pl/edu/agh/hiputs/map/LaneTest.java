@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.car.CarRead;
+import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.Lane;
@@ -29,7 +29,7 @@ class LaneTest {
 
     private Car createCar(LaneId currentLaneId, double positionOnLane, double speed){
         return Car.builder()
-                .id(new CarId())
+                .id(CarId.random())
                 .laneId(currentLaneId)
                 .positionOnLane(positionOnLane)
                 .speed(speed)
@@ -52,8 +52,8 @@ class LaneTest {
 
     @Test
     void getNextCarData() {
-        Optional<CarRead> optional1 = lane.getNextCarData(car1);
-        Optional<CarRead> optional2 = lane.getNextCarData(car2);
+        Optional<CarReadable> optional1 = lane.getCarInFrontReadable(car1);
+        Optional<CarReadable> optional2 = lane.getCarInFrontReadable(car2);
         assertAll(
                 () -> assertFalse(optional1.isEmpty()),
                 () -> assertEquals(optional1.get().getPositionOnLane(), car2_pos),
@@ -66,24 +66,24 @@ class LaneTest {
 
     @Test
     void getNextCarEmpty() {
-        Optional<CarRead> optional = lane.getNextCarData(car3);
+        Optional<CarReadable> optional = lane.getCarInFrontReadable(car3);
         assertTrue(optional.isEmpty());
     }
 
     @Test
     void getFirstCar() {
-        Optional<CarRead> optional = lane.getFirstCar();
+        Optional<CarReadable> optional = lane.getCarAtEntryReadable();
         assertAll(
                 () -> assertFalse(optional.isEmpty()),
-                () -> assertEquals(optional.map(CarRead::getPositionOnLane).get(), car1_pos),
-                () -> assertEquals(optional.map(CarRead::getSpeed).get(), car1_speed)
+                () -> assertEquals(optional.map(CarReadable::getPositionOnLane).get(), car1_pos),
+                () -> assertEquals(optional.map(CarReadable::getSpeed).get(), car1_speed)
         );
     }
 
     @Test
     void getFirstCarEmpty() {
         Lane emptyLane = new Lane();
-        Optional<CarRead> optional = emptyLane.getFirstCar();
+        Optional<CarReadable> optional = emptyLane.getCarAtEntryReadable();
         assertTrue(optional.isEmpty());
     }
 

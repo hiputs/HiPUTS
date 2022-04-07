@@ -11,7 +11,7 @@ import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteLocation;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.map.LaneReadWrite;
+import pl.edu.agh.hiputs.model.map.LaneEditable;
 import pl.edu.agh.hiputs.model.map.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
@@ -20,7 +20,7 @@ import pl.edu.agh.hiputs.utils.ReflectionUtil;
 public class LaneUpdateStageTaskTest {
     private MapFragment mapFragment;
     private LaneId laneId1, laneId2;
-    private LaneReadWrite lane1, lane2;
+    private LaneEditable lane1, lane2;
     private RouteLocation routeLocation = Mockito.mock(RouteLocation.class);
     private Car car1 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
     private Car car2 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
@@ -31,9 +31,9 @@ public class LaneUpdateStageTaskTest {
     public void setup() {
         mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
         laneId1 = mapFragment.getAllManagedLaneIds().iterator().next();
-        lane1 = mapFragment.getLaneReadWriteById(laneId1);
-        laneId2 = mapFragment.getJunctionReadById(lane1.getOutgoingJunction()).getOutgoingLanesIds().iterator().next();
-        lane2 = mapFragment.getLaneReadWriteById(laneId2);
+        lane1 = mapFragment.getLaneEditable(laneId1);
+        laneId2 = mapFragment.getJunctionReadable(lane1.getOutgoingJunction()).getOutgoingLanesIds().iterator().next();
+        lane2 = mapFragment.getLaneEditable(laneId2);
         decision1 = Decision.builder()
                 .acceleration(2.0)
                 .speed(12.0)

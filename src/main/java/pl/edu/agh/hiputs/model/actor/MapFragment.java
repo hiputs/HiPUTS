@@ -1,199 +1,250 @@
 package pl.edu.agh.hiputs.model.actor;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.id.ActorId;
+import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.*;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-@Service
-public class MapFragment implements RoadStructureReader, RoadStructureEditor {
-
-    /**
-     * All patches within this MapFragment - they represent patches that are situated within the same JVM
-     */
-    private Map<PatchId, Patch> localPatches;
-
-    /**
-     * All remote patches (shadow patches from neighboring Actor Contexts) to this MapFragment
-     */
-    private Map<PatchId, Patch> remotePatches;
-
-    /**
-     * only areas immediately  neighbouring/another actor
-     */
-    @Getter
-    private Map<PatchId, Patch> borderPatches;
+/**
+ * <p>This class uses the following naming convention for Patches and their status
+ * from the current MapFragment point of view:</p>
+ * <ul>
+ *     <li>known Patches - visible to this MapFragment,</li>
+ *     <li>shadow Patches - managed by neighboring MapFragment; subset of known Patches,</li>
+ *     <li>local Patches - managed by this MapFragment; subset of known Patches,</li>
+ *     <li>internal Patches - having only other local Patches as their neighbors; subset of local Patches,</li>
+ *     <li>border Patches - having some shadow Patches as their neighbors; subset of local Patches.</li>
+ * </ul>
+ */
+@AllArgsConstructor
+public class MapFragment implements TransferDataHandler, RoadStructureReader, RoadStructureEditor {
 
     /**
-     * Lane to patch mapper
-     */
-    private Map<LaneId, PatchId> lane2Patch;
-
-    /**
-     * Neighbors that have at least one directly connected junctions
+     * Identifier of this MapFragment
      */
     @Getter
-    private final Set<ActorId> neighbours = new HashSet<>();
+    private final MapFragmentId mapFragmentId;
 
     /**
-     * Patch to actor mapper
+     * All patches known by this MapFragment: local patches and shadow patches
      */
-    @Getter
-    private final Map<PatchId, ActorId> patch2Actor = new HashMap<>();
+    private final Map<PatchId, Patch> knownPatches;
 
-    public LaneReadWrite getLaneReadWrite(LaneId laneId) {
-        PatchId patchId = lane2Patch.get(laneId);
-        return localPatches.get(patchId).getLanes().get(laneId);
+    /**
+     * Local patches owned by this MapFragment
+     */
+    private final Set<PatchId> localPatchIds;
+
+    /**
+     * Border patches owned by this MapFragment grouped by neighbor MapFragment
+     * Note: one border Patch can be assigned to multiple MapFragmentIds in this mapping.
+     */
+    private final Map<MapFragmentId, Set<PatchId>> borderPatchIds;
+
+    /**
+     * Mapping from neighbor MapFragmentIds to sets of PatchIds, corresponding to ownership of shadow Patches
+     */
+    private final Map<MapFragmentId, Set<PatchId>> shadowPatchIds;
+
+    /**
+     * Mapping from LaneId to PatchId of Patch containing this Lane
+     */
+    private final Map<LaneId, PatchId> laneIdToPatchId;
+
+    /**
+     * Mapping from JunctionId to PatchId of Patch containing this Junction
+     */
+    private final Map<JunctionId, PatchId> junctionIdToPatchId;
+
+
+    public static Builder builder(MapFragmentId mapFragmentId) {
+        return new Builder(mapFragmentId);
     }
 
     @Override
-    public LaneRead getLaneReadById(LaneId laneId) {
-        return getLaneReadWriteById(laneId);
+    public LaneReadable getLaneReadable(LaneId laneId) {
+        return Optional.ofNullable(laneIdToPatchId.get(laneId))
+                .map(knownPatches::get)
+                .map(patch -> patch.getLaneReadable(laneId))
+                .orElse(null);
     }
 
     @Override
-    public JunctionRead getJunctionReadById(JunctionId junctionId) {
-        // todo improve performance
-        Collection<Patch> allPatches = this.localPatches.values();
-        allPatches.addAll(this.remotePatches.values());
-
-        return allPatches.stream().filter(
-                patch -> patch.getJunctions().containsKey(junctionId)
-        ).findAny().get().getJunctions().get(junctionId);
-    }
-
-    public Collection<Patch> getLocalPatches() {
-        return this.localPatches.values();
-    }
-
-    public Patch getLocalPatch(PatchId patchId) {
-        return localPatches.get(patchId);
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    private void stage(Car car) {
-        throw new UnsupportedOperationException("method not implemented!");
-        // Add car to some collection for future sending
+    public JunctionReadable getJunctionReadable(JunctionId junctionId) {
+        return Optional.ofNullable(junctionIdToPatchId.get(junctionId))
+                .map(knownPatches::get)
+                .map(patch -> patch.getJunctionReadable(junctionId))
+                .orElse(null);
     }
 
     @Override
-    public void addCar(LaneId laneId, Car car) {
-        getLaneReadWriteById(laneId).addFirstCar(car);
+    public LaneEditable getLaneEditable(LaneId laneId) {
+        return Optional.ofNullable(laneIdToPatchId.get(laneId))
+                .map(knownPatches::get)
+                .map(patch -> patch.getLaneEditable(laneId))
+                .orElse(null);
     }
 
     @Override
-    public Optional<Car> removeLastCarFromLane(LaneId laneId) {
-        return getLaneReadWriteById(laneId).removeLastCar();
+    public JunctionEditable getJunctionEditable(JunctionId junctionId) {
+        return Optional.ofNullable(junctionIdToPatchId.get(junctionId))
+                .map(knownPatches::get)
+                .map(patch -> patch.getJunctionEditable(junctionId))
+                .orElse(null);
     }
 
     @Override
-    public LaneReadWrite getLaneReadWriteById(LaneId laneId) {
-        PatchId patchId = lane2Patch.get(laneId);
-        if (!isLocalPatch(patchId)) {
-            throw new IllegalPatchWriteAccessException(
-                    String.format("Lane with id %s cannot be modified from this map fragment", laneId.toString()));
-        }
-        return localPatches.get(patchId).getLanes().get(laneId);
+    public Set<MapFragmentId> getNeighbors() {
+        return shadowPatchIds.keySet();
     }
 
     @Override
-    public JunctionReadWrite getJunctionReadWriteById(JunctionId junctionId) {
-        throw new UnsupportedOperationException("Method not implemented");
+    public Map<MapFragmentId, Set<CarReadable>> pollOutgoingCars() {
+        return shadowPatchIds.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> e.getValue().stream()
+                                .map(knownPatches::get)
+                                .flatMap(Patch::streamLanesReadable)
+                                .flatMap(LaneReadable::streamCarsFromExitReadable)
+                                .collect(Collectors.toSet())
+                ));
     }
 
-    public Set<LaneId> getAllManagedLaneIds() {
-        return localPatches.values().stream()
-                .flatMap(patch -> patch.getLanes().keySet().stream())
+    @Override
+    public void acceptIncomingCars(Set<Car> incomingCars) {
+        incomingCars.forEach(car -> car.getLaneId().getEditable(this).addIncomingCar(car));
+    }
+
+    @Override
+    public Map<MapFragmentId, Set<Patch>> getBorderPatches() {
+        return borderPatchIds.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                e -> e.getValue().stream().map(knownPatches::get).collect(Collectors.toSet())
+        ));
+    }
+
+    @Override
+    public void acceptShadowPatches(Set<Patch> shadowPatches) {
+        shadowPatches.forEach(shadowPatch -> knownPatches.put(shadowPatch.getId(), shadowPatch));
+    }
+    
+    public Set<LaneId> getLocalLaneIds() {
+        return localPatchIds.stream()
+                .map(knownPatches::get)
+                .flatMap(patch -> patch.getLaneIds().stream())
                 .collect(Collectors.toSet());
     }
-
-    private boolean isLocalPatch(PatchId patchId) {
-        return localPatches.containsKey(patchId);
-    }
-
-    public void insertCar(Car car) {
-        car.getLaneId()
-                .getLaneReadWrite(this)
-                .addToIncomingCars(car);
-    }
-
-    public void migrateMyPatchToNeighbour(PatchId patchId, ActorId receiver) {
-        Patch patch = localPatches.remove(patchId);
-        remotePatches.put(patchId, patch);
-
-        patch2Actor.put(patchId, receiver);
-        refreshBorderPatches();
-    }
-
-    private void refreshBorderPatches() {
-        Set<PatchId> neighbourPatch = localPatches
-                .values()
-                .stream()
-                .map(Patch::getNeighboringPatches)
-                .flatMap(Set::stream)
+    
+    public Set<JunctionId> getLocalJunctionIds() {
+        return localPatchIds.stream()
+                .map(knownPatches::get)
+                .flatMap(patch -> patch.getJunctionIds().stream())
                 .collect(Collectors.toSet());
-
-        List<PatchId> localPatch = localPatches
-                .values()
-                .stream()
-                .map(Patch::getId)
-                .collect(Collectors.toList());
-
-        localPatch.forEach(neighbourPatch::remove);
-
-        borderPatches = remotePatches.values()
-                .parallelStream()
-                .filter(patch -> neighbourPatch.contains(patch.getId()))
-                .collect(Collectors.toMap(Patch::getId, Function.identity()));
     }
-
-    public void migratePatchToMe(PatchId patchId) {
-        Patch patch = remotePatches.remove(patchId);
-        localPatches.put(patchId, patch);
-
-        patch2Actor.remove(patchId);
-        refreshBorderPatches();
-    }
+    
+    // TODO fix for new structure
+//    public void migrateMyPatchToNeighbour(PatchId patchId, ActorId receiver) {
+//        Patch patch = localPatches.remove(patchId);
+//        remotePatches.put(patchId, patch);
+//
+//        patch2Actor.put(patchId, receiver);
+//        refreshBorderPatches();
+//    }
+//
+//    private void refreshBorderPatches() {
+//        // all patches adjacent with remote patches
+//        Set<PatchId> neighbourPatch = remotePatches
+//                .values()
+//                .stream()
+//                .map(Patch::getNeighboringPatches)
+//                .flatMap(Set::stream)
+//                .collect(Collectors.toSet());
+//
+//        // our patches which adjacent with remote patches
+//        borderPatches = localPatches.values()
+//                .parallelStream()
+//                .filter(patch -> neighbourPatch.contains(patch.getId()))
+//                .collect(Collectors.toMap(Patch::getId, Function.identity()));
+//    }
+//
+//    public void migratePatchToMe(PatchId patchId) {
+//        Patch patch = remotePatches.remove(patchId);
+//        localPatches.put(patchId, patch);
+//
+//        patch2Actor.remove(patchId);
+//        refreshBorderPatches();
+//    }
+    
+    
 
     public static final class Builder {
-        private final Map<PatchId, Patch> localPatches = new HashMap<>();
-        private final Map<PatchId, Patch> remotePatches = new HashMap<>();
+        private final MapFragmentId mapFragmentId;
+        private final Map<PatchId, Patch> knownPatches = new HashMap<>();
+        private final Set<PatchId> localPatches = new HashSet<>();
+        private final Map<MapFragmentId, Set<PatchId>> shadowPatches = new HashMap<>();
+        private final Map<PatchId, MapFragmentId> shadowPatchOwnership = new HashMap<>();
 
-        public Builder addLocalPatch(Patch localPatch) {
-            this.localPatches.put(localPatch.getId(), localPatch);
+        public Builder(MapFragmentId mapFragmentId) {
+            this.mapFragmentId = mapFragmentId;
+        }
+
+        public Builder addLocalPatch(Patch patch) {
+            knownPatches.put(patch.getId(), patch);
+            localPatches.add(patch.getId());
             return this;
         }
 
-        public Builder addRemotePatch(Patch remotePatch) {
-            this.remotePatches.put(remotePatch.getId(), remotePatch);
+        public Builder addRemotePatch(MapFragmentId mapFragmentId, Patch patch) {
+            knownPatches.put(patch.getId(), patch);
+            shadowPatches.computeIfAbsent(mapFragmentId, k -> new HashSet<>()).add(patch.getId());
+            shadowPatchOwnership.put(patch.getId(), mapFragmentId);
             return this;
         }
 
         public MapFragment build() {
-            MapFragment mapFragment = new MapFragment();
-            mapFragment.localPatches = this.localPatches;
-            mapFragment.remotePatches = this.remotePatches;
-            mapFragment.lane2Patch = Stream.concat(
-                    this.localPatches.values().stream(),
-                    this.remotePatches.values().stream())
-                    .map(patch -> patch.getLanes()
-                            .keySet().stream()
+            Map<MapFragmentId, Set<PatchId>> borderPatches = new HashMap<>();
+            // for each local patch, find neighboring patches that are not local (shadow patches),
+            // get their owner MapFragmentIds and add the local patch as a border to this MapFragmentId
+            localPatches.forEach(patchId -> knownPatches.get(patchId)
+                    .getNeighboringPatches().stream()
+                    .filter(neighborPatch -> !localPatches.contains(neighborPatch))
+                    .map(shadowPatchOwnership::get)
+                    .forEach(neighborMapFragmentId -> borderPatches
+                            .computeIfAbsent(neighborMapFragmentId, k -> new HashSet<>())
+                            .add(patchId)
+                    ));
+
+            Map<LaneId, PatchId> laneToPatch = knownPatches.values()
+                    .stream()
+                    .map(patch -> patch.getLaneIds()
+                            .stream()
                             .collect(Collectors.toMap(Function.identity(), laneId -> patch.getId())))
                     .flatMap(map -> map.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            return mapFragment;
+
+            Map<JunctionId, PatchId> junctionToPatch = knownPatches.values()
+                    .stream()
+                    .map(patch -> patch.getJunctionIds()
+                            .stream()
+                            .collect(Collectors.toMap(Function.identity(), junctionId -> patch.getId())))
+                    .flatMap(map -> map.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            return new MapFragment(mapFragmentId, knownPatches, localPatches, borderPatches, shadowPatches,
+                    laneToPatch, junctionToPatch);
         }
     }
 }

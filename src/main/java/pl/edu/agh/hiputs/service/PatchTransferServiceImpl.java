@@ -12,9 +12,8 @@ import pl.edu.agh.hiputs.communication.model.serializable.SLane;
 import pl.edu.agh.hiputs.communication.service.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.SubscriptionService;
 import pl.edu.agh.hiputs.model.actor.MapFragment;
-import pl.edu.agh.hiputs.model.id.ActorId;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.Patch;
 import pl.edu.agh.hiputs.service.usecase.PatchTransferService;
 
@@ -25,7 +24,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.stream.Collectors;
 
-@Service
 @RequiredArgsConstructor
 @Slf4j
 public class PatchTransferServiceImpl implements Subscriber, PatchTransferService {
@@ -33,7 +31,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     private final MapFragment mapFragment;
     private final SubscriptionService subscriptionService;
     private final MessageSenderService messageSenderService;
-    private ActorId meId;
+    private MapFragmentId meId;
 
     private final Queue<PatchTransferMessage> receivedPatch = new LinkedList<>();
 
@@ -42,29 +40,26 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         subscriptionService.subscribe(this, MessagesTypeEnum.PatchTransferMessage);
         subscriptionService.subscribe(this, MessagesTypeEnum.PathTransferNotificationMessage);
         //TODO add me real id
-        meId = new ActorId("ALA BEZ KOTA");
+        meId = new MapFragmentId("ALA BEZ KOTA");
     }
 
     @Override
-    public void sendPatch(ActorId receiver, PatchId patchId) {
-        Patch patch = mapFragment.getLocalPatch(patchId);
-
+    public void sendPatch(MapFragmentId receiver, Patch patch) {
+        // TODO: restore parallel stream?
         List<SLane> serializedLanes = patch
-                .getLanes()
-                .values()
-                .parallelStream()
+                .streamLanesEditable()
                 .map(SLane::new)
                 .collect(Collectors.toList());
 
         PatchTransferMessage patchTransferMessage = PatchTransferMessage
                 .builder()
-                .patchId(patchId.getValue())
-                .sLines(serializedLanes)
+                .patchId(patch.getId().getValue())
+                .sLanes(serializedLanes)
                 .build();
 
         PatchTransferNotificationMessage patchTransferNotificationMessage = PatchTransferNotificationMessage
                 .builder()
-                .transferPatchId(patchId.getValue())
+                .transferPatchId(patch.getId().getValue())
                 .receiverId(receiver.getId())
                 .senderId(meId.getId())
                 .build();
@@ -72,7 +67,8 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         try {
             messageSenderService.send(receiver, patchTransferMessage);
             messageSenderService.broadcast(patchTransferNotificationMessage);
-            mapFragment.migrateMyPatchToNeighbour(patchId, receiver);
+            // TODO fix for new structure (see MapFragment)
+//            mapFragment.migrateMyPatchToNeighbour(patchId, receiver);
         } catch (IOException e) {
             log.error("Could not send patch to " + receiver.getId());
         }
@@ -82,11 +78,13 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     public void getReceivedPatch() {
         while (!receivedPatch.isEmpty()) {
             PatchTransferMessage message = receivedPatch.remove();
-            mapFragment.migratePatchToMe(new PatchId(message.getPatchId()));
+            // TODO fix for new structure (see MapFragment)
+//            mapFragment.migratePatchToMe(new PatchId(message.getPatchId()));
 
-            message.getSLines()
+            // TODO this does nothing?
+            message.getSLanes()
                     .parallelStream()
-                    .map(sline -> mapFragment.getLaneReadWrite(new LaneId(sline.getLineId())));
+                    .map(sLane -> mapFragment.getLaneEditable(new LaneId(sLane.getLaneId())));
         }
     }
 
@@ -109,9 +107,10 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         log.info("The patch id: " + message.getTransferPatchId() +
                 " change owner from " + message.getSenderId() +
                 " to " + message.getReceiverId());
-
-        mapFragment.getPatch2Actor().put(
-                new PatchId(message.getTransferPatchId()),
-                new ActorId(message.getReceiverId()));
+        
+        // TODO fix for new structure (see MapFragment)
+//        mapFragment.getPatch2Actor().put(
+//                new PatchId(message.getTransferPatchId()),
+//                new MapFragmentId(message.getReceiverId()));
     }
 }

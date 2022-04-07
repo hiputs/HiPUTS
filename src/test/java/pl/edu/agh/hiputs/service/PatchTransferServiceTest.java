@@ -41,29 +41,28 @@ public class PatchTransferServiceTest {
     @Test
     void shouldSendToNeighbour() {
         //given
-        when(mapFragment.getLocalPatch(any()))
-                .thenReturn(getSimplePatch());
+        Patch patch = getSimplePatch();
 
         //when
-        patchTransferService.sendPatch(new ActorId("NEIGHBOUR"), new PatchId("PATCH_ID"));
+        patchTransferService.sendPatch(new MapFragmentId("NEIGHBOUR"), patch);
 
         //then
         ArgumentCaptor<PatchTransferMessage> argumentCaptor = ArgumentCaptor.forClass(PatchTransferMessage.class);
         ArgumentCaptor<PatchTransferNotificationMessage> notificationArgumentCaptor = ArgumentCaptor.forClass(PatchTransferNotificationMessage.class);
 
         verify(messageSenderService, times(1))
-                .send(eq(new ActorId("NEIGHBOUR")), argumentCaptor.capture());
+                .send(eq(new MapFragmentId("NEIGHBOUR")), argumentCaptor.capture());
 
         verify(messageSenderService, times(1))
                 .broadcast(notificationArgumentCaptor.capture());
 
         verify(mapFragment, times(1))
-                .migrateMyPatchToNeighbour(eq(new PatchId("PATCH_ID")), eq(new ActorId("NEIGHBOUR")));
+                .migrateMyPatchToNeighbour(eq(new PatchId("PATCH_ID")), eq(new MapFragmentId("NEIGHBOUR")));
 
         PatchTransferMessage patchTransferMessage = argumentCaptor.getValue();
         PatchTransferNotificationMessage notificationMessage = notificationArgumentCaptor.getValue();
 
-        assertEquals(2, patchTransferMessage.getSLines().size());
+        assertEquals(2, patchTransferMessage.getSLanes().size());
         assertEquals("PATCH_ID", notificationMessage.getTransferPatchId());
         assertEquals("NEIGHBOUR", notificationMessage.getReceiverId());
     }
