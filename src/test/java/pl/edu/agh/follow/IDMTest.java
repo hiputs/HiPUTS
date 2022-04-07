@@ -112,4 +112,42 @@ class IDMTest {
         double res = Math.abs(acceleration + maxAcceleration);
         assertTrue(res <= 0.001, "Result was: " + res + ", but should be lower than 0");
     }
+
+    @Test
+    void calculateAcceleration_breakHard() {
+        double distanceHeadway = 2.0;
+        double timeHeadway = 2.0;
+        double maxAcceleration = 2.0;
+        double maxDeceleration = 3.5;
+        double length = 5.0;
+        double maxSpeed = 20.0;
+        IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+        CarRead managedCar = createCar(10, maxSpeed, length, maxSpeed);
+        CarRead aheadCar = createCar(10 + length + distanceHeadway + maxSpeed * timeHeadway, 0, length, maxSpeed);
+        double acceleration = model.calculateAcceleration(
+                managedCar.getSpeed(), managedCar.getMaxSpeed(),
+                aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition(),
+                managedCar.getSpeed() - aheadCar.getSpeed());
+        assertTrue(acceleration <= 0.001, "Result was: " + acceleration + ", but should be lower than 0");
+        assertTrue(acceleration >= -3.5, "Result was: " + acceleration + ", but should be higher than -3.5 (normalDeceleration)");
+    }
+
+    @Test
+    void calculateAcceleration_minusDistance() {
+        double distanceHeadway = 2.0;
+        double timeHeadway = 2.0;
+        double maxAcceleration = 2.0;
+        double maxDeceleration = 3.5;
+        double length = 5.0;
+        double maxSpeed = 20.0;
+        IFollowingModel model = new IDM(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+        CarRead managedCar = createCar(10, maxSpeed, length, maxSpeed);
+        CarRead aheadCar = createCar(1, 0, length, maxSpeed);
+        double acceleration = model.calculateAcceleration(
+                managedCar.getSpeed(), managedCar.getMaxSpeed(),
+                aheadCar.getPosition() - aheadCar.getLength() - managedCar.getPosition(),
+                managedCar.getSpeed() - aheadCar.getSpeed());
+        assertTrue(acceleration <= 0.001, "Result was: " + acceleration + ", but should be lower than 0");
+        assertTrue(acceleration >= -3.5, "Result was: " + acceleration + ", but should be higher than -3.5 (normalDeceleration)");
+    }
 }
