@@ -102,8 +102,8 @@ public class Lane implements LaneReadWrite {
         return this.carsQueue.removeLast();
     }
 
-    public Car getLastCar() {
-        return this.carsQueue.getLast();
+    public Optional<Car> getLastCar() {
+        return carsQueue.isEmpty() ? Optional.empty() : Optional.of(this.carsQueue.getLast());
     }
 
     public void addToIncomingCars(Car car) {

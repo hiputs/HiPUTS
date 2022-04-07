@@ -3,7 +3,10 @@ package pl.edu.agh.hiputs.communication;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.communication.model.serializable.SCar;
 import pl.edu.agh.hiputs.communication.model.serializable.SRouteElement;
-import pl.edu.agh.hiputs.model.car.*;
+import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.Route;
+import pl.edu.agh.hiputs.model.car.RouteElement;
+import pl.edu.agh.hiputs.model.car.RouteLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
@@ -55,7 +58,8 @@ public class CarTransferMessageTest {
                 .length(12)
                 .speed(13)
                 .maxSpeed(14)
-                .location(new LaneLocation(new LaneId("abc"), 0))
+                .laneId(new LaneId("abc"))
+                .positionOnLane(0)
                 .routeLocation(new RouteLocation(route))
                 .build();
     }

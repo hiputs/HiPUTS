@@ -21,6 +21,12 @@ public class GetPrecedingCarTest {
     private LaneReadWrite startLane;
     private Car car1, car2;
 
+    private void setPositionOnLane(Car car, Double position) throws Exception {
+        Field field = car.getClass().getDeclaredField("positionOnLane");
+        field.setAccessible(true);
+        field.set(car, position);
+    }
+
     @BeforeEach
     public void setup() {
         mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
@@ -29,6 +35,7 @@ public class GetPrecedingCarTest {
         startLane = mapFragment.getLaneReadWrite(startLaneId);
         car1 = carProvider.generateCar(startLaneId, 3);
         car2 = carProvider.generateCar(startLaneId, 4);
+        setPositionOnLane(car1, 10.0);
         car1.setPosition(10.0);
         car2.setPosition(60.0);
     }
@@ -55,7 +62,7 @@ public class GetPrecedingCarTest {
                 () -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
                 () -> Assertions.assertTrue(carEnvironment.getNextCrossroadId().isPresent()),
                 () -> Assertions.assertEquals(startLane.getOutgoingJunction(), carEnvironment.getNextCrossroadId().get()),
-                () -> Assertions.assertEquals(startLane.getLength() - car1.getPosition(), carEnvironment.getDistance())
+                () -> Assertions.assertEquals(startLane.getLength() - car1.getPositionOnLane(), carEnvironment.getDistance())
         );
     }
 
@@ -69,7 +76,7 @@ public class GetPrecedingCarTest {
         Assertions.assertAll(
                 () -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
                 () -> Assertions.assertFalse(carEnvironment.getNextCrossroadId().isPresent()),
-                () -> Assertions.assertEquals(3 * startLane.getLength() - car1.getPosition(), carEnvironment.getDistance())
+                () -> Assertions.assertEquals(3 * startLane.getLength() - car1.getPositionOnLane(), carEnvironment.getDistance())
         );
     }
 

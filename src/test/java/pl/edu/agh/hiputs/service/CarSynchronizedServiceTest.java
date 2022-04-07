@@ -9,7 +9,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage;
 import pl.edu.agh.hiputs.communication.service.MessageSenderService;
 import pl.edu.agh.hiputs.model.actor.MapFragment;
-import pl.edu.agh.hiputs.model.car.*;
+import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.Route;
+import pl.edu.agh.hiputs.model.car.RouteElement;
+import pl.edu.agh.hiputs.model.car.RouteLocation;
 import pl.edu.agh.hiputs.model.id.*;
 import pl.edu.agh.hiputs.model.map.Lane;
 import pl.edu.agh.hiputs.model.map.Patch;
@@ -161,7 +164,8 @@ public class CarSynchronizedServiceTest {
                 .length(12)
                 .speed(13)
                 .maxSpeed(14)
-                .location(new LaneLocation(new LaneId("abc"), 0))
+                .laneId(new LaneId("abc"))
+                .positionOnLane(0)
                 .routeLocation(new RouteLocation(route))
                 .build();
     }

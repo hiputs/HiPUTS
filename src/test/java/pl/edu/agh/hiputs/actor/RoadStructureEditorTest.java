@@ -66,7 +66,7 @@ public class RoadStructureEditorTest {
         MapFragment mapFragment = testData.mapFragment;
         Lane lane = testData.allLanes.get(index);
 
-        Car car = new Car();
+        Car car = Car.builder().build();
 
         //when
         mapFragment.addCar(lane.getId(), car);
@@ -84,8 +84,8 @@ public class RoadStructureEditorTest {
         MapFragment mapFragment = testData.mapFragment;
         Lane lane = testData.allLanes.get(index);
 
-        Car car1 = new Car();
-        Car car2 = new Car();
+        Car car1 = Car.builder().build();;
+        Car car2 = Car.builder().build();;
 
         //when
         mapFragment.addCar(lane.getId(), car1);

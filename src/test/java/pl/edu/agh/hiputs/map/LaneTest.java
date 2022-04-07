@@ -1,9 +1,12 @@
 package pl.edu.agh.hiputs.map;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarRead;
+import pl.edu.agh.hiputs.model.id.CarId;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.Lane;
 
 import java.util.Optional;
@@ -24,19 +27,24 @@ class LaneTest {
     private Car car2;
     private Car car3;
 
+    private Car createCar(LaneId currentLaneId, double positionOnLane, double speed){
+        return Car.builder()
+                .id(new CarId())
+                .laneId(currentLaneId)
+                .positionOnLane(positionOnLane)
+                .speed(speed)
+                .build();
+    }
+
     @BeforeEach
     void setupLane() {
         lane = new Lane();
         lane.setLength(lane_length);
-        car1 = new Car();
-        car2 = new Car();
-        car3 = new Car();
-        car1.setPosition(car1_pos);
-        car1.setSpeed(car1_speed);
-        car2.setPosition(car2_pos);
-        car2.setSpeed(car2_speed);
-        car3.setPosition(car3_pos);
-        car3.setSpeed(car3_speed);
+
+        car1 = createCar(lane.getId(), car1_pos, car1_speed);
+        car2 = createCar(lane.getId(), car2_pos, car2_speed);
+        car3 = createCar(lane.getId(), car3_pos, car3_speed);
+
         lane.addFirstCar(car3);
         lane.addFirstCar(car2);
         lane.addFirstCar(car1);
@@ -48,10 +56,10 @@ class LaneTest {
         Optional<CarRead> optional2 = lane.getNextCarData(car2);
         assertAll(
                 () -> assertFalse(optional1.isEmpty()),
-                () -> assertEquals(optional1.get().getPosition(), car2_pos),
+                () -> assertEquals(optional1.get().getPositionOnLane(), car2_pos),
                 () -> assertEquals(optional1.get().getSpeed(), car2_speed),
                 () -> assertFalse(optional2.isEmpty()),
-                () -> assertEquals(optional2.get().getPosition(), car3_pos),
+                () -> assertEquals(optional2.get().getPositionOnLane(), car3_pos),
                 () -> assertEquals(optional2.get().getSpeed(), car3_speed)
         );
     }
@@ -67,7 +75,7 @@ class LaneTest {
         Optional<CarRead> optional = lane.getFirstCar();
         assertAll(
                 () -> assertFalse(optional.isEmpty()),
-                () -> assertEquals(optional.map(car -> car.getPosition()).get(), car1_pos),
+                () -> assertEquals(optional.map(CarRead::getPositionOnLane).get(), car1_pos),
                 () -> assertEquals(optional.map(CarRead::getSpeed).get(), car1_speed)
         );
     }
@@ -79,6 +87,7 @@ class LaneTest {
         assertTrue(optional.isEmpty());
     }
 
+    @Disabled("Validation of adding the same car will be added in the future")
     @Test
     void addToIncomingCarsTwice() {
         assertDoesNotThrow(() -> lane.addToIncomingCars(car1));

@@ -28,7 +28,6 @@ public class LaneUpdateStageTaskTest {
     private Car car2 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
     private Car car3 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
     private Decision decision1, decision2, decision3;
-    private LaneLocation location1, location2, location3;
 
     @BeforeEach
     public void setup() {
@@ -40,21 +39,24 @@ public class LaneUpdateStageTaskTest {
         decision1 = Decision.builder()
                 .acceleration(2.0)
                 .speed(12.0)
-                .location(new LaneLocation(laneId2, 10.0))
+                .laneId(laneId2)
+                .positionOnLane(10.0)
                 .offsetToMoveOnRoute(1)
                 .build();
 
         decision2 = Decision.builder()
                 .acceleration(2.0)
                 .speed(12.0)
-                .location(new LaneLocation(laneId2, 20.0))
+                .laneId(laneId2)
+                .positionOnLane(20.0)
                 .offsetToMoveOnRoute(1)
                 .build();
 
         decision3 = Decision.builder()
                 .acceleration(2.0)
                 .speed(12.0)
-                .location(new LaneLocation(laneId2, 30.0))
+                .laneId(laneId2)
+                .positionOnLane(30.0)
                 .offsetToMoveOnRoute(0)
                 .build();
     }
@@ -65,15 +67,27 @@ public class LaneUpdateStageTaskTest {
         field.set(car, decision);
     }
 
+    private void setLaneId(Car car, String fieldName, LaneId laneId) throws Exception {
+        Field field = car.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(car, laneId);
+    }
+
+    private void setPositionOnLane(Car car, String fieldName, Double position) throws Exception {
+        Field field = car.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(car, position);
+    }
+
     @SneakyThrows
     @Test
     public void laneUpdateStageTaskWithoutIncomingCars() {
-        location1 = new LaneLocation(laneId2, 0.0);
-        location2 = new LaneLocation(laneId2, 5.0);
-        location3 = new LaneLocation(laneId2, 10.0);
-        car1.setLocation(location1);
-        car2.setLocation(location2);
-        car3.setLocation(location3);
+        setLaneId(car1, "laneId", laneId2);
+        setLaneId(car2, "laneId", laneId2);
+        setLaneId(car3, "laneId", laneId2);
+        setPositionOnLane(car1, "positionOnLane", 0.0);
+        setPositionOnLane(car2, "positionOnLane", 5.0);
+        setPositionOnLane(car3, "positionOnLane", 10.0);
         lane2.addFirstCar(car3);
         lane2.addFirstCar(car2);
         lane2.addFirstCar(car1);
@@ -85,12 +99,12 @@ public class LaneUpdateStageTaskTest {
 
         laneUpdateStageTask.run();
         Assertions.assertAll(
-                () -> Assertions.assertEquals(car1.getLocation().getLaneId(), decision1.getLocation().getLaneId()),
-                () -> Assertions.assertEquals(car1.getPosition(), decision1.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car2.getLocation().getLaneId(), decision2.getLocation().getLaneId()),
-                () -> Assertions.assertEquals(car2.getPosition(), decision2.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car3.getLocation().getLaneId(), decision3.getLocation().getLaneId()),
-                () -> Assertions.assertEquals(car3.getPosition(), decision3.getLocation().getPositionOnLane()),
+                () -> Assertions.assertEquals(car1.getLaneId(), decision1.getLaneId()),
+                () -> Assertions.assertEquals(car1.getPositionOnLane(), decision1.getPositionOnLane()),
+                () -> Assertions.assertEquals(car2.getLaneId(), decision2.getLaneId()),
+                () -> Assertions.assertEquals(car2.getPositionOnLane(), decision2.getPositionOnLane()),
+                () -> Assertions.assertEquals(car3.getLaneId(), decision3.getLaneId()),
+                () -> Assertions.assertEquals(car3.getPositionOnLane(), decision3.getPositionOnLane()),
                 () -> Assertions.assertEquals(lane2.getCars().size(), 3),
                 () -> Assertions.assertEquals(lane2.getCars().get(0), car1),
                 () -> Assertions.assertEquals(lane2.getCars().get(1), car2),
@@ -101,12 +115,12 @@ public class LaneUpdateStageTaskTest {
     @SneakyThrows
     @Test
     public void laneUpdateStageTaskWithIncomingCars() {
-        location1 = new LaneLocation(laneId1, 987.0);
-        location2 = new LaneLocation(laneId1, 997.0);
-        location3 = new LaneLocation(laneId2, 10.0);
-        car1.setLocation(location1);
-        car2.setLocation(location2);
-        car3.setLocation(location3);
+        setLaneId(car1, "laneId", laneId1);
+        setLaneId(car2, "laneId", laneId1);
+        setLaneId(car3, "laneId", laneId2);
+        setPositionOnLane(car1, "positionOnLane", 987.0);
+        setPositionOnLane(car2, "positionOnLane", 997.0);
+        setPositionOnLane(car3, "positionOnLane", 10.0);
         lane1.addFirstCar(car2);
         lane1.addFirstCar(car1);
         lane2.addFirstCar(car3);
@@ -123,12 +137,12 @@ public class LaneUpdateStageTaskTest {
         laneUpdateStageTask2.run();
 
         Assertions.assertAll(
-                () -> Assertions.assertEquals(car1.getLocation().getLaneId(), decision1.getLocation().getLaneId()),
-                () -> Assertions.assertEquals(car1.getPosition(), decision1.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car2.getLocation().getLaneId(), decision2.getLocation().getLaneId()),
-                () -> Assertions.assertEquals(car2.getPosition(), decision2.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car3.getLocation().getLaneId(), decision3.getLocation().getLaneId()),
-                () -> Assertions.assertEquals(car3.getPosition(), decision3.getLocation().getPositionOnLane()),
+                () -> Assertions.assertEquals(car1.getLaneId(), decision1.getLaneId()),
+                () -> Assertions.assertEquals(car1.getPositionOnLane(), decision1.getPositionOnLane()),
+                () -> Assertions.assertEquals(car2.getLaneId(), decision2.getLaneId()),
+                () -> Assertions.assertEquals(car2.getPositionOnLane(), decision2.getPositionOnLane()),
+                () -> Assertions.assertEquals(car3.getLaneId(), decision3.getLaneId()),
+                () -> Assertions.assertEquals(car3.getPositionOnLane(), decision3.getPositionOnLane()),
                 () -> Assertions.assertEquals(lane2.getCars().size(), 3),
                 () -> Assertions.assertEquals(lane1.getCars().size(), 0),
                 () -> Assertions.assertEquals(lane2.getIncomingCars().size(), 0),
@@ -141,19 +155,21 @@ public class LaneUpdateStageTaskTest {
     @SneakyThrows
     @Test
     public void laneUpdateStageTaskWithOneIncomingCar() {
-        location1 = new LaneLocation(laneId1, 800.0);
-        location2 = new LaneLocation(laneId1, 997.0);
-        location3 = new LaneLocation(laneId2, 10.0);
-        car1.setLocation(location1);
-        car2.setLocation(location2);
-        car3.setLocation(location3);
+        setLaneId(car1, "laneId", laneId1);
+        setLaneId(car2, "laneId", laneId1);
+        setLaneId(car3, "laneId", laneId2);
+        setPositionOnLane(car1, "positionOnLane", 800.0);
+        setPositionOnLane(car2, "positionOnLane", 997.0);
+        setPositionOnLane(car3, "positionOnLane", 10.0);
+
         lane1.addFirstCar(car2);
         lane1.addFirstCar(car1);
         lane2.addFirstCar(car3);
         decision1 = Decision.builder()
                 .acceleration(2.0)
                 .speed(12.0)
-                .location(new LaneLocation(laneId1, 900.0))
+                .laneId(laneId1)
+                .positionOnLane(900.0)
                 .offsetToMoveOnRoute(0)
                 .build();
         setDecision(car1, "decision", decision1);
@@ -168,12 +184,12 @@ public class LaneUpdateStageTaskTest {
         laneUpdateStageTask2.run();
 
         Assertions.assertAll(
-                () -> Assertions.assertEquals(car1.getLocation().getLaneId(), decision1.getLocation().getLaneId()),
-                () -> Assertions.assertEquals(car1.getPosition(), decision1.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car2.getLocation().getLaneId(), decision2.getLocation().getLaneId()),
-                () -> Assertions.assertEquals(car2.getPosition(), decision2.getLocation().getPositionOnLane()),
-                () -> Assertions.assertEquals(car3.getLocation().getLaneId(), decision3.getLocation().getLaneId()),
-                () -> Assertions.assertEquals(car3.getPosition(), decision3.getLocation().getPositionOnLane()),
+                () -> Assertions.assertEquals(car1.getLaneId(), decision1.getLaneId()),
+                () -> Assertions.assertEquals(car1.getPositionOnLane(), decision1.getPositionOnLane()),
+                () -> Assertions.assertEquals(car2.getLaneId(), decision2.getLaneId()),
+                () -> Assertions.assertEquals(car2.getPositionOnLane(), decision2.getPositionOnLane()),
+                () -> Assertions.assertEquals(car3.getLaneId(), decision3.getLaneId()),
+                () -> Assertions.assertEquals(car3.getPositionOnLane(), decision3.getPositionOnLane()),
                 () -> Assertions.assertEquals(lane2.getCars().size(), 2),
                 () -> Assertions.assertEquals(lane1.getCars().size(), 1),
                 () -> Assertions.assertEquals(lane2.getIncomingCars().size(), 0),

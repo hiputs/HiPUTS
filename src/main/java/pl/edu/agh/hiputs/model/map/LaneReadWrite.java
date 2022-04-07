@@ -5,6 +5,7 @@ import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -16,7 +17,7 @@ public interface LaneReadWrite extends LaneRead {
 
     Car removeLastCar();
 
-    Car getLastCar();
+    Optional<Car> getLastCar();
 
     void addToIncomingCars(Car car);
 
