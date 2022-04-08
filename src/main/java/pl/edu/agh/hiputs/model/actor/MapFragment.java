@@ -1,9 +1,7 @@
 package pl.edu.agh.hiputs.model.actor;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
@@ -68,8 +66,8 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     private final Map<JunctionId, PatchId> junctionIdToPatchId;
 
 
-    public static Builder builder(MapFragmentId mapFragmentId) {
-        return new Builder(mapFragmentId);
+    public static MapFragmentBuilder builder(MapFragmentId mapFragmentId) {
+        return new MapFragmentBuilder(mapFragmentId);
     }
 
     @Override
@@ -190,24 +188,24 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     
     
 
-    public static final class Builder {
+    public static final class MapFragmentBuilder {
         private final MapFragmentId mapFragmentId;
         private final Map<PatchId, Patch> knownPatches = new HashMap<>();
         private final Set<PatchId> localPatches = new HashSet<>();
         private final Map<MapFragmentId, Set<PatchId>> shadowPatches = new HashMap<>();
         private final Map<PatchId, MapFragmentId> shadowPatchOwnership = new HashMap<>();
 
-        public Builder(MapFragmentId mapFragmentId) {
+        public MapFragmentBuilder(MapFragmentId mapFragmentId) {
             this.mapFragmentId = mapFragmentId;
         }
 
-        public Builder addLocalPatch(Patch patch) {
+        public MapFragmentBuilder addLocalPatch(Patch patch) {
             knownPatches.put(patch.getId(), patch);
             localPatches.add(patch.getId());
             return this;
         }
 
-        public Builder addRemotePatch(MapFragmentId mapFragmentId, Patch patch) {
+        public MapFragmentBuilder addRemotePatch(MapFragmentId mapFragmentId, Patch patch) {
             knownPatches.put(patch.getId(), patch);
             shadowPatches.computeIfAbsent(mapFragmentId, k -> new HashSet<>()).add(patch.getId());
             shadowPatchOwnership.put(patch.getId(), mapFragmentId);

@@ -31,7 +31,7 @@ public class ExampleCarProvider {
 
     void readPatches(MapFragment mapFragment) {
         this.junctionIdToOutgoingLaneIdList = junctionId ->
-                mapFragment.getJunctionReadable(junctionId).getOutgoingLanesIds().stream().toList();
+                mapFragment.getJunctionReadable(junctionId).streamOutgoingLaneIds().toList();
     
         this.laneIdToOutgoingJunctionId = laneId ->
                 mapFragment.getLaneReadable(laneId).getOutgoingJunction();

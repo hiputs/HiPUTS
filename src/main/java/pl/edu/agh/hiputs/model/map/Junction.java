@@ -5,50 +5,87 @@ import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
-@Getter
-@Builder
 @AllArgsConstructor
 public class Junction implements JunctionReadable, JunctionEditable {
     /**
      * Unique junction identifier.
      */
-    @Builder.Default
-    private final JunctionId id = JunctionId.randomCrossroad();
+    @Getter
+    private final JunctionId id;
 
     /**
      * Lanes incoming into this junction
      */
-    @Builder.Default
-    private ArrayList<IncomingLane> incomingLanes = new ArrayList<>();
+    private final Set<LaneId> incomingLanes;
 
     /**
      * Lanes outgoing from this junction
      */
-    @Builder.Default
-    private ArrayList<ILaneOnJunction> outgoingLanes = new ArrayList<>();
-
+    private final Set<LaneId> outgoingLanes;
+    
+    
     /**
-     * Amount of all lanes on this junction
+     * All lanes on this junction in order of index
      */
-    @Builder.Default
-    private int lanesCount = 0;
-
-    public void addIncomingLane(LaneId laneId, boolean isSubordinated) {
-        incomingLanes.add(new IncomingLane(lanesCount++, laneId, isSubordinated));
+    private final List<LaneOnJunction> lanesOnJunction;
+    
+    public static JunctionBuilder builder() {
+        return new JunctionBuilder();
     }
-
-    public void addOutgoingLane(LaneId laneId) {
-        outgoingLanes.add(new LaneOnJunction(lanesCount++, laneId));
-    }
-
+    
     @Override
-    public Set<LaneId> getOutgoingLaneIds() {
-        return outgoingLanes.stream()
-                .map(ILaneOnJunction::getLaneId)
-                .collect(Collectors.toSet());
+    public Stream<LaneId> streamIncomingLaneIds() {
+        return incomingLanes.stream();
+    }
+    
+    @Override
+    public Stream<LaneId> streamOutgoingLaneIds() {
+        return outgoingLanes.stream();
+    }
+    
+    public static class JunctionBuilder {
+        private JunctionId id = JunctionId.randomCrossroad();
+        private Set<LaneId> incomingLanes = new HashSet<>();
+        private Set<LaneId> outgoingLanes = new HashSet<>();
+        private List<LaneOnJunction> lanesOnJunction = new ArrayList<>();
+    
+        public JunctionBuilder id(JunctionId id) {
+            this.id = id;
+            return this;
+        }
+    
+        public JunctionBuilder addIncomingLane(LaneId laneId, boolean isSubordinate) {
+            incomingLanes.add(laneId);
+            lanesOnJunction.add(new LaneOnJunction(
+                    laneId,
+                    lanesOnJunction.size(),
+                    LaneDirection.INCOMING,
+                    isSubordinate ? LaneSubordination.SUBORDINATE : LaneSubordination.NOT_SUBORDINATE,
+                    TrafficLightColor.GREEN
+            ));
+            return this;
+        }
+    
+        public JunctionBuilder addOutgoingLane(LaneId laneId) {
+            outgoingLanes.add(laneId);
+            lanesOnJunction.add(new LaneOnJunction(
+                    laneId,
+                    lanesOnJunction.size(),
+                    LaneDirection.OUTGOING,
+                    LaneSubordination.NONE,
+                    TrafficLightColor.GREEN
+            ));
+            return this;
+        }
+        
+        public Junction build() {
+            return new Junction(id, incomingLanes, outgoingLanes, lanesOnJunction);
+        }
     }
 }

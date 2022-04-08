@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.model.map.example;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.actor.MapFragment;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.Junction;
@@ -44,7 +45,7 @@ public class ExampleMapFragmentProvider {
 
     public static MapFragment fromStringRepresentation(String mapStructure, Map<String, Double> laneLengths, int randomCarsPerLane) {
         Map<String, LaneUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
-        Map<String, Junction> stringJunctionMap = getStringJunctionMapFromStringRepresentation(mapStructure);
+        Map<String, JunctionUnderConstruction> stringJunctionMap = getStringJunctionMapFromStringRepresentation(mapStructure);
 
         setLaneLengths(stringLaneMap, laneLengths);
         stringLaneMap.forEach((edge, laneUnderConstruction) -> putOnMap(edge, laneUnderConstruction, stringJunctionMap));
@@ -70,11 +71,11 @@ public class ExampleMapFragmentProvider {
                 .collect(Collectors.toMap(Function.identity(), e -> new LaneUnderConstruction()));
     }
 
-    private static Map<String, Junction> getStringJunctionMapFromStringRepresentation(String mapStructure) {
+    private static Map<String, JunctionUnderConstruction> getStringJunctionMapFromStringRepresentation(String mapStructure) {
         return getStringLaneMapFromStringRepresentation(mapStructure).keySet().stream()
                 .flatMap(edge -> Stream.of(edge.split("->")))
                 .collect(Collectors.toSet()).stream()
-                .collect(Collectors.toMap(Function.identity(), v -> Junction.builder().build()));
+                .collect(Collectors.toMap(Function.identity(), v -> new JunctionUnderConstruction()));
     }
 
     private static void setLaneLengths(Map<String, LaneUnderConstruction> stringLaneMap,
@@ -86,25 +87,26 @@ public class ExampleMapFragmentProvider {
     }
 
     private static void putOnMap(String edge, LaneUnderConstruction laneUnderConstruction,
-                                 Map<String, Junction> stringJunctionMap) {
+                                 Map<String, JunctionUnderConstruction> stringJunctionMap) {
         String begin = edge.split("->")[0];
         String end = edge.split("->")[1];
 
-        Junction incomingJunction = stringJunctionMap.get(begin);
-        Junction outgoingJunction = stringJunctionMap.get(end);
+        JunctionUnderConstruction incomingJunction = stringJunctionMap.get(begin);
+        JunctionUnderConstruction outgoingJunction = stringJunctionMap.get(end);
     
-        laneUnderConstruction.getLaneBuilder().incomingJunction(incomingJunction.getId());
-        laneUnderConstruction.getLaneBuilder().outgoingJunction(outgoingJunction.getId());
+        laneUnderConstruction.getLaneBuilder().incomingJunction(incomingJunction.getJunctionId());
+        laneUnderConstruction.getLaneBuilder().outgoingJunction(outgoingJunction.getJunctionId());
 
-        incomingJunction.addOutgoingLane(laneUnderConstruction.getLaneId());
+        incomingJunction.getJunctionBuilder().addOutgoingLane(laneUnderConstruction.getLaneId());
 
-        outgoingJunction.addIncomingLane(laneUnderConstruction.getLaneId(), false);
+        outgoingJunction.getJunctionBuilder().addIncomingLane(laneUnderConstruction.getLaneId(), false);
     }
 
     private static Patch createPatch(Map<String, LaneUnderConstruction> stringLaneMap,
-                                     Map<String, Junction> stringJunctionMap) {
+                                     Map<String, JunctionUnderConstruction> stringJunctionMap) {
         return Patch.builder()
                 .junctions(stringJunctionMap.values().stream()
+                        .map(junctionUnderConstruction -> junctionUnderConstruction.getJunctionBuilder().build())
                         .collect(Collectors.toMap(Junction::getId, Function.identity())))
                 .lanes(stringLaneMap.values().stream()
                         .map(laneUnderConstruction -> laneUnderConstruction.getLaneBuilder().build())
@@ -120,6 +122,17 @@ public class ExampleMapFragmentProvider {
         public LaneUnderConstruction() {
             this.laneId = LaneId.random();
             this.laneBuilder = Lane.builder().id(this.laneId);
+        }
+    }
+    
+    @Getter
+    private static class JunctionUnderConstruction {
+        JunctionId junctionId;
+        Junction.JunctionBuilder junctionBuilder;
+        
+        public JunctionUnderConstruction() {
+            this.junctionId = JunctionId.randomCrossroad();
+            this.junctionBuilder = Junction.builder().id(this.junctionId);
         }
     }
 }

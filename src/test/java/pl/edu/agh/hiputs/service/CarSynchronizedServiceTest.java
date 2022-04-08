@@ -108,47 +108,27 @@ public class CarSynchronizedServiceTest {
     }
 
     private Patch getSimplePatch() {
-        Lane lane1 = new Lane();
-        lane1.setIncomingCars(Set.of(
-                getCar("C1"),
-                getCar("C2")
-        ));
-
-        Lane lane2 = new Lane();
-        lane2.setIncomingCars(Set.of(
-                getCar("C3"),
-                getCar("C4")
-        ));
-
-        Patch patch = new Patch();
-        patch.setLanes(Map.of(
-                lane1.getId(), lane1,
-                lane2.getId(), lane2
-        ));
-
-        return patch;
+        Lane lane1 = Lane.builder().build();
+        lane1.addIncomingCar(getCar("C1"));
+        lane1.addIncomingCar(getCar("C2"));
+        
+        Lane lane2 = Lane.builder().build();
+        lane2.addIncomingCar(getCar("C3"));
+        lane2.addIncomingCar(getCar("C4"));
+        
+        return Patch.builder().lanes(Map.of(lane1.getId(), lane1, lane2.getId(), lane2)).build();
     }
 
     private Patch getSimplePatch2() {
-        Lane lane1 = new Lane();
-        lane1.setIncomingCars(Set.of(
-                getCar("C5"),
-                getCar("C6")
-        ));
-
-        Lane lane2 = new Lane();
-        lane2.setIncomingCars(Set.of(
-                getCar("C7"),
-                getCar("C8")
-        ));
-
-        Patch patch = new Patch();
-        patch.setLanes(Map.of(
-                lane1.getId(), lane1,
-                lane2.getId(), lane2
-        ));
-
-        return patch;
+        Lane lane1 = Lane.builder().build();
+        lane1.addIncomingCar(getCar("C5"));
+        lane1.addIncomingCar(getCar("C6"));
+        
+        Lane lane2 = Lane.builder().build();
+        lane2.addIncomingCar(getCar("C7"));
+        lane2.addIncomingCar(getCar("C8"));
+    
+        return Patch.builder().lanes(Map.of(lane1.getId(), lane1, lane2.getId(), lane2)).build();
     }
 
 

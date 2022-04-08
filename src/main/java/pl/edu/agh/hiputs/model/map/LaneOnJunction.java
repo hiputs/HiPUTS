@@ -1,23 +1,36 @@
 package pl.edu.agh.hiputs.model.map;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
 @Getter
-public class LaneOnJunction implements ILaneOnJunction {
-
-    /**
-     * Index of lane on junction
-     */
-    private final int laneIndexOnJunction;
-
+@AllArgsConstructor
+public class LaneOnJunction {
     /**
      * Global lane Id
      */
     private final LaneId laneId;
-
-    public LaneOnJunction(int laneOrder, LaneId laneId) {
-        this.laneIndexOnJunction = laneOrder;
-        this.laneId = laneId;
-    }
+    
+    /**
+     * Index of lane on junction
+     */
+    private final int laneIndexOnJunction;
+    
+    /**
+     * Direction of lane on junction - either incoming or outgoing
+     */
+    private LaneDirection direction;
+    
+    /**
+     * Status of lane subordination on junction
+     */
+    private LaneSubordination subordination;
+    
+    /**
+     * Light color on lane (green if no traffic lights)
+     */
+    private TrafficLightColor lightColor;
+    
+    
 }

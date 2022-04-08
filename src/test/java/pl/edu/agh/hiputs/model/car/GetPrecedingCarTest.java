@@ -23,7 +23,7 @@ public class GetPrecedingCarTest {
     public void setup() {
         mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
         carProvider = new ExampleCarProvider(mapFragment);
-        startLaneId = mapFragment.getAllManagedLaneIds().iterator().next();
+        startLaneId = mapFragment.getLocalLaneIds().iterator().next();
         startLane = mapFragment.getLaneEditable(startLaneId);
         car1 = carProvider.generateCar(startLaneId, 3);
         car2 = carProvider.generateCar(startLaneId, 4);
@@ -33,8 +33,8 @@ public class GetPrecedingCarTest {
 
     @Test
     public void getPrecedingCarWhereCarIsFound() {
-        startLane.addFirstCar(car2);
-        startLane.addFirstCar(car1);
+        startLane.addCarAtEntry(car2);
+        startLane.addCarAtEntry(car1);
         CarEnvironment carEnvironment = car1.getPrecedingCar(mapFragment);
         Assertions.assertAll(
                 () -> Assertions.assertTrue(carEnvironment.getPrecedingCar().isPresent()),
@@ -47,7 +47,7 @@ public class GetPrecedingCarTest {
 
     @Test
     public void getPrecedingCarWhereCarIsNotFound() {
-        startLane.addFirstCar(car1);
+        startLane.addCarAtEntry(car1);
         CarEnvironment carEnvironment = car1.getPrecedingCar(mapFragment);
         Assertions.assertAll(
                 () -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
@@ -63,7 +63,7 @@ public class GetPrecedingCarTest {
         this.setAllJunctionTypeBend();
         setPositionOnLane(car1, 10.0);
 
-        startLane.addFirstCar(car1);
+        startLane.addCarAtEntry(car1);
         CarEnvironment carEnvironment = car1.getPrecedingCar(mapFragment);
         Assertions.assertAll(
                 () -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
@@ -75,7 +75,7 @@ public class GetPrecedingCarTest {
     @Test
     public void getPrecedingCarShouldFindItself() {
         this.setAllJunctionTypeBend();
-        startLane.addFirstCar(car1);
+        startLane.addCarAtEntry(car1);
         CarEnvironment carEnvironment = car1.getPrecedingCar(mapFragment);
         Assertions.assertAll(
                 () -> Assertions.assertTrue(carEnvironment.getPrecedingCar().isPresent()),
@@ -87,7 +87,7 @@ public class GetPrecedingCarTest {
 
 
     private void setAllJunctionTypeBend() {
-        for (LaneId laneId : mapFragment.getAllManagedLaneIds()) {
+        for (LaneId laneId : mapFragment.getLocalLaneIds()) {
             JunctionReadable junction = mapFragment.getJunctionReadable(mapFragment.getLaneEditable(laneId).getOutgoingJunction());
             this.setJunctionTypeBend(junction);
         }

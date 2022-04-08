@@ -38,16 +38,15 @@ class LaneTest {
 
     @BeforeEach
     void setupLane() {
-        lane = new Lane();
-        lane.setLength(lane_length);
+        lane = Lane.builder().length(lane_length).build();
 
         car1 = createCar(lane.getId(), car1_pos, car1_speed);
         car2 = createCar(lane.getId(), car2_pos, car2_speed);
         car3 = createCar(lane.getId(), car3_pos, car3_speed);
 
-        lane.addFirstCar(car3);
-        lane.addFirstCar(car2);
-        lane.addFirstCar(car1);
+        lane.addCarAtEntry(car3);
+        lane.addCarAtEntry(car2);
+        lane.addCarAtEntry(car1);
     }
 
     @Test
@@ -82,7 +81,7 @@ class LaneTest {
 
     @Test
     void getFirstCarEmpty() {
-        Lane emptyLane = new Lane();
+        Lane emptyLane = Lane.builder().build();
         Optional<CarReadable> optional = emptyLane.getCarAtEntryReadable();
         assertTrue(optional.isEmpty());
     }
@@ -90,7 +89,7 @@ class LaneTest {
     @Disabled("Validation of adding the same car will be added in the future")
     @Test
     void addToIncomingCarsTwice() {
-        assertDoesNotThrow(() -> lane.addToIncomingCars(car1));
-        assertThrows(Exception.class, () -> lane.addToIncomingCars(car1));
+        assertDoesNotThrow(() -> lane.addIncomingCar(car1));
+        assertThrows(Exception.class, () -> lane.addIncomingCar(car1));
     }
 }
