@@ -138,21 +138,21 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     public void acceptShadowPatches(Set<Patch> shadowPatches) {
         shadowPatches.forEach(shadowPatch -> knownPatches.put(shadowPatch.getId(), shadowPatch));
     }
-    
+
     public Set<LaneId> getLocalLaneIds() {
         return localPatchIds.stream()
                 .map(knownPatches::get)
                 .flatMap(patch -> patch.getLaneIds().stream())
                 .collect(Collectors.toSet());
     }
-    
+
     public Set<JunctionId> getLocalJunctionIds() {
         return localPatchIds.stream()
                 .map(knownPatches::get)
                 .flatMap(patch -> patch.getJunctionIds().stream())
                 .collect(Collectors.toSet());
     }
-    
+
     // TODO fix for new structure
 //    public void migrateMyPatchToNeighbour(PatchId patchId, ActorId receiver) {
 //        Patch patch = localPatches.remove(patchId);
@@ -185,8 +185,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 //        patch2Actor.remove(patchId);
 //        refreshBorderPatches();
 //    }
-    
-    
+
 
     public static final class MapFragmentBuilder {
         private final MapFragmentId mapFragmentId;

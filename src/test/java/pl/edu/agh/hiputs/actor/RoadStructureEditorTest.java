@@ -22,25 +22,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RoadStructureEditorTest {
 
     private TestData prepareTestData() {
-        
+
         LaneId lane1Id = LaneId.random();
         LaneId lane2Id = LaneId.random();
         LaneId lane3Id = LaneId.random();
         LaneId lane4Id = LaneId.random();
-        
+
         Lane.LaneBuilder lane1Builder = Lane.builder().id(lane1Id);
         Lane.LaneBuilder lane2Builder = Lane.builder().id(lane2Id);
         Lane.LaneBuilder lane3Builder = Lane.builder().id(lane3Id);
         Lane.LaneBuilder lane4Builder = Lane.builder().id(lane4Id);
-    
+
         JunctionId junction1Id = JunctionId.randomCrossroad();
         JunctionId junction2Id = JunctionId.randomCrossroad();
         JunctionId junction3Id = JunctionId.randomCrossroad();
-        
+
         Junction.JunctionBuilder junction1Builder = Junction.builder().id(junction1Id);
         Junction.JunctionBuilder junction2Builder = Junction.builder().id(junction2Id);
         Junction.JunctionBuilder junction3Builder = Junction.builder().id(junction3Id);
-    
+
         junction1Builder.addIncomingLane(lane1Id, false).addOutgoingLane(lane2Id);
         lane1Builder.outgoingJunction(junction1Id);
         lane2Builder.incomingJunction(junction1Id);
@@ -52,21 +52,21 @@ public class RoadStructureEditorTest {
         junction3Builder.addIncomingLane(lane3Id, false).addOutgoingLane(lane4Id);
         lane3Builder.outgoingJunction(junction3Id);
         lane4Builder.incomingJunction(junction3Id);
-        
+
         Lane lane1 = lane1Builder.build();
         Lane lane2 = lane2Builder.build();
         Lane lane3 = lane3Builder.build();
         Lane lane4 = lane4Builder.build();
-        
+
         Junction junction1 = junction1Builder.build();
         Junction junction2 = junction2Builder.build();
         Junction junction3 = junction3Builder.build();
-        
+
         Patch localPatch = Patch.builder()
                 .lanes(Map.of(lane1.getId(), lane1, lane2.getId(), lane2))
                 .junctions(Map.of(junction1.getId(), junction1, junction2.getId(), junction2))
                 .build();
-    
+
         Patch remotePatch = Patch.builder()
                 .lanes(Map.of(lane3.getId(), lane3, lane4.getId(), lane4))
                 .junctions(Map.of(junction3.getId(), junction3)).build();
@@ -108,8 +108,8 @@ public class RoadStructureEditorTest {
         MapFragment mapFragment = testData.mapFragment;
         Lane lane = testData.allLanes.get(index);
 
-        Car car1 = Car.builder().build();;
-        Car car2 = Car.builder().build();;
+        Car car1 = Car.builder().build();
+        Car car2 = Car.builder().build();
 
         //when
         lane.addCarAtEntry(car1);

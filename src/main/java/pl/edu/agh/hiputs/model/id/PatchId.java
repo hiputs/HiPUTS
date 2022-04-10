@@ -11,7 +11,7 @@ import java.util.UUID;
 @EqualsAndHashCode
 public class PatchId {
     private final String value;
-    
+
     public static PatchId random() {
         return new PatchId(UUID.randomUUID().toString());
     }

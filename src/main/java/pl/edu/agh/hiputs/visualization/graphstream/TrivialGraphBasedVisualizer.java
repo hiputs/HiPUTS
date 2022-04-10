@@ -19,33 +19,33 @@ import java.util.ArrayList;
  **/
 
 public class TrivialGraphBasedVisualizer {
-    
+
     private final String graphStyles = """
-            
+                        
             node { fill-color: rgb(0,50,200); text-color: rgb(255,255,255); shape: box; size: 25; text-size: 15; }
             edge {  fill-color: rgb(150,150,150); text-size: 15;}
             sprite { text-color: rgb(255,255,255); size: 18; text-size: 15;  }
             """;
-    
+
     protected Graph graph;
     protected SpriteManager spriteManager;
-    
+
     protected MapFragment mapFragment;
-    
-    
+
+
     public TrivialGraphBasedVisualizer(MapFragment mapFragment) {
         this.mapFragment = mapFragment;
-        
+
         this.graph = new SingleGraph("The city");
         this.graph.setStrict(false);
         this.graph.setAutoCreate(true);
         this.graph.setAttribute("ui.stylesheet", graphStyles);
         System.setProperty("org.graphstream.ui", "swing");
         spriteManager = new SpriteManager(this.graph);
-        
+
         buildGraphStructure();
     }
-    
+
     protected void buildGraphStructure() {
         mapFragment.getLocalJunctionIds().forEach(
                 junctionId -> this.graph.addNode(junctionId.getValue()).setAttribute("label", junctionId.getValue().substring(0, 3))
@@ -59,12 +59,12 @@ public class TrivialGraphBasedVisualizer {
                 }
         );
     }
-    
+
     protected ArrayList<Sprite> spritesInPrevUpdate = new ArrayList<>();
-    
+
     public void redrawCars() {
         ArrayList<Sprite> spritesInThisUpdate = new ArrayList<>();
-        
+
         mapFragment.getLocalLaneIds().stream().map(mapFragment::getLaneReadable).forEach(lane -> {
                     CarReadable car = lane.getCarAtEntryReadable().orElse(null);
                     while (car != null) {
@@ -78,21 +78,21 @@ public class TrivialGraphBasedVisualizer {
                         sprite.setPosition(car.getPositionOnLane() / lane.getLength());
                         int speedByte = (int) Math.min(car.getSpeed() * 10, 255);
                         sprite.setAttribute("ui.style", "fill-color: rgb(" + speedByte + "," + (255 - speedByte) + ",0);");
-                        
+
                         car = lane.getCarInFrontReadable(car).orElse(null);
                     }
                 }
         );
-        
+
         spritesInPrevUpdate.removeAll(spritesInThisUpdate);
         spritesInPrevUpdate.forEach(sprite -> spriteManager.removeSprite(sprite.getId()));
         spritesInPrevUpdate = spritesInThisUpdate;
     }
-    
-    
+
+
     public void showGui() {
         this.graph.display();
     }
-    
-    
+
+
 }

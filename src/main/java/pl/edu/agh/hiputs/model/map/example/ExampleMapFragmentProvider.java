@@ -10,7 +10,10 @@ import pl.edu.agh.hiputs.model.map.Junction;
 import pl.edu.agh.hiputs.model.map.Lane;
 import pl.edu.agh.hiputs.model.map.Patch;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -61,7 +64,7 @@ public class ExampleMapFragmentProvider {
                 lane.addCarAtEntry(car);
             }
         });
-        
+
         return mapFragment;
     }
 
@@ -93,7 +96,7 @@ public class ExampleMapFragmentProvider {
 
         JunctionUnderConstruction incomingJunction = stringJunctionMap.get(begin);
         JunctionUnderConstruction outgoingJunction = stringJunctionMap.get(end);
-    
+
         laneUnderConstruction.getLaneBuilder().incomingJunction(incomingJunction.getJunctionId());
         laneUnderConstruction.getLaneBuilder().outgoingJunction(outgoingJunction.getJunctionId());
 
@@ -113,23 +116,23 @@ public class ExampleMapFragmentProvider {
                         .collect(Collectors.toMap(Lane::getId, Function.identity())))
                 .build();
     }
-    
+
     @Getter
     private static class LaneUnderConstruction {
         LaneId laneId;
         Lane.LaneBuilder laneBuilder;
-    
+
         public LaneUnderConstruction() {
             this.laneId = LaneId.random();
             this.laneBuilder = Lane.builder().id(this.laneId);
         }
     }
-    
+
     @Getter
     private static class JunctionUnderConstruction {
         JunctionId junctionId;
         Junction.JunctionBuilder junctionBuilder;
-        
+
         public JunctionUnderConstruction() {
             this.junctionId = JunctionId.randomCrossroad();
             this.junctionBuilder = Junction.builder().id(this.junctionId);

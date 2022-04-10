@@ -21,10 +21,10 @@ public class LaneUpdateStageTaskTest {
     private MapFragment mapFragment;
     private LaneId laneId1, laneId2;
     private LaneEditable lane1, lane2;
-    private RouteLocation routeLocation = Mockito.mock(RouteLocation.class);
-    private Car car1 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
-    private Car car2 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
-    private Car car3 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
+    private final RouteLocation routeLocation = Mockito.mock(RouteLocation.class);
+    private final Car car1 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
+    private final Car car2 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
+    private final Car car3 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
     private Decision decision1, decision2, decision3;
 
     @BeforeEach

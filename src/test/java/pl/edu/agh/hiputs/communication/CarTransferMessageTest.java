@@ -19,7 +19,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class CarTransferMessageTest {
 
     @Test
-    void toRealObject(){
+    void toRealObject() {
         //given
         SCar sCar = getSerializedCar();
 
@@ -33,7 +33,7 @@ public class CarTransferMessageTest {
     }
 
     @Test
-    void toSerializedObject(){
+    void toSerializedObject() {
         //given
         Car car = getCar();
 
@@ -46,7 +46,7 @@ public class CarTransferMessageTest {
                 .isEqualTo(getSerializedCar());
     }
 
-    private Car getCar(){
+    private Car getCar() {
         List<RouteElement> routeElementList = List.of(
                 new RouteElement(new JunctionId("zxc", JunctionType.BEND), new LaneId("vbn")),
                 new RouteElement(new JunctionId("zxc1", JunctionType.BEND), new LaneId("vbn1"))
@@ -64,7 +64,7 @@ public class CarTransferMessageTest {
                 .build();
     }
 
-    private SCar getSerializedCar(){
+    private SCar getSerializedCar() {
         List<SRouteElement> routeElementList = List.of(
                 new SRouteElement("zxc", "vbn", "BEND"),
                 new SRouteElement("zxc1", "vbn1", "BEND")

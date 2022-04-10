@@ -21,14 +21,14 @@ import java.util.stream.Collectors;
 public class MapFragmentExecutor {
 
     public final MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap2();
-    
+
     private final TaskExecutorService taskExecutor;
-    
+
     @Autowired
     public MapFragmentExecutor(TaskExecutorService taskExecutor) {
         this.taskExecutor = taskExecutor;
     }
-    
+
     public void run() {
         MessageReceiverService messageReceiverService = new MessageReceiverService();
         SubscriptionService subscriptionService = new SubscriptionService(messageReceiverService);

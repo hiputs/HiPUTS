@@ -16,18 +16,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LaneTest {
     private Lane lane;
-    private double lane_length = 1000.0;
-    private double car1_speed = 10.4;
-    private double car1_pos = 153.2;
-    private double car2_speed = 15.2;
-    private double car2_pos = 262.4;
-    private double car3_speed = 14.2;
-    private double car3_pos = 563.2;
+    private final double lane_length = 1000.0;
+    private final double car1_speed = 10.4;
+    private final double car1_pos = 153.2;
+    private final double car2_speed = 15.2;
+    private final double car2_pos = 262.4;
+    private final double car3_speed = 14.2;
+    private final double car3_pos = 563.2;
     private Car car1;
     private Car car2;
     private Car car3;
 
-    private Car createCar(LaneId currentLaneId, double positionOnLane, double speed){
+    private Car createCar(LaneId currentLaneId, double positionOnLane, double speed) {
         return Car.builder()
                 .id(CarId.random())
                 .laneId(currentLaneId)

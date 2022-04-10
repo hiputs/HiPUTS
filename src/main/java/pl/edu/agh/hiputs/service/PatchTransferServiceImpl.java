@@ -2,7 +2,6 @@ package pl.edu.agh.hiputs.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
@@ -12,8 +11,8 @@ import pl.edu.agh.hiputs.communication.model.serializable.SLane;
 import pl.edu.agh.hiputs.communication.service.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.SubscriptionService;
 import pl.edu.agh.hiputs.model.actor.MapFragment;
-import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.Patch;
 import pl.edu.agh.hiputs.service.usecase.PatchTransferService;
 
@@ -107,7 +106,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         log.info("The patch id: " + message.getTransferPatchId() +
                 " change owner from " + message.getSenderId() +
                 " to " + message.getReceiverId());
-        
+
         // TODO fix for new structure (see MapFragment)
 //        mapFragment.getPatch2Actor().put(
 //                new PatchId(message.getTransferPatchId()),

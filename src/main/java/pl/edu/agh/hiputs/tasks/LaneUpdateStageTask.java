@@ -2,22 +2,17 @@ package pl.edu.agh.hiputs.tasks;
 
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.model.actor.RoadStructureEditor;
-import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
-import pl.edu.agh.hiputs.model.car.CarReadable;
-import pl.edu.agh.hiputs.model.car.CarUpdateResult;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.LaneEditable;
 
 import java.util.Comparator;
-import java.util.List;
-import java.util.ListIterator;
 
 @RequiredArgsConstructor
 public class LaneUpdateStageTask implements Runnable {
     private final RoadStructureEditor mapFragment;
     private final LaneId laneId;
-    
+
     @Override
     public void run() {
         LaneEditable lane = mapFragment.getLaneEditable(laneId);
@@ -25,7 +20,7 @@ public class LaneUpdateStageTask implements Runnable {
         this.updateCarsOnLane(lane);
         this.handleIncomingCars(lane);
     }
-    
+
     /**
      * Removes from Lane.carsQueue all cars which decided to leave this lane
      */
@@ -37,7 +32,7 @@ public class LaneUpdateStageTask implements Runnable {
             lane.pollCarAtExit();
         }
     }
-    
+
     /**
      * Iterates in reverse over Lane.carsQueue and call Car.update()
      *
@@ -46,7 +41,7 @@ public class LaneUpdateStageTask implements Runnable {
     private void updateCarsOnLane(LaneEditable lane) {
         lane.streamCarsFromExitEditable().forEach(CarEditable::update);
     }
-    
+
     /**
      * Sorts Lane.incomingCars, inserts incoming cars and calls Car.update()
      *

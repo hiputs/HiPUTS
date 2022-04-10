@@ -2,7 +2,6 @@ package pl.edu.agh.hiputs.tasks;
 
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.model.actor.RoadStructureEditor;
-import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.LaneEditable;
@@ -16,9 +15,9 @@ public class LaneDecisionStageTask implements Runnable {
     @Override
     public void run() {
         LaneEditable lane = mapFragment.getLaneEditable(laneId);
-        lane.streamCarsFromExitEditable().forEach( car -> {
-            car.decide(mapFragment);
-            addToIncomingCarsOfDestinationLane(car, car.getDecision().getLaneId());
+        lane.streamCarsFromExitEditable().forEach(car -> {
+                    car.decide(mapFragment);
+                    addToIncomingCarsOfDestinationLane(car, car.getDecision().getLaneId());
                 }
         );
     }

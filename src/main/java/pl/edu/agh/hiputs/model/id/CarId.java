@@ -11,11 +11,11 @@ import java.util.UUID;
 @EqualsAndHashCode
 public class CarId {
     private final String value;
-    
+
     public static CarId random() {
         return new CarId(UUID.randomUUID().toString());
     }
-    
+
     @Override
     public String toString() {
         return "CarId{" + value + '}';

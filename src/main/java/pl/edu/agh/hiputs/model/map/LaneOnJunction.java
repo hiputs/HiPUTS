@@ -11,26 +11,26 @@ public class LaneOnJunction {
      * Global lane Id
      */
     private final LaneId laneId;
-    
+
     /**
      * Index of lane on junction
      */
     private final int laneIndexOnJunction;
-    
+
     /**
      * Direction of lane on junction - either incoming or outgoing
      */
-    private LaneDirection direction;
-    
+    private final LaneDirection direction;
+
     /**
      * Status of lane subordination on junction
      */
-    private LaneSubordination subordination;
-    
+    private final LaneSubordination subordination;
+
     /**
      * Light color on lane (green if no traffic lights)
      */
-    private TrafficLightColor lightColor;
-    
-    
+    private final TrafficLightColor lightColor;
+
+
 }

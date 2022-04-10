@@ -11,7 +11,7 @@ import java.util.UUID;
 @EqualsAndHashCode
 public class MapFragmentId {
     String id;
-    
+
     public static MapFragmentId random() {
         return new MapFragmentId(UUID.randomUUID().toString());
     }

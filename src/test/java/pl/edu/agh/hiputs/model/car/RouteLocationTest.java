@@ -13,8 +13,8 @@ import java.util.List;
 public class RouteLocationTest {
 
     private static Route route;
-    private static List<JunctionId> orderedJunctionsOnRoute = new ArrayList<>();
-    private static List<LaneId> orderedLanesOnRoute = new ArrayList<>();
+    private static final List<JunctionId> orderedJunctionsOnRoute = new ArrayList<>();
+    private static final List<LaneId> orderedLanesOnRoute = new ArrayList<>();
 
     @BeforeAll
     public static void setup() {

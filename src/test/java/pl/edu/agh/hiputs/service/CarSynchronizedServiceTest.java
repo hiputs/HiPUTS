@@ -19,7 +19,6 @@ import pl.edu.agh.hiputs.model.map.Patch;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -111,11 +110,11 @@ public class CarSynchronizedServiceTest {
         Lane lane1 = Lane.builder().build();
         lane1.addIncomingCar(getCar("C1"));
         lane1.addIncomingCar(getCar("C2"));
-        
+
         Lane lane2 = Lane.builder().build();
         lane2.addIncomingCar(getCar("C3"));
         lane2.addIncomingCar(getCar("C4"));
-        
+
         return Patch.builder().lanes(Map.of(lane1.getId(), lane1, lane2.getId(), lane2)).build();
     }
 
@@ -123,11 +122,11 @@ public class CarSynchronizedServiceTest {
         Lane lane1 = Lane.builder().build();
         lane1.addIncomingCar(getCar("C5"));
         lane1.addIncomingCar(getCar("C6"));
-        
+
         Lane lane2 = Lane.builder().build();
         lane2.addIncomingCar(getCar("C7"));
         lane2.addIncomingCar(getCar("C8"));
-    
+
         return Patch.builder().lanes(Map.of(lane1.getId(), lane1, lane2.getId(), lane2)).build();
     }
 

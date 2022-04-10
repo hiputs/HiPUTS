@@ -9,10 +9,10 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class InjectIncomingCarsTask implements Runnable {
-    
+
     private final List<SCar> sCars;
     private final TransferDataHandler transferDataHandler;
-    
+
     @Override
     public void run() {
         transferDataHandler.acceptIncomingCars(

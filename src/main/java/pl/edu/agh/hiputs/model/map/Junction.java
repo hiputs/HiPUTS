@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.model.map;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
@@ -28,38 +29,38 @@ public class Junction implements JunctionReadable, JunctionEditable {
      * Lanes outgoing from this junction
      */
     private final Set<LaneId> outgoingLanes;
-    
-    
+
+
     /**
      * All lanes on this junction in order of index
      */
     private final List<LaneOnJunction> lanesOnJunction;
-    
+
     public static JunctionBuilder builder() {
         return new JunctionBuilder();
     }
-    
+
     @Override
     public Stream<LaneId> streamIncomingLaneIds() {
         return incomingLanes.stream();
     }
-    
+
     @Override
     public Stream<LaneId> streamOutgoingLaneIds() {
         return outgoingLanes.stream();
     }
-    
+
     public static class JunctionBuilder {
         private JunctionId id = JunctionId.randomCrossroad();
-        private Set<LaneId> incomingLanes = new HashSet<>();
-        private Set<LaneId> outgoingLanes = new HashSet<>();
-        private List<LaneOnJunction> lanesOnJunction = new ArrayList<>();
-    
+        private final Set<LaneId> incomingLanes = new HashSet<>();
+        private final Set<LaneId> outgoingLanes = new HashSet<>();
+        private final List<LaneOnJunction> lanesOnJunction = new ArrayList<>();
+
         public JunctionBuilder id(JunctionId id) {
             this.id = id;
             return this;
         }
-    
+
         public JunctionBuilder addIncomingLane(LaneId laneId, boolean isSubordinate) {
             incomingLanes.add(laneId);
             lanesOnJunction.add(new LaneOnJunction(
@@ -71,7 +72,7 @@ public class Junction implements JunctionReadable, JunctionEditable {
             ));
             return this;
         }
-    
+
         public JunctionBuilder addOutgoingLane(LaneId laneId) {
             outgoingLanes.add(laneId);
             lanesOnJunction.add(new LaneOnJunction(
@@ -83,7 +84,7 @@ public class Junction implements JunctionReadable, JunctionEditable {
             ));
             return this;
         }
-        
+
         public Junction build() {
             return new Junction(id, incomingLanes, outgoingLanes, lanesOnJunction);
         }

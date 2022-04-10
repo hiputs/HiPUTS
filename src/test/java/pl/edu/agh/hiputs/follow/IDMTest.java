@@ -18,7 +18,7 @@ class IDMTest {
                 .maxSpeed(maxSpeed)
                 .positionOnLane(position)
                 .speed(speed)
-            .build();
+                .build();
     }
 
     @Test

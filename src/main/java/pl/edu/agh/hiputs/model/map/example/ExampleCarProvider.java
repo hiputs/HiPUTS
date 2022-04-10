@@ -18,12 +18,12 @@ public class ExampleCarProvider {
     private static final Double DEFAULT_CAR_LENGTH = 4.5;
     private static final Double DEFAULT_MAX_SPEED = 20.0;
     private static final Integer DEFAULT_HOPS = 4;
-    
+
     private final MapFragment mapFragment;
     private Function<JunctionId, List<LaneId>> junctionIdToOutgoingLaneIdList;
     private Function<LaneId, JunctionId> laneIdToOutgoingJunctionId;
     private List<LaneId> localLaneIdList;
-    
+
     public ExampleCarProvider(MapFragment mapFragment) {
         this.mapFragment = mapFragment;
         readPatches(mapFragment);
@@ -32,10 +32,10 @@ public class ExampleCarProvider {
     void readPatches(MapFragment mapFragment) {
         this.junctionIdToOutgoingLaneIdList = junctionId ->
                 mapFragment.getJunctionReadable(junctionId).streamOutgoingLaneIds().toList();
-    
+
         this.laneIdToOutgoingJunctionId = laneId ->
                 mapFragment.getLaneReadable(laneId).getOutgoingJunction();
-    
+
         this.localLaneIdList = mapFragment.getLocalLaneIds().stream().toList();
     }
 
