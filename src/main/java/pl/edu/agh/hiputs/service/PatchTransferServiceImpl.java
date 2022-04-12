@@ -38,15 +38,14 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     void init() {
         subscriptionService.subscribe(this, MessagesTypeEnum.PatchTransferMessage);
         subscriptionService.subscribe(this, MessagesTypeEnum.PathTransferNotificationMessage);
-        //TODO add me real id
-        meId = new MapFragmentId("ALA BEZ KOTA");
+        meId = MapFragmentId.from(mapFragment.getMapFragmentId());
     }
 
     @Override
     public void sendPatch(MapFragmentId receiver, Patch patch) {
-        // TODO: restore parallel stream?
         List<SLane> serializedLanes = patch
                 .streamLanesEditable()
+                .parallel()
                 .map(SLane::new)
                 .collect(Collectors.toList());
 

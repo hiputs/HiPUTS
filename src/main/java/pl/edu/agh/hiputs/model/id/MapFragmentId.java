@@ -15,4 +15,8 @@ public class MapFragmentId {
     public static MapFragmentId random() {
         return new MapFragmentId(UUID.randomUUID().toString());
     }
+
+    public static MapFragmentId from(MapFragmentId mapFragmentId) {
+        return new MapFragmentId(mapFragmentId.getId());
+    }
 }
