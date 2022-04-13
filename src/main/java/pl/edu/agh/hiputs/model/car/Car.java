@@ -197,5 +197,19 @@ public class Car implements CarEditable {
     public int hashCode() {
         return Objects.hash(carId);
     }
+    
+    // TODO: create Driver class with an algorithm that will take into consideration all deciders
+    //       and provide proper interface of a Car for the driver:
+    //       accelerate, decelerate, change lane to right, change lane to left
+//    public void doMagic(RoadStructureReader roadStructureReader) {
+//        DecisionOfFollowingModel decisionOfFollowingModel = this.followingModel.doYourStuff(roadStructureReader);
+//        DecisionOfOtherModel decisionOfOtherModel = this.otherModel.doYourStuff(roadStructureReader);
+//        ...
+//        ...
+//        ...
+//        ...
+//
+//        magically combine all decisions
+//    }
 
 }
