@@ -1,19 +1,19 @@
 package pl.edu.agh.hiputs.model.follow;
 
-public class IDM implements IFollowingModel {
+public class Idm implements IFollowingModel {
     private final double distanceHeadway;
     private final double timeHeadway;
     private final double normalAcceleration;
     private final double normalDeceleration;
 
-    public IDM() {
+    public Idm() {
         distanceHeadway = 2.0;
         timeHeadway = 2.0;
         normalAcceleration = 2.0;
         normalDeceleration = 3.5;
     }
 
-    public IDM(double distanceHeadway, double timeHeadway, double normalAcceleration, double normalDeceleration) {
+    public Idm(double distanceHeadway, double timeHeadway, double normalAcceleration, double normalDeceleration) {
         this.distanceHeadway = distanceHeadway;
         this.timeHeadway = timeHeadway;
         this.normalAcceleration = normalAcceleration;

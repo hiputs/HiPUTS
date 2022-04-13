@@ -10,7 +10,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.model.actor.MapFragment;
 import pl.edu.agh.hiputs.model.car.*;
-import pl.edu.agh.hiputs.model.follow.IDMDecider;
+import pl.edu.agh.hiputs.model.follow.IdmDecider;
 import pl.edu.agh.hiputs.model.follow.IDecider;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.JunctionReadable;
@@ -30,7 +30,7 @@ public class LaneDecisionStageTaskTest {
     private static final double DISTANCE_TO_LANE_END = 2.0;
 
     @Mock
-    private final IDecider decider = new IDMDecider();
+    private final IDecider decider = new IdmDecider();
 
     @InjectMocks
     private Car car;

@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Configurable;
 import pl.edu.agh.hiputs.model.actor.RoadStructureReader;
-import pl.edu.agh.hiputs.model.follow.IDMDecider;
+import pl.edu.agh.hiputs.model.follow.IdmDecider;
 import pl.edu.agh.hiputs.model.follow.IDecider;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
@@ -40,7 +40,7 @@ public class Car implements CarEditable {
      * Decider instance
      */
     @Builder.Default
-    private final IDecider decider = new IDMDecider();
+    private final IDecider decider = new IdmDecider();
     /**
      * Lane on which car is currently situated.
      */
