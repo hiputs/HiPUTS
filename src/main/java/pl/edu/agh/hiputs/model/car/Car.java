@@ -77,6 +77,7 @@ public class Car implements CarEditable {
      */
     private Decision decision;
 
+    @Override
     public void decide(RoadStructureReader roadStructureReader) {
         // make local decision based on read only road structure (watch environment) and save it locally
 
@@ -106,6 +107,7 @@ public class Car implements CarEditable {
                 .build();
     }
 
+    @Override
     public CarUpdateResult update() {
         this.routeLocation.moveCurrentPositionWithOffset(decision.getOffsetToMoveOnRoute());
         this.speed = decision.getSpeed();
@@ -168,10 +170,12 @@ public class Car implements CarEditable {
         return this.positionOnLane + this.speed + this.acceleration / 2;
     }
 
+    @Override
     public RouteLocation getRouteLocation() {
         return routeLocation;
     }
 
+    @Override
     public void setRouteLocation(RouteLocation routeLocation) {
         this.routeLocation = routeLocation;
     }

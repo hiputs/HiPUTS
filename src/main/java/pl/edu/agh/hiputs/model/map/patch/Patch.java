@@ -92,6 +92,7 @@ public class Patch implements PatchReader, PatchEditor {
         return junctions.values().stream().map(Function.identity());
     }
 
+    @Override
     public Stream<JunctionEditable> streamJunctionsEditable() {
         return junctions.values().stream().map(Function.identity());
     }

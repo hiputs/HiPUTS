@@ -76,6 +76,7 @@ public class Lane implements LaneEditable {
                 .map(nextCar -> nextCar);
     }
 
+    @Override
     public Optional<CarReadable> getCarAtEntryReadable() {
         return Optional.ofNullable(cars.peekFirst());
     }
