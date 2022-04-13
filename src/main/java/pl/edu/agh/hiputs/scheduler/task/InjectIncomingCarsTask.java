@@ -2,7 +2,7 @@ package pl.edu.agh.hiputs.scheduler.task;
 
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.communication.model.serializable.SCar;
-import pl.edu.agh.hiputs.model.actor.TransferDataHandler;
+import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 
 import java.util.List;
 import java.util.stream.Collectors;

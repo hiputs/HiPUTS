@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.model.map;
+package pl.edu.agh.hiputs.model.map.roadstructure;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

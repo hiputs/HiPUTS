@@ -1,6 +1,6 @@
-package pl.edu.agh.hiputs.model.map.example;
+package pl.edu.agh.hiputs.example;
 
-import pl.edu.agh.hiputs.model.actor.MapFragment;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Route;
 import pl.edu.agh.hiputs.model.car.RouteElement;

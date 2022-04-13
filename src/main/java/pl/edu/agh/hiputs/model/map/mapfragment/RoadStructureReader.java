@@ -1,9 +1,9 @@
-package pl.edu.agh.hiputs.model.actor;
+package pl.edu.agh.hiputs.model.map.mapfragment;
 
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.map.JunctionReadable;
-import pl.edu.agh.hiputs.model.map.LaneReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
 public interface RoadStructureReader {
 

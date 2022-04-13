@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import pl.edu.agh.hiputs.model.actor.MapFragment;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteLocation;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.map.LaneEditable;
-import pl.edu.agh.hiputs.model.map.example.ExampleMapFragmentProvider;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 

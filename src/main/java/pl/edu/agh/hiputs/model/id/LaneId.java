@@ -3,10 +3,10 @@ package pl.edu.agh.hiputs.model.id;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import pl.edu.agh.hiputs.model.actor.RoadStructureEditor;
-import pl.edu.agh.hiputs.model.actor.RoadStructureReader;
-import pl.edu.agh.hiputs.model.map.LaneEditable;
-import pl.edu.agh.hiputs.model.map.LaneReadable;
+import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureEditor;
+import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
 import java.util.UUID;
 

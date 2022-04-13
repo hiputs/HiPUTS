@@ -49,6 +49,7 @@ public class RouteLocation {
      * @param offset by which increase car currentPosition
      * @return offseted LaneId if exists or throws RouteExceededException if out of range
      */
+    // TODO: return Optional<LaneId> and remove exception?
     public LaneId getOffsetLaneId(int offset) {
         if (currentPosition + offset >= route.getRouteElements().size() || currentPosition + offset < 0) {
             throw new RouteExceededException("Size: " + this.route.getRouteElements().size()
@@ -69,6 +70,7 @@ public class RouteLocation {
      *
      * @param currentPosition is index on route to be assigned
      */
+    // TODO: return boolean and remove exception?
     public void setCurrentPosition(int currentPosition) {
         if (currentPosition >= route.getRouteElements().size() || currentPosition < 0) {
             throw new RouteExceededException("Size: " + this.route.getRouteElements().size()

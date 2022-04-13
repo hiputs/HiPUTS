@@ -1,14 +1,14 @@
-package pl.edu.agh.hiputs.model.map.example;
+package pl.edu.agh.hiputs.example;
 
 import lombok.Getter;
-import pl.edu.agh.hiputs.model.actor.MapFragment;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.model.map.Junction;
-import pl.edu.agh.hiputs.model.map.Lane;
-import pl.edu.agh.hiputs.model.map.Patch;
+import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
+import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
+import pl.edu.agh.hiputs.model.map.patch.Patch;
 
 import java.util.Arrays;
 import java.util.Collections;

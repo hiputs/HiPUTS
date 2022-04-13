@@ -2,8 +2,8 @@ package pl.edu.agh.hiputs.scheduler.task;
 
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.communication.model.serializable.SCar;
-import pl.edu.agh.hiputs.model.map.LaneEditable;
-import pl.edu.agh.hiputs.model.map.Patch;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.model.map.patch.Patch;
 
 import java.util.LinkedList;
 

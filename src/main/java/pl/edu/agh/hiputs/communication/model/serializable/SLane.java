@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.map.LaneEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 
 import java.util.List;
 import java.util.stream.Collectors;

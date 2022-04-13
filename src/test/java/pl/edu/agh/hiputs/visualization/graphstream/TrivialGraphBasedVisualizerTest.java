@@ -1,8 +1,8 @@
 package pl.edu.agh.hiputs.visualization.graphstream;
 
 import org.junit.jupiter.api.Test;
-import pl.edu.agh.hiputs.model.actor.MapFragment;
-import pl.edu.agh.hiputs.model.map.example.ExampleMapFragmentProvider;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 
 class TrivialGraphBasedVisualizerTest {
     @Test

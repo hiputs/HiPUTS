@@ -3,13 +3,13 @@ package pl.edu.agh.hiputs.model.car;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pl.edu.agh.hiputs.model.actor.MapFragment;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.id.JunctionType;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.map.JunctionReadable;
-import pl.edu.agh.hiputs.model.map.LaneEditable;
-import pl.edu.agh.hiputs.model.map.example.ExampleCarProvider;
-import pl.edu.agh.hiputs.model.map.example.ExampleMapFragmentProvider;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.example.ExampleCarProvider;
+import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
 public class GetPrecedingCarTest {

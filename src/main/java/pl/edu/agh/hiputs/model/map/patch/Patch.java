@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.model.map;
+package pl.edu.agh.hiputs.model.map.patch;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,6 +6,12 @@ import lombok.Getter;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.PatchId;
+import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
 import java.util.HashSet;
 import java.util.Map;

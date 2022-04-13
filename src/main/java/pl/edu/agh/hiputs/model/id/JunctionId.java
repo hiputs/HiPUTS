@@ -3,10 +3,10 @@ package pl.edu.agh.hiputs.model.id;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import pl.edu.agh.hiputs.model.actor.RoadStructureEditor;
-import pl.edu.agh.hiputs.model.actor.RoadStructureReader;
-import pl.edu.agh.hiputs.model.map.JunctionEditable;
-import pl.edu.agh.hiputs.model.map.JunctionReadable;
+import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureEditor;
+import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 
 import java.util.UUID;
 

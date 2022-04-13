@@ -7,7 +7,7 @@ import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.map.Lane;
+import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 
 import java.util.Optional;
 

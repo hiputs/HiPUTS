@@ -10,10 +10,10 @@ import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationM
 import pl.edu.agh.hiputs.communication.model.serializable.SLane;
 import pl.edu.agh.hiputs.communication.service.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.SubscriptionService;
-import pl.edu.agh.hiputs.model.actor.MapFragment;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.model.map.Patch;
+import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.usecase.PatchTransferService;
 
 import javax.annotation.PostConstruct;

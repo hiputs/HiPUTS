@@ -1,10 +1,10 @@
 package pl.edu.agh.hiputs.tasks;
 
 import lombok.RequiredArgsConstructor;
-import pl.edu.agh.hiputs.model.actor.RoadStructureEditor;
+import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureEditor;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.map.LaneEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 
 import java.util.Comparator;
 

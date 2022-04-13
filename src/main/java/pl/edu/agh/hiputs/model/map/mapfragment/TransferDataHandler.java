@@ -1,9 +1,9 @@
-package pl.edu.agh.hiputs.model.actor;
+package pl.edu.agh.hiputs.model.map.mapfragment;
 
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.model.map.Patch;
+import pl.edu.agh.hiputs.model.map.patch.Patch;
 
 import java.util.Map;
 import java.util.Set;

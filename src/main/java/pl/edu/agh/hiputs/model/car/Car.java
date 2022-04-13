@@ -4,13 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Configurable;
-import pl.edu.agh.hiputs.model.actor.RoadStructureReader;
+import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.follow.IdmDecider;
 import pl.edu.agh.hiputs.model.follow.IDecider;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.map.LaneReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
 import java.util.Objects;
 import java.util.Optional;
