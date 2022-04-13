@@ -54,7 +54,7 @@ public class CarTransferMessageTest {
 
         Route route = new Route(routeElementList);
         return Car.builder()
-                .id(new CarId("12345"))
+                .carId(new CarId("12345"))
                 .length(12)
                 .speed(13)
                 .maxSpeed(14)

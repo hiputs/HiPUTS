@@ -52,7 +52,7 @@ public class TrivialGraphBasedVisualizer {
         );
         mapFragment.getLocalLaneIds().stream().map(laneId -> laneId.getReadable(mapFragment)).forEach(
                 laneReadable -> {
-                    LaneId laneId = laneReadable.getId();
+                    LaneId laneId = laneReadable.getLaneId();
                     JunctionId junctionId1 = laneReadable.getIncomingJunction();
                     JunctionId junctionId2 = laneReadable.getOutgoingJunction();
                     this.graph.addEdge(laneId.getValue(), junctionId1.getValue(), junctionId2.getValue(), true);
@@ -68,11 +68,11 @@ public class TrivialGraphBasedVisualizer {
         mapFragment.getLocalLaneIds().stream().map(mapFragment::getLaneReadable).forEach(lane -> {
                     CarReadable car = lane.getCarAtEntryReadable().orElse(null);
                     while (car != null) {
-                        Sprite sprite = spriteManager.getSprite(car.getId().getValue());
+                        Sprite sprite = spriteManager.getSprite(car.getCarId().getValue());
                         if (sprite == null) {
-                            sprite = spriteManager.addSprite(car.getId().getValue());
-                            sprite.setAttribute("label", car.getId().getValue().substring(0, 3));
-                            sprite.attachToEdge(lane.getId().getValue());
+                            sprite = spriteManager.addSprite(car.getCarId().getValue());
+                            sprite.setAttribute("label", car.getCarId().getValue().substring(0, 3));
+                            sprite.attachToEdge(lane.getLaneId().getValue());
                         }
                         spritesInThisUpdate.add(sprite);
                         sprite.setPosition(car.getPositionOnLane() / lane.getLength());

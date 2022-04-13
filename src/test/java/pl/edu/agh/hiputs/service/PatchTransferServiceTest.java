@@ -79,7 +79,7 @@ public class PatchTransferServiceTest {
         lane2.addIncomingCar(getCar("C3"));
         lane2.addIncomingCar(getCar("C4"));
 
-        return Patch.builder().lanes(Map.of(lane1.getId(), lane1, lane2.getId(), lane2)).build();
+        return Patch.builder().lanes(Map.of(lane1.getLaneId(), lane1, lane2.getLaneId(), lane2)).build();
     }
 
     private Car getCar(String id) {
@@ -90,7 +90,7 @@ public class PatchTransferServiceTest {
 
         Route route = new Route(routeElementList);
         return Car.builder()
-                .id(new CarId(id))
+                .carId(new CarId(id))
                 .length(12)
                 .speed(13)
                 .maxSpeed(14)

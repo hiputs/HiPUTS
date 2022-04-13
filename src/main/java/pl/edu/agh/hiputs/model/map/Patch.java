@@ -22,7 +22,7 @@ public class Patch implements PatchReader, PatchEditor {
      */
     @Getter
     @Builder.Default
-    private final PatchId id = PatchId.random();
+    private final PatchId patchId = PatchId.random();
 
     /**
      * Junctions within this patch

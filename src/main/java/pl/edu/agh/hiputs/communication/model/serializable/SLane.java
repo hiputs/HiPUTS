@@ -21,7 +21,7 @@ public class SLane implements CustomSerializable<List<Car>> {
         cars = lane.streamCarsFromExitEditable()
                 .map(SCar::new)
                 .collect(Collectors.toList());
-        laneId = lane.getId().getValue();
+        laneId = lane.getLaneId().getValue();
     }
 
     @Override

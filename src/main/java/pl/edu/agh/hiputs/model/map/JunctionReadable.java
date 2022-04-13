@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 public interface JunctionReadable {
 
-    JunctionId getId();
+    JunctionId getJunctionId();
 
     Stream<LaneId> streamIncomingLaneIds();
 

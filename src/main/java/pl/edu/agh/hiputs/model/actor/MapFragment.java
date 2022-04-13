@@ -48,12 +48,12 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
      * Border patches owned by this MapFragment grouped by neighbor MapFragment
      * Note: one border Patch can be assigned to multiple MapFragmentIds in this mapping.
      */
-    private final Map<MapFragmentId, Set<PatchId>> borderPatchIds;
+    private final Map<MapFragmentId, Set<PatchId>> mapFragmentIdToBorderPatchIds;
 
     /**
      * Mapping from neighbor MapFragmentIds to sets of PatchIds, corresponding to ownership of shadow Patches
      */
-    private final Map<MapFragmentId, Set<PatchId>> shadowPatchIds;
+    private final Map<MapFragmentId, Set<PatchId>> mapFragmentIdToShadowPatchIds;
 
     /**
      * Mapping from LaneId to PatchId of Patch containing this Lane
@@ -104,12 +104,12 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     @Override
     public Set<MapFragmentId> getNeighbors() {
-        return shadowPatchIds.keySet();
+        return mapFragmentIdToShadowPatchIds.keySet();
     }
 
     @Override
     public Map<MapFragmentId, Set<CarReadable>> pollOutgoingCars() {
-        return shadowPatchIds.entrySet()
+        return mapFragmentIdToShadowPatchIds.entrySet()
                 .stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
@@ -128,7 +128,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     @Override
     public Map<MapFragmentId, Set<Patch>> getBorderPatches() {
-        return borderPatchIds.entrySet().stream().collect(Collectors.toMap(
+        return mapFragmentIdToBorderPatchIds.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
                 e -> e.getValue().stream().map(knownPatches::get).collect(Collectors.toSet())
         ));
@@ -136,7 +136,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     @Override
     public void acceptShadowPatches(Set<Patch> shadowPatches) {
-        shadowPatches.forEach(shadowPatch -> knownPatches.put(shadowPatch.getId(), shadowPatch));
+        shadowPatches.forEach(shadowPatch -> knownPatches.put(shadowPatch.getPatchId(), shadowPatch));
     }
 
     public Set<LaneId> getLocalLaneIds() {
@@ -199,22 +199,47 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         }
 
         public MapFragmentBuilder addLocalPatch(Patch patch) {
-            knownPatches.put(patch.getId(), patch);
-            localPatches.add(patch.getId());
+            knownPatches.put(patch.getPatchId(), patch);
+            localPatches.add(patch.getPatchId());
             return this;
         }
 
         public MapFragmentBuilder addRemotePatch(MapFragmentId mapFragmentId, Patch patch) {
-            knownPatches.put(patch.getId(), patch);
-            shadowPatches.computeIfAbsent(mapFragmentId, k -> new HashSet<>()).add(patch.getId());
-            shadowPatchOwnership.put(patch.getId(), mapFragmentId);
+            knownPatches.put(patch.getPatchId(), patch);
+            shadowPatches.computeIfAbsent(mapFragmentId, k -> new HashSet<>()).add(patch.getPatchId());
+            shadowPatchOwnership.put(patch.getPatchId(), mapFragmentId);
             return this;
         }
 
         public MapFragment build() {
+            Map<MapFragmentId, Set<PatchId>> borderPatches = buildBorderPatches();
+
+            Map<LaneId, PatchId> laneToPatch = knownPatches.values()
+                    .stream()
+                    .map(patch -> patch.getLaneIds()
+                            .stream()
+                            .collect(Collectors.toMap(Function.identity(), laneId -> patch.getPatchId())))
+                    .flatMap(map -> map.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            Map<JunctionId, PatchId> junctionToPatch = knownPatches.values()
+                    .stream()
+                    .map(patch -> patch.getJunctionIds()
+                            .stream()
+                            .collect(Collectors.toMap(Function.identity(), junctionId -> patch.getPatchId())))
+                    .flatMap(map -> map.entrySet().stream())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            return new MapFragment(mapFragmentId, knownPatches, localPatches, borderPatches, shadowPatches,
+                    laneToPatch, junctionToPatch);
+        }
+
+        /**
+         * For each local patch, find neighboring patches that are not local (shadow patches),
+         * get their owner MapFragmentIds and add the local patch as a border to this MapFragmentId
+        */
+        private Map<MapFragmentId, Set<PatchId>> buildBorderPatches() {
             Map<MapFragmentId, Set<PatchId>> borderPatches = new HashMap<>();
-            // for each local patch, find neighboring patches that are not local (shadow patches),
-            // get their owner MapFragmentIds and add the local patch as a border to this MapFragmentId
             localPatches.forEach(patchId -> knownPatches.get(patchId)
                     .getNeighboringPatches().stream()
                     .filter(neighborPatch -> !localPatches.contains(neighborPatch))
@@ -223,25 +248,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
                             .computeIfAbsent(neighborMapFragmentId, k -> new HashSet<>())
                             .add(patchId)
                     ));
-
-            Map<LaneId, PatchId> laneToPatch = knownPatches.values()
-                    .stream()
-                    .map(patch -> patch.getLaneIds()
-                            .stream()
-                            .collect(Collectors.toMap(Function.identity(), laneId -> patch.getId())))
-                    .flatMap(map -> map.entrySet().stream())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            Map<JunctionId, PatchId> junctionToPatch = knownPatches.values()
-                    .stream()
-                    .map(patch -> patch.getJunctionIds()
-                            .stream()
-                            .collect(Collectors.toMap(Function.identity(), junctionId -> patch.getId())))
-                    .flatMap(map -> map.entrySet().stream())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            return new MapFragment(mapFragmentId, knownPatches, localPatches, borderPatches, shadowPatches,
-                    laneToPatch, junctionToPatch);
+            return borderPatches;
         }
     }
 }

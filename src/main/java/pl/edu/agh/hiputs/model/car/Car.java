@@ -25,44 +25,53 @@ public class Car implements CarEditable {
      * Unique car identifier.
      */
     @Builder.Default
-    private final CarId id = CarId.random();
+    private final CarId carId = CarId.random();
+
     /**
      * Length of the car.
      */
     @Builder.Default
     private final double length = 5;
+
     /**
      * Maximum possible speed of the car.
      */
     @Builder.Default
     private final double maxSpeed = 20;
+
     /**
      * Decider instance
      */
     @Builder.Default
     private final IDecider decider = new IdmDecider();
+
     /**
      * Lane on which car is currently situated.
      */
     private LaneId laneId;
+
     /**
      * Position of car at its lane.
      */
     private double positionOnLane;
+
     /**
      * Route that car will follow and its location on this route.
      */
     private RouteLocation routeLocation;
+
     /**
      * Current speed of car.
      */
     @Builder.Default
     private double speed = 0;
+
     /**
      * Current acceleration of car.
      */
     @Builder.Default
     private double acceleration = 0;
+
     /**
      * Decision on how car state should be changed. Calculated by decider.
      */
@@ -169,7 +178,7 @@ public class Car implements CarEditable {
 
     @Override
     public int compareTo(CarEditable anotherCar) {
-        return this.id.getValue().compareTo(anotherCar.getId().getValue());
+        return this.carId.getValue().compareTo(anotherCar.getCarId().getValue());
     }
 
     @Override
@@ -177,12 +186,12 @@ public class Car implements CarEditable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Car car = (Car) o;
-        return Objects.equals(id, car.id);
+        return Objects.equals(carId, car.carId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(carId);
     }
 
 }

@@ -60,7 +60,7 @@ public class ExampleMapFragmentProvider {
 
         patch.streamLanesEditable().forEach(lane -> {
             for (int i = 0; i < randomCarsPerLane; i++) {
-                Car car = exampleCarProvider.generateCar(lane.getId(), ThreadLocalRandom.current().nextInt(10));
+                Car car = exampleCarProvider.generateCar(lane.getLaneId(), ThreadLocalRandom.current().nextInt(10));
                 lane.addCarAtEntry(car);
             }
         });
@@ -100,9 +100,9 @@ public class ExampleMapFragmentProvider {
         laneUnderConstruction.getLaneBuilder().incomingJunction(incomingJunction.getJunctionId());
         laneUnderConstruction.getLaneBuilder().outgoingJunction(outgoingJunction.getJunctionId());
 
-        incomingJunction.getJunctionBuilder().addOutgoingLane(laneUnderConstruction.getLaneId());
+        incomingJunction.getJunctionBuilder().addOutgoingLaneId(laneUnderConstruction.getLaneId());
 
-        outgoingJunction.getJunctionBuilder().addIncomingLane(laneUnderConstruction.getLaneId(), false);
+        outgoingJunction.getJunctionBuilder().addIncomingLaneId(laneUnderConstruction.getLaneId(), false);
     }
 
     private static Patch createPatch(Map<String, LaneUnderConstruction> stringLaneMap,
@@ -110,10 +110,10 @@ public class ExampleMapFragmentProvider {
         return Patch.builder()
                 .junctions(stringJunctionMap.values().stream()
                         .map(junctionUnderConstruction -> junctionUnderConstruction.getJunctionBuilder().build())
-                        .collect(Collectors.toMap(Junction::getId, Function.identity())))
+                        .collect(Collectors.toMap(Junction::getJunctionId, Function.identity())))
                 .lanes(stringLaneMap.values().stream()
                         .map(laneUnderConstruction -> laneUnderConstruction.getLaneBuilder().build())
-                        .collect(Collectors.toMap(Lane::getId, Function.identity())))
+                        .collect(Collectors.toMap(Lane::getLaneId, Function.identity())))
                 .build();
     }
 
@@ -124,7 +124,7 @@ public class ExampleMapFragmentProvider {
 
         public LaneUnderConstruction() {
             this.laneId = LaneId.random();
-            this.laneBuilder = Lane.builder().id(this.laneId);
+            this.laneBuilder = Lane.builder().laneId(this.laneId);
         }
     }
 
@@ -135,7 +135,7 @@ public class ExampleMapFragmentProvider {
 
         public JunctionUnderConstruction() {
             this.junctionId = JunctionId.randomCrossroad();
-            this.junctionBuilder = Junction.builder().id(this.junctionId);
+            this.junctionBuilder = Junction.builder().junctionId(this.junctionId);
         }
     }
 }

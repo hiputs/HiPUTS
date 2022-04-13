@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 // readable interface for Lane class
 public interface LaneReadable {
 
-    LaneId getId();
+    LaneId getLaneId();
 
     double getLength();
 

@@ -14,5 +14,5 @@ public interface CarReadable {
 
     double getMaxSpeed();
 
-    CarId getId();
+    CarId getCarId();
 }

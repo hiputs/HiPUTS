@@ -28,28 +28,28 @@ public class RoadStructureEditorTest {
         LaneId lane3Id = LaneId.random();
         LaneId lane4Id = LaneId.random();
 
-        Lane.LaneBuilder lane1Builder = Lane.builder().id(lane1Id);
-        Lane.LaneBuilder lane2Builder = Lane.builder().id(lane2Id);
-        Lane.LaneBuilder lane3Builder = Lane.builder().id(lane3Id);
-        Lane.LaneBuilder lane4Builder = Lane.builder().id(lane4Id);
+        Lane.LaneBuilder lane1Builder = Lane.builder().laneId(lane1Id);
+        Lane.LaneBuilder lane2Builder = Lane.builder().laneId(lane2Id);
+        Lane.LaneBuilder lane3Builder = Lane.builder().laneId(lane3Id);
+        Lane.LaneBuilder lane4Builder = Lane.builder().laneId(lane4Id);
 
         JunctionId junction1Id = JunctionId.randomCrossroad();
         JunctionId junction2Id = JunctionId.randomCrossroad();
         JunctionId junction3Id = JunctionId.randomCrossroad();
 
-        Junction.JunctionBuilder junction1Builder = Junction.builder().id(junction1Id);
-        Junction.JunctionBuilder junction2Builder = Junction.builder().id(junction2Id);
-        Junction.JunctionBuilder junction3Builder = Junction.builder().id(junction3Id);
+        Junction.JunctionBuilder junction1Builder = Junction.builder().junctionId(junction1Id);
+        Junction.JunctionBuilder junction2Builder = Junction.builder().junctionId(junction2Id);
+        Junction.JunctionBuilder junction3Builder = Junction.builder().junctionId(junction3Id);
 
-        junction1Builder.addIncomingLane(lane1Id, false).addOutgoingLane(lane2Id);
+        junction1Builder.addIncomingLaneId(lane1Id, false).addOutgoingLaneId(lane2Id);
         lane1Builder.outgoingJunction(junction1Id);
         lane2Builder.incomingJunction(junction1Id);
 
-        junction2Builder.addIncomingLane(lane2Id, false).addOutgoingLane(lane3Id);
+        junction2Builder.addIncomingLaneId(lane2Id, false).addOutgoingLaneId(lane3Id);
         lane2Builder.outgoingJunction(junction2Id);
         lane3Builder.incomingJunction(junction2Id);
 
-        junction3Builder.addIncomingLane(lane3Id, false).addOutgoingLane(lane4Id);
+        junction3Builder.addIncomingLaneId(lane3Id, false).addOutgoingLaneId(lane4Id);
         lane3Builder.outgoingJunction(junction3Id);
         lane4Builder.incomingJunction(junction3Id);
 
@@ -63,13 +63,13 @@ public class RoadStructureEditorTest {
         Junction junction3 = junction3Builder.build();
 
         Patch localPatch = Patch.builder()
-                .lanes(Map.of(lane1.getId(), lane1, lane2.getId(), lane2))
-                .junctions(Map.of(junction1.getId(), junction1, junction2.getId(), junction2))
+                .lanes(Map.of(lane1.getLaneId(), lane1, lane2.getLaneId(), lane2))
+                .junctions(Map.of(junction1.getJunctionId(), junction1, junction2.getJunctionId(), junction2))
                 .build();
 
         Patch remotePatch = Patch.builder()
-                .lanes(Map.of(lane3.getId(), lane3, lane4.getId(), lane4))
-                .junctions(Map.of(junction3.getId(), junction3)).build();
+                .lanes(Map.of(lane3.getLaneId(), lane3, lane4.getLaneId(), lane4))
+                .junctions(Map.of(junction3.getJunctionId(), junction3)).build();
 
         MapFragment mapFragment = MapFragment.builder(MapFragmentId.random())
                 .addLocalPatch(localPatch)

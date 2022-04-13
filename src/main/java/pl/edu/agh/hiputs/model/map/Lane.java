@@ -21,7 +21,7 @@ public class Lane implements LaneEditable {
      * Unique lane identifier.
      */
     @Getter
-    private final LaneId id;
+    private final LaneId laneId;
 
     /**
      * Collection of cars traveling on this lane.

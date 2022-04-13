@@ -30,7 +30,6 @@ public class LaneOnJunction {
     /**
      * Light color on lane (green if no traffic lights)
      */
-    private final TrafficLightColor lightColor;
-
-
+    // TODO: make it possible to change it dynamically - just add @Setter to this field?
+    private TrafficLightColor lightColor;
 }

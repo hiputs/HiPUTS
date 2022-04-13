@@ -56,7 +56,7 @@ public class SCar implements CustomSerializable<Car> {
 
 
     public SCar(CarEditable realObject) {
-        carId = realObject.getId().getValue();
+        carId = realObject.getCarId().getValue();
         speed = realObject.getSpeed();
         length = realObject.getLength();
         maxSpeed = realObject.getMaxSpeed();
@@ -91,7 +91,7 @@ public class SCar implements CustomSerializable<Car> {
         routeLocation.setCurrentPosition(currentRoutePosition);
 
         return Car.builder()
-                .id(new CarId(carId))
+                .carId(new CarId(carId))
                 .length(length)
                 .maxSpeed(maxSpeed)
                 .routeLocation(routeLocation)

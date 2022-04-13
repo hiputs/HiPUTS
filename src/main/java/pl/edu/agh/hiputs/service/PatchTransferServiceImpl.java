@@ -51,13 +51,13 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
 
         PatchTransferMessage patchTransferMessage = PatchTransferMessage
                 .builder()
-                .patchId(patch.getId().getValue())
+                .patchId(patch.getPatchId().getValue())
                 .sLanes(serializedLanes)
                 .build();
 
         PatchTransferNotificationMessage patchTransferNotificationMessage = PatchTransferNotificationMessage
                 .builder()
-                .transferPatchId(patch.getId().getValue())
+                .transferPatchId(patch.getPatchId().getValue())
                 .receiverId(receiver.getId())
                 .senderId(meId.getId())
                 .build();

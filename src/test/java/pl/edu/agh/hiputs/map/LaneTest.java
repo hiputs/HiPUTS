@@ -29,7 +29,7 @@ class LaneTest {
 
     private Car createCar(LaneId currentLaneId, double positionOnLane, double speed) {
         return Car.builder()
-                .id(CarId.random())
+                .carId(CarId.random())
                 .laneId(currentLaneId)
                 .positionOnLane(positionOnLane)
                 .speed(speed)
@@ -40,9 +40,9 @@ class LaneTest {
     void setupLane() {
         lane = Lane.builder().length(lane_length).build();
 
-        car1 = createCar(lane.getId(), car1_pos, car1_speed);
-        car2 = createCar(lane.getId(), car2_pos, car2_speed);
-        car3 = createCar(lane.getId(), car3_pos, car3_speed);
+        car1 = createCar(lane.getLaneId(), car1_pos, car1_speed);
+        car2 = createCar(lane.getLaneId(), car2_pos, car2_speed);
+        car3 = createCar(lane.getLaneId(), car3_pos, car3_speed);
 
         lane.addCarAtEntry(car3);
         lane.addCarAtEntry(car2);

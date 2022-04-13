@@ -18,17 +18,17 @@ public class Junction implements JunctionReadable, JunctionEditable {
      * Unique junction identifier.
      */
     @Getter
-    private final JunctionId id;
+    private final JunctionId junctionId;
 
     /**
      * Lanes incoming into this junction
      */
-    private final Set<LaneId> incomingLanes;
+    private final Set<LaneId> incomingLaneIds;
 
     /**
      * Lanes outgoing from this junction
      */
-    private final Set<LaneId> outgoingLanes;
+    private final Set<LaneId> outgoingLaneIds;
 
 
     /**
@@ -42,27 +42,27 @@ public class Junction implements JunctionReadable, JunctionEditable {
 
     @Override
     public Stream<LaneId> streamIncomingLaneIds() {
-        return incomingLanes.stream();
+        return incomingLaneIds.stream();
     }
 
     @Override
     public Stream<LaneId> streamOutgoingLaneIds() {
-        return outgoingLanes.stream();
+        return outgoingLaneIds.stream();
     }
 
     public static class JunctionBuilder {
-        private JunctionId id = JunctionId.randomCrossroad();
-        private final Set<LaneId> incomingLanes = new HashSet<>();
-        private final Set<LaneId> outgoingLanes = new HashSet<>();
+        private JunctionId junctionId = JunctionId.randomCrossroad();
+        private final Set<LaneId> incomingLaneIds = new HashSet<>();
+        private final Set<LaneId> outgoingLaneIds = new HashSet<>();
         private final List<LaneOnJunction> lanesOnJunction = new ArrayList<>();
 
-        public JunctionBuilder id(JunctionId id) {
-            this.id = id;
+        public JunctionBuilder junctionId(JunctionId junctionId) {
+            this.junctionId = junctionId;
             return this;
         }
 
-        public JunctionBuilder addIncomingLane(LaneId laneId, boolean isSubordinate) {
-            incomingLanes.add(laneId);
+        public JunctionBuilder addIncomingLaneId(LaneId laneId, boolean isSubordinate) {
+            incomingLaneIds.add(laneId);
             lanesOnJunction.add(new LaneOnJunction(
                     laneId,
                     lanesOnJunction.size(),
@@ -73,8 +73,8 @@ public class Junction implements JunctionReadable, JunctionEditable {
             return this;
         }
 
-        public JunctionBuilder addOutgoingLane(LaneId laneId) {
-            outgoingLanes.add(laneId);
+        public JunctionBuilder addOutgoingLaneId(LaneId laneId) {
+            outgoingLaneIds.add(laneId);
             lanesOnJunction.add(new LaneOnJunction(
                     laneId,
                     lanesOnJunction.size(),
@@ -86,7 +86,7 @@ public class Junction implements JunctionReadable, JunctionEditable {
         }
 
         public Junction build() {
-            return new Junction(id, incomingLanes, outgoingLanes, lanesOnJunction);
+            return new Junction(junctionId, incomingLaneIds, outgoingLaneIds, lanesOnJunction);
         }
     }
 }

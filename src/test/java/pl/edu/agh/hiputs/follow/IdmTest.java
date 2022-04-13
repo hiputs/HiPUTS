@@ -13,7 +13,7 @@ class IdmTest {
 
     private CarReadable createCar(double position, double speed, double length, double maxSpeed) {
         return Car.builder()
-                .id(CarId.random())
+                .carId(CarId.random())
                 .length(length)
                 .maxSpeed(maxSpeed)
                 .positionOnLane(position)
