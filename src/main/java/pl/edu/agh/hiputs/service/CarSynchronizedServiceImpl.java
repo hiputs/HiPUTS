@@ -48,6 +48,10 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
 
         // TODO: tasks are operating on shared LinkedLists, which are not thread safe - refactor this code to either
         //       use a thread-safe collection, or use some other approach without this risk
+        //       OR - PREFERRED OPTION:
+        //       use one task per mapFragmentId and lists are accessed by a single thread
+        //       +
+        //       why LinkedList specifically?
         borderPatches.forEach((mapFragmentId, patches) -> {
                     LinkedList<SCar> toSendCars = serializedCarMap.put(mapFragmentId, new LinkedList<>());
                     patches.forEach(patch -> tasks.add(new CarMapperTask(patch, toSendCars)));
