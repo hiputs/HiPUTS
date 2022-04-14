@@ -8,7 +8,7 @@ import lombok.Getter;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.RouteElement;
-import pl.edu.agh.hiputs.model.car.RouteLocation;
+import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
@@ -64,8 +64,8 @@ public class SCar implements CustomSerializable<Car> {
     laneId = realObject.getLaneId().getValue();
     positionOnLane = realObject.getPositionOnLane();
 
-    currentRoutePosition = realObject.getRouteLocation().getCurrentPosition();
-    routeElements = realObject.getRouteLocation()
+    currentRoutePosition = realObject.getRouteWithLocation().getCurrentPosition();
+    routeElements = realObject.getRouteWithLocation()
         .getRouteElements()
         .stream()
         .map(routeElement -> new SRouteElement(routeElement.getJunctionId().getValue(),
@@ -82,13 +82,13 @@ public class SCar implements CustomSerializable<Car> {
             new LaneId(routeElement.getOutgoingLaneId())))
         .collect(Collectors.toList());
 
-    RouteLocation routeLocation = new RouteLocation(routeElementList, currentRoutePosition);
+    RouteWithLocation routeWithLocation = new RouteWithLocation(routeElementList, currentRoutePosition);
 
     return Car.builder()
         .carId(new CarId(carId))
         .length(length)
         .maxSpeed(maxSpeed)
-        .routeLocation(routeLocation)
+        .routeWithLocation(routeWithLocation)
         .speed(speed)
         .laneId(new LaneId(laneId))
         .positionOnLane(positionOnLane)

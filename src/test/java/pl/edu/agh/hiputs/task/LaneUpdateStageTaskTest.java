@@ -9,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
-import pl.edu.agh.hiputs.model.car.RouteLocation;
+import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
@@ -22,10 +22,10 @@ public class LaneUpdateStageTaskTest {
   private MapFragment mapFragment;
   private LaneId laneId1, laneId2;
   private LaneEditable lane1, lane2;
-  private final RouteLocation routeLocation = Mockito.mock(RouteLocation.class);
-  private final Car car1 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
-  private final Car car2 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
-  private final Car car3 = Car.builder().length(4).speed(15).routeLocation(routeLocation).build();
+  private final RouteWithLocation routeWithLocation = Mockito.mock(RouteWithLocation.class);
+  private final Car car1 = Car.builder().length(4).speed(15).routeWithLocation(routeWithLocation).build();
+  private final Car car2 = Car.builder().length(4).speed(15).routeWithLocation(routeWithLocation).build();
+  private final Car car3 = Car.builder().length(4).speed(15).routeWithLocation(routeWithLocation).build();
   private Decision decision1, decision2, decision3;
 
   @BeforeEach

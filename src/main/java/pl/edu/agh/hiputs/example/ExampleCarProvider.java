@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.RouteElement;
-import pl.edu.agh.hiputs.model.car.RouteLocation;
+import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
@@ -54,19 +54,19 @@ public class ExampleCarProvider {
   }
 
   public Car generateCar(LaneId startLaneId, int hops, double length, double maxSpeed) {
-    RouteLocation routeLocation = this.generateRoute(startLaneId, hops);
+    RouteWithLocation routeWithLocation = this.generateRoute(startLaneId, hops);
     ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
     return Car.builder()
         .length(length)
         .maxSpeed(maxSpeed)
-        .routeLocation(routeLocation)
+        .routeWithLocation(routeWithLocation)
         .laneId(startLaneId)
         .positionOnLane(threadLocalRandom.nextDouble(mapFragment.getLaneReadable(startLaneId).getLength()))
         .speed(threadLocalRandom.nextDouble(DEFAULT_MAX_SPEED))
         .build();
   }
 
-  private RouteLocation generateRoute(LaneId startLaneId, int hops) {
+  private RouteWithLocation generateRoute(LaneId startLaneId, int hops) {
     List<RouteElement> routeElements = new ArrayList<>();
     LaneId nextLaneId, laneId = startLaneId;
     JunctionId junctionId;
@@ -80,7 +80,7 @@ public class ExampleCarProvider {
       routeElements.add(new RouteElement(junctionId, nextLaneId));
       laneId = nextLaneId;
     }
-    return new RouteLocation(routeElements, 0);
+    return new RouteWithLocation(routeElements, 0);
   }
 
   private LaneId getRandomStartLaneId() {

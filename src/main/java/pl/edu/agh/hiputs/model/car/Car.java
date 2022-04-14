@@ -57,7 +57,7 @@ public class Car implements CarEditable {
   /**
    * Route that car will follow and its location on this route.
    */
-  private RouteLocation routeLocation;
+  private RouteWithLocation routeWithLocation;
 
   /**
    * Current speed of car.
@@ -93,7 +93,7 @@ public class Car implements CarEditable {
     while (desiredPosition > destinationCandidate.getLength()) {
       desiredPosition -= destinationCandidate.getLength();
       offset++;
-      currentLaneId = routeLocation.getOffsetLaneId(offset);
+      currentLaneId = routeWithLocation.getOffsetLaneId(offset);
       destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     }
 
@@ -108,7 +108,7 @@ public class Car implements CarEditable {
 
   @Override
   public CarUpdateResult update() {
-    this.routeLocation.moveCurrentPositionWithOffset(decision.getOffsetToMoveOnRoute());
+    this.routeWithLocation.moveCurrentPositionWithOffset(decision.getOffsetToMoveOnRoute());
     this.speed = decision.getSpeed();
     this.acceleration = decision.getAcceleration();
     CarUpdateResult carUpdateResult =
@@ -140,7 +140,7 @@ public class Car implements CarEditable {
       LaneReadable nextLane;
       while (precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
         try {
-          nextLaneId = routeLocation.getOffsetLaneId(offset++);
+          nextLaneId = routeWithLocation.getOffsetLaneId(offset++);
         } catch (RouteExceededException routeExceededException) {
           break;
         }
@@ -163,11 +163,6 @@ public class Car implements CarEditable {
 
   public double calculateFuturePosition() {
     return this.positionOnLane + this.speed + this.acceleration / 2;
-  }
-
-  @Override
-  public RouteLocation getRouteLocation() {
-    return routeLocation;
   }
 
   @Override

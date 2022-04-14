@@ -15,7 +15,7 @@ import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteElement;
-import pl.edu.agh.hiputs.model.car.RouteLocation;
+import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.follow.IDecider;
 import pl.edu.agh.hiputs.model.follow.IdmDecider;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -57,17 +57,17 @@ public class LaneDecisionStageTaskTest {
     JunctionReadable junctionRead = mapFragment.getJunctionReadable(laneReadWrite.getOutgoingJunctionId());
     nextLaneId = junctionRead.streamOutgoingLaneIds().findAny().get();
 
-    RouteLocation routeLocation =
-        new RouteLocation(Arrays.asList(new RouteElement(laneReadWrite.getOutgoingJunctionId(), nextLaneId)), 0);
-    setRouteLocation(car, routeLocation);
+    RouteWithLocation routeWithLocation =
+        new RouteWithLocation(Arrays.asList(new RouteElement(laneReadWrite.getOutgoingJunctionId(), nextLaneId)), 0);
+    setRouteLocation(car, routeWithLocation);
   }
 
   private void setSpeed(Car car, double speed) {
     ReflectionUtil.setFieldValue(car, "positionOnLane", speed);
   }
 
-  private void setRouteLocation(Car car, RouteLocation routeLocation) {
-    ReflectionUtil.setFieldValue(car, "routeLocation", routeLocation);
+  private void setRouteLocation(Car car, RouteWithLocation routeWithLocation) {
+    ReflectionUtil.setFieldValue(car, "routeLocation", routeWithLocation);
   }
 
   @Test

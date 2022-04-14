@@ -8,7 +8,7 @@ import pl.edu.agh.hiputs.communication.model.serializable.SCar;
 import pl.edu.agh.hiputs.communication.model.serializable.SRouteElement;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.RouteElement;
-import pl.edu.agh.hiputs.model.car.RouteLocation;
+import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
@@ -45,7 +45,7 @@ public class CarTransferMessageTest {
         List.of(new RouteElement(new JunctionId("zxc", JunctionType.BEND), new LaneId("vbn")),
             new RouteElement(new JunctionId("zxc1", JunctionType.BEND), new LaneId("vbn1")));
 
-    RouteLocation route = new RouteLocation(routeElementList, 0);
+    RouteWithLocation route = new RouteWithLocation(routeElementList, 0);
     return Car.builder()
         .carId(new CarId("12345"))
         .length(12)
@@ -53,7 +53,7 @@ public class CarTransferMessageTest {
         .maxSpeed(14)
         .laneId(new LaneId("abc"))
         .positionOnLane(0)
-        .routeLocation(route)
+        .routeWithLocation(route)
         .build();
   }
 

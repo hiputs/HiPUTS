@@ -18,7 +18,7 @@ import pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage;
 import pl.edu.agh.hiputs.communication.service.MessageSenderService;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.RouteElement;
-import pl.edu.agh.hiputs.model.car.RouteLocation;
+import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
@@ -94,7 +94,7 @@ public class CarSynchronizedServiceTest {
         .maxSpeed(14)
         .laneId(new LaneId("abc"))
         .positionOnLane(0)
-        .routeLocation(new RouteLocation(routeElementList, 0))
+        .routeWithLocation(new RouteWithLocation(routeElementList, 0))
         .build();
   }
 

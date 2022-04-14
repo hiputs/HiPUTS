@@ -8,7 +8,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 
 @Getter
 @AllArgsConstructor
-public class RouteLocation {
+public class RouteWithLocation {
 
   /**
    * Route that car will follow
@@ -67,11 +67,18 @@ public class RouteLocation {
     return this.routeElements.get(currentPosition + offset).getOutgoingLaneId();
   }
 
-  /*
+  /**
+   * Increment position on route by number of hops.
+   */
+  public void moveForward(int hops) {
+    setCurrentPosition(currentPosition + hops);
+  }
+
+  /**
    * Increment position on route by one route element.
    */
   public void moveOneForward() {
-    setCurrentPosition(currentPosition + 1);
+    moveForward(1);
   }
 
   /**

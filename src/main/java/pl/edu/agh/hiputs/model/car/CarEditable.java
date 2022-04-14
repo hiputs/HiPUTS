@@ -10,6 +10,6 @@ public interface CarEditable extends CarReadable, Comparable<CarEditable> {
 
   Decision getDecision();
 
-  RouteLocation getRouteLocation();
+  RouteWithLocation getRouteWithLocation();
 
 }
