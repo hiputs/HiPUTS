@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.car.Route;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteLocation;
 import pl.edu.agh.hiputs.model.id.JunctionId;
@@ -81,7 +80,7 @@ public class ExampleCarProvider {
       routeElements.add(new RouteElement(junctionId, nextLaneId));
       laneId = nextLaneId;
     }
-    return new RouteLocation(new Route(routeElements));
+    return new RouteLocation(routeElements, 0);
   }
 
   private LaneId getRandomStartLane() {

@@ -171,11 +171,6 @@ public class Car implements CarEditable {
   }
 
   @Override
-  public void setRouteLocation(RouteLocation routeLocation) {
-    this.routeLocation = routeLocation;
-  }
-
-  @Override
   public int compareTo(CarEditable anotherCar) {
     return this.carId.getValue().compareTo(anotherCar.getCarId().getValue());
   }

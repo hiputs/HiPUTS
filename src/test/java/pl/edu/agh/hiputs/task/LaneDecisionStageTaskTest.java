@@ -14,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
-import pl.edu.agh.hiputs.model.car.Route;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteLocation;
 import pl.edu.agh.hiputs.model.follow.IDecider;
@@ -57,8 +56,18 @@ public class LaneDecisionStageTaskTest {
     LaneReadable laneReadWrite = mapFragment.getLaneReadable(laneId);
     JunctionReadable junctionRead = mapFragment.getJunctionReadable(laneReadWrite.getOutgoingJunction());
     nextLaneId = junctionRead.streamOutgoingLaneIds().findAny().get();
-    car.setRouteLocation(
-        new RouteLocation(new Route(Arrays.asList(new RouteElement(laneReadWrite.getOutgoingJunction(), nextLaneId)))));
+
+    RouteLocation routeLocation =
+        new RouteLocation(Arrays.asList(new RouteElement(laneReadWrite.getOutgoingJunction(), nextLaneId)), 0);
+    setRouteLocation(car, routeLocation);
+  }
+
+  private void setSpeed(Car car, double speed) {
+    ReflectionUtil.setFieldValue(car, "positionOnLane", speed);
+  }
+
+  private void setRouteLocation(Car car, RouteLocation routeLocation) {
+    ReflectionUtil.setFieldValue(car, "routeLocation", routeLocation);
   }
 
   @Test
@@ -77,6 +86,18 @@ public class LaneDecisionStageTaskTest {
     Decision decision = getCarDecision(car);
     Assertions.assertThat(decision).isNotNull();
     Assertions.assertThat(decision.getAcceleration()).isEqualTo(1.0);
+  }
+
+  private Decision getCarDecision(Car car) {
+    return car.getDecision();
+  }
+
+  private void setLaneId(Car car, LaneId laneId) {
+    ReflectionUtil.setFieldValue(car, "laneId", laneId);
+  }
+
+  private void setPositionOnLane(Car car, double position) {
+    ReflectionUtil.setFieldValue(car, "positionOnLane", position);
   }
 
   @Test
@@ -98,22 +119,6 @@ public class LaneDecisionStageTaskTest {
     Assertions.assertThat(decision).isNotNull();
     Assertions.assertThat(decision.getAcceleration()).isEqualTo(1.0);
     Assertions.assertThat(decision.getLaneId()).isEqualTo(nextLaneId);
-  }
-
-  private Decision getCarDecision(Car car) {
-    return car.getDecision();
-  }
-
-  private void setLaneId(Car car, LaneId laneId) {
-    ReflectionUtil.setFieldValue(car, "laneId", laneId);
-  }
-
-  private void setPositionOnLane(Car car, double position) {
-    ReflectionUtil.setFieldValue(car, "positionOnLane", position);
-  }
-
-  private void setSpeed(Car car, double speed) {
-    ReflectionUtil.setFieldValue(car, "positionOnLane", speed);
   }
 
 }

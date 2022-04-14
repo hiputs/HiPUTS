@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
-import pl.edu.agh.hiputs.model.car.Route;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -67,7 +66,6 @@ public class SCar implements CustomSerializable<Car> {
 
     currentRoutePosition = realObject.getRouteLocation().getCurrentPosition();
     routeElements = realObject.getRouteLocation()
-        .getRoute()
         .getRouteElements()
         .stream()
         .map(routeElement -> new SRouteElement(routeElement.getJunctionId().getValue(),
@@ -84,9 +82,7 @@ public class SCar implements CustomSerializable<Car> {
             new LaneId(routeElement.getOutgoingLaneId())))
         .collect(Collectors.toList());
 
-    Route route = new Route(routeElementList);
-    RouteLocation routeLocation = new RouteLocation(route);
-    routeLocation.setCurrentPosition(currentRoutePosition);
+    RouteLocation routeLocation = new RouteLocation(routeElementList, currentRoutePosition);
 
     return Car.builder()
         .carId(new CarId(carId))

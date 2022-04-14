@@ -11,13 +11,13 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 
 public class RouteLocationTest {
 
-  private static Route route;
   private static final List<JunctionId> orderedJunctionsOnRoute = new ArrayList<>();
   private static final List<LaneId> orderedLanesOnRoute = new ArrayList<>();
+  private static List<RouteElement> routeElements;
 
   @BeforeAll
   public static void setup() {
-    ArrayList<RouteElement> routeElements = new ArrayList<>();
+    routeElements = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
       JunctionId junctionId = new JunctionId(String.valueOf(i), JunctionType.BEND);
       LaneId laneId = new LaneId(String.valueOf(i));
@@ -25,31 +25,30 @@ public class RouteLocationTest {
       orderedLanesOnRoute.add(laneId);
       routeElements.add(new RouteElement(junctionId, laneId));
     }
-    route = new Route(routeElements);
   }
 
   @Test
   public void getNextRouteElementTest() {
-    RouteLocation routeLocation = new RouteLocation(route);
+    RouteLocation routeLocation = new RouteLocation(routeElements, 0);
     Assertions.assertThat(routeLocation.getNextRouteElement())
         .isEqualTo(new RouteElement(orderedJunctionsOnRoute.get(0), orderedLanesOnRoute.get(0)));
   }
 
   @Test
   public void getNextJunctionIdTest() {
-    RouteLocation routeLocation = new RouteLocation(route);
+    RouteLocation routeLocation = new RouteLocation(routeElements, 0);
     Assertions.assertThat(routeLocation.getNextJunctionId()).isEqualTo(orderedJunctionsOnRoute.get(0));
   }
 
   @Test
   public void getNextLaneIdTest() {
-    RouteLocation routeLocation = new RouteLocation(route);
+    RouteLocation routeLocation = new RouteLocation(routeElements, 0);
     Assertions.assertThat(routeLocation.getNextLaneId()).isEqualTo(orderedLanesOnRoute.get(0));
   }
 
   @Test
   public void moveOneForwardTest() {
-    RouteLocation routeLocation = new RouteLocation(route);
+    RouteLocation routeLocation = new RouteLocation(routeElements, 0);
     routeLocation.moveOneForward();
     Assertions.assertThat(routeLocation.getNextJunctionId()).isEqualTo(orderedJunctionsOnRoute.get(1));
     Assertions.assertThat(routeLocation.getNextLaneId()).isEqualTo(orderedLanesOnRoute.get(1));
@@ -57,7 +56,7 @@ public class RouteLocationTest {
 
   @Test
   public void traversWholeRouteByOneMoveForwardOnlyTest() {
-    RouteLocation routeLocation = new RouteLocation(route);
+    RouteLocation routeLocation = new RouteLocation(routeElements, 0);
     for (int i = 1; i < 5; i++) {
       routeLocation.moveOneForward();
       Assertions.assertThat(routeLocation.getNextJunctionId()).isEqualTo(orderedJunctionsOnRoute.get(i));
@@ -68,7 +67,7 @@ public class RouteLocationTest {
 
   @Test
   public void setCurrentPosition() {
-    RouteLocation routeLocation = new RouteLocation(route);
+    RouteLocation routeLocation = new RouteLocation(routeElements, 0);
     routeLocation.setCurrentPosition(4);
     Assertions.assertThat(routeLocation.getNextJunctionId()).isEqualTo(orderedJunctionsOnRoute.get(4));
     Assertions.assertThat(routeLocation.getNextLaneId()).isEqualTo(orderedLanesOnRoute.get(4));

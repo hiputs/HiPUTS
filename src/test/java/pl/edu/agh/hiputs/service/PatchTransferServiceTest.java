@@ -18,7 +18,6 @@ import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.service.MessageSenderService;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.car.Route;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -89,7 +88,6 @@ public class PatchTransferServiceTest {
         List.of(new RouteElement(new JunctionId("zxc", JunctionType.BEND), new LaneId("vbn")),
             new RouteElement(new JunctionId("zxc1", JunctionType.BEND), new LaneId("vbn1")));
 
-    Route route = new Route(routeElementList);
     return Car.builder()
         .carId(new CarId(id))
         .length(12)
@@ -97,7 +95,7 @@ public class PatchTransferServiceTest {
         .maxSpeed(14)
         .laneId(new LaneId("abc"))
         .positionOnLane(0)
-        .routeLocation(new RouteLocation(route))
+        .routeLocation(new RouteLocation(routeElementList, 0))
         .build();
   }
 }

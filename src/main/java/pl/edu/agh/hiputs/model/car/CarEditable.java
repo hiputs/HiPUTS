@@ -12,6 +12,4 @@ public interface CarEditable extends CarReadable, Comparable<CarEditable> {
 
   RouteLocation getRouteLocation();
 
-  void setRouteLocation(RouteLocation routeLocation);
-
 }

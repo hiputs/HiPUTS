@@ -1,18 +1,25 @@
 package pl.edu.agh.hiputs.model.car;
 
+import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class RouteLocation {
 
   /**
    * Route that car will follow
+   * <p> contains List of RouteElements - effectively pairs of (junctionId, laneId) witch precisely indicates
+   * what are consecutive object witch should be visited by car. Information where to go on next junction
+   * could be simply obtained by checking actual position (laneId od junctionId) and finding it on route.
+   * In order to reduce complexity of that kind of search, information of position on route is cached
+   * and maintained in RouteLocation object situated in vehicle.
+   * </p>
    */
-  private final Route route;
+  private final List<RouteElement> routeElements;
 
   /**
    * <p> Contains first routeElement index in path not yet visited by car. </p>
@@ -29,7 +36,7 @@ public class RouteLocation {
    * @return RouteElement starting with not yet visited junction
    */
   public RouteElement getNextRouteElement() {
-    return route.getRouteElements().get(currentPosition);
+    return routeElements.get(currentPosition);
   }
 
   /**
@@ -53,12 +60,11 @@ public class RouteLocation {
    */
   // TODO: return Optional<LaneId> and remove exception?
   public LaneId getOffsetLaneId(int offset) {
-    if (currentPosition + offset >= route.getRouteElements().size() || currentPosition + offset < 0) {
+    if (currentPosition + offset >= this.routeElements.size() || currentPosition + offset < 0) {
       throw new RouteExceededException(
-          "Size: " + this.route.getRouteElements().size() + " current position: " + currentPosition + " offset: "
-              + offset);
+          "Size: " + this.routeElements.size() + " current position: " + currentPosition + " offset: " + offset);
     }
-    return route.getRouteElements().get(currentPosition + offset).getOutgoingLaneId();
+    return this.routeElements.get(currentPosition + offset).getOutgoingLaneId();
   }
 
   /*
@@ -75,9 +81,8 @@ public class RouteLocation {
    */
   // TODO: return boolean and remove exception?
   public void setCurrentPosition(int currentPosition) {
-    if (currentPosition >= route.getRouteElements().size() || currentPosition < 0) {
-      throw new RouteExceededException(
-          "Size: " + this.route.getRouteElements().size() + " new position: " + currentPosition);
+    if (currentPosition >= routeElements.size() || currentPosition < 0) {
+      throw new RouteExceededException("Size: " + this.routeElements.size() + " new position: " + currentPosition);
     }
     this.currentPosition = currentPosition;
   }
