@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.follow;
+package pl.edu.agh.hiputs.model.follow;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -7,9 +7,6 @@ import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
-import pl.edu.agh.hiputs.model.follow.IDecider;
-import pl.edu.agh.hiputs.model.follow.Idm;
-import pl.edu.agh.hiputs.model.follow.IdmDecider;
 
 class IdmDeciderTest {
 

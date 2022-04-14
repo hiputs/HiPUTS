@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.communication;
+package pl.edu.agh.hiputs.communication.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;

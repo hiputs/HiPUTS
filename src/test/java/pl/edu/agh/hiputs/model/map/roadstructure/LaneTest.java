@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.map;
+package pl.edu.agh.hiputs.model.map.roadstructure;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -15,11 +15,9 @@ import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
-import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 
 class LaneTest {
 
-  private Lane lane;
   private final double lane_length = 1000.0;
   private final double car1_speed = 10.4;
   private final double car1_pos = 153.2;
@@ -27,18 +25,10 @@ class LaneTest {
   private final double car2_pos = 262.4;
   private final double car3_speed = 14.2;
   private final double car3_pos = 563.2;
+  private Lane lane;
   private Car car1;
   private Car car2;
   private Car car3;
-
-  private Car createCar(LaneId currentLaneId, double positionOnLane, double speed) {
-    return Car.builder()
-        .carId(CarId.random())
-        .laneId(currentLaneId)
-        .positionOnLane(positionOnLane)
-        .speed(speed)
-        .build();
-  }
 
   @BeforeEach
   void setupLane() {
@@ -51,6 +41,15 @@ class LaneTest {
     lane.addCarAtEntry(car3);
     lane.addCarAtEntry(car2);
     lane.addCarAtEntry(car1);
+  }
+
+  private Car createCar(LaneId currentLaneId, double positionOnLane, double speed) {
+    return Car.builder()
+        .carId(CarId.random())
+        .laneId(currentLaneId)
+        .positionOnLane(positionOnLane)
+        .speed(speed)
+        .build();
   }
 
   @Test

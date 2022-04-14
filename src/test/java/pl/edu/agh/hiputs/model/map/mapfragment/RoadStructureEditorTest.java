@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.actor;
+package pl.edu.agh.hiputs.model.map.mapfragment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -12,13 +12,30 @@ import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 
 // TODO probably most of the tests should be moved to LaneEditor tests
 public class RoadStructureEditorTest {
+
+  @ParameterizedTest
+  @ValueSource(ints = {0, 1})
+  public void addCarToLaneTest(int index) {
+    //given
+    TestData testData = prepareTestData();
+    MapFragment mapFragment = testData.mapFragment;
+    Lane lane = testData.allLanes.get(index);
+
+    Car car = Car.builder().build();
+
+    //when
+    lane.addCarAtEntry(car);
+
+    //then
+    assertThat(lane.streamCarsFromExitReadable().count()).isEqualTo(1);
+    assertThat(lane.streamCarsFromExitReadable().findFirst().get()).isEqualTo(car);
+  }
 
   private TestData prepareTestData() {
 
@@ -80,24 +97,6 @@ public class RoadStructureEditorTest {
     testData.allLanes = List.of(lane1Builder.build(), lane2Builder.build(), lane3Builder.build(), lane4Builder.build());
     testData.mapFragment = mapFragment;
     return testData;
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = {0, 1})
-  public void addCarToLaneTest(int index) {
-    //given
-    TestData testData = prepareTestData();
-    MapFragment mapFragment = testData.mapFragment;
-    Lane lane = testData.allLanes.get(index);
-
-    Car car = Car.builder().build();
-
-    //when
-    lane.addCarAtEntry(car);
-
-    //then
-    assertThat(lane.streamCarsFromExitReadable().count()).isEqualTo(1);
-    assertThat(lane.streamCarsFromExitReadable().findFirst().get()).isEqualTo(car);
   }
 
   @ParameterizedTest
