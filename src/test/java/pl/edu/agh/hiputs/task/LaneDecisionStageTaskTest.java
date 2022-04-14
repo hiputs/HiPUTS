@@ -54,11 +54,11 @@ public class LaneDecisionStageTaskTest {
     setSpeed(car, 2 * DISTANCE_TO_LANE_END);
 
     LaneReadable laneReadWrite = mapFragment.getLaneReadable(laneId);
-    JunctionReadable junctionRead = mapFragment.getJunctionReadable(laneReadWrite.getOutgoingJunction());
+    JunctionReadable junctionRead = mapFragment.getJunctionReadable(laneReadWrite.getOutgoingJunctionId());
     nextLaneId = junctionRead.streamOutgoingLaneIds().findAny().get();
 
     RouteLocation routeLocation =
-        new RouteLocation(Arrays.asList(new RouteElement(laneReadWrite.getOutgoingJunction(), nextLaneId)), 0);
+        new RouteLocation(Arrays.asList(new RouteElement(laneReadWrite.getOutgoingJunctionId(), nextLaneId)), 0);
     setRouteLocation(car, routeLocation);
   }
 

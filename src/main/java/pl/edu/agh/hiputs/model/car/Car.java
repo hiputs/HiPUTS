@@ -126,7 +126,7 @@ public class Car implements CarEditable {
    */
   public CarEnvironment getPrecedingCar(RoadStructureReader roadStructureReader) {
     LaneReadable currentLane = roadStructureReader.getLaneReadable(this.laneId);
-    JunctionId nextJunctionId = currentLane.getOutgoingJunction();
+    JunctionId nextJunctionId = currentLane.getOutgoingJunctionId();
     Optional<CarReadable> precedingCar = currentLane.getCarInFrontReadable(this);
     Optional<JunctionId> nextCrossroadId;
     double distance;
@@ -146,7 +146,7 @@ public class Car implements CarEditable {
         }
         distance += currentLane.getLength(); // adds previous lane length
         nextLane = roadStructureReader.getLaneReadable(nextLaneId);
-        nextJunctionId = nextLane.getOutgoingJunction();
+        nextJunctionId = nextLane.getOutgoingJunctionId();
         precedingCar = nextLane.getCarAtEntryReadable();
         currentLane = nextLane;
       }

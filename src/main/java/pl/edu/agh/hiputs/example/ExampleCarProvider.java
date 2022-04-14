@@ -31,7 +31,7 @@ public class ExampleCarProvider {
     this.junctionIdToOutgoingLaneIdList =
         junctionId -> mapFragment.getJunctionReadable(junctionId).streamOutgoingLaneIds().toList();
 
-    this.laneIdToOutgoingJunctionId = laneId -> mapFragment.getLaneReadable(laneId).getOutgoingJunction();
+    this.laneIdToOutgoingJunctionId = laneId -> mapFragment.getLaneReadable(laneId).getOutgoingJunctionId();
 
     this.localLaneIdList = mapFragment.getLocalLaneIds().stream().toList();
   }
@@ -40,8 +40,8 @@ public class ExampleCarProvider {
     return this.generateCar(DEFAULT_HOPS, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
   }
 
-  public Car generateCar(LaneId startLane, int hops) {
-    return this.generateCar(startLane, hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
+  public Car generateCar(LaneId startLaneId, int hops) {
+    return this.generateCar(startLaneId, hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
   }
 
   public Car generate(int hops) {
@@ -49,8 +49,8 @@ public class ExampleCarProvider {
   }
 
   public Car generateCar(int hops, double length, double maxSpeed) {
-    LaneId startLane = this.getRandomStartLane();
-    return this.generateCar(startLane, hops, length, maxSpeed);
+    LaneId startLaneId = this.getRandomStartLaneId();
+    return this.generateCar(startLaneId, hops, length, maxSpeed);
   }
 
   public Car generateCar(LaneId startLaneId, int hops, double length, double maxSpeed) {
@@ -66,24 +66,24 @@ public class ExampleCarProvider {
         .build();
   }
 
-  private RouteLocation generateRoute(LaneId startLane, int hops) {
+  private RouteLocation generateRoute(LaneId startLaneId, int hops) {
     List<RouteElement> routeElements = new ArrayList<>();
-    LaneId nextLaneId, laneId = startLane;
+    LaneId nextLaneId, laneId = startLaneId;
     JunctionId junctionId;
     for (int i = 0; i < hops; i++) {
       junctionId = this.laneIdToOutgoingJunctionId.apply(laneId);
       if (junctionId == null) {
         break;
       }
-      List<LaneId> junctionLanes = this.junctionIdToOutgoingLaneIdList.apply(junctionId);
-      nextLaneId = junctionLanes.get(ThreadLocalRandom.current().nextInt(junctionLanes.size()));
+      List<LaneId> junctionLaneIds = this.junctionIdToOutgoingLaneIdList.apply(junctionId);
+      nextLaneId = junctionLaneIds.get(ThreadLocalRandom.current().nextInt(junctionLaneIds.size()));
       routeElements.add(new RouteElement(junctionId, nextLaneId));
       laneId = nextLaneId;
     }
     return new RouteLocation(routeElements, 0);
   }
 
-  private LaneId getRandomStartLane() {
+  private LaneId getRandomStartLaneId() {
     return this.localLaneIdList.get(ThreadLocalRandom.current().nextInt(this.localLaneIdList.size()));
   }
 }

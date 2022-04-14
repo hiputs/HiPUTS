@@ -58,16 +58,16 @@ public class RoadStructureEditorTest {
     Junction.JunctionBuilder junction3Builder = Junction.builder().junctionId(junction3Id);
 
     junction1Builder.addIncomingLaneId(lane1Id, false).addOutgoingLaneId(lane2Id);
-    lane1Builder.outgoingJunction(junction1Id);
-    lane2Builder.incomingJunction(junction1Id);
+    lane1Builder.outgoingJunctionId(junction1Id);
+    lane2Builder.incomingJunctionId(junction1Id);
 
     junction2Builder.addIncomingLaneId(lane2Id, false).addOutgoingLaneId(lane3Id);
-    lane2Builder.outgoingJunction(junction2Id);
-    lane3Builder.incomingJunction(junction2Id);
+    lane2Builder.outgoingJunctionId(junction2Id);
+    lane3Builder.incomingJunctionId(junction2Id);
 
     junction3Builder.addIncomingLaneId(lane3Id, false).addOutgoingLaneId(lane4Id);
-    lane3Builder.outgoingJunction(junction3Id);
-    lane4Builder.incomingJunction(junction3Id);
+    lane3Builder.outgoingJunctionId(junction3Id);
+    lane4Builder.incomingJunctionId(junction3Id);
 
     Lane lane1 = lane1Builder.build();
     Lane lane2 = lane2Builder.build();

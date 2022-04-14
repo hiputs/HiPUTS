@@ -38,21 +38,21 @@ public class Lane implements LaneEditable {
    */
   @Getter
   @Builder.Default
-  private final Optional<LaneId> oppositeLane = Optional.empty();
+  private final Optional<LaneId> oppositeLaneId = Optional.empty();
 
   /**
    * Reference to junction id that is at the begging of lane
    * j --------->
    */
   @Getter
-  private final JunctionId incomingJunction;
+  private final JunctionId incomingJunctionId;
 
   /**
    * Reference to junction id that is at the end of lane
    * ---------> j
    */
   @Getter
-  private final JunctionId outgoingJunction;
+  private final JunctionId outgoingJunctionId;
 
   /**
    * Sign at the end of lane

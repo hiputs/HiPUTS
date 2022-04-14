@@ -13,9 +13,9 @@ public interface LaneReadable {
 
   double getLength();
 
-  JunctionId getIncomingJunction();
+  JunctionId getIncomingJunctionId();
 
-  JunctionId getOutgoingJunction();
+  JunctionId getOutgoingJunctionId();
 
   /**
    * Returns the nearest car between the given one and the outgoing junction (i.e. in front of the given one).

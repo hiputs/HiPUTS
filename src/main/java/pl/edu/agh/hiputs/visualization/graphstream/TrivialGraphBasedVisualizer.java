@@ -50,8 +50,8 @@ public class TrivialGraphBasedVisualizer {
             .setAttribute("label", junctionId.getValue().substring(0, 3)));
     mapFragment.getLocalLaneIds().stream().map(laneId -> laneId.getReadable(mapFragment)).forEach(laneReadable -> {
       LaneId laneId = laneReadable.getLaneId();
-      JunctionId junctionId1 = laneReadable.getIncomingJunction();
-      JunctionId junctionId2 = laneReadable.getOutgoingJunction();
+      JunctionId junctionId1 = laneReadable.getIncomingJunctionId();
+      JunctionId junctionId2 = laneReadable.getOutgoingJunctionId();
       this.graph.addEdge(laneId.getValue(), junctionId1.getValue(), junctionId2.getValue(), true);
     });
   }

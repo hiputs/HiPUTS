@@ -33,7 +33,7 @@ public class LaneUpdateStageTaskTest {
     mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
     laneId1 = mapFragment.getLocalLaneIds().iterator().next();
     lane1 = mapFragment.getLaneEditable(laneId1);
-    laneId2 = mapFragment.getJunctionReadable(lane1.getOutgoingJunction()).streamOutgoingLaneIds().findFirst().get();
+    laneId2 = mapFragment.getJunctionReadable(lane1.getOutgoingJunctionId()).streamOutgoingLaneIds().findFirst().get();
     lane2 = mapFragment.getLaneEditable(laneId2);
     decision1 = Decision.builder()
         .acceleration(2.0)

@@ -96,8 +96,8 @@ public class ExampleMapFragmentProvider {
     JunctionUnderConstruction incomingJunction = stringJunctionMap.get(begin);
     JunctionUnderConstruction outgoingJunction = stringJunctionMap.get(end);
 
-    laneUnderConstruction.getLaneBuilder().incomingJunction(incomingJunction.getJunctionId());
-    laneUnderConstruction.getLaneBuilder().outgoingJunction(outgoingJunction.getJunctionId());
+    laneUnderConstruction.getLaneBuilder().incomingJunctionId(incomingJunction.getJunctionId());
+    laneUnderConstruction.getLaneBuilder().outgoingJunctionId(outgoingJunction.getJunctionId());
 
     incomingJunction.getJunctionBuilder().addOutgoingLaneId(laneUnderConstruction.getLaneId());
 

@@ -194,7 +194,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     private final MapFragmentId mapFragmentId;
     private final Map<PatchId, Patch> knownPatches = new HashMap<>();
-    private final Set<PatchId> localPatches = new HashSet<>();
+    private final Set<PatchId> localPatchIds = new HashSet<>();
     private final Map<MapFragmentId, Set<PatchId>> shadowPatches = new HashMap<>();
     private final Map<PatchId, MapFragmentId> shadowPatchOwnership = new HashMap<>();
 
@@ -204,7 +204,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     public MapFragmentBuilder addLocalPatch(Patch patch) {
       knownPatches.put(patch.getPatchId(), patch);
-      localPatches.add(patch.getPatchId());
+      localPatchIds.add(patch.getPatchId());
       return this;
     }
 
@@ -234,7 +234,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
           .flatMap(map -> map.entrySet().stream())
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-      return new MapFragment(mapFragmentId, knownPatches, localPatches, borderPatches, shadowPatches, laneToPatch,
+      return new MapFragment(mapFragmentId, knownPatches, localPatchIds, borderPatches, shadowPatches, laneToPatch,
           junctionToPatch);
     }
 
@@ -244,10 +244,10 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
      */
     private Map<MapFragmentId, Set<PatchId>> buildBorderPatches() {
       Map<MapFragmentId, Set<PatchId>> borderPatches = new HashMap<>();
-      localPatches.forEach(patchId -> knownPatches.get(patchId)
+      localPatchIds.forEach(patchId -> knownPatches.get(patchId)
           .getNeighboringPatches()
           .stream()
-          .filter(neighborPatch -> !localPatches.contains(neighborPatch))
+          .filter(neighborPatch -> !localPatchIds.contains(neighborPatch))
           .map(shadowPatchOwnership::get)
           .forEach(neighborMapFragmentId -> borderPatches.computeIfAbsent(neighborMapFragmentId, k -> new HashSet<>())
               .add(patchId)));

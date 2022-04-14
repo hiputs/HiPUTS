@@ -42,7 +42,7 @@ public class GetPrecedingCarTest {
         () -> Assertions.assertEquals(50.0 - car2.getLength(), carEnvironment.getDistance()),
         () -> Assertions.assertTrue(carEnvironment.getNextCrossroadId().isPresent()),
         //in this case we get precedingCar and nextCrossroadId
-        () -> Assertions.assertEquals(startLane.getOutgoingJunction(), carEnvironment.getNextCrossroadId().get()));
+        () -> Assertions.assertEquals(startLane.getOutgoingJunctionId(), carEnvironment.getNextCrossroadId().get()));
   }
 
   @Test
@@ -51,7 +51,7 @@ public class GetPrecedingCarTest {
     CarEnvironment carEnvironment = car1.getPrecedingCar(mapFragment);
     Assertions.assertAll(() -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
         () -> Assertions.assertTrue(carEnvironment.getNextCrossroadId().isPresent()),
-        () -> Assertions.assertEquals(startLane.getOutgoingJunction(), carEnvironment.getNextCrossroadId().get()),
+        () -> Assertions.assertEquals(startLane.getOutgoingJunctionId(), carEnvironment.getNextCrossroadId().get()),
         () -> Assertions.assertEquals(startLane.getLength() - car1.getPositionOnLane(), carEnvironment.getDistance()));
   }
 
@@ -83,7 +83,7 @@ public class GetPrecedingCarTest {
   private void setAllJunctionTypeBend() {
     for (LaneId laneId : mapFragment.getLocalLaneIds()) {
       JunctionReadable junction =
-          mapFragment.getJunctionReadable(mapFragment.getLaneEditable(laneId).getOutgoingJunction());
+          mapFragment.getJunctionReadable(mapFragment.getLaneEditable(laneId).getOutgoingJunctionId());
       this.setJunctionTypeBend(junction);
     }
   }
