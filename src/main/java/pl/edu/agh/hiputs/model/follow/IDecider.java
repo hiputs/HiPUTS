@@ -5,6 +5,6 @@ import pl.edu.agh.hiputs.model.car.CarReadable;
 
 public interface IDecider {
 
-    double makeDecision(CarReadable managedCar, CarEnvironment environment);
+  double makeDecision(CarReadable managedCar, CarEnvironment environment);
 
 }

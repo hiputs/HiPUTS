@@ -8,8 +8,8 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 @AllArgsConstructor
 public class CarUpdateResult {
 
-    private final LaneId oldLaneId;
-    private final LaneId newLaneId;
-    private final double newPositionOnLane;
+  private final LaneId oldLaneId;
+  private final LaneId newLaneId;
+  private final double newPositionOnLane;
 
 }

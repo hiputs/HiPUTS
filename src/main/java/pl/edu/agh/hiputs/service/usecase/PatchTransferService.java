@@ -5,7 +5,7 @@ import pl.edu.agh.hiputs.model.map.patch.Patch;
 
 public interface PatchTransferService {
 
-    void sendPatch(MapFragmentId receiver, Patch patch);
+  void sendPatch(MapFragmentId receiver, Patch patch);
 
-    void getReceivedPatch();
+  void getReceivedPatch();
 }

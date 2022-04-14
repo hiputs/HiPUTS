@@ -4,5 +4,5 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 
 public interface Subscriber {
 
-    void notify(Message message);
+  void notify(Message message);
 }

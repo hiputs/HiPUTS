@@ -5,13 +5,13 @@ package pl.edu.agh.hiputs.model.id;
  */
 public enum JunctionType {
 
-    /**
-     * Junction that have only one incoming and only one outgoing lane
-     */
-    BEND,
+  /**
+   * Junction that have only one incoming and only one outgoing lane
+   */
+  BEND,
 
-    /**
-     * Junction that have more than one incoming or/and more than one outgoing lane
-     */
-    CROSSROAD
+  /**
+   * Junction that have more than one incoming or/and more than one outgoing lane
+   */
+  CROSSROAD
 }

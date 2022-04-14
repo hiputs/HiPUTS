@@ -7,8 +7,8 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 
 public interface RoadStructureEditor extends RoadStructureReader {
 
-    LaneEditable getLaneEditable(LaneId laneId);
+  LaneEditable getLaneEditable(LaneId laneId);
 
-    JunctionEditable getJunctionEditable(JunctionId junctionId);
+  JunctionEditable getJunctionEditable(JunctionId junctionId);
 
 }

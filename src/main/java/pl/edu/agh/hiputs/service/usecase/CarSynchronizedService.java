@@ -1,10 +1,9 @@
 package pl.edu.agh.hiputs.service.usecase;
 
-
 public interface CarSynchronizedService {
 
-    void sendCarsToNeighbours();
+  void sendCarsToNeighbours();
 
-    void synchronizedGetIncomingCar();
+  void synchronizedGetIncomingCar();
 
 }

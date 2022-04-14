@@ -9,9 +9,9 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 @RequiredArgsConstructor
 public class SubscriptionService {
 
-    private final MessageReceiverService receiverService;
+  private final MessageReceiverService receiverService;
 
-    public void subscribe(Subscriber subscriber, MessagesTypeEnum messagesEnum) {
-        receiverService.addNewSubscriber(subscriber, messagesEnum);
-    }
+  public void subscribe(Subscriber subscriber, MessagesTypeEnum messagesEnum) {
+    receiverService.addNewSubscriber(subscriber, messagesEnum);
+  }
 }

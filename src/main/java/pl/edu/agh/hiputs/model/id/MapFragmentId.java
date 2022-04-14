@@ -1,22 +1,22 @@
 package pl.edu.agh.hiputs.model.id;
 
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
-import java.util.UUID;
 
 @AllArgsConstructor
 @Getter
 @EqualsAndHashCode
 public class MapFragmentId {
-    String id;
 
-    public static MapFragmentId random() {
-        return new MapFragmentId(UUID.randomUUID().toString());
-    }
+  String id;
 
-    public static MapFragmentId from(MapFragmentId mapFragmentId) {
-        return new MapFragmentId(mapFragmentId.getId());
-    }
+  public static MapFragmentId random() {
+    return new MapFragmentId(UUID.randomUUID().toString());
+  }
+
+  public static MapFragmentId from(MapFragmentId mapFragmentId) {
+    return new MapFragmentId(mapFragmentId.getId());
+  }
 }

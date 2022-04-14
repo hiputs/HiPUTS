@@ -1,5 +1,12 @@
 package pl.edu.agh.hiputs.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.util.List;
+import java.util.Map;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -10,93 +17,87 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.service.MessageSenderService;
-import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Route;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteLocation;
-import pl.edu.agh.hiputs.model.id.*;
-import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
+import pl.edu.agh.hiputs.model.id.CarId;
+import pl.edu.agh.hiputs.model.id.JunctionId;
+import pl.edu.agh.hiputs.model.id.JunctionType;
+import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
-
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 
 @SpringBootTest
 public class PatchTransferServiceTest {
-    @Autowired
-    private PatchTransferServiceImpl patchTransferService;
 
-    @MockBean
-    private MapFragment mapFragment;
+  @Autowired
+  private PatchTransferServiceImpl patchTransferService;
 
-    @MockBean
-    private MessageSenderService messageSenderService;
+  @MockBean
+  private MapFragment mapFragment;
 
-    @SneakyThrows
-    @Disabled("future work")
-    @Test
-    void shouldSendToNeighbour() {
-        //given
-        Patch patch = getSimplePatch();
+  @MockBean
+  private MessageSenderService messageSenderService;
 
-        //when
-        patchTransferService.sendPatch(new MapFragmentId("NEIGHBOUR"), patch);
+  @SneakyThrows
+  @Disabled("future work")
+  @Test
+  void shouldSendToNeighbour() {
+    //given
+    Patch patch = getSimplePatch();
 
-        //then
-        ArgumentCaptor<PatchTransferMessage> argumentCaptor = ArgumentCaptor.forClass(PatchTransferMessage.class);
-        ArgumentCaptor<PatchTransferNotificationMessage> notificationArgumentCaptor = ArgumentCaptor.forClass(PatchTransferNotificationMessage.class);
+    //when
+    patchTransferService.sendPatch(new MapFragmentId("NEIGHBOUR"), patch);
 
-        verify(messageSenderService, times(1))
-                .send(eq(new MapFragmentId("NEIGHBOUR")), argumentCaptor.capture());
+    //then
+    ArgumentCaptor<PatchTransferMessage> argumentCaptor = ArgumentCaptor.forClass(PatchTransferMessage.class);
+    ArgumentCaptor<PatchTransferNotificationMessage> notificationArgumentCaptor =
+        ArgumentCaptor.forClass(PatchTransferNotificationMessage.class);
 
-        verify(messageSenderService, times(1))
-                .broadcast(notificationArgumentCaptor.capture());
+    verify(messageSenderService, times(1)).send(eq(new MapFragmentId("NEIGHBOUR")), argumentCaptor.capture());
 
-//        verify(mapFragment, times(1))
-//                .migrateMyPatchToNeighbour(eq(new PatchId("PATCH_ID")), eq(new MapFragmentId("NEIGHBOUR")));
+    verify(messageSenderService, times(1)).broadcast(notificationArgumentCaptor.capture());
 
-        PatchTransferMessage patchTransferMessage = argumentCaptor.getValue();
-        PatchTransferNotificationMessage notificationMessage = notificationArgumentCaptor.getValue();
+    //        verify(mapFragment, times(1))
+    //                .migrateMyPatchToNeighbour(eq(new PatchId("PATCH_ID")), eq(new MapFragmentId("NEIGHBOUR")));
 
-        assertEquals(2, patchTransferMessage.getSLanes().size());
-        assertEquals("PATCH_ID", notificationMessage.getTransferPatchId());
-        assertEquals("NEIGHBOUR", notificationMessage.getReceiverId());
-    }
+    PatchTransferMessage patchTransferMessage = argumentCaptor.getValue();
+    PatchTransferNotificationMessage notificationMessage = notificationArgumentCaptor.getValue();
 
+    assertEquals(2, patchTransferMessage.getSLanes().size());
+    assertEquals("PATCH_ID", notificationMessage.getTransferPatchId());
+    assertEquals("NEIGHBOUR", notificationMessage.getReceiverId());
+  }
 
-    private Patch getSimplePatch() {
-        Lane lane1 = Lane.builder().build();
-        lane1.addIncomingCar(getCar("C1"));
-        lane1.addIncomingCar(getCar("C2"));
+  private Patch getSimplePatch() {
+    Lane lane1 = Lane.builder().build();
+    lane1.addIncomingCar(getCar("C1"));
+    lane1.addIncomingCar(getCar("C2"));
 
-        Lane lane2 = Lane.builder().build();
-        lane2.addIncomingCar(getCar("C3"));
-        lane2.addIncomingCar(getCar("C4"));
+    Lane lane2 = Lane.builder().build();
+    lane2.addIncomingCar(getCar("C3"));
+    lane2.addIncomingCar(getCar("C4"));
 
-        return Patch.builder().lanes(Map.of(lane1.getLaneId(), lane1, lane2.getLaneId(), lane2)).build();
-    }
+    return Patch.builder().lanes(Map.of(lane1.getLaneId(), lane1, lane2.getLaneId(), lane2)).build();
+  }
 
-    private Car getCar(String id) {
-        List<RouteElement> routeElementList = List.of(
-                new RouteElement(new JunctionId("zxc", JunctionType.BEND), new LaneId("vbn")),
-                new RouteElement(new JunctionId("zxc1", JunctionType.BEND), new LaneId("vbn1"))
-        );
+  private Car getCar(String id) {
+    List<RouteElement> routeElementList =
+        List.of(new RouteElement(new JunctionId("zxc", JunctionType.BEND), new LaneId("vbn")),
+            new RouteElement(new JunctionId("zxc1", JunctionType.BEND), new LaneId("vbn1")));
 
-        Route route = new Route(routeElementList);
-        return Car.builder()
-                .carId(new CarId(id))
-                .length(12)
-                .speed(13)
-                .maxSpeed(14)
-                .laneId(new LaneId("abc"))
-                .positionOnLane(0)
-                .routeLocation(new RouteLocation(route))
-                .build();
-    }
+    Route route = new Route(routeElementList);
+    return Car.builder()
+        .carId(new CarId(id))
+        .length(12)
+        .speed(13)
+        .maxSpeed(14)
+        .laneId(new LaneId("abc"))
+        .positionOnLane(0)
+        .routeLocation(new RouteLocation(route))
+        .build();
+  }
 }

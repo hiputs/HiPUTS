@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.model.id;
 
+import java.util.UUID;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -8,34 +9,33 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 
-import java.util.UUID;
-
 @RequiredArgsConstructor
 @Getter
 @EqualsAndHashCode
 public class JunctionId {
-    private final String value;
 
-    private final JunctionType junctionType;
+  private final String value;
 
-    public static JunctionId randomCrossroad() {
-        return new JunctionId(UUID.randomUUID().toString(), JunctionType.CROSSROAD);
-    }
+  private final JunctionType junctionType;
 
-    public boolean isCrossroad() {
-        return this.junctionType == JunctionType.CROSSROAD;
-    }
+  public static JunctionId randomCrossroad() {
+    return new JunctionId(UUID.randomUUID().toString(), JunctionType.CROSSROAD);
+  }
 
-    public JunctionReadable getReadable(RoadStructureReader reader) {
-        return reader.getJunctionReadable(this);
-    }
+  public boolean isCrossroad() {
+    return this.junctionType == JunctionType.CROSSROAD;
+  }
 
-    public JunctionEditable getEditable(RoadStructureEditor editor) {
-        return editor.getJunctionEditable(this);
-    }
+  public JunctionReadable getReadable(RoadStructureReader reader) {
+    return reader.getJunctionReadable(this);
+  }
 
-    @Override
-    public String toString() {
-        return "JunctionId{" + value + " type=" + junctionType + '}';
-    }
+  public JunctionEditable getEditable(RoadStructureEditor editor) {
+    return editor.getJunctionEditable(this);
+  }
+
+  @Override
+  public String toString() {
+    return "JunctionId{" + value + " type=" + junctionType + '}';
+  }
 }

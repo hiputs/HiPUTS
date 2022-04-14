@@ -13,13 +13,13 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 @EqualsAndHashCode
 public class RouteElement {
 
-    /**
-     * JunctionId of junction that should be visited when following route.
-     */
-    private JunctionId junctionId;
+  /**
+   * JunctionId of junction that should be visited when following route.
+   */
+  private JunctionId junctionId;
 
-    /**
-     * Outgoing lane of junction that should be visited when following route.
-     */
-    private LaneId outgoingLaneId;
+  /**
+   * Outgoing lane of junction that should be visited when following route.
+   */
+  private LaneId outgoingLaneId;
 }

@@ -7,29 +7,30 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 @Getter
 @AllArgsConstructor
 public class LaneOnJunction {
-    /**
-     * Global lane Id
-     */
-    private final LaneId laneId;
 
-    /**
-     * Index of lane on junction
-     */
-    private final int laneIndexOnJunction;
+  /**
+   * Global lane Id
+   */
+  private final LaneId laneId;
 
-    /**
-     * Direction of lane on junction - either incoming or outgoing
-     */
-    private final LaneDirection direction;
+  /**
+   * Index of lane on junction
+   */
+  private final int laneIndexOnJunction;
 
-    /**
-     * Status of lane subordination on junction
-     */
-    private final LaneSubordination subordination;
+  /**
+   * Direction of lane on junction - either incoming or outgoing
+   */
+  private final LaneDirection direction;
 
-    /**
-     * Light color on lane (green if no traffic lights)
-     */
-    // TODO: make it possible to change it dynamically - just add @Setter to this field?
-    private TrafficLightColor lightColor;
+  /**
+   * Status of lane subordination on junction
+   */
+  private final LaneSubordination subordination;
+
+  /**
+   * Light color on lane (green if no traffic lights)
+   */
+  // TODO: make it possible to change it dynamically - just add @Setter to this field?
+  private TrafficLightColor lightColor;
 }

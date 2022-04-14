@@ -4,14 +4,14 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
 public interface CarEditable extends CarReadable, Comparable<CarEditable> {
 
-    void decide(RoadStructureReader roadStructureReader);
+  void decide(RoadStructureReader roadStructureReader);
 
-    CarUpdateResult update();
+  CarUpdateResult update();
 
-    Decision getDecision();
+  Decision getDecision();
 
-    RouteLocation getRouteLocation();
+  RouteLocation getRouteLocation();
 
-    void setRouteLocation(RouteLocation routeLocation);
+  void setRouteLocation(RouteLocation routeLocation);
 
 }

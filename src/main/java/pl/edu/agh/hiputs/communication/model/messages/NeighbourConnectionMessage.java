@@ -8,12 +8,12 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 @Builder
 public class NeighbourConnectionMessage implements Message {
 
-    private String address;
-    private int port;
-    private String id;
+  private String address;
+  private int port;
+  private String id;
 
-    @Override
-    public MessagesTypeEnum getMessageType() {
-        return MessagesTypeEnum.WorkerConnectionMessage;
-    }
+  @Override
+  public MessagesTypeEnum getMessageType() {
+    return MessagesTypeEnum.WorkerConnectionMessage;
+  }
 }

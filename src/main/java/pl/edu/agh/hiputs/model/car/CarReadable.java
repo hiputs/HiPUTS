@@ -4,15 +4,16 @@ import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
 public interface CarReadable {
-    double getPositionOnLane();
 
-    LaneId getLaneId();
+  double getPositionOnLane();
 
-    double getLength();
+  LaneId getLaneId();
 
-    double getSpeed();
+  double getLength();
 
-    double getMaxSpeed();
+  double getSpeed();
 
-    CarId getCarId();
+  double getMaxSpeed();
+
+  CarId getCarId();
 }
