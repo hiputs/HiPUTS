@@ -135,7 +135,10 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     return mapFragmentIdToBorderPatchIds.entrySet()
         .stream()
         .collect(Collectors.toMap(Map.Entry::getKey,
-            e -> e.getValue().stream().map(knownPatches::get).collect(Collectors.toSet())));
+            e -> e.getValue()
+                .stream()
+                .map(knownPatches::get)
+                .collect(Collectors.toSet())));
   }
 
   @Override
