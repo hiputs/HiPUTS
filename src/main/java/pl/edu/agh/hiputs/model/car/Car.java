@@ -88,17 +88,18 @@ public class Car implements CarEditable {
     LaneId currentLaneId = this.laneId;
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     int offset = 0;
-    double desiredPosition = calculateFuturePosition(acceleration);
+    double desiredPosition = calculateFuturePosition();
+    Optional<LaneId> OptionalLaneId;
 
     while (desiredPosition > destinationCandidate.getLength()) {
       desiredPosition -= destinationCandidate.getLength();
-      try {
-        currentLaneId = routeWithLocation.getOffsetLaneId(offset + 1);
-      } catch (RouteExceededException e) {
-        currentLaneId = null;
+      OptionalLaneId = routeWithLocation.getOffsetLaneId(offset + 1);
+      if (OptionalLaneId.isEmpty()) {
+        desiredPosition = destinationCandidate.getLength();
         break;
       }
       offset++;
+      currentLaneId = OptionalLaneId.get();
       destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     }
 
@@ -112,15 +113,16 @@ public class Car implements CarEditable {
   }
 
   @Override
-  public CarUpdateResult update() {
-    this.routeWithLocation.moveCurrentPositionWithOffset(decision.getOffsetToMoveOnRoute());
+  public Optional<CarUpdateResult> update() {
+    if(!this.routeWithLocation.moveCurrentPositionWithOffset(decision.getOffsetToMoveOnRoute()))
+        return Optional.empty();
     this.speed = decision.getSpeed();
     this.acceleration = decision.getAcceleration();
     CarUpdateResult carUpdateResult =
         new CarUpdateResult(this.laneId, decision.getLaneId(), decision.getPositionOnLane());
     this.laneId = decision.getLaneId();
     this.positionOnLane = decision.getPositionOnLane();
-    return carUpdateResult;
+    return Optional.of(carUpdateResult);
   }
 
   /**
@@ -141,16 +143,14 @@ public class Car implements CarEditable {
     } else {
       distance = 0;
       int offset = 0;
-      LaneId nextLaneId;
+      Optional<LaneId> nextLaneId;
       LaneReadable nextLane;
       while (precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
-        try {
-          nextLaneId = routeWithLocation.getOffsetLaneId(offset++);
-        } catch (RouteExceededException routeExceededException) {
+        nextLaneId = routeWithLocation.getOffsetLaneId(offset++);
+        if (nextLaneId.isEmpty())
           break;
-        }
         distance += currentLane.getLength(); // adds previous lane length
-        nextLane = roadStructureReader.getLaneReadable(nextLaneId);
+        nextLane = roadStructureReader.getLaneReadable(nextLaneId.get());
         nextJunctionId = nextLane.getOutgoingJunctionId();
         precedingCar = nextLane.getCarAtEntryReadable();
         currentLane = nextLane;

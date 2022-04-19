@@ -38,4 +38,9 @@ public interface LaneEditable extends LaneReadable {
    * Returns a stream of cars, beginning from the one closest to the outgoing junction.
    */
   Stream<CarEditable> streamCarsFromExitEditable();
+
+  /**
+   * Remove specific car from list
+   */
+  boolean removeCar(CarEditable car);
 }

@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.model.car;
 
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class RouteWithLocation {
   /**
    * @return RouteElement starting with not yet visited junction
    */
+  // todo: remove this method?
   public RouteElement getNextRouteElement() {
     if (lastRouteElementReached()){
       throw new RouteExceededException("Cannot get next route element cause route end has been reached already");
@@ -46,6 +48,7 @@ public class RouteWithLocation {
   /**
    * @return id of fist junction not yet visited. It should be same as junction id at the end of current lane.
    */
+  // todo: remove this method?
   public JunctionId getNextJunctionId() {
     return getNextRouteElement().getJunctionId();
   }
@@ -53,6 +56,7 @@ public class RouteWithLocation {
   /**
    * @return id first lane not yet visited. It should be one of outgoingLanes from next junction on route.
    */
+  // todo: remove this method?
   public LaneId getNextLaneId() {
     return getNextRouteElement().getOutgoingLaneId();
   }
@@ -62,15 +66,17 @@ public class RouteWithLocation {
    *
    * @return offseted LaneId if exists or throws RouteExceededException if out of range
    */
-  // TODO: return Optional<LaneId> and remove exception?
-  public LaneId getOffsetLaneId(int offset) {
-    validatePosition(currentPosition + offset);
-    return this.routeElements.get(currentPosition + offset).getOutgoingLaneId();
+  public Optional<LaneId> getOffsetLaneId(int offset) {
+    if (currentPosition + offset >= this.routeElements.size() || currentPosition + offset < 0) {
+      return Optional.empty();
+    }
+    return Optional.of(this.routeElements.get(currentPosition + offset).getOutgoingLaneId());
   }
 
   /**
    * Increment position on route by number of hops.
    */
+  // todo: remove this method?
   public void moveForward(int hops) {
     setCurrentPosition(currentPosition + hops);
   }
@@ -78,6 +84,7 @@ public class RouteWithLocation {
   /**
    * Increment position on route by one route element.
    */
+  // todo: remove this method?
   public void moveOneForward() {
     moveForward(1);
   }
@@ -87,10 +94,11 @@ public class RouteWithLocation {
    *
    * @param currentPosition is index on route to be assigned
    */
-  // TODO: return boolean and remove exception?
-  public void setCurrentPosition(int currentPosition) {
-    validatePosition(currentPosition);
+  public boolean setCurrentPosition(int currentPosition) {
+    if (currentPosition >= routeElements.size() || currentPosition < 0)
+      return false;
     this.currentPosition = currentPosition;
+    return true;
   }
 
   /**
@@ -100,8 +108,8 @@ public class RouteWithLocation {
     return currentPosition == routeElements.size() - 1;
   }
 
-  public void moveCurrentPositionWithOffset(int offset) {
-    this.setCurrentPosition(this.currentPosition + offset);
+  public boolean moveCurrentPositionWithOffset(int offset) {
+    return this.setCurrentPosition(this.currentPosition + offset);
   }
 
   private void validatePosition(int newPosition) throws RouteExceededException {
@@ -109,12 +117,5 @@ public class RouteWithLocation {
       throw new RouteExceededException("Tried to access position = " + newPosition
           + " on route with size = " + routeElements.size());
     }
-  }
-}
-
-class RouteExceededException extends RuntimeException {
-
-  public RouteExceededException(String message) {
-    super(message);
   }
 }
