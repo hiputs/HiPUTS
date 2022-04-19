@@ -1,13 +1,13 @@
-package pl.edu.agh.hiputs.map.example;
+package pl.edu.agh.hiputs.example;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import pl.edu.agh.hiputs.model.actor.MapFragment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
-import pl.edu.agh.hiputs.model.map.LaneReadable;
-import pl.edu.agh.hiputs.model.map.example.ExampleMapFragmentProvider;
+
 
 import java.util.stream.Collectors;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
 public class ExampleMapFragmentProviderTest {
 

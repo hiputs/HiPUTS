@@ -36,24 +36,24 @@ public class ExampleCarProvider {
     this.localLaneIdList = mapFragment.getLocalLaneIds().stream().toList();
   }
 
-  public Car generateCar() {
-    return this.generateCar(DEFAULT_HOPS, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
+  public Car generateCar(double position) {
+    return this.generateCar(position, DEFAULT_HOPS, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
   }
 
-  public Car generateCar(LaneId startLaneId, int hops) {
-    return this.generateCar(startLaneId, hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
+  public Car generateCar(double position, LaneId startLane, int hops) {
+    return this.generateCar(position, startLane, hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
   }
 
-  public Car generate(int hops) {
-    return this.generateCar(hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
+  public Car generate(double position, int hops) {
+    return this.generateCar(position, hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
   }
 
-  public Car generateCar(int hops, double length, double maxSpeed) {
-    LaneId startLaneId = this.getRandomStartLaneId();
-    return this.generateCar(startLaneId, hops, length, maxSpeed);
+  public Car generateCar(double position, int hops, double length, double maxSpeed) {
+    LaneId startLane = this.getRandomStartLaneId();
+    return this.generateCar(position, startLane, hops, length, maxSpeed);
   }
 
-  public Car generateCar(LaneId startLaneId, int hops, double length, double maxSpeed) {
+  public Car generateCar(double position, LaneId startLaneId, int hops, double length, double maxSpeed) {
     RouteWithLocation routeWithLocation = this.generateRoute(startLaneId, hops);
     ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
     return Car.builder()
@@ -61,7 +61,7 @@ public class ExampleCarProvider {
         .maxSpeed(maxSpeed)
         .routeWithLocation(routeWithLocation)
         .laneId(startLaneId)
-        .positionOnLane(threadLocalRandom.nextDouble(mapFragment.getLaneReadable(startLaneId).getLength()))
+        .positionOnLane(position)
         .speed(threadLocalRandom.nextDouble(DEFAULT_MAX_SPEED))
         .build();
   }

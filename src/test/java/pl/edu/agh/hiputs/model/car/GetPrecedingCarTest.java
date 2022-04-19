@@ -86,12 +86,8 @@ public class GetPrecedingCarTest {
   }
 
   private void setJunctionTypeBend(JunctionReadable junction) {
-    Object junctionId = ReflectionUtil.getFieldValue(junction, "id");
+    Object junctionId = ReflectionUtil.getFieldValue(junction, "junctionId");
     System.out.println(junctionId);
     ReflectionUtil.setFieldValue(junctionId, "junctionType", JunctionType.BEND);
-  }
-
-  private void setPositionOnLane(Car car, double position) {
-    ReflectionUtil.setFieldValue(car, "positionOnLane", position);
   }
 }

@@ -58,7 +58,8 @@ public class ExampleMapFragmentProvider {
 
     patch.streamLanesEditable().forEach(lane -> {
       for (int i = 0; i < randomCarsPerLane; i++) {
-        Car car = exampleCarProvider.generateCar(lane.getLaneId(), ThreadLocalRandom.current().nextInt(10));
+        double carPosition = (randomCarsPerLane - i) * lane.getLength() / (randomCarsPerLane + 1);
+        Car car = exampleCarProvider.generateCar(carPosition);
         lane.addCarAtEntry(car);
       }
     });
