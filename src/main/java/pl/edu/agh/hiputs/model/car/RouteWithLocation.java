@@ -35,33 +35,6 @@ public class RouteWithLocation {
   private int currentPosition = 0;
 
   /**
-   * @return RouteElement starting with not yet visited junction
-   */
-  // todo: remove this method?
-  public RouteElement getNextRouteElement() {
-    if (lastRouteElementReached()){
-      throw new RouteExceededException("Cannot get next route element cause route end has been reached already");
-    }
-    return routeElements.get(currentPosition + 1);
-  }
-
-  /**
-   * @return id of fist junction not yet visited. It should be same as junction id at the end of current lane.
-   */
-  // todo: remove this method?
-  public JunctionId getNextJunctionId() {
-    return getNextRouteElement().getJunctionId();
-  }
-
-  /**
-   * @return id first lane not yet visited. It should be one of outgoingLanes from next junction on route.
-   */
-  // todo: remove this method?
-  public LaneId getNextLaneId() {
-    return getNextRouteElement().getOutgoingLaneId();
-  }
-
-  /**
    * @param offset by which increase car currentPosition
    *
    * @return offseted LaneId if exists or throws RouteExceededException if out of range
@@ -72,50 +45,15 @@ public class RouteWithLocation {
     }
     return Optional.of(this.routeElements.get(currentPosition + offset).getOutgoingLaneId());
   }
-
+ 
   /**
    * Increment position on route by number of hops.
    */
-  // todo: remove this method?
-  public void moveForward(int hops) {
-    setCurrentPosition(currentPosition + hops);
-  }
-
-  /**
-   * Increment position on route by one route element.
-   */
-  // todo: remove this method?
-  public void moveOneForward() {
-    moveForward(1);
-  }
-
-  /**
-   * Move index on route to given value or throw exception whether index is out of range
-   *
-   * @param currentPosition is index on route to be assigned
-   */
-  public boolean setCurrentPosition(int currentPosition) {
-    if (currentPosition >= routeElements.size() || currentPosition < 0)
+  public boolean moveForward(int hops) {
+    int futurePosition = currentPosition + hops;
+    if (futurePosition >= routeElements.size() || futurePosition < 0)
       return false;
-    this.currentPosition = currentPosition;
+    this.currentPosition = futurePosition;
     return true;
-  }
-
-  /**
-   * @return True if currentPosition points to last element on route
-   */
-  public boolean lastRouteElementReached() {
-    return currentPosition == routeElements.size() - 1;
-  }
-
-  public boolean moveCurrentPositionWithOffset(int offset) {
-    return this.setCurrentPosition(this.currentPosition + offset);
-  }
-
-  private void validatePosition(int newPosition) throws RouteExceededException {
-    if (newPosition >= routeElements.size() || newPosition < 0) {
-      throw new RouteExceededException("Tried to access position = " + newPosition
-          + " on route with size = " + routeElements.size());
-    }
   }
 }

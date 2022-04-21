@@ -88,18 +88,18 @@ public class Car implements CarEditable {
     LaneId currentLaneId = this.laneId;
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     int offset = 0;
-    double desiredPosition = calculateFuturePosition();
-    Optional<LaneId> OptionalLaneId;
+    double desiredPosition = calculateFuturePosition(acceleration);
+    Optional<LaneId> desiredLaneId;
 
     while (desiredPosition > destinationCandidate.getLength()) {
       desiredPosition -= destinationCandidate.getLength();
-      OptionalLaneId = routeWithLocation.getOffsetLaneId(offset + 1);
-      if (OptionalLaneId.isEmpty()) {
-        desiredPosition = destinationCandidate.getLength();
+      desiredLaneId = routeWithLocation.getOffsetLaneId(offset + 1);
+      if (desiredLaneId.isEmpty()) {
+        currentLaneId = null;
         break;
       }
       offset++;
-      currentLaneId = OptionalLaneId.get();
+      currentLaneId = desiredLaneId.get();
       destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     }
 
@@ -114,7 +114,7 @@ public class Car implements CarEditable {
 
   @Override
   public Optional<CarUpdateResult> update() {
-    if(!this.routeWithLocation.moveCurrentPositionWithOffset(decision.getOffsetToMoveOnRoute()))
+    if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getLaneId() == null) // remove car from lane
         return Optional.empty();
     this.speed = decision.getSpeed();
     this.acceleration = decision.getAcceleration();
