@@ -26,6 +26,6 @@ public class Idm implements IFollowingModel {
     double minimumDistance = distanceHeadway + speed * timeHeadway + ((speed * deltaSpeed) / (2 * Math.sqrt(
         normalAcceleration * normalDeceleration)));
     final double delta = 4;
-    return normalAcceleration * (1 - Math.pow(speed / desiredSpeed, delta) - Math.pow(minimumDistance / distance, 2));
+    return Math.max(-normalDeceleration, normalAcceleration * (1 - Math.pow(speed / desiredSpeed, delta) - Math.pow(minimumDistance / distance, 2)));
   }
 }
