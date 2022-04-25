@@ -10,8 +10,7 @@ public class OsmPartitionerVisualizer {
 
     private final String graphStyles = """
             node { size: 7px; fill-color: #777; text-mode: hidden; z-index: 0; }
-            edge { shape: line; fill-color: #222; arrow-size: 6px, 5px; }
-            edge.knownMaxSpeed { shape: line; fill-color: #600; arrow-size: 6px, 5px; }
+            edge { shape: line; fill-color: #222; arrow-size: 0px, 0px; }
             sprite { text-color: rgb(255,255,255); size: 18; text-size: 15;  }
             """;
 
@@ -36,14 +35,11 @@ public class OsmPartitionerVisualizer {
         for (pl.edu.agh.partition.model.Node osmNode : map.getNodes().values()) {
             Node node = this.graph.addNode(osmNode.getId());
             node.setAttribute("label", osmNode.getId().substring(0, 3));
-            node.setAttribute("xy", osmNode.getLon(), osmNode.getLat());
+            node.setAttribute("xy", longitude2plain(osmNode.getLon(), osmNode.getLat()), latitude2plain(osmNode.getLat()));
         }
 
         for (pl.edu.agh.partition.model.Edge osmEdge : map.getEdges().values()) {
             Edge edge = this.graph.addEdge(osmEdge.getId(), osmEdge.getSource().getId(), osmEdge.getTarget().getId(), true);
-            if(osmEdge.getMaxSpeed() > 0 ) {
-                edge.setAttribute("ui.class", "knownMaxSpeed");
-            }
         }
     }
 
@@ -51,4 +47,11 @@ public class OsmPartitionerVisualizer {
         this.graph.display(false);
     }
 
+    private Double latitude2plain(Double lat) {
+        return 6371 * Math.toRadians(lat);
+    }
+
+    private Double longitude2plain(Double lon, Double lat) {
+        return 6371 * Math.toRadians(lon) * Math.cos(Math.toRadians(lat));
+    }
 }

@@ -21,4 +21,5 @@ public class Edge {
 
     private Map<String, String> tags;
 
+    private String patchId;
 }
