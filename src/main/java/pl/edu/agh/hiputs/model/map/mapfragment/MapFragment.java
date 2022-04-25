@@ -154,8 +154,9 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   @Override
   public Set<PatchReader> getShadowPatchesReadable() {
-    return getShadowPatchesReadable()
+    return knownPatches.values()
         .stream()
+        .filter(id -> !localPatchIds.contains(id))
         .map(patch -> (PatchReader) patch)
         .collect(Collectors.toSet());
   }
