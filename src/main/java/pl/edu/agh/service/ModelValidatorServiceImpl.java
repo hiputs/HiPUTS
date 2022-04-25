@@ -4,11 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.exception.ModelValidationException;
-import pl.edu.agh.model.actor.MapFragment;
-import pl.edu.agh.model.map.Junction;
-import pl.edu.agh.model.map.Lane;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,10 +28,11 @@ public class ModelValidatorServiceImpl implements ModelValidatorService {
     }
 
     private void checkJunction(Map<String, String> errors) throws ModelValidationException {
-        boolean passValidation = mapFragment.getLocalPatches()
+        boolean passValidation = mapFragment.getKnownPatchReadable()
                 .parallelStream()
-                .map(patch -> patch.getJunctions().values())
-                .flatMap(Collection::stream)
+                .flatMap(patch -> patch.getJunctionIds()
+                    .stream()
+                    .map(patch::getJunctionReadable))
                 .allMatch(junction -> validateJunction(junction, errors));
 
         if (!passValidation) {
@@ -40,12 +40,12 @@ public class ModelValidatorServiceImpl implements ModelValidatorService {
         }
     }
 
-    private boolean validateJunction(Junction junction, Map<String, String> errors) {
-        if (junction.getId() == null || StringUtils.isBlank(junction.getId().getValue())) {
+    private boolean validateJunction(JunctionReadable junction, Map<String, String> errors) {
+        if (junction.getJunctionId() == null || StringUtils.isBlank(junction.getJunctionId().getValue())) {
             errors.put("junctionId", "NOT_NULL");
         }
 
-        if (junction.getLanesCount() <= 0) {
+        if (junction.streamIncomingLaneIds().count() + junction.streamOutgoingLaneIds().count() <= 0) {
             errors.put("lanesCount", "LOST_STATE");
         }
 
@@ -58,10 +58,11 @@ public class ModelValidatorServiceImpl implements ModelValidatorService {
 
     private void checkInitializationOfLanes(Map<String, String> errors) throws ModelValidationException {
 
-        boolean passValidation = mapFragment.getLocalPatches()
+        boolean passValidation = mapFragment.getKnownPatchReadable()
                 .parallelStream()
-                .map(patch -> patch.getLanes().values())
-                .flatMap(Collection::stream)
+                .flatMap(patch -> patch.getLaneIds()
+                    .stream()
+                    .map(patch::getLaneReadable))
                 .allMatch(lane -> validateLane(lane, errors));
 
         if (!passValidation) {
@@ -69,21 +70,17 @@ public class ModelValidatorServiceImpl implements ModelValidatorService {
         }
     }
 
-    private boolean validateLane(Lane lane, Map<String, String> errors) {
-        if (lane.getId() == null || StringUtils.isBlank(lane.getId().getValue())) {
+    private boolean validateLane(LaneReadable lane, Map<String, String> errors) {
+        if (lane.getLaneId() == null || StringUtils.isBlank(lane.getLaneId().getValue())) {
             errors.put("laneId", "NOT_NULL");
         }
 
-        if (lane.getIncomingJunction() == null) {
+        if (lane.getIncomingJunctionId() == null) {
             errors.put("incoming junction", "NOT_NULL");
         }
 
-        if (lane.getOutgoingJunction() == null) {
+        if (lane.getOutgoingJunctionId() == null) {
             errors.put("outgoingJunction", "NOT_NULL");
-        }
-
-        if (lane.getIncomingCars() == null) {
-            errors.put("lane2Patch", "NOT_NULL");
         }
 
         if (lane.getLength() <= 0) {
@@ -98,27 +95,27 @@ public class ModelValidatorServiceImpl implements ModelValidatorService {
 
     private void checkMapFragmentInitialization(Map<String, String> errors) throws ModelValidationException {
 
-        if (mapFragment.getLocalPatches() == null) {
+        if (mapFragment.getKnownPatchReadable() == null) {
             errors.put("localPatches", "NOT_NULL");
         }
 
-        if (mapFragment.getRemotePatches() == null) {
-            errors.put("remotePatches", "NOT_NULL");
+        if (mapFragment.getNeighbors() == null) {
+            errors.put("neighbours", "NOT_NULL");
         }
 
         if (mapFragment.getBorderPatches() == null) {
             errors.put("borderPatches", "NOT_NULL");
         }
 
-        if (mapFragment.getLane2Patch() == null) {
-            errors.put("lane2Patch", "NOT_NULL");
+        if (mapFragment.getLocalJunctionIds() == null) {
+            errors.put("localJunction", "NOT_NULL");
         }
 
-        if (mapFragment.getNeighbours() == null) {
-            errors.put("neighbours", "NOT_NULL");
+        if (mapFragment.getLocalLaneIds() == null) {
+            errors.put("lanes", "NOT_NULL");
         }
 
-        if (mapFragment.getPatch2Actor() == null) {
+        if (mapFragment.getShadowPatchesReadable() == null) {
             errors.put("patch2Actor", "NOT_NULL");
         }
 
