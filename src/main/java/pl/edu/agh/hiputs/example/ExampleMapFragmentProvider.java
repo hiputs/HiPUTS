@@ -19,6 +19,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
+import pl.edu.agh.utils.DeterminingNeighborhoodUtil;
 
 public class ExampleMapFragmentProvider {
 
@@ -65,6 +66,8 @@ public class ExampleMapFragmentProvider {
         lane.addCarAtEntry(car);
       }
     });
+
+    DeterminingNeighborhoodUtil.execute(List.of(patch));
 
     return mapFragment;
   }
