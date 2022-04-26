@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.tasks;
 
 import java.util.Comparator;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -25,7 +26,7 @@ public class LaneUpdateStageTask implements Runnable {
    * Removes from Lane.carsQueue all cars which decided to leave this lane
    */
   private void removeLeavingCars(LaneEditable lane) {
-    while (lane.getCarAtExit().map(car -> !car.getDecision().getLaneId().equals(laneId)).orElse(false)) {
+    while (lane.getCarAtExit().map(car -> Objects.isNull(laneId) || !car.getDecision().getLaneId().equals(laneId)).orElse(false)) {
       lane.pollCarAtExit();
     }
   }

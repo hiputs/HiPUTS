@@ -2,7 +2,9 @@ package pl.edu.agh.hiputs.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +14,7 @@ import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage;
@@ -28,6 +31,7 @@ import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
 import pl.edu.agh.hiputs.service.usecase.CarSynchronizedService;
 
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subscriber {
 
@@ -46,18 +50,12 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
 
   @Override
   public void sendCarsToNeighbours() {
-    Map<MapFragmentId, LinkedList<SCar>> serializedCarMap = new HashMap<>();
+    Map<MapFragmentId, List<SCar>> serializedCarMap = new HashMap<>();
     List<Runnable> tasks = new ArrayList<>();
     Map<MapFragmentId, Set<Patch>> borderPatches = mapFragment.getBorderPatches();
 
-    // TODO: tasks are operating on shared LinkedLists, which are not thread safe - refactor this code to either
-    //       use a thread-safe collection, or use some other approach without this risk
-    //       OR - PREFERRED OPTION:
-    //       use one task per mapFragmentId and lists are accessed by a single thread
-    //       +
-    //       why LinkedList specifically?
     borderPatches.forEach((mapFragmentId, patches) -> {
-      LinkedList<SCar> toSendCars = serializedCarMap.put(mapFragmentId, new LinkedList<>());
+      List<SCar> toSendCars = serializedCarMap.computeIfAbsent(mapFragmentId, k -> new ArrayList<>());
       patches.forEach(patch -> tasks.add(new CarMapperTask(patch, toSendCars)));
     });
 
@@ -65,8 +63,8 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
     sendMessages(serializedCarMap);
   }
 
-  private void sendMessages(Map<MapFragmentId, LinkedList<SCar>> serializedCarMap) {
-    for (Map.Entry<MapFragmentId, LinkedList<SCar>> entry : serializedCarMap.entrySet()) {
+  private void sendMessages(Map<MapFragmentId, List<SCar>> serializedCarMap) {
+    for (Map.Entry<MapFragmentId, List<SCar>> entry : serializedCarMap.entrySet()) {
       CarTransferMessage carTransferMessage = new CarTransferMessage(entry.getValue());
       try {
         messageSenderService.send(entry.getKey(), carTransferMessage);
