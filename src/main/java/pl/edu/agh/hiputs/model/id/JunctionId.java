@@ -22,6 +22,10 @@ public class JunctionId {
     return new JunctionId(UUID.randomUUID().toString(), JunctionType.CROSSROAD);
   }
 
+  public static JunctionId randomBend() {
+    return new JunctionId(UUID.randomUUID().toString(), JunctionType.BEND);
+  }
+
   public boolean isCrossroad() {
     return this.junctionType == JunctionType.CROSSROAD;
   }

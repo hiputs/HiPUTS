@@ -22,7 +22,7 @@ public class LaneDecisionStageTask implements Runnable {
   }
 
   private void addToIncomingCarsOfDestinationLane(CarEditable car, LaneId destinationLaneId) {
-    if (!laneId.equals(destinationLaneId)) {
+    if (destinationLaneId != null && !laneId.equals(destinationLaneId)) {
       LaneEditable destinationLane = mapFragment.getLaneEditable(destinationLaneId);
       destinationLane.addIncomingCar(car);
     }

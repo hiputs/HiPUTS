@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.model.car;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
@@ -36,7 +37,10 @@ public class RouteWithLocation {
    * @return RouteElement starting with not yet visited junction
    */
   public RouteElement getNextRouteElement() {
-    return routeElements.get(currentPosition);
+    if (lastRouteElementReached()){
+      throw new RouteExceededException("Cannot get next route element cause route end has been reached already");
+    }
+    return routeElements.get(currentPosition + 1);
   }
 
   /**
@@ -60,10 +64,7 @@ public class RouteWithLocation {
    */
   // TODO: return Optional<LaneId> and remove exception?
   public LaneId getOffsetLaneId(int offset) {
-    if (currentPosition + offset >= this.routeElements.size() || currentPosition + offset < 0) {
-      throw new RouteExceededException(
-          "Size: " + this.routeElements.size() + " current position: " + currentPosition + " offset: " + offset);
-    }
+    validatePosition(currentPosition + offset);
     return this.routeElements.get(currentPosition + offset).getOutgoingLaneId();
   }
 
@@ -88,14 +89,26 @@ public class RouteWithLocation {
    */
   // TODO: return boolean and remove exception?
   public void setCurrentPosition(int currentPosition) {
-    if (currentPosition >= routeElements.size() || currentPosition < 0) {
-      throw new RouteExceededException("Size: " + this.routeElements.size() + " new position: " + currentPosition);
-    }
+    validatePosition(currentPosition);
     this.currentPosition = currentPosition;
+  }
+
+  /**
+   * @return True if currentPosition points to last element on route
+   */
+  public boolean lastRouteElementReached() {
+    return currentPosition == routeElements.size() - 1;
   }
 
   public void moveCurrentPositionWithOffset(int offset) {
     this.setCurrentPosition(this.currentPosition + offset);
+  }
+
+  private void validatePosition(int newPosition) throws RouteExceededException {
+    if (newPosition >= routeElements.size() || newPosition < 0) {
+      throw new RouteExceededException("Tried to access position = " + newPosition
+          + " on route with size = " + routeElements.size());
+    }
   }
 }
 

@@ -64,9 +64,9 @@ public class TrivialGraphBasedVisualizer {
     mapFragment.getLocalLaneIds().stream().map(mapFragment::getLaneReadable).forEach(lane -> {
       CarReadable car = lane.getCarAtEntryReadable().orElse(null);
       while (car != null) {
-        Sprite sprite = spriteManager.getSprite(car.getCarId().getValue());
+        Sprite sprite = spriteManager.getSprite(car.getCarId().getValue() + lane.getLaneId().getValue());
         if (sprite == null) {
-          sprite = spriteManager.addSprite(car.getCarId().getValue());
+          sprite = spriteManager.addSprite(car.getCarId().getValue() + lane.getLaneId().getValue());
           sprite.setAttribute("label", car.getCarId().getValue().substring(0, 3));
           sprite.attachToEdge(lane.getLaneId().getValue());
         }
