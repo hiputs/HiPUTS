@@ -19,7 +19,7 @@ public class SchedulerService implements TaskExecutorService {
   private static final int RESERVED_THREADS_NUMBER = 1;
 
   @PostConstruct
-  void init() {
+  public void init() {
     int cores = getFreeCores();
 
     if (cores <= 0) {
