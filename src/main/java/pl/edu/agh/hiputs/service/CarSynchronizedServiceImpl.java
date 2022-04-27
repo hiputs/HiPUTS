@@ -31,7 +31,7 @@ import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
 import pl.edu.agh.hiputs.service.usecase.CarSynchronizedService;
 
 @Slf4j
-@Service
+//@Service
 @RequiredArgsConstructor
 public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subscriber {
 
