@@ -1,4 +1,4 @@
-package pl.edu.agh.exception;
+package pl.edu.agh.hiputs.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

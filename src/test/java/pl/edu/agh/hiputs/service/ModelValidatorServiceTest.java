@@ -1,4 +1,4 @@
-package pl.edu.agh.service;
+package pl.edu.agh.hiputs.service;
 
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import pl.edu.agh.exception.ModelValidationException;
+import pl.edu.agh.hiputs.exception.ModelValidationException;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -45,7 +45,7 @@ public class ModelValidatorServiceTest {
         ModelValidationException exception = null;
 
         try{
-            modelValidatorService.checkModel();
+            modelValidatorService.checkModel(false);
         } catch (ModelValidationException e){
             exception = e;
         }
@@ -61,14 +61,14 @@ public class ModelValidatorServiceTest {
         ModelValidationException exception = null;
 
         try{
-            modelValidatorService.checkModel();
+            modelValidatorService.checkModel(false);
         } catch (ModelValidationException e){
             exception = e;
         }
 
         assertTrue(exception != null);
         assertEquals(3, exception.getErrors().size());
-        assertEquals(exception.toString(), "ModelValidationException(errors={outgoingJunction=NOT_NULL, incoming junction=NOT_NULL, lane length=TO_SHORT})");
+        assertEquals(exception.toString(), "ModelValidationException(errors={outgoingJunction=IS_NULL, incoming junction=IS_NULL, lane length=TO_SHORT})");
     }
 
     @Test
@@ -78,7 +78,7 @@ public class ModelValidatorServiceTest {
         ModelValidationException exception = null;
 
         try{
-            modelValidatorService.checkModel();
+            modelValidatorService.checkModel(false);
         } catch (ModelValidationException e){
             exception = e;
         }
@@ -93,7 +93,7 @@ public class ModelValidatorServiceTest {
         ModelValidationException exception = null;
 
         try{
-            modelValidatorService.checkModel();
+            modelValidatorService.checkModel(false);
         } catch (ModelValidationException e){
             exception = e;
         }

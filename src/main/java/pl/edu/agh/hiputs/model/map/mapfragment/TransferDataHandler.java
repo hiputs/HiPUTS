@@ -43,7 +43,7 @@ public interface TransferDataHandler {
   void acceptShadowPatches(Set<Patch> shadowPatches);
 
   /**
-   * Return own patches
+   * Return  patches from worker's point of view
    */
   Set<PatchReader> getKnownPatchReadable();
 
