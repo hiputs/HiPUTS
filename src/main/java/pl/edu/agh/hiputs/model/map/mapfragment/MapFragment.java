@@ -16,6 +16,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
@@ -144,6 +145,23 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   @Override
   public void acceptShadowPatches(Set<Patch> shadowPatches) {
     shadowPatches.forEach(shadowPatch -> knownPatches.put(shadowPatch.getPatchId(), shadowPatch));
+  }
+
+  @Override
+  public Set<PatchReader> getKnownPatchReadable() {
+    return knownPatches.values()
+        .stream()
+        .map(patch -> (PatchReader) patch)
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<PatchReader> getShadowPatchesReadable() {
+    return knownPatches.values()
+        .stream()
+        .filter(id -> !localPatchIds.contains(id))
+        .map(patch -> (PatchReader) patch)
+        .collect(Collectors.toSet());
   }
 
   public Set<LaneId> getLocalLaneIds() {

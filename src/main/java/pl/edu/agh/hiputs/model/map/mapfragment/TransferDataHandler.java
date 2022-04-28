@@ -5,7 +5,9 @@ import java.util.Set;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
+import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 
 public interface TransferDataHandler {
 
@@ -39,4 +41,14 @@ public interface TransferDataHandler {
    * This method may be invoked multiple times for a single iteration.
    */
   void acceptShadowPatches(Set<Patch> shadowPatches);
+
+  /**
+   * Return  patches from worker's point of view
+   */
+  Set<PatchReader> getKnownPatchReadable();
+
+  /**
+   * Return neighbourPatches
+   */
+  Set<PatchReader> getShadowPatchesReadable();
 }
