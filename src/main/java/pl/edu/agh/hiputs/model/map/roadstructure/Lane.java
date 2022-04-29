@@ -122,5 +122,9 @@ public class Lane implements LaneEditable {
   public Stream<CarEditable> streamCarsFromExitEditable() {
     return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false);
   }
+
+  public boolean removeCar(CarEditable car) {
+    return this.cars.remove(car);
+  }
 }
 

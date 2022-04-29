@@ -2,6 +2,8 @@ package pl.edu.agh.hiputs.tasks;
 
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -37,7 +39,13 @@ public class LaneUpdateStageTask implements Runnable {
    * @param lane
    */
   private void updateCarsOnLane(LaneEditable lane) {
-    lane.streamCarsFromExitEditable().forEach(CarEditable::update);
+    List<CarEditable> carsToRemove = lane
+        .streamCarsFromExitEditable()
+        .filter(car -> car.update().isEmpty())
+        .collect(Collectors.toList());
+    for (CarEditable car : carsToRemove) {
+      lane.removeCar(car);
+    }
   }
 
   /**
@@ -49,8 +57,8 @@ public class LaneUpdateStageTask implements Runnable {
     lane.pollIncomingCars()
         .sorted(Comparator.<CarEditable>comparingDouble(car -> car.getDecision().getPositionOnLane()).reversed())
         .forEach(currentCar -> {
-          lane.addCarAtEntry(currentCar);
-          currentCar.update();
+          if (currentCar.update().isPresent())
+            lane.addCarAtEntry(currentCar);
         });
   }
 }
