@@ -1,25 +1,27 @@
 package pl.edu.agh.partition.mapper;
 
-import pl.edu.agh.partition.model.Edge;
-import pl.edu.agh.partition.model.Graph;
+import pl.edu.agh.partition.model.JunctionData;
+import pl.edu.agh.partition.model.WayData;
+import pl.edu.agh.partition.model.graph.Edge;
+import pl.edu.agh.partition.model.graph.Graph;
 
 class GraphLengthFiller implements GraphTransformer {
 
     @Override
-    public Graph transform(Graph graph) {
-        for (Edge edge : graph.getEdges().values()) {
+    public Graph<JunctionData, WayData> transform(Graph<JunctionData, WayData> graph) {
+        for (Edge<JunctionData, WayData> edge : graph.getEdges().values()) {
             double length = calculateLength(edge);
-            edge.setLength(length);
+            edge.getData().setLength(length);
         }
         return graph;
     }
 
-    private double calculateLength(Edge edge) {
+    private double calculateLength(Edge<JunctionData, WayData> edge) {
         return distance(
-                edge.getSource().getLat(),
-                edge.getTarget().getLat(),
-                edge.getSource().getLon(),
-                edge.getTarget().getLon());
+                edge.getSource().getData().getLat(),
+                edge.getTarget().getData().getLat(),
+                edge.getSource().getData().getLon(),
+                edge.getTarget().getData().getLon());
     }
 
     /**

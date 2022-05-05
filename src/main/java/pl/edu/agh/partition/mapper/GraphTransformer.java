@@ -1,9 +1,11 @@
 package pl.edu.agh.partition.mapper;
 
-import pl.edu.agh.partition.model.Graph;
+import pl.edu.agh.partition.model.JunctionData;
+import pl.edu.agh.partition.model.WayData;
+import pl.edu.agh.partition.model.graph.Graph;
 
 interface GraphTransformer {
 
-    Graph transform(Graph graph);
+    Graph<JunctionData, WayData> transform(Graph<JunctionData, WayData> graph);
 
 }
