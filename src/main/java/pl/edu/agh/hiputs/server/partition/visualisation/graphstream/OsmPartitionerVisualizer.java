@@ -22,7 +22,8 @@ public class OsmPartitionerVisualizer {
 
   protected pl.edu.agh.hiputs.server.partition.model.graph.Graph<JunctionData, WayData> map;
 
-  public OsmPartitionerVisualizer(pl.edu.agh.hiputs.server.partition.model.graph.Graph<JunctionData, WayData> map) {
+  public OsmPartitionerVisualizer(
+      pl.edu.agh.hiputs.server.partition.model.graph.Graph<JunctionData, WayData> map) {
     this.map = map;
 
     this.graph = new SingleGraph("The city");

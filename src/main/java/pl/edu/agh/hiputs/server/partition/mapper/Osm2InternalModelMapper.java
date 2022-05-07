@@ -7,11 +7,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import pl.edu.agh.hiputs.server.partition.model.JunctionData;
-import pl.edu.agh.hiputs.server.partition.model.WayData;
 import pl.edu.agh.hiputs.server.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.server.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.server.partition.model.graph.Node;
+import pl.edu.agh.hiputs.server.partition.model.JunctionData;
+import pl.edu.agh.hiputs.server.partition.model.WayData;
 import pl.edu.agh.hiputs.server.partition.osm.OsmGraph;
 
 public class Osm2InternalModelMapper {

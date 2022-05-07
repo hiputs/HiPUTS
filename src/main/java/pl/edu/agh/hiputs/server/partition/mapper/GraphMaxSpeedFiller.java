@@ -1,10 +1,10 @@
 package pl.edu.agh.hiputs.server.partition.mapper;
 
 import java.util.Map;
-import pl.edu.agh.hiputs.server.partition.model.JunctionData;
 import pl.edu.agh.hiputs.server.partition.model.WayData;
 import pl.edu.agh.hiputs.server.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.server.partition.model.graph.Graph;
+import pl.edu.agh.hiputs.server.partition.model.JunctionData;
 
 class GraphMaxSpeedFiller implements GraphTransformer {
 

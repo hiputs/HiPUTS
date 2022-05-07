@@ -4,13 +4,13 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import pl.edu.agh.hiputs.server.partition.model.JunctionData;
-import pl.edu.agh.hiputs.server.partition.model.PatchConnectionData;
-import pl.edu.agh.hiputs.server.partition.model.PatchData;
 import pl.edu.agh.hiputs.server.partition.model.WayData;
 import pl.edu.agh.hiputs.server.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.server.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.server.partition.model.graph.Node;
+import pl.edu.agh.hiputs.server.partition.model.JunctionData;
+import pl.edu.agh.hiputs.server.partition.model.PatchConnectionData;
+import pl.edu.agh.hiputs.server.partition.model.PatchData;
 
 public class TrivialPatchPartitioner implements PatchPartitioner {
 
