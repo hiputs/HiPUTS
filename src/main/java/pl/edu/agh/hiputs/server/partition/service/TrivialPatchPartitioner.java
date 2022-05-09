@@ -23,6 +23,7 @@ public class TrivialPatchPartitioner implements PatchPartitioner {
     for (Edge<JunctionData, WayData> edge : graph.getEdges().values()) {
       String patchId = randomPatchId();
       edge.getData().setPatchId(patchId);
+      edge.getTarget().getData().setPatchId(patchId); //trivial implementation! it is not so obvious
 
       PatchData patchData = PatchData.builder()
           .graphInsidePatch(

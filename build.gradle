@@ -35,6 +35,7 @@ dependencies {
     implementation 'javax.inject:javax.inject:1'
     implementation 'org.graphstream:gs-core:2.0'
     implementation 'org.graphstream:gs-ui-swing:2.0'
+    implementation 'org.apache.commons:commons-csv:1.9.0'
     implementation 'com.google.code.gson:gson:2.9.0'
 
     implementation 'de.topobyte:osm4j-xml:0.1.3'
