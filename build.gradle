@@ -29,6 +29,7 @@ dependencies {
     implementation 'javax.inject:javax.inject:1'
     implementation 'org.graphstream:gs-core:2.0'
     implementation 'org.graphstream:gs-ui-swing:2.0'
+    implementation 'com.google.code.gson:gson:2.9.0'
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
 

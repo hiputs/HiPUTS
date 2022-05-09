@@ -9,8 +9,8 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.NeighbourConnectionMessage;
 import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
-import pl.edu.agh.hiputs.communication.service.MessageReceiverService;
-import pl.edu.agh.hiputs.communication.service.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
+import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 
 @SpringBootTest
 public class SubscriptionServiceTest {
