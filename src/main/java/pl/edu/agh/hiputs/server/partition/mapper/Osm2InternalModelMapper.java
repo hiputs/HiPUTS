@@ -19,41 +19,49 @@ public class Osm2InternalModelMapper {
   private final List<GraphTransformer> graphTransformers = List.of(new GraphMaxSpeedFiller(), new GraphLengthFiller());
 
   public Graph<JunctionData, WayData> osmToInternal(OsmGraph osmGraph) {
-    Graph<JunctionData, WayData> graph = new Graph<>();
-    osmGraph.getNodes().stream().map(osmNode -> osmToInternal(osmNode)).forEach(graph::addNode);
-    osmGraph.getWays().stream().flatMap(osmWay -> osmToInternal(osmWay).stream()).forEach(graph::addEdge);
+    Graph.GraphBuilder<JunctionData, WayData> graphBuilder = new Graph.GraphBuilder<>();
+    osmGraph.getNodes().stream().map(osmNode -> osmToInternal(osmNode)).forEach(graphBuilder::addNode);
+    osmGraph.getWays().stream().flatMap(osmWay -> osmToInternal(osmWay).stream()).forEach(graphBuilder::addEdge);
+
+    Graph<JunctionData, WayData> graph = graphBuilder.build();
     graphTransformers.forEach(t -> t.transform(graph));
     return graph;
   }
 
   private Node<JunctionData, WayData> osmToInternal(OsmNode osmNode) {
-    Node<JunctionData, WayData> node = new Node<>(String.valueOf(osmNode.getId()));
-    node.getData().setLat(osmNode.getLatitude());
-    node.getData().setLon(osmNode.getLongitude());
-    node.getData().setTags(getTags(osmNode));
-    return node;
+    JunctionData junctionData = JunctionData.builder()
+        .lat(osmNode.getLatitude())
+        .lon(osmNode.getLongitude())
+        .tags(getTags(osmNode))
+        .build();
+    return new Node<>(String.valueOf(osmNode.getId()), junctionData);
   }
 
   private List<Edge<JunctionData, WayData>> osmToInternal(OsmWay osmWay) {
     List<Edge<JunctionData, WayData>> edges = new LinkedList<>();
     for (int i = 0; i < osmWay.getNumberOfNodes() - 1; i++) {
       Map<String, String> tags = getTags(osmWay);
-      Edge<JunctionData, WayData> edge = new Edge<>(osmWay.getNodeId(i) + "->" + osmWay.getNodeId(i + 1));
-      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i))));
-      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i + 1))));
-      edge.getData().setTags(tags);
+      WayData wayData = WayData.builder()
+          .tags(tags)
+          .isOneWay(tags.containsKey("oneway") && tags.get("oneway").equals("true"))
+          .build();
+      Edge<JunctionData, WayData> edge = new Edge<>(osmWay.getNodeId(i) + "->" + osmWay.getNodeId(i + 1), wayData);
+      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i)), null));
+      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), null));
       edges.add(edge);
 
-      if (tags.containsKey("oneway") && tags.get("oneway").equals("true")) {
-        edge.getData().setOneWay(true);
+      if (wayData.isOneWay()) {
         continue;
       }
 
       //add opposite lane
-      edge = new Edge<>(osmWay.getNodeId(i + 1) + "->" + osmWay.getNodeId(i));
-      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i + 1))));
-      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i))));
-      edge.getData().setTags(tags);
+      wayData = WayData.builder()
+          .tags(tags)
+          .isOneWay(false)
+          .build();
+      edge = new Edge<>(osmWay.getNodeId(i + 1) + "->" + osmWay.getNodeId(i), wayData);
+      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), null));
+      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i)), null));
       edges.add(edge);
     }
     return edges;

@@ -10,7 +10,7 @@ import lombok.Setter;
 public class Edge<T extends NodeData, S extends EdgeData> {
 
   private final String id;
-  private S data;
+  private final S data;
 
   private Node<T, S> source;
   private Node<T, S> target;

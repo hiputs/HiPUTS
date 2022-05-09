@@ -32,6 +32,7 @@ public class OsmPartitionerVisualizer {
     spriteManager = new SpriteManager(this.graph);
 
     buildGraphStructure();
+    System.out.println(graphStylesBuilder.toString());
     this.graph.setAttribute("ui.stylesheet", graphStylesBuilder.toString());
   }
 
@@ -45,7 +46,7 @@ public class OsmPartitionerVisualizer {
 
     for (val osmEdge : map.getEdges().values()) {
       Edge edge = this.graph.addEdge(osmEdge.getId(), osmEdge.getSource().getId(), osmEdge.getTarget().getId(), true);
-      edge.setAttribute("ui.class", edge.getId());
+      edge.setAttribute("ui.class", "e" + osmEdge.getId().replace("->", ""));
       graphStylesBuilder.append(generateStyleFromUUID(edge.getId()));
     }
   }
@@ -63,7 +64,14 @@ public class OsmPartitionerVisualizer {
   }
 
   private String generateStyleFromUUID(String id) {
-    return id + " { shape: line; fill-color: #" + Integer.toHexString(id.hashCode() % 4096)
+    return "edge.e" +  id.replace("->", "") + " { shape: line; fill-color: #" + int2rgb(id.hashCode())
         + "; arrow-size: 0px, 0px; }\n";
+  }
+
+  private String int2rgb(int i) {
+    String s = Integer.toHexString(Math.abs(i) % 4096);
+    if (s.length() == 1) return "00" + s;
+    if (s.length() == 2) return "0" + s;
+    return s;
   }
 }

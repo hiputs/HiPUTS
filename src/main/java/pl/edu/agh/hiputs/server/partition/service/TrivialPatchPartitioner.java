@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.server.partition.service;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -14,46 +15,52 @@ import pl.edu.agh.hiputs.server.partition.model.PatchData;
 
 public class TrivialPatchPartitioner implements PatchPartitioner {
 
-  private Map<String, Node<PatchData, PatchConnectionData>> patchId2patch;
+  private final Map<String, Node<PatchData, PatchConnectionData>> patchId2patch = new HashMap<>();
 
   @Override
   public Graph<PatchData, PatchConnectionData> partition(Graph<JunctionData, WayData> graph) {
-    Graph<PatchData, PatchConnectionData> res = new Graph<>();
+    Graph.GraphBuilder<PatchData, PatchConnectionData> graphBuilder = new Graph.GraphBuilder<>();
     for (Edge<JunctionData, WayData> edge : graph.getEdges().values()) {
       String patchId = randomPatchId();
       edge.getData().setPatchId(patchId);
 
-      Node<PatchData, PatchConnectionData> patch = new Node<>(patchId);
-      patch.getData().getEdges().put(edge.getId(), edge);
-      patch.getData().getNodes().put(edge.getTarget().getId(), edge.getTarget());
-      // patch.getData().getNodes().put(edge.getSource().getId(), edge.getSource());
+      PatchData patchData = PatchData.builder()
+          .graphInsidePatch(
+              (new Graph.GraphBuilder<JunctionData, WayData>())
+                  .addNode(edge.getTarget())
+                  .addEdge(edge)
+                  .build())
+          .build();
+      Node<PatchData, PatchConnectionData> patch = new Node<>(patchId, patchData);
 
       patchId2patch.put(patchId, patch);
-      res.addNode(patch);
+      graphBuilder.addNode(patch);
     }
 
     //detect edges of patches graph
     patchId2patch.entrySet()
         .stream()
         .map(es -> es.getValue()
-            .getData()
+            .getData().getGraphInsidePatch()
             .getNodes()
             .values()
             .stream()
             .flatMap(nodes -> nodes.getOutgoingEdges().stream())
             .map(e -> {
+              PatchConnectionData patchConnectionData = PatchConnectionData.builder()
+                  .throughput((double) e.getData().getMaxSpeed())
+                  .build();
               Edge<PatchData, PatchConnectionData> newPatchConnection =
-                  new Edge<>(es.getKey() + "->" + e.getData().getPatchId());
+                  new Edge<>(es.getKey() + "->" + e.getData().getPatchId(), patchConnectionData);
               newPatchConnection.setSource(patchId2patch.get(es.getKey()));
               newPatchConnection.setTarget(patchId2patch.get(e.getData().getPatchId()));
-              newPatchConnection.getData().setThroughput((double) e.getData().getMaxSpeed());
               return newPatchConnection;
             })
             .collect(Collectors.toList()))
         .flatMap(Collection::stream)
-        .forEach(res::addEdge);
+        .forEach(graphBuilder::addEdge);
 
-    return res;
+    return graphBuilder.build();
   }
 
   private String randomPatchId() {

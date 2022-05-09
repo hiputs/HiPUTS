@@ -1,14 +1,12 @@
 package pl.edu.agh.hiputs.server.partition.model;
 
 import java.util.Map;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import pl.edu.agh.hiputs.server.partition.model.graph.NodeData;
 
 @Getter
-@Setter
-@RequiredArgsConstructor
+@Builder
 public class JunctionData implements NodeData {
 
   private Double lon;
