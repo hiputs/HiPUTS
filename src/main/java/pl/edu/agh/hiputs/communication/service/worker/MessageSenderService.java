@@ -32,7 +32,7 @@ public class MessageSenderService implements Subscriber {
   }
 
   /**
-   * @param neighbourId - unique worker id
+   * @param mapFragmentId - mapFragment and unique worker id
    * @param message - message to send
    *
    * @throws IOException <p>Method send message to specific client</p>

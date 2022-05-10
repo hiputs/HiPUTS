@@ -1,15 +1,16 @@
 package pl.edu.agh.hiputs.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.edu.agh.hiputs.startingUp.StrategyEnum;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class Configuration {
 
   /**

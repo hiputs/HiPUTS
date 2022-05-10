@@ -7,7 +7,7 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 
 @Service
 @RequiredArgsConstructor
-public class MessageSenderService {
+public class MessageSenderServerService {
 
   private final WorkerRepository workerRepository;
 

@@ -2,8 +2,7 @@ package pl.edu.agh.hiputs.communication.model.messages;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import pl.edu.agh.hiputs.server.communication.model.MessagesTypeEnum;
-import pl.edu.agh.hiputs.server.communication.model.messages.Message;
+import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 
 @AllArgsConstructor
 @Getter
