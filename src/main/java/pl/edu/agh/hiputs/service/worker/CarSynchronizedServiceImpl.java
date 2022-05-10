@@ -21,6 +21,7 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.CarMapperTask;
@@ -32,7 +33,6 @@ import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizedService;
 @RequiredArgsConstructor
 public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subscriber {
 
-  private final MapFragment mapFragment;
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutorService;
   private final MessageSenderService messageSenderService;
@@ -46,7 +46,7 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
   }
 
   @Override
-  public void sendCarsToNeighbours() {
+  public void sendCarsToNeighbours(TransferDataHandler mapFragment) {
     Map<MapFragmentId, List<SCar>> serializedCarMap = new HashMap<>();
     List<Runnable> tasks = new ArrayList<>();
     Map<MapFragmentId, Set<Patch>> borderPatches = mapFragment.getBorderPatches();
@@ -73,7 +73,7 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
 
   @SneakyThrows
   @Override
-  public void synchronizedGetIncomingCar() {
+  public void synchronizedGetIncomingCar(TransferDataHandler mapFragment) {
     int countOfNeighbours = mapFragment.getNeighbors().size();
     while (incomingMessages.size() < countOfNeighbours) {
       this.wait();

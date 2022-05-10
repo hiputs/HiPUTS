@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -19,7 +18,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
-import pl.edu.agh.utils.DeterminingNeighborhoodUtil;
+import pl.edu.agh.hiputs.utils.DeterminingNeighborhoodUtil;
 
 public class ExampleMapFragmentProvider {
 
