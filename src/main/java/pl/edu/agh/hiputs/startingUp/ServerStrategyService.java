@@ -33,7 +33,7 @@ public class ServerStrategyService implements Strategy {
   public void executeStrategy() {
     workerPrepareExecutor.submit(new PrepareWorkerTask());
     workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
-    List<Patch> patches = createPaths();
+    List<Patch> patches = createPatches();
     Map<String, List<PatchId>> dividedPatchesIds = divideService.divide(patches);
     workerSynchronisationService.waitForAllWorkers(CompletedInitializationMessage);
     distributeRunSimulationMessage();
@@ -54,7 +54,7 @@ public class ServerStrategyService implements Strategy {
   private void distributeInitializationData(List<Patch> patches) {
   }
 
-  private List<Patch> createPaths() {
+  private List<Patch> createPatches() {
     // ToDo code to read map and create patches
     return null;
   }
