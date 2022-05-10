@@ -12,6 +12,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.util.Strings;
 import pl.edu.agh.hiputs.server.partition.model.JunctionData;
 import pl.edu.agh.hiputs.server.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.server.partition.model.PatchData;
@@ -22,7 +23,7 @@ import pl.edu.agh.hiputs.server.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.server.partition.model.graph.Node;
 
 public class GraphReadWriter {
-  private static final String COLLECTION_ELEMENT_CSV_DELIMITER = "\\+";
+  private static final String COLLECTION_ELEMENT_CSV_DELIMITER = "#";
   private static final String MAP_KEY_VALUE_PAIR_CSV_DELIMITER = "::";
 
   public void saveGraphWithPatches(Graph<PatchData, PatchConnectionData> graph, ExportDescriptor exportDescriptor) throws IOException {
@@ -30,9 +31,9 @@ public class GraphReadWriter {
     FileWriter edgesWriter = new FileWriter(exportDescriptor.getEdgesFileName());
     FileWriter patchesWriter = new FileWriter(exportDescriptor.getPatchesFileName());
 
-    try (CSVPrinter nodesPrinter = new CSVPrinter(nodesWriter, CSVFormat.DEFAULT.builder().setHeader(ExportDescriptor.NODES_HEADER).build());
-        CSVPrinter edgesPrinter = new CSVPrinter(edgesWriter, CSVFormat.DEFAULT.builder().setHeader(ExportDescriptor.EDGES_HEADER).build());
-        CSVPrinter patchesPrinter = new CSVPrinter(patchesWriter, CSVFormat.DEFAULT.builder().setHeader(ExportDescriptor.PATCHES_HEADER).build())) {
+    try (CSVPrinter nodesPrinter = new CSVPrinter(nodesWriter, CSVFormat.DEFAULT.builder().setHeader(NodeHeaders.class).build());
+        CSVPrinter edgesPrinter = new CSVPrinter(edgesWriter, CSVFormat.DEFAULT.builder().setHeader(EdgeHeader.class).build());
+        CSVPrinter patchesPrinter = new CSVPrinter(patchesWriter, CSVFormat.DEFAULT.builder().setHeader(PatchHeader.class).build())) {
       for (Node<PatchData, PatchConnectionData> p : graph.getNodes().values()) {
         patchesPrinter.printRecord(p.getId(),
             mapToCsv(p.getOutgoingEdges().stream().map(e -> e.getTarget().getId()).collect(Collectors.toList())));
@@ -70,7 +71,12 @@ public class GraphReadWriter {
 
     Map<String, Graph.GraphBuilder<JunctionData, WayData>> insideGraphs = new HashMap<>();
 
-    Iterable<CSVRecord> records = CSVFormat.DEFAULT.builder().setSkipHeaderRecord(true).build().parse(nodesReader);
+    Iterable<CSVRecord> records = CSVFormat.DEFAULT.builder()
+        .setHeader(NodeHeaders.class)
+        .setSkipHeaderRecord(true)
+        .build()
+        .parse(nodesReader);
+
     for (CSVRecord record : records) {
       JunctionData junctionData = JunctionData.builder()
           .lon(Double.parseDouble(record.get("longitude")))
@@ -85,7 +91,10 @@ public class GraphReadWriter {
       insideGraphs.get(record.get("patch_id")).addNode(new Node<>(record.get("id"), junctionData));
     }
 
-    records = CSVFormat.DEFAULT.builder().setSkipHeaderRecord(true).build().parse(edgesReader);
+    records = CSVFormat.DEFAULT.builder()
+        .setHeader(EdgeHeader.class)
+        .setSkipHeaderRecord(true)
+        .build().parse(edgesReader);
     for (CSVRecord record : records) {
       WayData wayData = WayData.builder()
           .length(Double.parseDouble(record.get("length")))
@@ -110,21 +119,27 @@ public class GraphReadWriter {
       resultGraph.addNode(new Node<>(patchId, patchData));
     }
 
-    records = CSVFormat.DEFAULT.builder().setSkipHeaderRecord(true).build().parse(patchesReader);
+    records = CSVFormat.DEFAULT.builder()
+        .setHeader(PatchHeader.class)
+        .setSkipHeaderRecord(true)
+        .build().parse(patchesReader);
     for(CSVRecord record : records) {
-      record.get("patch_id");
+      record.get("id");
       for(String neighbouringPatchId : csvToCollection(record.get("neighbouring_patches_ids"))) {
-        Edge<PatchData, PatchConnectionData> edge = new Edge<>(record.get("patch_id") + "->" + neighbouringPatchId, null);
-        edge.setSource(new Node<>(record.get("patch_id"), null));
+        Edge<PatchData, PatchConnectionData> edge = new Edge<>(record.get("id") + "->" + neighbouringPatchId, null);
+        edge.setSource(new Node<>(record.get("id"), null));
         edge.setTarget(new Node<>(neighbouringPatchId, null));
         resultGraph.addEdge(edge);
       }
     }
 
-    return null;
+    return resultGraph.build();
   }
 
-  private String mapToCsv(Map<String, String> map) {
+  public Graph<PatchData, PatchConnectionData> readGraphWithPatches() throws IOException {
+    return readGraphWithPatches(ExportDescriptor.builder().build());
+  }
+    private String mapToCsv(Map<String, String> map) {
     return map.entrySet()
         .stream()
         .map(entry -> entry.getKey() + MAP_KEY_VALUE_PAIR_CSV_DELIMITER + entry.getValue())
@@ -132,6 +147,9 @@ public class GraphReadWriter {
   }
 
   private Map<String, String> csvToMap(String csvRepr) {
+    if (Strings.isBlank(csvRepr)) {
+      return new HashMap<>();
+    }
     return Arrays.stream(csvRepr.split(COLLECTION_ELEMENT_CSV_DELIMITER))
         .map(e -> Pair.of(
             e.split(MAP_KEY_VALUE_PAIR_CSV_DELIMITER)[0],
