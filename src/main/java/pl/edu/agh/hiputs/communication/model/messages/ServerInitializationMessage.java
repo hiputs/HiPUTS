@@ -2,19 +2,17 @@ package pl.edu.agh.hiputs.communication.model.messages;
 
 import lombok.Builder;
 import lombok.Data;
-import pl.edu.agh.hiputs.server.communication.model.MessagesTypeEnum;
-import pl.edu.agh.hiputs.server.communication.model.messages.Message;
-import pl.edu.agh.hiputs.server.communication.model.serializable.SNeighbourConnection;
-import pl.edu.agh.hiputs.server.communication.model.serializable.SPath;
+import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 
 import java.util.List;
+import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 
 @Data
 @Builder
 public class ServerInitializationMessage implements Message {
 
-  private List<SPath> patches;
-  private List<SNeighbourConnection> neighbourConnections;
+  private List<String> patchIds;
+  private List<ConnectionDto> neighbourConnections;
 
   @Override
   public MessagesTypeEnum getMessageType() {

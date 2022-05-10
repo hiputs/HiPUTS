@@ -29,11 +29,11 @@ public class StrategySelectionService {
 
     try {
       if (configuration.isTestMode()) {
-        singleWorkStrategyService.run();
+        singleWorkStrategyService.executeStrategy();
       } else if(!isServerRunning()){
-        serverStrategyService.run();
+        serverStrategyService.executeStrategy();
       } else {
-        workerStrategyService.run();
+        workerStrategyService.executeStrategy();
       }
 
     } catch (InterruptedException | IOException e) {

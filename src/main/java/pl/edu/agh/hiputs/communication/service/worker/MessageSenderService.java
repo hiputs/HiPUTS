@@ -1,6 +1,6 @@
 package pl.edu.agh.hiputs.communication.service.worker;
 
-import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.WorkerConnectionMessage;
+import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ServerInitializationMessage;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -8,22 +8,27 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.communication.NeighbourConnection;
+import pl.edu.agh.hiputs.communication.Connection;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.model.messages.NeighbourConnectionMessage;
+import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
+import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
+import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
+import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Service
 @RequiredArgsConstructor
 public class MessageSenderService implements Subscriber {
 
-  private final Map<MapFragmentId, NeighbourConnection> neighbourRepository = new HashMap<>();
+  private final Map<MapFragmentId, Connection> neighbourRepository = new HashMap<>();
+  private final ConfigurationService configurationService;
+  private Connection serverConnection;
   private final SubscriptionService subscriptionService;
 
   @PostConstruct
   void init() {
-    subscriptionService.subscribe(this, WorkerConnectionMessage);
+    subscriptionService.subscribe(this, ServerInitializationMessage);
   }
 
   /**
@@ -32,8 +37,26 @@ public class MessageSenderService implements Subscriber {
    *
    * @throws IOException <p>Method send message to specific client</p>
    */
-  public void send(MapFragmentId neighbourId, Message message) throws IOException {
-    neighbourRepository.get(neighbourId).send(message);
+  public void send(MapFragmentId mapFragmentId, Message message) throws IOException {
+    neighbourRepository.get(mapFragmentId).send(message);
+  }
+
+  public void sendServerMessage(Message message) throws IOException {
+    if(serverConnection == null){
+      createServerConnection();
+    }
+
+    serverConnection.send(message);
+  }
+
+  private void createServerConnection() {
+    Configuration configuration = configurationService.getConfiguration();
+    ConnectionDto connectionDto = ConnectionDto.builder()
+        .port(configuration.getServerPort())
+        .address(configuration.getServerAddress())
+        .id("SERVER")
+        .build();
+    serverConnection = new Connection(connectionDto);
   }
 
   /**
@@ -53,8 +76,10 @@ public class MessageSenderService implements Subscriber {
 
   @Override
   public void notify(Message message) {
-    NeighbourConnectionMessage workerConnectionMessage = (NeighbourConnectionMessage) message;
-    NeighbourConnection connection = new NeighbourConnection(workerConnectionMessage);
-    neighbourRepository.put(new MapFragmentId(workerConnectionMessage.getId()), connection);
+    ServerInitializationMessage workerConnectionMessage = (ServerInitializationMessage) message;
+    workerConnectionMessage.getNeighbourConnections().forEach(c -> {
+      Connection connection = new Connection(c);
+      neighbourRepository.put(new MapFragmentId(c.getId()), connection);
+    });
   }
 }

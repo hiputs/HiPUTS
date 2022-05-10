@@ -47,6 +47,21 @@ public class Configuration {
    */
   private String mapPath;
 
+  /**
+   * Good knowledge server ip address
+   */
+  private String serverAddress;
+
+  /**
+   * Good knowledge server port
+   */
+  private int serverPort;
+
+  /**
+   * Server and worker exist in the same machine
+   */
+  private boolean isLocalHostMode;
+
   public static Configuration getDefault() {
     return Configuration.builder()
         .testMode(true)

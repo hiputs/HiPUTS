@@ -10,10 +10,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
@@ -23,12 +26,15 @@ import pl.edu.agh.hiputs.communication.utils.MessageConverter;
 /**
  * Socket where all messages addressed to the given client are received.
  */
+@Slf4j
 @Service
 public class MessageReceiverService {
 
   private final Map<MessagesTypeEnum, List<Subscriber>> subscriberRepository = new HashMap<>();
   private final ExecutorService threadPoolExecutor = newSingleThreadExecutor();
   private final ExecutorService listenerExecutor = newSingleThreadExecutor();
+  @Getter
+  private int port;
 
   public MessageReceiverService() {
     Arrays.stream(MessagesTypeEnum.values())
@@ -54,8 +60,20 @@ public class MessageReceiverService {
     public void run() {
       try {
         //toDo create simply server to get port for worker
-        ServerSocket ss = new ServerSocket(6666);
+        Random random = new Random();
+        int portSeed = random.nextInt() % 40000;
+        ServerSocket ss = null;
 
+        while (true) {
+          try {
+            ss = new ServerSocket(10000 + portSeed);
+            portSeed = random.nextInt() % 40000;
+            break;
+          } catch (Exception e) {
+            log.warn("Port: " + portSeed + " is not available", e);
+          }
+        }
+        port = ss.getLocalPort();
         while (true) {
           Socket s = ss.accept();
           threadPoolExecutor.submit(new SingleConnectionExecutor(s));

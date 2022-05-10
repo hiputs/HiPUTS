@@ -27,11 +27,11 @@ public class ServerStrategyService implements Strategy {
   private final ConfigurationService configurationService;
   private final WorkerStrategyService workerStrategyService;
   private final DivideService divideService;
-  private final ExecutorService listenerExecutor = newSingleThreadExecutor();
+  private final ExecutorService workerPrepareExecutor = newSingleThreadExecutor();
 
   @Override
-  public void run() {
-    listenerExecutor.submit(workerStrategyService);
+  public void executeStrategy() {
+    workerPrepareExecutor.submit(new PrepareWorkerTask());
     workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
     List<Patch> patches = createPaths();
     Map<String, List<PatchId>> dividedPatchesIds = divideService.divide(patches);
@@ -57,5 +57,13 @@ public class ServerStrategyService implements Strategy {
   private List<Patch> createPaths() {
     // ToDo code to read map and create patches
     return null;
+  }
+
+  private class PrepareWorkerTask implements Runnable {
+
+    @Override
+    public void run() {
+      workerStrategyService.executeStrategy();
+    }
   }
 }
