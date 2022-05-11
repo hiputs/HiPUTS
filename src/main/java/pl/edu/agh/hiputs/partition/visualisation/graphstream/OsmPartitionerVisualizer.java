@@ -8,6 +8,7 @@ import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.spriteManager.SpriteManager;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
+import pl.edu.agh.utils.CoordinatesUtil;
 
 public class OsmPartitionerVisualizer {
 
@@ -32,7 +33,6 @@ public class OsmPartitionerVisualizer {
     spriteManager = new SpriteManager(this.graph);
 
     buildGraphStructure();
-    System.out.println(graphStylesBuilder.toString());
     this.graph.setAttribute("ui.stylesheet", graphStylesBuilder.toString());
   }
 
@@ -40,8 +40,8 @@ public class OsmPartitionerVisualizer {
     for (val osmNode : map.getNodes().values()) {
       Node node = this.graph.addNode(osmNode.getId());
       node.setAttribute("label", osmNode.getId().substring(0, 3));
-      node.setAttribute("xy", longitude2plain(osmNode.getData().getLon(), osmNode.getData().getLat()),
-          latitude2plain(osmNode.getData().getLat()));
+      node.setAttribute("xy", CoordinatesUtil.longitude2plain(osmNode.getData().getLon(), osmNode.getData().getLat()),
+          CoordinatesUtil.latitude2plain(osmNode.getData().getLat()));
     }
 
     for (val osmEdge : map.getEdges().values()) {
@@ -53,14 +53,6 @@ public class OsmPartitionerVisualizer {
 
   public void showGui() {
     this.graph.display(false);
-  }
-
-  private Double latitude2plain(Double lat) {
-    return 6371 * Math.toRadians(lat);
-  }
-
-  private Double longitude2plain(Double lon, Double lat) {
-    return 6371 * Math.toRadians(lon) * Math.cos(Math.toRadians(lat));
   }
 
   private String generateStyleFromUUID(String id) {

@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.visualization.graphstream;
 
 import java.util.ArrayList;
 import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.spriteManager.Sprite;
 import org.graphstream.ui.spriteManager.SpriteManager;
@@ -9,6 +10,8 @@ import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.utils.CoordinatesUtil;
 
 /**
  * Simple visualization
@@ -31,6 +34,8 @@ public class TrivialGraphBasedVisualizer {
 
   protected MapFragment mapFragment;
 
+  protected boolean drawBasedOnCoordinates;
+
   public TrivialGraphBasedVisualizer(MapFragment mapFragment) {
     this.mapFragment = mapFragment;
 
@@ -45,9 +50,20 @@ public class TrivialGraphBasedVisualizer {
   }
 
   protected void buildGraphStructure() {
+    drawBasedOnCoordinates = mapFragment.getLocalJunctionIds().stream().map(mapFragment::getJunctionReadable)
+        .noneMatch(junctionReadable -> junctionReadable.getLongitude() == null || junctionReadable.getLatitude() == null);
+
     mapFragment.getLocalJunctionIds()
-        .forEach(junctionId -> this.graph.addNode(junctionId.getValue())
-            .setAttribute("label", junctionId.getValue().substring(0, 3)));
+        .forEach(junctionId -> {
+          Node node = this.graph.addNode(junctionId.getValue());
+          node.setAttribute("label", junctionId.getValue().substring(0, 3));
+          if (drawBasedOnCoordinates) {
+            JunctionReadable junctionReadable = mapFragment.getJunctionReadable(junctionId);
+            node.setAttribute("xy",
+                CoordinatesUtil.longitude2plain(junctionReadable.getLongitude(), junctionReadable.getLatitude()),
+                CoordinatesUtil.latitude2plain(junctionReadable.getLatitude()));
+          }
+        });
     mapFragment.getLocalLaneIds().stream().map(laneId -> laneId.getReadable(mapFragment)).forEach(laneReadable -> {
       LaneId laneId = laneReadable.getLaneId();
       JunctionId junctionId1 = laneReadable.getIncomingJunctionId();
@@ -85,7 +101,7 @@ public class TrivialGraphBasedVisualizer {
   }
 
   public void showGui() {
-    this.graph.display();
+    this.graph.display(!drawBasedOnCoordinates);
   }
 
 }
