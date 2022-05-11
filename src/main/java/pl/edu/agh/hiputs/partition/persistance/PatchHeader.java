@@ -1,6 +1,6 @@
 package pl.edu.agh.hiputs.partition.persistance;
 
-public enum PatchHeader {
+enum PatchHeader {
   id,
   neighbouring_patches_ids;
 }

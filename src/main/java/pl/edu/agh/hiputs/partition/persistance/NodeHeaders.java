@@ -1,6 +1,6 @@
 package pl.edu.agh.hiputs.partition.persistance;
 
-public enum NodeHeaders {
+enum NodeHeaders {
   id,
   longitude,
   latitude,

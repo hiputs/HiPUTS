@@ -1,23 +1,27 @@
 package pl.edu.agh.hiputs.partition.persistance;
 
 import lombok.Builder;
-import lombok.Getter;
 
-@Getter
 @Builder
-public class ExportDescriptor {
+class ExportDescriptor {
 
-  @Builder.Default
-  private String nodesFileName = "nodes.csv";
+  private static final String nodesFileName = "nodes.csv";
 
-  @Builder.Default
-  private String edgesFileName = "edges.csv";
+  private static final String edgesFileName = "edges.csv";
 
-  @Builder.Default
-  private String patchesFileName = "patches.csv";
+  private static final String patchesFileName = "patches.csv";
 
-  static final String NODES_HEADER = "id,longitude,latitude,patch_id,tags";
-  static final String EDGES_HEADER = "source,target,length,max_speed,patch_id,tags";
-  static final String PATCHES_HEADER = "id,neighbouring_patches_ids";
+  private String exportDirAbsolutePath;
 
+  public String getNodesFilePath() {
+    return exportDirAbsolutePath + "/" + nodesFileName;
+  }
+
+  public String getEdgesFilePath() {
+    return exportDirAbsolutePath + "/" + edgesFileName;
+  }
+
+  public String getPatchesFilePath() {
+    return exportDirAbsolutePath + "/" + patchesFileName;
+  }
 }
