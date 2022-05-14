@@ -81,8 +81,18 @@ public class Lane implements LaneEditable {
   }
 
   @Override
+  public Optional<CarReadable> getCarBeforePosition(double position) {
+    return streamCarsFromExitReadable().filter(car -> car.getPositionOnLane() < position).findFirst();
+  }
+
+  @Override
   public Optional<CarReadable> getCarAtEntryReadable() {
     return Optional.ofNullable(cars.peekFirst());
+  }
+
+  @Override
+  public Optional<CarReadable> getCarAtExitReadable() {
+    return Optional.ofNullable(cars.peekLast());
   }
 
   @Override
