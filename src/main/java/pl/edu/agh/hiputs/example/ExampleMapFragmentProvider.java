@@ -22,7 +22,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.HorizontalSign;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.model.map.roadstructure.NeighborLaneInfo;
-import pl.edu.agh.utils.DeterminingNeighborhoodUtil;
+import pl.edu.agh.hiputs.utils.DeterminingNeighborhoodUtil;
 
 public class ExampleMapFragmentProvider {
 

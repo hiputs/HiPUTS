@@ -1,4 +1,4 @@
-package pl.edu.agh.utils;
+package pl.edu.agh.hiputs.utils;
 
 import java.util.List;
 import java.util.Map;

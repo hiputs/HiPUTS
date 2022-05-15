@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.communication.service;
+package pl.edu.agh.hiputs.communication.service.worker;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

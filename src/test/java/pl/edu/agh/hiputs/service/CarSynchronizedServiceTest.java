@@ -16,8 +16,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage;
-import pl.edu.agh.hiputs.communication.service.MessageSenderService;
-import pl.edu.agh.hiputs.communication.service.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
+import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
@@ -30,6 +30,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.scheduler.SchedulerService;
+import pl.edu.agh.hiputs.service.worker.CarSynchronizedServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 public class CarSynchronizedServiceTest {
@@ -53,8 +54,8 @@ public class CarSynchronizedServiceTest {
 
     //when
     taskExecutorService.init();
-    CarSynchronizedServiceImpl carSynchronizedService = new CarSynchronizedServiceImpl(mapFragment, subscriptionService, taskExecutorService, messageSenderService);
-    carSynchronizedService.sendCarsToNeighbours();
+    CarSynchronizedServiceImpl carSynchronizedService = new CarSynchronizedServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
+    carSynchronizedService.sendCarsToNeighbours(mapFragment);
 
     //then
     ArgumentCaptor<CarTransferMessage> argumentCaptor = ArgumentCaptor.forClass(CarTransferMessage.class);
@@ -127,8 +128,8 @@ public class CarSynchronizedServiceTest {
     when(mapFragment.getBorderPatches()).thenReturn(getBorderPatches2());
     //when
     taskExecutorService.init();
-    CarSynchronizedServiceImpl carSynchronizedService = new CarSynchronizedServiceImpl(mapFragment, subscriptionService, taskExecutorService, messageSenderService);
-    carSynchronizedService.sendCarsToNeighbours();
+    CarSynchronizedServiceImpl carSynchronizedService = new CarSynchronizedServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
+    carSynchronizedService.sendCarsToNeighbours(mapFragment);
 
     //then
     ArgumentCaptor<CarTransferMessage> argumentCaptor = ArgumentCaptor.forClass(CarTransferMessage.class);

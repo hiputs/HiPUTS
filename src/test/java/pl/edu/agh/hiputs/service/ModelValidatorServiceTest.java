@@ -18,6 +18,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import java.util.List;
 import java.util.Map;
+import pl.edu.agh.hiputs.service.worker.ModelValidatorServiceImpl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

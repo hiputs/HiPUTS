@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.service;
+package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -14,13 +14,13 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.model.serializable.SLane;
-import pl.edu.agh.hiputs.communication.service.MessageSenderService;
-import pl.edu.agh.hiputs.communication.service.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
+import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
-import pl.edu.agh.hiputs.service.usecase.PatchTransferService;
+import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 
 @RequiredArgsConstructor
 @Slf4j

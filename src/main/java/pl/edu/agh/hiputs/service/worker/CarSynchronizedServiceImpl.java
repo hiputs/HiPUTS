@@ -1,11 +1,8 @@
-package pl.edu.agh.hiputs.service;
+package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,22 +17,22 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.serializable.SCar;
-import pl.edu.agh.hiputs.communication.service.MessageSenderService;
-import pl.edu.agh.hiputs.communication.service.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
+import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.CarMapperTask;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
-import pl.edu.agh.hiputs.service.usecase.CarSynchronizedService;
+import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizedService;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subscriber {
 
-  private final MapFragment mapFragment;
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutorService;
   private final MessageSenderService messageSenderService;
@@ -49,7 +46,7 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
   }
 
   @Override
-  public void sendCarsToNeighbours() {
+  public void sendCarsToNeighbours(TransferDataHandler mapFragment) {
     Map<MapFragmentId, List<SCar>> serializedCarMap = new HashMap<>();
     List<Runnable> tasks = new ArrayList<>();
     Map<MapFragmentId, Set<Patch>> borderPatches = mapFragment.getBorderPatches();
@@ -76,7 +73,7 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
 
   @SneakyThrows
   @Override
-  public void synchronizedGetIncomingCar() {
+  public void synchronizedGetIncomingCar(TransferDataHandler mapFragment) {
     int countOfNeighbours = mapFragment.getNeighbors().size();
     while (incomingMessages.size() < countOfNeighbours) {
       this.wait();

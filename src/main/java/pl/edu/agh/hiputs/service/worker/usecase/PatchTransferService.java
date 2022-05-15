@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.service.usecase;
+package pl.edu.agh.hiputs.service.worker.usecase;
 
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;

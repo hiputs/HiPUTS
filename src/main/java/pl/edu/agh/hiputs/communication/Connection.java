@@ -6,7 +6,7 @@ import java.net.Socket;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.model.messages.NeighbourConnectionMessage;
+import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.utils.MessageConverter;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 
@@ -16,12 +16,12 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
  * Messages from all neighbors come on a dedicated socket.
  */
 @Slf4j
-public class NeighbourConnection {
+public class Connection {
 
   private OutputStream output;
   private final MapFragmentId id;
 
-  public NeighbourConnection(NeighbourConnectionMessage message) {
+  public Connection(ConnectionDto message) {
     id = new MapFragmentId(message.getId());
     try {
       Socket socket = new Socket(message.getAddress(), message.getPort());
