@@ -22,7 +22,7 @@ public class ExampleMapFragmentProviderTest {
         MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap2(true);
         Assertions.assertTrue(checkAllMapFragmentLanes(mapFragment));
     }
-
+    
     private boolean checkAllMapFragmentLanes(MapFragment mapFragment) {
         return mapFragment.getLocalLaneIds()
                 .stream()
