@@ -7,7 +7,7 @@ import pl.edu.agh.hiputs.model.map.patch.Patch;
 
 public interface MapRepository {
 
-  void readMapAndBuildModel();
+  void readMapAndBuildModel() throws InterruptedException;
 
   List<Patch> getPatches(List<PatchId> patchIds);
 

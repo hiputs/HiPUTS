@@ -2,7 +2,7 @@ package pl.edu.agh.hiputs.communication.model;
 
 public enum MessagesTypeEnum {
 
-// server - worker messages
+  // server - worker messages
   /**
    * Information from worker, when it started and actually it is ready for start work
    */
@@ -11,6 +11,10 @@ public enum MessagesTypeEnum {
    * Message with map fragment and neighbouring with connection parameter
    */
   ServerInitializationMessage,
+  /**
+   * Information from server when CSV map file is ready to read for worker
+   */
+  MapReadyToRead,
   /**
    * Information from worker when map is parsed and worker is ready for start simulation
    */
@@ -31,8 +35,6 @@ public enum MessagesTypeEnum {
    * Information about disconnect worker
    */
   WorkerDisconnectMessage,
-
-
 
   //worker - worker messages
   /**

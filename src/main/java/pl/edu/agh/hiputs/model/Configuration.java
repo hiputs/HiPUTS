@@ -59,9 +59,14 @@ public class Configuration {
   private int serverPort;
 
   /**
-   * Server and worker exist in the same machine
+   * All workers and server exist in the same machine
    */
-  private boolean isLocalHostMode;
+  private boolean localHostMode;
+
+  /**
+   * Local variable not use in JSON file. This flag will by true only when this worker has server task
+   */
+  private boolean serverOnThisMachine;
 
   public static Configuration getDefault() {
     return Configuration.builder()

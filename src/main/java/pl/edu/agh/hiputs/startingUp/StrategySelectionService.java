@@ -45,6 +45,7 @@ public class StrategySelectionService {
     File serverLock = new File(SERVER_LOCK);
     if(!serverLock.exists()){
       serverLock.createNewFile();
+      configurationService.getConfiguration().setServerOnThisMachine(true);
       return false;
     }
     return true;

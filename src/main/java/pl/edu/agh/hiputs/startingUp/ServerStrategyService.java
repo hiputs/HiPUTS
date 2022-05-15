@@ -12,6 +12,8 @@ import java.util.concurrent.ExecutorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
+import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.ConfigurationService;
@@ -28,16 +30,32 @@ public class ServerStrategyService implements Strategy {
   private final WorkerStrategyService workerStrategyService;
   private final DivideService divideService;
   private final ExecutorService workerPrepareExecutor = newSingleThreadExecutor();
+  private final MessageSenderServerService messageSenderServerService;
 
   @Override
   public void executeStrategy() {
+
+    log.info("Running server");
     workerPrepareExecutor.submit(new PrepareWorkerTask());
-    workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
+
     List<Patch> patches = createPatches();
     Map<String, List<PatchId>> dividedPatchesIds = divideService.divide(patches);
+
+    log.info("Start waiting for all workers be in state WorkerConnection");
+    workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
+
+    if (configurationService.getConfiguration().isParsedMap()) {
+      messageSenderServerService.broadcast(new MapReadyToReadMessage());
+    }
+
+    log.info("Waiting for all workers by in state CompletedInitialization");
     workerSynchronisationService.waitForAllWorkers(CompletedInitializationMessage);
-    distributeRunSimulationMessage();
+
+    distributeRunSimulationMessage(dividedPatchesIds);
+
+    log.info("Waiting for end simulation");
     workerSynchronisationService.waitForAllWorkers(FinishSimulationMessage);
+    log.info("Simulation finished");
 
     if (configurationService.getConfiguration().isStatisticModeActive()) {
       workerSynchronisationService.waitForAllWorkers(FinishSimulationStatisticMessage);
@@ -48,14 +66,18 @@ public class ServerStrategyService implements Strategy {
   private void generateReport() {
   }
 
-  private void distributeRunSimulationMessage() {
-  }
-
-  private void distributeInitializationData(List<Patch> patches) {
+  private void distributeRunSimulationMessage(Map<String, List<PatchId>> dividedPatchesIds) {
   }
 
   private List<Patch> createPatches() {
-    // ToDo code to read map and create patches
+    log.info("Start reading map, and create patches");
+    if (configurationService.getConfiguration().isParsedMap()) {
+      //ToDo read existing map
+    } else {
+      // ToDo code to read map from OSM file
+    }
+
+    log.info("Patches created successful");
     return null;
   }
 
