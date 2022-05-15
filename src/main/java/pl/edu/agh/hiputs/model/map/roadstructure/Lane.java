@@ -34,11 +34,11 @@ public class Lane implements LaneEditable {
   private final Deque<CarEditable> cars = new LinkedList<>();
 
   /**
-   * Reference to lane that goes in opposite direction and is closest to this one.
+   * Reference to lane that is on the left side of this one, for now it should be in opposite direction.
    */
   @Getter
   @Builder.Default
-  private final Optional<LaneId> oppositeLaneId = Optional.empty();
+  private final Optional<NeighborLaneInfo> leftNeighbor = Optional.empty();
 
   /**
    * Reference to junction id that is at the begging of lane
