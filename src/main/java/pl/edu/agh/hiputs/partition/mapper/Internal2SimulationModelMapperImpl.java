@@ -5,14 +5,17 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.roadstructure.HorizontalSign;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction.JunctionBuilder;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
+import pl.edu.agh.hiputs.model.map.roadstructure.NeighborLaneInfo;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -21,6 +24,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
+@Service
 public class Internal2SimulationModelMapperImpl implements Internal2SimulationModelMapper {
 
   public Map<PatchId, Patch> mapToSimulationModel(Graph<PatchData, PatchConnectionData> graph) {
@@ -64,7 +68,7 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
         .length(edge.getData().getLength())
         .incomingJunctionId(new JunctionId(edge.getSource().getId(), getJunctionType(edge.getSource())))
         .outgoingJunctionId(new JunctionId(edge.getTarget().getId(), getJunctionType(edge.getTarget())))
-        .oppositeLaneId(getOppositeLaneId(edge));
+        .leftNeighbor(getOppositeLaneId(edge).map(laneId -> new NeighborLaneInfo(laneId, HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE))); //todo parse line from osm if possible
     return laneBuilder.build();
   }
 

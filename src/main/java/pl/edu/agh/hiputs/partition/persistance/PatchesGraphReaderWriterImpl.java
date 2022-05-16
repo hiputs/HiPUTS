@@ -14,6 +14,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -23,7 +24,8 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
-public class GraphReadWriterImpl implements GraphReadWriter {
+@Service
+public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, PatchesGraphWriter {
 
   private static final String COLLECTION_ELEMENT_CSV_DELIMITER = "#";
   private static final String MAP_KEY_VALUE_PAIR_CSV_DELIMITER = "::";
@@ -34,9 +36,13 @@ public class GraphReadWriterImpl implements GraphReadWriter {
   }
 
   @Override
-  public Graph<PatchData, PatchConnectionData> readGraphWithPatches(Path importPath) throws IOException {
-    return readGraphWithPatches(
-        ExportDescriptor.builder().exportDirAbsolutePath(importPath.toAbsolutePath().toString()).build());
+  public Graph<PatchData, PatchConnectionData> readGraphWithPatches(Path importPath) {
+    try {
+      return readGraphWithPatches(
+          ExportDescriptor.builder().exportDirAbsolutePath(importPath.toAbsolutePath().toString()).build());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private void saveGraphWithPatches(Graph<PatchData, PatchConnectionData> graph, ExportDescriptor exportDescriptor)

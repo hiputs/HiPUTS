@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -13,12 +15,15 @@ import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
+@Slf4j
+@Service
 public class TrivialPatchPartitioner implements PatchPartitioner {
 
   private final Map<String, Node<PatchData, PatchConnectionData>> patchId2patch = new HashMap<>();
 
   @Override
   public Graph<PatchData, PatchConnectionData> partition(Graph<JunctionData, WayData> graph) {
+    log.info("Partitioning into patches started");
     Graph.GraphBuilder<PatchData, PatchConnectionData> graphBuilder = new Graph.GraphBuilder<>();
     for (Edge<JunctionData, WayData> edge : graph.getEdges().values()) {
       String patchId = randomPatchId();
@@ -61,7 +66,9 @@ public class TrivialPatchPartitioner implements PatchPartitioner {
         .flatMap(Collection::stream)
         .forEach(graphBuilder::addEdge);
 
-    return graphBuilder.build();
+    Graph<PatchData, PatchConnectionData> patchesGraph = graphBuilder.build();
+    log.info("Partitioning into patches finished");
+    return patchesGraph;
   }
 
   private String randomPatchId() {

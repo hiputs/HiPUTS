@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
@@ -14,6 +15,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.partition.osm.OsmGraph;
 import pl.edu.agh.hiputs.partition.model.WayData;
 
+@Service
 public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
 
   private final List<GraphTransformer> graphTransformers = List.of(new GraphMaxSpeedFiller(), new GraphLengthFiller());
