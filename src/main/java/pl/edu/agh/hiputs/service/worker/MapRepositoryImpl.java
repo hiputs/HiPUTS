@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.service.worker;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,13 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.partition.mapper.Internal2SimulationModelMapper;
+import pl.edu.agh.hiputs.partition.model.JunctionData;
+import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
+import pl.edu.agh.hiputs.partition.model.PatchData;
+import pl.edu.agh.hiputs.partition.model.WayData;
+import pl.edu.agh.hiputs.partition.model.graph.Graph;
+import pl.edu.agh.hiputs.partition.persistance.PatchesGraphReader;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
@@ -23,6 +31,9 @@ public class MapRepositoryImpl implements MapRepository, Subscriber {
 
   private final ConfigurationService configurationService;
   private final SubscriptionService subscriptionService;
+
+  private final PatchesGraphReader patchesGraphReader;
+  private final Internal2SimulationModelMapper internal2SimulationModelMapper;
   private boolean mapReadyToRead = false;
 
   @PostConstruct
@@ -40,7 +51,8 @@ public class MapRepositoryImpl implements MapRepository, Subscriber {
         // toDo build repository from server collection
       }
 
-      //ToDo code to read map from csv and build patches
+      Graph<PatchData, PatchConnectionData> patchesGraph = patchesGraphReader.readGraphWithPatches(Path.of(configurationService.getConfiguration().getMapPath()).getParent());
+      patches.putAll(internal2SimulationModelMapper.mapToSimulationModel(patchesGraph));
   }
 
   private void waitForMapReadyToReadMessage() throws InterruptedException {

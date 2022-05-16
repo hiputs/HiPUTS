@@ -6,18 +6,21 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimul
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationStatisticMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.WorkerConnectionMessage;
 
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
-import pl.edu.agh.hiputs.model.id.PatchId;
-import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
+import pl.edu.agh.hiputs.partition.model.PatchData;
+import pl.edu.agh.hiputs.partition.model.graph.Graph;
+import pl.edu.agh.hiputs.partition.service.MapFragmentPartitioner;
+import pl.edu.agh.hiputs.partition.service.MapStructureLoader;
 import pl.edu.agh.hiputs.service.ConfigurationService;
-import pl.edu.agh.hiputs.service.server.DivideService;
 import pl.edu.agh.hiputs.service.server.WorkerSynchronisationService;
 
 @Slf4j
@@ -28,9 +31,10 @@ public class ServerStrategyService implements Strategy {
   private final WorkerSynchronisationService workerSynchronisationService;
   private final ConfigurationService configurationService;
   private final WorkerStrategyService workerStrategyService;
-  private final DivideService divideService;
+  private final MapFragmentPartitioner mapFragmentPartitioner;
   private final ExecutorService workerPrepareExecutor = newSingleThreadExecutor();
   private final MessageSenderServerService messageSenderServerService;
+  private final MapStructureLoader mapStructureLoader;
 
   @Override
   public void executeStrategy() {
@@ -38,8 +42,8 @@ public class ServerStrategyService implements Strategy {
     log.info("Running server");
     workerPrepareExecutor.submit(new PrepareWorkerTask());
 
-    List<Patch> patches = createPatches();
-    Map<String, List<PatchId>> dividedPatchesIds = divideService.divide(patches);
+    Graph<PatchData, PatchConnectionData> patchesGraph = createPatches();
+    Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents = mapFragmentPartitioner.partition(patchesGraph);
 
     log.info("Start waiting for all workers be in state WorkerConnection");
     workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
@@ -51,7 +55,7 @@ public class ServerStrategyService implements Strategy {
     log.info("Waiting for all workers by in state CompletedInitialization");
     workerSynchronisationService.waitForAllWorkers(CompletedInitializationMessage);
 
-    distributeRunSimulationMessage(dividedPatchesIds);
+    distributeRunSimulationMessage(mapFragmentsContents);
 
     log.info("Waiting for end simulation");
     workerSynchronisationService.waitForAllWorkers(FinishSimulationMessage);
@@ -66,19 +70,30 @@ public class ServerStrategyService implements Strategy {
   private void generateReport() {
   }
 
-  private void distributeRunSimulationMessage(Map<String, List<PatchId>> dividedPatchesIds) {
+  private void distributeRunSimulationMessage(Collection<Graph<PatchData, PatchConnectionData>> dividedPatchesIds) {
+
   }
 
-  private List<Patch> createPatches() {
-    log.info("Start reading map, and create patches");
-    if (configurationService.getConfiguration().isParsedMap()) {
-      //ToDo read existing map
+  private Graph<PatchData, PatchConnectionData> createPatches() {
+    log.info("Start reading map");
+    Graph<PatchData, PatchConnectionData> patchesGraph;
+    if (configurationService.getConfiguration().isParsedMap()) { //todo change property name to "createPatches" or "readFromOsmDirectly"
+      //read existing map
+      log.info("Reading map from import package - patch partition skipped");
+      patchesGraph = mapStructureLoader.loadFromCsvImportPackage(Path.of(configurationService.getConfiguration().getMapPath()));
     } else {
-      // ToDo code to read map from OSM file
+      //read map from OSM file
+      log.info("Reading map from osm file");
+      try {
+        patchesGraph = mapStructureLoader.loadFromOsmFile(Path.of(configurationService.getConfiguration().getMapPath()));
+      } catch (IOException e) {
+        log.error(e.getMessage());
+        return null;
+      }
     }
 
-    log.info("Patches created successful");
-    return null;
+    log.info("Reading map finished successfully");
+    return patchesGraph;
   }
 
   private class PrepareWorkerTask implements Runnable {
