@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Configurable;
+import pl.edu.agh.hiputs.model.follow.CarDecider;
 import pl.edu.agh.hiputs.model.follow.IDecider;
 import pl.edu.agh.hiputs.model.follow.IdmDecider;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -42,7 +43,7 @@ public class Car implements CarEditable {
    * Decider instance
    */
   @Builder.Default
-  private final IDecider decider = new IdmDecider();
+  private final CarDecider decider = new CarDecider();
 
   /**
    * Lane on which car is currently situated.
@@ -81,9 +82,9 @@ public class Car implements CarEditable {
     // make local decision based on read only road structure (watch environment) and save it locally
 
     //First prepare CarEnvironment
-    CarEnvironment environment = this.getPrecedingCar(roadStructureReader);
+    //CarEnvironment environment = this.getPrecedingCar(roadStructureReader);
 
-    double acceleration = this.decider.makeDecision(this, environment);
+    double acceleration = this.decider.makeDecision(this, roadStructureReader);
 
     LaneId currentLaneId = this.laneId;
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
@@ -129,45 +130,18 @@ public class Car implements CarEditable {
    *
    * @return CarEnvironment
    */
-  public CarEnvironment getPrecedingCar(RoadStructureReader roadStructureReader) {
-    LaneReadable currentLane = roadStructureReader.getLaneReadable(this.laneId);
-    JunctionId nextJunctionId = currentLane.getOutgoingJunctionId();
-    Optional<CarReadable> precedingCar = currentLane.getCarInFrontReadable(this);
-    Optional<JunctionId> nextCrossroadId;
-    double distance;
-    if (nextJunctionId.isCrossroad() || precedingCar.isPresent()) {
-      distance = precedingCar.map(car -> car.getPositionOnLane() - car.getLength()).orElse(currentLane.getLength())
-          - this.positionOnLane;
-    } else {
-      distance = 0;
-      int offset = 0;
-      LaneId nextLaneId;
-      LaneReadable nextLane;
-      while (precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
-        try {
-          nextLaneId = routeWithLocation.getOffsetLaneId(offset++);
-        } catch (RouteExceededException routeExceededException) {
-          break;
-        }
-        distance += currentLane.getLength(); // adds previous lane length
-        nextLane = roadStructureReader.getLaneReadable(nextLaneId);
-        nextJunctionId = nextLane.getOutgoingJunctionId();
-        precedingCar = nextLane.getCarAtEntryReadable();
-        currentLane = nextLane;
-      }
-      distance += precedingCar.map(car -> car.getPositionOnLane() - car.getLength()).orElse(currentLane.getLength())
-          - this.positionOnLane;
-    }
-    if (nextJunctionId.isCrossroad()) {
-      nextCrossroadId = Optional.of(nextJunctionId);
-    } else {
-      nextCrossroadId = Optional.empty();
-    }
-    return new CarEnvironment(precedingCar, nextCrossroadId, distance);
-  }
 
   public double calculateFuturePosition(double acceleration) {
     return this.positionOnLane + this.speed + acceleration / 2;
+  }
+
+  @Override
+  public LaneId getRouteOffsetLaneId(int offset){
+    try {
+      return this.routeWithLocation.getOffsetLaneId(offset);
+    } catch (RouteExceededException routeExceededException) {
+      return null;
+    }
   }
 
   @Override

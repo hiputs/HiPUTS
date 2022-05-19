@@ -16,4 +16,6 @@ public interface CarReadable {
   double getMaxSpeed();
 
   CarId getCarId();
+
+  LaneId getRouteOffsetLaneId(int offset);
 }

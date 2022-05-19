@@ -48,6 +48,11 @@ public class Junction implements JunctionReadable, JunctionEditable {
     return outgoingLaneIds.stream();
   }
 
+  @Override
+  public Stream<LaneOnJunction> streamLanesOnJunction() {
+    return lanesOnJunction.stream();
+  }
+
   public static class JunctionBuilder {
 
     private JunctionId junctionId = JunctionId.randomCrossroad();

@@ -11,4 +11,6 @@ public interface JunctionReadable {
   Stream<LaneId> streamIncomingLaneIds();
 
   Stream<LaneId> streamOutgoingLaneIds();
+
+  Stream<LaneOnJunction> streamLanesOnJunction();
 }

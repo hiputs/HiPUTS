@@ -4,6 +4,7 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import pl.edu.agh.hiputs.model.id.JunctionId;
+import pl.edu.agh.hiputs.model.id.LaneId;
 
 /**
  * precedingCar contain preceding car if found
@@ -17,8 +18,8 @@ import pl.edu.agh.hiputs.model.id.JunctionId;
 @Data
 @AllArgsConstructor
 public class CarEnvironment {
-
+  double distance;
   Optional<CarReadable> precedingCar;
   Optional<JunctionId> nextCrossroadId;
-  double distance;
+  Optional<LaneId> incomingLaneId;
 }
