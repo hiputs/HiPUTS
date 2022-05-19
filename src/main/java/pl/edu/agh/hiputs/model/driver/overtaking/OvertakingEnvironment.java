@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.model.car.deciders.overtaking;
+package pl.edu.agh.hiputs.model.driver.overtaking;
 
 import java.util.Optional;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.model.car.deciders.overtaking;
+package pl.edu.agh.hiputs.model.driver.overtaking;
 
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEnvironment;
+import pl.edu.agh.hiputs.model.driver.overtaking.OvertakingDecider;
+import pl.edu.agh.hiputs.model.driver.overtaking.OvertakingEnvironment;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.HorizontalSign;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;

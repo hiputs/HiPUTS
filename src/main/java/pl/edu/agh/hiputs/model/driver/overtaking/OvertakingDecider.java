@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.model.car.deciders.overtaking;
+package pl.edu.agh.hiputs.model.driver.overtaking;
 
 import java.util.Optional;
 import pl.edu.agh.hiputs.model.car.CarEditable;
@@ -8,7 +8,6 @@ import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.HorizontalSign;
-import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
 public class OvertakingDecider {
