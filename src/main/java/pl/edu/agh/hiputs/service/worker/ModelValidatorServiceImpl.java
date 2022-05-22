@@ -1,20 +1,17 @@
 package pl.edu.agh.hiputs.service.worker;
 
-import lombok.RequiredArgsConstructor;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.exception.ModelValidationException;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
-
-import java.util.HashMap;
-import java.util.Map;
 import pl.edu.agh.hiputs.service.worker.usecase.ModelValidatorService;
 
 @Service
 public class ModelValidatorServiceImpl implements ModelValidatorService {
-
 
   @Override
   public void checkModel(boolean deadEnd, MapFragment mapFragment) throws ModelValidationException {
@@ -26,7 +23,8 @@ public class ModelValidatorServiceImpl implements ModelValidatorService {
 
   }
 
-  private void checkJunctions(MapFragment mapFragment, Map<String, String> errors, boolean deadEnd) throws ModelValidationException {
+  private void checkJunctions(MapFragment mapFragment, Map<String, String> errors, boolean deadEnd)
+      throws ModelValidationException {
     boolean passValidation = mapFragment.getKnownPatchReadable()
         .parallelStream()
         .flatMap(patch -> patch.getJunctionIds().stream().map(patch::getJunctionReadable))
@@ -55,7 +53,8 @@ public class ModelValidatorServiceImpl implements ModelValidatorService {
     return errors.size() <= 0;
   }
 
-  private void checkInitializationOfLanes(MapFragment mapFragment, Map<String, String> errors) throws ModelValidationException {
+  private void checkInitializationOfLanes(MapFragment mapFragment, Map<String, String> errors)
+      throws ModelValidationException {
 
     boolean passValidation = mapFragment.getKnownPatchReadable()
         .parallelStream()
@@ -90,7 +89,8 @@ public class ModelValidatorServiceImpl implements ModelValidatorService {
     return true;
   }
 
-  private void checkMapFragmentInitialization(MapFragment mapFragment, Map<String, String> errors) throws ModelValidationException {
+  private void checkMapFragmentInitialization(MapFragment mapFragment, Map<String, String> errors)
+      throws ModelValidationException {
 
     if (mapFragment.getKnownPatchReadable() == null) {
       errors.put("knownPatches", "IS_NULL");

@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.config;
+package pl.edu.agh.hiputs.example.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
