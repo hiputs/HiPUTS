@@ -29,13 +29,13 @@ import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizedService;
 
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subscriber {
 
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutorService;
   private final MessageSenderService messageSenderService;
-
   private final List<CarTransferMessage> incomingMessages = new ArrayList<>();
   private final List<CarTransferMessage> featureIncomingMessages = new ArrayList<>();
 
