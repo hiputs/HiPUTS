@@ -2,6 +2,8 @@ package pl.edu.agh.hiputs.startingUp;
 
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.RunSimulationMessage;
+import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ServerInitializationMessage;
 
 import java.util.concurrent.ExecutorService;
 import javax.annotation.PostConstruct;
@@ -17,9 +19,12 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.Configuration;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
+import pl.edu.agh.hiputs.utils.MapFragmentCreator;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 
 @Slf4j
@@ -35,23 +40,22 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final MessageSenderService messageSenderService;
   private final MessageReceiverService messageReceiverService;
   private Configuration configuration;
+  private final MapFragmentCreator mapFragmentCreator;
 
   private final ExecutorService simulationExecutor = newSingleThreadExecutor();
+  private final MapFragmentId mapFragmentId = MapFragmentId.random();
 
   @PostConstruct
   void init(){
-    subscriptionService.subscribe(this, MessagesTypeEnum.RunSimulationMessage);
+    subscriptionService.subscribe(this, RunSimulationMessage);
+    subscriptionService.subscribe(this, ServerInitializationMessage);
   }
 
   @Override
   public void executeStrategy() {
     try {
       configuration = configurationService.getConfiguration();
-      messageSenderService.sendServerMessage(new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentExecutor.mapFragment.getMapFragmentId().getId()));
-
-      if (configuration.isEnableGUI()) {
-        enabledGUI();
-      }
+      messageSenderService.sendServerMessage(new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 
       mapRepository.readMapAndBuildModel();
       messageSenderService.sendServerMessage(new CompletedInitializationMessage());
@@ -63,7 +67,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   private void enabledGUI() throws InterruptedException {
     log.info("Start work in single mode");
-    graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.mapFragment);
+    graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment());
 
     graphBasedVisualizer.showGui();
     sleep(1000);
@@ -71,7 +75,24 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   @Override
   public void notify(Message message) {
-    runSimulation();
+    switch (message.getMessageType()){
+      case RunSimulationMessage -> runSimulation();
+      case ServerInitializationMessage -> handleInitializationMessage((pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage) message);
+      default -> log.warn("Unhandled message " + message.getMessageType());
+    }
+  }
+
+  private void handleInitializationMessage(pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage message) {
+    MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
+    mapFragmentExecutor.setMapFragment(mapFragment);
+
+    if (configuration.isEnableGUI()) {
+      try {
+        enabledGUI();
+      } catch (InterruptedException e) {
+        log.error("Error with creating gui", e);
+      }
+    }
   }
 
   private void runSimulation() {

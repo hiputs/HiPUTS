@@ -15,7 +15,7 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 @RequiredArgsConstructor
 public class StrategySelectionService {
 
-  private static final String SERVER_LOCK = "serverLock.txt";
+  public static final String SERVER_LOCK = "serverLock.txt";
 
   private final SingleWorkStrategyService singleWorkStrategyService;
   private final WorkerStrategyService workerStrategyService;
@@ -31,7 +31,12 @@ public class StrategySelectionService {
       if (configuration.isTestMode()) {
         singleWorkStrategyService.executeStrategy();
       } else if(!isServerRunning()){
-        serverStrategyService.executeStrategy();
+        try {
+          serverStrategyService.executeStrategy();
+        } finally {
+            File serverLock = new File(SERVER_LOCK);
+            serverLock.deleteOnExit();
+        }
       } else {
         workerStrategyService.executeStrategy();
       }

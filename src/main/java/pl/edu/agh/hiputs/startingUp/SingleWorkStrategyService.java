@@ -18,7 +18,7 @@ public class SingleWorkStrategyService implements Strategy{
   @Override
   public void executeStrategy() throws InterruptedException {
     log.info("Start work in single mode");
-    TrivialGraphBasedVisualizer graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.mapFragment);
+    TrivialGraphBasedVisualizer graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment());
 
     graphBasedVisualizer.showGui();
     sleep(1000);

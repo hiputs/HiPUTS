@@ -1,22 +1,19 @@
 package pl.edu.agh.hiputs.communication.service.server;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.utils.MessageConverter;
 import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 
 @Slf4j
 public class WorkerConnection implements Runnable{
 
-    private final Socket clientSocket;
     private final String workerId;
 
     @Getter
@@ -24,34 +21,39 @@ public class WorkerConnection implements Runnable{
     @Getter
     private final String address;
     private final MessagePropagationService messagePropagationService;
-    private OutputStream outputStream;
+    private final ObjectOutputStream outputStream;
+    private final ObjectInputStream inputStream;
 
-    public WorkerConnection(Socket clientConnectionSocket, MessagePropagationService messagePropagationService, WorkerConnectionMessage workerConnectionMessage) {
-        this.clientSocket = clientConnectionSocket;
+    public WorkerConnection(ObjectOutputStream outputStream, ObjectInputStream inputStream, MessagePropagationService messagePropagationService, WorkerConnectionMessage workerConnectionMessage)
+        throws IOException {
         this.messagePropagationService = messagePropagationService;
         this.workerId = workerConnectionMessage.getWorkerId();
         port = workerConnectionMessage.getPort();
         address = workerConnectionMessage.getAddress();
+
+        this.inputStream = inputStream;
+        Socket socket = new Socket(address, port);
+        this.outputStream = new ObjectOutputStream(socket.getOutputStream());
     }
 
-    @SneakyThrows
     @Override
     public void run() {
-        InputStream inputStream = clientSocket.getInputStream();
-        outputStream = clientSocket.getOutputStream();
-        Message message = null;
+        try {
+            Message message = null;
 
-        do {
-            byte[] receivedMessage = inputStream.readAllBytes();
-            message = MessageConverter.toMessage(receivedMessage);
-            messagePropagationService.propagateMessage(message, workerId);
-        } while (message.getMessageType() != MessagesTypeEnum.WorkerDisconnectMessage);
+            do {
+                message = (Message) inputStream.readObject();
+                messagePropagationService.propagateMessage(message, workerId);
+            } while (message.getMessageType() != MessagesTypeEnum.WorkerDisconnectMessage);
+        } catch (Exception e){
+            log.error("Fail messageHandler for worker id: " + workerId, e);
+        }
     }
 
     void send(Message message){
         try {
-            byte[] encodedMsg = MessageConverter.toByteArray(message);
-            outputStream.write(encodedMsg);
+            outputStream.writeObject(message);
+            outputStream.flush();
         } catch (IOException e) {
             log.error("Can not send message to workerId: " + workerId, e);
         }

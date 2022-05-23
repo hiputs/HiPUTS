@@ -31,7 +31,8 @@ public class ConfigurationService {
         return;
       }
 
-      String json = Files.readString(configFile.toPath());
+      String json = Files.readString(configFile.toPath())
+          .replace(",", ",\n");
 
       if(Strings.isEmpty(json)){
         createFileWithDefaultConfiguration(configFile);
@@ -47,7 +48,8 @@ public class ConfigurationService {
 
   private void createFileWithDefaultConfiguration(File configFile) {
     configuration = Configuration.getDefault();
-    String jsonConfig = new Gson().toJson(configuration);
+    String jsonConfig = new Gson().toJson(configuration)
+        .replace(",", ",\n");
     try {
       Files.writeString(configFile.toPath(), jsonConfig);
     } catch (IOException e) {

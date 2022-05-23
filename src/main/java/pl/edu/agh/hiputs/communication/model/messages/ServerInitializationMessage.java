@@ -6,13 +6,14 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 
 import java.util.List;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
+import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 
 @Data
 @Builder
 public class ServerInitializationMessage implements Message {
 
   private List<String> patchIds;
-  private List<ConnectionDto> neighbourConnections;
+  private List<WorkerDataDto> workerInfo;
 
   @Override
   public MessagesTypeEnum getMessageType() {

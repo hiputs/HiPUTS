@@ -1,13 +1,12 @@
 package pl.edu.agh.hiputs.communication;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
-import pl.edu.agh.hiputs.communication.utils.MessageConverter;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 
 /**
@@ -18,14 +17,14 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 @Slf4j
 public class Connection {
 
-  private OutputStream output;
+  private ObjectOutputStream output;
   private final MapFragmentId id;
 
   public Connection(ConnectionDto message) {
     id = new MapFragmentId(message.getId());
     try {
       Socket socket = new Socket(message.getAddress(), message.getPort());
-      output = socket.getOutputStream();
+      output = new ObjectOutputStream(socket.getOutputStream());
     } catch (IOException e) {
       log.error("Error connection with neighbour ", e);
     }
@@ -37,12 +36,7 @@ public class Connection {
       return;
     }
 
-    byte[] encodedMsg = MessageConverter.toByteArray(message);
-
-    if (Objects.isNull(encodedMsg)) {
-      return;
-    }
-
-    output.write(encodedMsg);
+    output.writeObject(message);
+    output.flush();
   }
 }

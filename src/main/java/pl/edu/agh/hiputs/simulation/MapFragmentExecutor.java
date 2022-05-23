@@ -2,7 +2,9 @@ package pl.edu.agh.hiputs.simulation;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
@@ -21,7 +23,9 @@ import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
 @RequiredArgsConstructor
 public class MapFragmentExecutor {
 
-  public final MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap2();
+  @Setter
+  @Getter
+  private MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap2();
   private final MessageReceiverService messageReceiverService;
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutor;

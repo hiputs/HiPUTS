@@ -41,7 +41,7 @@ public class Configuration {
   /**
    * Flag decided to read parsed map or parse map from osm file
    */
-  private boolean parsedMap;
+  private boolean readFromOsmDirectly;
 
   /**
    * Path to map only for MultiWorker simulation mode
@@ -66,7 +66,7 @@ public class Configuration {
   /**
    * Local variable not use in JSON file. This flag will by true only when this worker has server task
    */
-  private boolean serverOnThisMachine;
+  private transient boolean serverOnThisMachine;
 
   public static Configuration getDefault() {
     return Configuration.builder()
@@ -75,6 +75,9 @@ public class Configuration {
         .enableGUI(true)
         .statisticModeActive(false)
         .simulationStep(Long.MAX_VALUE)
+        .mapPath("")
+        .serverAddress("localhost")
+        .serverPort(8081)
         .build();
   }
 }

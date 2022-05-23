@@ -13,6 +13,7 @@ import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
+import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.service.ConfigurationService;
@@ -42,7 +43,7 @@ public class MessageSenderService implements Subscriber {
   }
 
   public void sendServerMessage(Message message) throws IOException {
-    if(serverConnection == null){
+    if (serverConnection == null) {
       createServerConnection();
     }
 
@@ -77,9 +78,12 @@ public class MessageSenderService implements Subscriber {
   @Override
   public void notify(Message message) {
     ServerInitializationMessage workerConnectionMessage = (ServerInitializationMessage) message;
-    workerConnectionMessage.getNeighbourConnections().forEach(c -> {
-      Connection connection = new Connection(c);
-      neighbourRepository.put(new MapFragmentId(c.getId()), connection);
+    workerConnectionMessage.getWorkerInfo()
+        .stream()
+        .map(WorkerDataDto::getConnectionData)
+        .forEach(c -> {
+          Connection connection = new Connection(c);
+          neighbourRepository.put(new MapFragmentId(c.getId()), connection);
     });
   }
 }

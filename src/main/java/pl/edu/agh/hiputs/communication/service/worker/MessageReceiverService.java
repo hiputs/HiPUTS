@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.communication.service.worker;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.utils.MessageConverter;
 
 /**
  * Socket where all messages addressed to the given client are received.
@@ -93,8 +93,7 @@ public class MessageReceiverService {
     @SneakyThrows
     @Override
     public void run() {
-      byte[] receivedMessage = clientSocket.getInputStream().readAllBytes();
-      Message message = MessageConverter.toMessage(receivedMessage);
+      Message message = (Message) new ObjectInputStream(clientSocket.getInputStream()).readObject();
       propagateMessage(message);
     }
   }

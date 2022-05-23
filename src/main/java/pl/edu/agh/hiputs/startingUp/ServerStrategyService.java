@@ -5,11 +5,14 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.CompletedIn
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationStatisticMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.WorkerConnectionMessage;
+import static pl.edu.agh.hiputs.startingUp.StrategySelectionService.SERVER_LOCK;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,10 +21,13 @@ import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
+import pl.edu.agh.hiputs.partition.persistance.PatchesGraphReader;
 import pl.edu.agh.hiputs.partition.service.MapFragmentPartitioner;
 import pl.edu.agh.hiputs.partition.service.MapStructureLoader;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.server.WorkerSynchronisationService;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
 
 @Slf4j
 @Service
@@ -36,19 +42,26 @@ public class ServerStrategyService implements Strategy {
   private final MessageSenderServerService messageSenderServerService;
   private final MapStructureLoader mapStructureLoader;
 
+  private final MapRepositoryServerHandler mapRepository;
+  private final PatchesGraphReader patchesGraphReader;
+
   @Override
   public void executeStrategy() {
 
     log.info("Running server");
     workerPrepareExecutor.submit(new PrepareWorkerTask());
 
-    Graph<PatchData, PatchConnectionData> patchesGraph = createPatches();
+    Graph<PatchData, PatchConnectionData> patchesGraph = configurationService.getConfiguration().isReadFromOsmDirectly()
+        ? createPatches()
+        : patchesGraphReader.readGraphWithPatches(Path.of(configurationService.getConfiguration().getMapPath()).getParent());
+
+    mapRepository.setPatchesGraph(patchesGraph);
     Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents = mapFragmentPartitioner.partition(patchesGraph);
 
     log.info("Start waiting for all workers be in state WorkerConnection");
     workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
 
-    if (configurationService.getConfiguration().isParsedMap()) {
+    if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
       messageSenderServerService.broadcast(new MapReadyToReadMessage());
     }
 
@@ -77,11 +90,7 @@ public class ServerStrategyService implements Strategy {
   private Graph<PatchData, PatchConnectionData> createPatches() {
     log.info("Start reading map");
     Graph<PatchData, PatchConnectionData> patchesGraph;
-    if (configurationService.getConfiguration().isParsedMap()) { //todo change property name to "createPatches" or "readFromOsmDirectly"
-      //read existing map
-      log.info("Reading map from import package - patch partition skipped");
-      patchesGraph = mapStructureLoader.loadFromCsvImportPackage(Path.of(configurationService.getConfiguration().getMapPath()));
-    } else {
+    if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
       //read map from OSM file
       log.info("Reading map from osm file");
       try {
@@ -90,6 +99,10 @@ public class ServerStrategyService implements Strategy {
         log.error(e.getMessage());
         return null;
       }
+    } else {
+      //read existing map
+      log.info("Reading map from import package - patch partition skipped");
+      patchesGraph = mapStructureLoader.loadFromCsvImportPackage(Path.of(configurationService.getConfiguration().getMapPath()));
     }
 
     log.info("Reading map finished successfully");
@@ -100,7 +113,12 @@ public class ServerStrategyService implements Strategy {
 
     @Override
     public void run() {
-      workerStrategyService.executeStrategy();
+      try {
+        Thread.sleep(1000);
+        workerStrategyService.executeStrategy();
+      } catch (InterruptedException e) {
+        log.error("Worker not started", e);
+      }
     }
   }
 }

@@ -17,8 +17,8 @@ public class WorkerSynchronisationMessageImpl implements WorkerSynchronisationSe
     private final ConfigurationService configurationService;
 
     @Override
-    public void waitForAllWorkers(MessagesTypeEnum state) {
-        while(messageTypeWorkerRepository.get(state) == null || messageTypeWorkerRepository.get(state).size() == configurationService.getConfiguration().getWorkerCount()){
+    public synchronized void waitForAllWorkers(MessagesTypeEnum state) {
+        while(messageTypeWorkerRepository.get(state) == null || messageTypeWorkerRepository.get(state).size() < configurationService.getConfiguration().getWorkerCount()){
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -28,9 +28,11 @@ public class WorkerSynchronisationMessageImpl implements WorkerSynchronisationSe
     }
 
     @Override
-    public void handleWorker(MessagesTypeEnum state, String workerId) {
-        messageTypeWorkerRepository.putIfAbsent(state, new TreeSet<>())
+    public synchronized void handleWorker(MessagesTypeEnum state, String workerId) {
+        messageTypeWorkerRepository.putIfAbsent(state, new TreeSet<>());
+        messageTypeWorkerRepository.get(state)
                 .add(workerId);
+        log.info(String.format("Worker id: %s connection with server, connection status %d / %d", workerId, messageTypeWorkerRepository.get(state).size(), configurationService.getConfiguration().getWorkerCount()));
         notifyAll();
 
     }

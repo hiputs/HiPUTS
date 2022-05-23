@@ -11,6 +11,6 @@ public interface MapRepository {
 
   List<Patch> getPatches(List<PatchId> patchIds);
 
-  Patch getPatch(Patch patch);
+  Patch getPatch(PatchId id);
 
 }
