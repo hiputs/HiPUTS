@@ -24,7 +24,7 @@ public class WorkerConnection implements Runnable{
     private final ObjectOutputStream outputStream;
     private final ObjectInputStream inputStream;
 
-    public WorkerConnection(ObjectOutputStream outputStream, ObjectInputStream inputStream, MessagePropagationService messagePropagationService, WorkerConnectionMessage workerConnectionMessage)
+    public WorkerConnection(ObjectInputStream inputStream, MessagePropagationService messagePropagationService, WorkerConnectionMessage workerConnectionMessage)
         throws IOException {
         this.messagePropagationService = messagePropagationService;
         this.workerId = workerConnectionMessage.getWorkerId();

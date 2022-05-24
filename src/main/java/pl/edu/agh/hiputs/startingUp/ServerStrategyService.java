@@ -11,12 +11,17 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
+import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
+import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -65,6 +70,8 @@ public class ServerStrategyService implements Strategy {
       messageSenderServerService.broadcast(new MapReadyToReadMessage());
     }
 
+    calculateAndDistributeConfiguration(mapFragmentsContents);
+
     log.info("Waiting for all workers by in state CompletedInitialization");
     workerSynchronisationService.waitForAllWorkers(CompletedInitializationMessage);
 
@@ -80,11 +87,16 @@ public class ServerStrategyService implements Strategy {
     }
   }
 
+  private void calculateAndDistributeConfiguration(Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents) {
+    //toDo create and send metis result with connection to neighbour. In result should send ServerInitializationMessage with local patches, shadow patches and neighbour connection data
+    messageSenderServerService.broadcast(ServerInitializationMessage.builder().build());//fixMe remove this lane after implementation
+  }
+
   private void generateReport() {
   }
 
   private void distributeRunSimulationMessage(Collection<Graph<PatchData, PatchConnectionData>> dividedPatchesIds) {
-
+    messageSenderServerService.broadcast(new RunSimulationMessage());
   }
 
   private Graph<PatchData, PatchConnectionData> createPatches() {

@@ -12,6 +12,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WorkerDataDto implements Serializable {
+
+    /**
+     * Shadow patchIds withh owner is this worker
+     */
     List<String> patchIds;
+
+    /**
+     * Connecting parameters with mapFragmentId
+     */
     ConnectionDto connectionData;
 }

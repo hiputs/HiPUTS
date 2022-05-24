@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.startingUp;
 
 import java.io.File;
 import java.io.IOException;
+import javax.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -31,12 +32,7 @@ public class StrategySelectionService {
       if (configuration.isTestMode()) {
         singleWorkStrategyService.executeStrategy();
       } else if(!isServerRunning()){
-        try {
           serverStrategyService.executeStrategy();
-        } finally {
-            File serverLock = new File(SERVER_LOCK);
-            serverLock.deleteOnExit();
-        }
       } else {
         workerStrategyService.executeStrategy();
       }
@@ -54,5 +50,13 @@ public class StrategySelectionService {
       return false;
     }
     return true;
+  }
+
+  @PreDestroy
+  public void onExit() {
+    if(configurationService.getConfiguration().isServerOnThisMachine()){
+      File serverLock = new File(SERVER_LOCK);
+      serverLock.deleteOnExit();
+    }
   }
 }

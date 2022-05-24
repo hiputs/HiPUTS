@@ -12,7 +12,13 @@ import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 @Builder
 public class ServerInitializationMessage implements Message {
 
+  /**
+   * Worker patchIds list
+   */
   private List<String> patchIds;
+  /**
+   * Neighbouring info
+   */
   private List<WorkerDataDto> workerInfo;
 
   @Override

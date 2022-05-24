@@ -25,75 +25,73 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 @Service
 @RequiredArgsConstructor
 public class ConnectionInitializationService {
-    private final ExecutorService listenerExecutor = newSingleThreadExecutor();
-    private final MessagePropagationService messagePropagationService;
-    private final WorkerRepository workerRepository;
-    private final ConfigurationService configurationService;
 
-    @PostConstruct
-    private void initSocket() {
-        listenerExecutor.submit(new Listener());
-    }
+  private final ExecutorService listenerExecutor = newSingleThreadExecutor();
+  private final MessagePropagationService messagePropagationService;
+  private final WorkerRepository workerRepository;
+  private final ConfigurationService configurationService;
 
-    private class Listener implements Runnable {
+  @PostConstruct
+  private void initSocket() {
+    listenerExecutor.submit(new Listener());
+  }
 
-        @Override
-        public void run() {
-            try {
-                ThreadPoolExecutor connectionExecutor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-                ServerSocket serverSocket = new ServerSocket(configurationService.getConfiguration().getServerPort());
-                if(serverSocket.isClosed()){
-                    log.error("Server fail");
-                } else {
-                    log.info("Server listening on port: " + serverSocket.getLocalPort());
-                }
+  private class Listener implements Runnable {
 
-                while (true) {
-                    try {
-                        Socket clientConnectionSocket = serverSocket.accept();
-                        connectionExecutor.submit(new ConnectionInitializationHandler(clientConnectionSocket, connectionExecutor));
-                    }
-                    catch (Exception e) {
-                        log.error("Fail create connection with worker");
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @RequiredArgsConstructor
-    private class ConnectionInitializationHandler implements Runnable {
-
-        private final Socket clientConnectionSocket;
-        private final ExecutorService connectionExecutor;
-
-        @Override
-        public void run() {
-            try {
-                log.info(String.format("New connection from: %s:%s",
-                    clientConnectionSocket.getInetAddress().getHostAddress(), clientConnectionSocket.getPort()));
-
-                ObjectInputStream input = new ObjectInputStream(clientConnectionSocket.getInputStream());
-                ObjectOutputStream output = new ObjectOutputStream(clientConnectionSocket.getOutputStream());
-
-                WorkerConnectionMessage workerConnectionMessage = getWorkerConnectionMessage(input);
-
-                WorkerConnection workerConnection =
-                    new WorkerConnection(
-                        output, input, messagePropagationService, workerConnectionMessage);
-                connectionExecutor.submit(workerConnection);
-                workerRepository.addWorker(workerConnectionMessage.getWorkerId(), workerConnection);
-                messagePropagationService.propagateMessage(workerConnectionMessage, workerConnectionMessage.getWorkerId());
-            } catch (Exception exception) {
-                log.error(String.format("Error during initialization connection with: %s:%s",
-                    clientConnectionSocket.getInetAddress().getHostAddress(), clientConnectionSocket.getPort()),exception);
-            }
+    @Override
+    public void run() {
+      try {
+        ThreadPoolExecutor connectionExecutor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        ServerSocket serverSocket = new ServerSocket(configurationService.getConfiguration().getServerPort());
+        if (serverSocket.isClosed()) {
+          log.error("Server fail");
+        } else {
+          log.info("Server listening on port: " + serverSocket.getLocalPort());
         }
 
-        private WorkerConnectionMessage getWorkerConnectionMessage(ObjectInputStream objectInputStream) throws IOException, ClassNotFoundException {
-            return (WorkerConnectionMessage) objectInputStream.readObject();
+        while (true) {
+          try {
+            Socket clientConnectionSocket = serverSocket.accept();
+            connectionExecutor.submit(new ConnectionInitializationHandler(clientConnectionSocket, connectionExecutor));
+          } catch (Exception e) {
+            log.error("Fail create connection with worker");
+          }
         }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
+  }
+
+  @RequiredArgsConstructor
+  private class ConnectionInitializationHandler implements Runnable {
+
+    private final Socket clientConnectionSocket;
+    private final ExecutorService connectionExecutor;
+
+    @Override
+    public void run() {
+      try {
+        log.info(String.format("New connection from: %s:%s", clientConnectionSocket.getInetAddress().getHostAddress(),
+            clientConnectionSocket.getPort()));
+
+        ObjectInputStream input = new ObjectInputStream(clientConnectionSocket.getInputStream());
+        WorkerConnectionMessage workerConnectionMessage = getWorkerConnectionMessage(input);
+
+        WorkerConnection workerConnection =
+            new WorkerConnection(input, messagePropagationService, workerConnectionMessage);
+        connectionExecutor.submit(workerConnection);
+        workerRepository.addWorker(workerConnectionMessage.getWorkerId(), workerConnection);
+        messagePropagationService.propagateMessage(workerConnectionMessage, workerConnectionMessage.getWorkerId());
+      } catch (Exception exception) {
+        log.error(String.format("Error during initialization connection with: %s:%s",
+            clientConnectionSocket.getInetAddress().getHostAddress(), clientConnectionSocket.getPort()), exception);
+      }
+    }
+
+    private WorkerConnectionMessage getWorkerConnectionMessage(ObjectInputStream objectInputStream)
+        throws IOException, ClassNotFoundException {
+      return (WorkerConnectionMessage) objectInputStream.readObject();
+    }
+  }
 }

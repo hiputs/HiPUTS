@@ -5,6 +5,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.RunSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ServerInitializationMessage;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.CompletedInitializationMessage;
+import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
@@ -58,8 +60,6 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       messageSenderService.sendServerMessage(new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 
       mapRepository.readMapAndBuildModel();
-      messageSenderService.sendServerMessage(new CompletedInitializationMessage());
-
     } catch (Exception e) {
       log.error("Worker fail", e);
     }
@@ -93,6 +93,12 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
         log.error("Error with creating gui", e);
       }
     }
+
+    try {
+      messageSenderService.sendServerMessage(new CompletedInitializationMessage());
+    } catch (IOException e) {
+      log.error("Fail send CompletedInitializationMessage", e);
+    }
   }
 
   private void runSimulation() {
@@ -113,6 +119,13 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       }
     } catch (Exception e){
       log.error("Worker start simulation fail", e);
+    } finally {
+      try {
+        log.info("Worker finish simulation");
+        messageSenderService.sendServerMessage(new FinishSimulationMessage(mapFragmentId.getId()));
+      } catch (IOException e) {
+        log.error("Error with send finish simulation message", e);
+      }
     }
   }
 }

@@ -29,7 +29,7 @@ public class MessageSenderServerService {
    *     <p>Method send message to all existing worker</p>
    */
   public void broadcast(Message message) {
-    log.info("Broadcasting message");
+    log.info("Broadcasting message " + message.getMessageType());
     workerRepository.getAll()
             .forEach(n -> n.send(message));
   }
