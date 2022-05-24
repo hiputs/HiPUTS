@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.simulation;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.service.MessageReceiverService;
@@ -17,24 +18,17 @@ import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
 
 @Service
+@RequiredArgsConstructor
 public class MapFragmentExecutor {
 
   public final MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap2();
-
+  private final MessageReceiverService messageReceiverService;
+  private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutor;
-
-  @Autowired
-  public MapFragmentExecutor(TaskExecutorService taskExecutor) {
-    this.taskExecutor = taskExecutor;
-  }
+  private final MessageSenderService messageSenderService;
+  private final CarSynchronizedService carSynchronizedService;
 
   public void run() {
-    MessageReceiverService messageReceiverService = new MessageReceiverService();
-    SubscriptionService subscriptionService = new SubscriptionService(messageReceiverService);
-    TaskExecutorService taskExecutorService = new SchedulerService();
-    MessageSenderService messageSenderService = new MessageSenderService(subscriptionService);
-    CarSynchronizedService carSynchronizedService =
-        new CarSynchronizedServiceImpl(mapFragment, subscriptionService, taskExecutorService, messageSenderService);
 
     // 3. decision
     List<Runnable> decisionStageTasks = mapFragment.getLocalLaneIds()
@@ -44,10 +38,10 @@ public class MapFragmentExecutor {
     taskExecutor.executeBatch(decisionStageTasks);
 
     // 4. prepare messages
-    carSynchronizedService.sendCarsToNeighbours();
+    carSynchronizedService.sendCarsToNeighbours(mapFragment);
 
     // 5. send & receive border patches
-    carSynchronizedService.synchronizedGetIncomingCar();
+    carSynchronizedService.synchronizedGetIncomingCar(mapFragment);
 
     // 6. 7. insert incoming cars & update lanes/cars
     List<Runnable> updateStageTasks = mapFragment.getLocalLaneIds()

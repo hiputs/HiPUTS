@@ -1,5 +1,12 @@
 package pl.edu.agh.hiputs.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+import static pl.edu.agh.hiputs.example.ExampleMapFragmentProvider.getSimpleMap2;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,13 +23,6 @@ import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-import static pl.edu.agh.hiputs.example.ExampleMapFragmentProvider.getSimpleMap2;
 
 @ExtendWith(MockitoExtension.class)
 public class ModelValidatorServiceTest {
@@ -45,7 +45,7 @@ public class ModelValidatorServiceTest {
         ModelValidationException exception = null;
 
         try{
-            modelValidatorService.checkModel(false);
+            modelValidatorService.checkModel(false, mapFragment);
         } catch (ModelValidationException e){
             exception = e;
         }
@@ -61,14 +61,14 @@ public class ModelValidatorServiceTest {
         ModelValidationException exception = null;
 
         try{
-            modelValidatorService.checkModel(false);
+            modelValidatorService.checkModel(false, mapFragment);
         } catch (ModelValidationException e){
             exception = e;
         }
 
         assertTrue(exception != null);
         assertEquals(3, exception.getErrors().size());
-        assertEquals(exception.toString(), "ModelValidationException(errors={outgoingJunction=IS_NULL, incoming junction=IS_NULL, lane length=TO_SHORT})");
+        assertEquals(exception.toString(), "ModelValidationException(errors={outgoingJunction=IS_NULL, incoming junction=IS_NULL, lane length=TOO_SHORT })");
     }
 
     @Test
@@ -78,7 +78,7 @@ public class ModelValidatorServiceTest {
         ModelValidationException exception = null;
 
         try{
-            modelValidatorService.checkModel(false);
+            modelValidatorService.checkModel(false, mapFragment);
         } catch (ModelValidationException e){
             exception = e;
         }
@@ -89,11 +89,10 @@ public class ModelValidatorServiceTest {
 
     @Test
     void shouldValidateRealModel(){
-        ModelValidatorServiceImpl modelValidatorService = new ModelValidatorServiceImpl(getSimpleMap2());
         ModelValidationException exception = null;
 
         try{
-            modelValidatorService.checkModel(false);
+            modelValidatorService.checkModel(false, getSimpleMap2());
         } catch (ModelValidationException e){
             exception = e;
         }
