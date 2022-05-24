@@ -28,8 +28,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 public class Internal2SimulationModelMapperImpl implements Internal2SimulationModelMapper {
 
   public Map<PatchId, Patch> mapToSimulationModel(Graph<PatchData, PatchConnectionData> graph) {
-    return graph.getEdges().values().stream()
-        .flatMap(patchConnection -> Stream.of(patchConnection.getSource(), patchConnection.getTarget()))
+    return graph.getNodes().values().stream()
         .map(this::mapPatchToSimulationModel)
         .collect(Collectors.toMap(Patch::getPatchId, Function.identity()));
   }
