@@ -1,11 +1,13 @@
 package pl.edu.agh.hiputs.startingUp;
 
+import static java.lang.Math.abs;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.RunSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ServerInitializationMessage;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +22,12 @@ import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.model.Configuration;
+import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
@@ -48,7 +53,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
 
   @PostConstruct
-  void init(){
+  void init() {
     subscriptionService.subscribe(this, RunSimulationMessage);
     subscriptionService.subscribe(this, ServerInitializationMessage);
   }
@@ -57,7 +62,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   public void executeStrategy() {
     try {
       configuration = configurationService.getConfiguration();
-      messageSenderService.sendServerMessage(new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
+      messageSenderService.sendServerMessage(
+          new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 
       mapRepository.readMapAndBuildModel();
     } catch (Exception e) {
@@ -75,16 +81,19 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   @Override
   public void notify(Message message) {
-    switch (message.getMessageType()){
+    switch (message.getMessageType()) {
       case RunSimulationMessage -> runSimulation();
-      case ServerInitializationMessage -> handleInitializationMessage((pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage) message);
+      case ServerInitializationMessage -> handleInitializationMessage(
+          (pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage) message);
       default -> log.warn("Unhandled message " + message.getMessageType());
     }
   }
 
-  private void handleInitializationMessage(pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage message) {
+  private void handleInitializationMessage(
+      pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage message) {
     MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
     mapFragmentExecutor.setMapFragment(mapFragment);
+    createCar();
 
     if (configuration.isEnableGUI()) {
       try {
@@ -101,6 +110,20 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     }
   }
 
+  private void createCar() { //fixMe impl real car provider
+    final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment());
+    Random random = new Random();
+    mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
+      LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(laneId);
+      int randomCarCount = abs(random.nextInt() % 3);
+      for (int i = 0; i < randomCarCount; i++) {
+        double carPosition = (randomCarCount - i) * lane.getLength() / (randomCarCount + 1);
+        Car car = exampleCarProvider.generateCar(carPosition);
+        lane.addCarAtEntry(car);
+      }
+    });
+  }
+
   private void runSimulation() {
     simulationExecutor.submit(this);
   }
@@ -109,7 +132,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   public void run() {
     try {
       long n = configuration.getSimulationStep();
-      for(long i=0; i< n; i++) {
+      for (long i = 0; i < n; i++) {
         mapFragmentExecutor.run();
 
         if (configuration.isEnableGUI()) {
@@ -117,7 +140,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           sleep(200);
         }
       }
-    } catch (Exception e){
+    } catch (Exception e) {
       log.error("Worker start simulation fail", e);
     } finally {
       try {
