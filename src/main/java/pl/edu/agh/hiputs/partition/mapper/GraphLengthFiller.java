@@ -4,7 +4,7 @@ import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
-import pl.edu.agh.utils.CoordinatesUtil;
+import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
 class GraphLengthFiller implements GraphTransformer {
 

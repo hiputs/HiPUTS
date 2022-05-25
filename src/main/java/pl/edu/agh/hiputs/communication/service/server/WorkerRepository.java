@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.communication.service.server;
 
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -15,11 +16,11 @@ public class WorkerRepository {
         workerRepository.put(workerId, workerConnection);
     }
 
-    WorkerConnection get(String workerId){
+    public WorkerConnection get(String workerId){
         return workerRepository.get(workerId);
     }
 
-    Collection<WorkerConnection> getAll(){
+    public Collection<WorkerConnection> getAll(){
         return workerRepository.values();
     }
 

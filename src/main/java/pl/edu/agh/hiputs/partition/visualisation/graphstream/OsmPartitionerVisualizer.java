@@ -8,7 +8,7 @@ import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.spriteManager.SpriteManager;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
-import pl.edu.agh.utils.CoordinatesUtil;
+import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
 public class OsmPartitionerVisualizer {
 

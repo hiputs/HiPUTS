@@ -11,7 +11,7 @@ import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
-import pl.edu.agh.utils.CoordinatesUtil;
+import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
 /**
  * Simple visualization

@@ -5,24 +5,21 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.CompletedIn
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationStatisticMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.WorkerConnectionMessage;
-import static pl.edu.agh.hiputs.startingUp.StrategySelectionService.SERVER_LOCK;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
-import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
+import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
+import pl.edu.agh.hiputs.communication.service.server.WorkerConnection;
+import pl.edu.agh.hiputs.communication.service.server.WorkerRepository;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
@@ -31,7 +28,6 @@ import pl.edu.agh.hiputs.partition.service.MapFragmentPartitioner;
 import pl.edu.agh.hiputs.partition.service.MapStructureLoader;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.server.WorkerSynchronisationService;
-import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
 
 @Slf4j
@@ -49,6 +45,8 @@ public class ServerStrategyService implements Strategy {
 
   private final MapRepositoryServerHandler mapRepository;
   private final PatchesGraphReader patchesGraphReader;
+
+  private final WorkerRepository workerRepository;
 
   @Override
   public void executeStrategy() {
@@ -90,6 +88,18 @@ public class ServerStrategyService implements Strategy {
   private void calculateAndDistributeConfiguration(Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents) {
     //toDo create and send metis result with connection to neighbour. In result should send ServerInitializationMessage with local patches, shadow patches and neighbour connection data
     messageSenderServerService.broadcast(ServerInitializationMessage.builder().build());//fixMe remove this lane after implementation
+    Iterator<WorkerConnection> workerConnectionIterator = workerRepository.getAll().iterator();
+    Iterator<Graph<PatchData, PatchConnectionData>> mapFragmentContentIterator = mapFragmentsContents.iterator();
+
+    while(workerConnectionIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
+      WorkerConnection workerConnection = workerConnectionIterator.next();
+      Graph<PatchData, PatchConnectionData> mapFragmentContent = mapFragmentContentIterator.next();
+
+      ServerInitializationMessage serverInitializationMessage = ServerInitializationMessage.builder()
+          .patchIds(mapFragmentContent.getNodes().keySet().stream().toList())
+          .workerInfo()
+          .build();
+    }
   }
 
   private void generateReport() {

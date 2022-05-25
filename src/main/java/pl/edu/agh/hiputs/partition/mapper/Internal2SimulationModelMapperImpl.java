@@ -28,7 +28,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 public class Internal2SimulationModelMapperImpl implements Internal2SimulationModelMapper {
 
   public Map<PatchId, Patch> mapToSimulationModel(Graph<PatchData, PatchConnectionData> graph) {
-    return graph.getNodes().values().stream()
+    return graph.getNodes().values().parallelStream()
         .map(this::mapPatchToSimulationModel)
         .collect(Collectors.toMap(Patch::getPatchId, Function.identity()));
   }
@@ -36,13 +36,21 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
   private Patch mapPatchToSimulationModel(Node<PatchData, PatchConnectionData> patch) {
     return Patch.builder()
         .patchId(new PatchId(patch.getId()))
-        .lanes(patch.getData().getGraphInsidePatch().getEdges().values().stream().map(this::mapEdgeToSimulationModel).collect(
-            Collectors.toMap(Lane::getLaneId, Function.identity())))
-        .junctions(patch.getData().getGraphInsidePatch().getNodes().values().stream().map(this::mapNodeToSimulationModel).collect(
-            Collectors.toMap(Junction::getJunctionId, Function.identity())))
-        .neighboringPatches(patch.getOutgoingEdges().stream().map(e -> new PatchId(e.getTarget().getId())).collect(
-            Collectors.toSet()))
+        .lanes(edgesParallelStream(patch).map(this::mapEdgeToSimulationModel)
+            .collect(Collectors.toMap(Lane::getLaneId, Function.identity())))
+        .junctions(nodesParallelStream(patch).map(this::mapNodeToSimulationModel)
+            .collect(Collectors.toMap(Junction::getJunctionId, Function.identity())))
+        .neighboringPatches(
+            patch.getOutgoingEdges().parallelStream().map(e -> new PatchId(e.getTarget().getId())).collect(Collectors.toSet()))
         .build();
+  }
+
+  private Stream<Edge<JunctionData, WayData>> edgesParallelStream(Node<PatchData, PatchConnectionData> patch) {
+    return patch.getData().getGraphInsidePatch().getEdges().values().parallelStream();
+  }
+
+  private Stream<Node<JunctionData, WayData>> nodesParallelStream(Node<PatchData, PatchConnectionData> patch) {
+    return patch.getData().getGraphInsidePatch().getNodes().values().parallelStream();
   }
 
   private Junction mapNodeToSimulationModel(Node<JunctionData, WayData> node) {
@@ -55,8 +63,7 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
     node.getIncomingEdges()
         .forEach(e -> junctionBuilder.addIncomingLaneId(new LaneId(e.getId()), !e.getData().isPriorityRoad()));
 
-    node.getOutgoingEdges()
-        .forEach(e -> junctionBuilder.addOutgoingLaneId(new LaneId(e.getId())));
+    node.getOutgoingEdges().forEach(e -> junctionBuilder.addOutgoingLaneId(new LaneId(e.getId())));
 
     return junctionBuilder.build();
   }
@@ -67,7 +74,8 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
         .length(edge.getData().getLength())
         .incomingJunctionId(new JunctionId(edge.getSource().getId(), getJunctionType(edge.getSource())))
         .outgoingJunctionId(new JunctionId(edge.getTarget().getId(), getJunctionType(edge.getTarget())))
-        .leftNeighbor(getOppositeLaneId(edge).map(laneId -> new NeighborLaneInfo(laneId, HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE))); //todo parse line from osm if possible
+        .leftNeighbor(getOppositeLaneId(edge).map(laneId -> new NeighborLaneInfo(laneId,
+            HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE))); //todo parse line from osm if possible
     return laneBuilder.build();
   }
 
@@ -80,7 +88,8 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
       return Optional.empty();
     }
 
-    return edge.getSource().getIncomingEdges()
+    return edge.getSource()
+        .getIncomingEdges()
         .stream()
         .filter(e -> e.getSource().equals(edge.getTarget()))
         .map(e -> new LaneId(e.getId()))

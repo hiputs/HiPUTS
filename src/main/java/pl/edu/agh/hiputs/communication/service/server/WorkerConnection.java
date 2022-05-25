@@ -14,6 +14,7 @@ import java.net.Socket;
 @Slf4j
 public class WorkerConnection implements Runnable{
 
+    @Getter
     private final String workerId;
 
     @Getter

@@ -8,17 +8,14 @@ import lombok.Setter;
 import pl.edu.agh.hiputs.partition.model.graph.NodeData;
 
 @Getter
-@Setter
 @Builder
 public class JunctionData implements NodeData {
 
-  @Setter(AccessLevel.NONE)
   private Double lon;
-  @Setter(AccessLevel.NONE)
   private Double lat;
-  @Setter(AccessLevel.NONE)
   private Map<String, String> tags;
 
+  @Setter
   private String patchId;
 
   @Override

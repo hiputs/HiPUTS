@@ -1,4 +1,4 @@
-package pl.edu.agh.utils;
+package pl.edu.agh.hiputs.utils;
 
 public class CoordinatesUtil {
 
