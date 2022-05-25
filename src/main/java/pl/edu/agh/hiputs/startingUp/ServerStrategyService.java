@@ -8,21 +8,33 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.WorkerConne
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
+import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
+import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
 import pl.edu.agh.hiputs.communication.service.server.WorkerConnection;
 import pl.edu.agh.hiputs.communication.service.server.WorkerRepository;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
+import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.partition.persistance.PatchesGraphReader;
 import pl.edu.agh.hiputs.partition.service.MapFragmentPartitioner;
 import pl.edu.agh.hiputs.partition.service.MapStructureLoader;
@@ -70,7 +82,7 @@ public class ServerStrategyService implements Strategy {
 
     calculateAndDistributeConfiguration(mapFragmentsContents);
 
-    log.info("Waiting for all workers by in state CompletedInitialization");
+    log.info("Waiting for all workers be in state CompletedInitialization");
     workerSynchronisationService.waitForAllWorkers(CompletedInitializationMessage);
 
     distributeRunSimulationMessage(mapFragmentsContents);
@@ -86,20 +98,66 @@ public class ServerStrategyService implements Strategy {
   }
 
   private void calculateAndDistributeConfiguration(Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents) {
-    //toDo create and send metis result with connection to neighbour. In result should send ServerInitializationMessage with local patches, shadow patches and neighbour connection data
-    messageSenderServerService.broadcast(ServerInitializationMessage.builder().build());//fixMe remove this lane after implementation
-    Iterator<WorkerConnection> workerConnectionIterator = workerRepository.getAll().iterator();
+    Iterator<String> workerIdsIterator = workerRepository.getAllWorkersIds().iterator();
     Iterator<Graph<PatchData, PatchConnectionData>> mapFragmentContentIterator = mapFragmentsContents.iterator();
 
-    while(workerConnectionIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
-      WorkerConnection workerConnection = workerConnectionIterator.next();
+    Map<String, String> patchId2workerId = new HashMap<>();
+
+    while(workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
+      String workerId = workerIdsIterator.next();
       Graph<PatchData, PatchConnectionData> mapFragmentContent = mapFragmentContentIterator.next();
+
+      patchId2workerId.putAll(
+          mapFragmentContent.getNodes().keySet().stream().collect(Collectors.toMap(Function.identity(), e -> workerId))
+      );
+    }
+
+    workerIdsIterator = workerRepository.getAllWorkersIds().iterator();
+    mapFragmentContentIterator = mapFragmentsContents.iterator();
+
+    Map<String, ServerInitializationMessage> workerId2ServerInitializationMessage = new HashMap<>();
+
+    while(workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
+      String workerId = workerIdsIterator.next();
+      Graph<PatchData, PatchConnectionData> mapFragmentContent = mapFragmentContentIterator.next();
+
+      Set<String> shadowPatchesIds = mapFragmentContent.getEdges().values()
+          .stream().flatMap(e -> Stream.of(e.getSource(), e.getTarget()))
+          .distinct()
+          .map(Node::getId)
+          .filter(id -> !mapFragmentContent.getNodes().containsKey(id))
+          .collect(Collectors.toSet());
+
+      Map<String, List<String>> workerConnection2shadowPatchesIds = new HashMap<>();
+      shadowPatchesIds.forEach(patchId -> {
+        String neighbourWorkerId = patchId2workerId.get(patchId);
+          if (workerConnection2shadowPatchesIds.containsKey(neighbourWorkerId)) {
+            workerConnection2shadowPatchesIds.get(neighbourWorkerId).add(patchId);
+          } else {
+            workerConnection2shadowPatchesIds.put(neighbourWorkerId, Stream.of(patchId).collect(Collectors.toList()));
+          }
+        });
+
+      List<WorkerDataDto> workerDataDtos = workerConnection2shadowPatchesIds.entrySet()
+          .stream()
+          .map(e -> Map.entry(workerRepository.get(e.getKey()), e.getValue()))
+          .map(e -> new WorkerDataDto(e.getValue(), ConnectionDto.builder()
+              .id(e.getKey().getWorkerId())
+              .address(e.getKey().getAddress())
+              .port(e.getKey().getPort())
+              .build()))
+          .toList();
 
       ServerInitializationMessage serverInitializationMessage = ServerInitializationMessage.builder()
           .patchIds(mapFragmentContent.getNodes().keySet().stream().toList())
-          .workerInfo()
+          .workerInfo(workerDataDtos)
           .build();
+      workerId2ServerInitializationMessage.put(workerId, serverInitializationMessage);
     }
+
+    workerId2ServerInitializationMessage.entrySet().forEach(
+        e -> messageSenderServerService.send(e.getKey(), e.getValue())
+    );
   }
 
   private void generateReport() {

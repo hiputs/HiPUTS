@@ -20,11 +20,15 @@ public class WorkerRepository {
         return workerRepository.get(workerId);
     }
 
-    public Collection<WorkerConnection> getAll(){
+    Collection<WorkerConnection> getAll(){
         return workerRepository.values();
     }
 
     public int countWorker() {
         return workerRepository.size();
+    }
+
+    public Collection<String> getAllWorkersIds() {
+        return getAll().stream().map(WorkerConnection::getWorkerId).collect(Collectors.toList());
     }
 }

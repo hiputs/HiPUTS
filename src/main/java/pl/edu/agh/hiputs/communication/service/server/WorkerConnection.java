@@ -12,11 +12,10 @@ import java.io.IOException;
 import java.net.Socket;
 
 @Slf4j
-public class WorkerConnection implements Runnable{
+public class WorkerConnection implements Runnable {
 
     @Getter
     private final String workerId;
-
     @Getter
     private final int port;
     @Getter
