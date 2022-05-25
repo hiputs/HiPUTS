@@ -31,8 +31,8 @@ public class StrategySelectionService {
     try {
       if (configuration.isTestMode()) {
         singleWorkStrategyService.executeStrategy();
-      } else if(!isServerRunning()){
-          serverStrategyService.executeStrategy();
+      } else if (!isServerRunning()) {
+        serverStrategyService.executeStrategy();
       } else {
         workerStrategyService.executeStrategy();
       }
@@ -44,8 +44,7 @@ public class StrategySelectionService {
 
   private boolean isServerRunning() throws IOException {
     File serverLock = new File(SERVER_LOCK);
-    if(!serverLock.exists()){
-      serverLock.createNewFile();
+    if (serverLock.createNewFile()) {
       configurationService.getConfiguration().setServerOnThisMachine(true);
       return false;
     }
@@ -54,7 +53,7 @@ public class StrategySelectionService {
 
   @PreDestroy
   public void onExit() {
-    if(configurationService.getConfiguration().isServerOnThisMachine()){
+    if (configurationService.getConfiguration().isServerOnThisMachine()) {
       File serverLock = new File(SERVER_LOCK);
       serverLock.deleteOnExit();
     }

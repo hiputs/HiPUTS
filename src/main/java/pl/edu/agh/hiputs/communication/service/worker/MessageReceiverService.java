@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.communication.service.worker;
 
+import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 import java.io.IOException;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +34,7 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 public class MessageReceiverService {
 
   private final Map<MessagesTypeEnum, List<Subscriber>> subscriberRepository = new HashMap<>();
-  private final ExecutorService threadPoolExecutor = newSingleThreadExecutor();
+  private final ThreadPoolExecutor connectionExecutor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
   private final ExecutorService listenerExecutor = newSingleThreadExecutor();
   @Getter
   private int port;
@@ -76,7 +79,7 @@ public class MessageReceiverService {
         port = ss.getLocalPort();
         while (true) {
           Socket s = ss.accept();
-          threadPoolExecutor.submit(new SingleConnectionExecutor(s));
+          connectionExecutor.submit(new SingleConnectionExecutor(s));
         }
 
       } catch (IOException e) {
@@ -93,8 +96,12 @@ public class MessageReceiverService {
     @SneakyThrows
     @Override
     public void run() {
-      Message message = (Message) new ObjectInputStream(clientSocket.getInputStream()).readObject();
-      propagateMessage(message);
+      ObjectInputStream objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
+
+      while(true){
+        Message message = (Message) objectInputStream.readObject();
+        propagateMessage(message);
+      }
     }
   }
 }
