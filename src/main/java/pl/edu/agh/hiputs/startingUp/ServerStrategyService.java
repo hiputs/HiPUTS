@@ -8,11 +8,9 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.WorkerConne
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +27,6 @@ import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
-import pl.edu.agh.hiputs.communication.service.server.WorkerConnection;
 import pl.edu.agh.hiputs.communication.service.server.WorkerRepository;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -102,7 +99,7 @@ public class ServerStrategyService implements Strategy {
     Iterator<Graph<PatchData, PatchConnectionData>> mapFragmentContentIterator = mapFragmentsContents.iterator();
 
     Map<String, String> patchId2workerId = new HashMap<>();
-
+    // map which patch belongs where
     while(workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
       String workerId = workerIdsIterator.next();
       Graph<PatchData, PatchConnectionData> mapFragmentContent = mapFragmentContentIterator.next();
@@ -115,12 +112,14 @@ public class ServerStrategyService implements Strategy {
     workerIdsIterator = workerRepository.getAllWorkersIds().iterator();
     mapFragmentContentIterator = mapFragmentsContents.iterator();
 
+    //prepare serverInitMessage for each worker
     Map<String, ServerInitializationMessage> workerId2ServerInitializationMessage = new HashMap<>();
 
     while(workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
       String workerId = workerIdsIterator.next();
       Graph<PatchData, PatchConnectionData> mapFragmentContent = mapFragmentContentIterator.next();
 
+      //calculate shadow patches
       Set<String> shadowPatchesIds = mapFragmentContent.getEdges().values()
           .stream().flatMap(e -> Stream.of(e.getSource(), e.getTarget()))
           .distinct()
@@ -128,23 +127,23 @@ public class ServerStrategyService implements Strategy {
           .filter(id -> !mapFragmentContent.getNodes().containsKey(id))
           .collect(Collectors.toSet());
 
-      Map<String, List<String>> workerConnection2shadowPatchesIds = new HashMap<>();
+      //calculate set of shadow patches belong to which neighbour worker
+      Map<String, List<String>> workerId2shadowPatchesIds = new HashMap<>();
       shadowPatchesIds.forEach(patchId -> {
         String neighbourWorkerId = patchId2workerId.get(patchId);
-          if (workerConnection2shadowPatchesIds.containsKey(neighbourWorkerId)) {
-            workerConnection2shadowPatchesIds.get(neighbourWorkerId).add(patchId);
+          if (workerId2shadowPatchesIds.containsKey(neighbourWorkerId)) {
+            workerId2shadowPatchesIds.get(neighbourWorkerId).add(patchId);
           } else {
-            workerConnection2shadowPatchesIds.put(neighbourWorkerId, Stream.of(patchId).collect(Collectors.toList()));
+            workerId2shadowPatchesIds.put(neighbourWorkerId, Stream.of(patchId).collect(Collectors.toList()));
           }
         });
 
-      List<WorkerDataDto> workerDataDtos = workerConnection2shadowPatchesIds.entrySet()
+      List<WorkerDataDto> workerDataDtos = workerId2shadowPatchesIds.entrySet()
           .stream()
-          .map(e -> Map.entry(workerRepository.get(e.getKey()), e.getValue()))
           .map(e -> new WorkerDataDto(e.getValue(), ConnectionDto.builder()
-              .id(e.getKey().getWorkerId())
-              .address(e.getKey().getAddress())
-              .port(e.getKey().getPort())
+              .id(e.getKey())
+              .address(workerRepository.get(e.getKey()).getAddress())
+              .port(workerRepository.get(e.getKey()).getPort())
               .build()))
           .toList();
 

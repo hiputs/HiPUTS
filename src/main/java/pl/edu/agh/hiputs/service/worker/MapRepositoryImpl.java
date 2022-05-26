@@ -50,6 +50,8 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
         waitForMapReadyToReadMessage();
       }
 
+      this.patchesGraph = patchesGraphReader.readGraphWithPatches(Path.of(configurationService.getConfiguration().getMapPath()).getParent());
+
       if(configurationService.getConfiguration().isServerOnThisMachine()){
         patches.putAll(internal2SimulationModelMapper.mapToSimulationModel(patchesGraph));
         return;
