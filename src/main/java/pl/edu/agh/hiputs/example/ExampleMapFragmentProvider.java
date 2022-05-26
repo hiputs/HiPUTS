@@ -22,7 +22,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.HorizontalSign;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.model.map.roadstructure.NeighborLaneInfo;
-import pl.edu.agh.utils.DeterminingNeighborhoodUtil;
+import pl.edu.agh.hiputs.utils.DeterminingNeighborhoodUtil;
 
 public class ExampleMapFragmentProvider {
 
@@ -71,6 +71,11 @@ public class ExampleMapFragmentProvider {
 
     Map<String, JunctionUnderConstruction> stringJunctionMap =
         getStringJunctionMapFromStringRepresentation(mapStructure);
+    Stream.of(new String[] {"1", "2"}).forEach(v -> {
+      JunctionId crossroadId = JunctionId.randomCrossroad();
+      stringJunctionMap.get(v).getJunctionBuilder().junctionId(crossroadId);
+      stringJunctionMap.get(v).junctionId = crossroadId;
+    });
 
     setLaneLengths(stringLaneMap, laneLengths);
 
@@ -113,6 +118,11 @@ public class ExampleMapFragmentProvider {
       JunctionId bendId = JunctionId.randomBend();
       stringJunctionMap.get(v).getJunctionBuilder().junctionId(bendId);
       stringJunctionMap.get(v).junctionId = bendId;
+    });
+    Stream.of(new String[] {"1", "4"}).forEach(v -> {
+      JunctionId crossroadId = JunctionId.randomCrossroad();
+      stringJunctionMap.get(v).getJunctionBuilder().junctionId(crossroadId);
+      stringJunctionMap.get(v).junctionId = crossroadId;
     });
 
     setLaneLengths(stringLaneMap, laneLengths);
