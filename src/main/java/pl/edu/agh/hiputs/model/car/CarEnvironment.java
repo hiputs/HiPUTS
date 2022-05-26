@@ -22,4 +22,11 @@ public class CarEnvironment {
   Optional<CarReadable> precedingCar;
   Optional<JunctionId> nextCrossroadId;
   Optional<LaneId> incomingLaneId;
+
+  public CarEnvironment(Optional<CarReadable> precedingCar, Optional<JunctionId> nextCrossroadId, double distance) {
+    this.distance = distance;
+    this.precedingCar = precedingCar;
+    this.nextCrossroadId = nextCrossroadId;
+    this.incomingLaneId = Optional.empty();
+  }
 }
