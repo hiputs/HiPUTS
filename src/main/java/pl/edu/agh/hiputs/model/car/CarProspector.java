@@ -30,7 +30,7 @@ public class CarProspector {
       LaneId nextLaneId;
       LaneReadable nextLane;
       while (precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
-        nextLaneId = currentCar.getRouteOffsetLaneId(offset++);
+        nextLaneId = currentCar.getRouteOffsetLaneId(++offset);
         if (nextLaneId == null) {
           break;
         }
