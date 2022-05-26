@@ -34,11 +34,11 @@ public class Lane implements LaneEditable {
   private final Deque<CarEditable> cars = new LinkedList<>();
 
   /**
-   * Reference to lane that goes in opposite direction and is closest to this one.
+   * Reference to lane that is on the left side of this one, for now it should be in opposite direction.
    */
   @Getter
   @Builder.Default
-  private final Optional<LaneId> oppositeLaneId = Optional.empty();
+  private final Optional<NeighborLaneInfo> leftNeighbor = Optional.empty();
 
   /**
    * Reference to junction id that is at the begging of lane
@@ -81,8 +81,18 @@ public class Lane implements LaneEditable {
   }
 
   @Override
+  public Optional<CarReadable> getCarBeforePosition(double position) {
+    return streamCarsFromExitReadable().filter(car -> car.getPositionOnLane() < position).findFirst();
+  }
+
+  @Override
   public Optional<CarReadable> getCarAtEntryReadable() {
     return Optional.ofNullable(cars.peekFirst());
+  }
+
+  @Override
+  public Optional<CarReadable> getCarAtExitReadable() {
+    return Optional.ofNullable(cars.peekLast());
   }
 
   @Override
@@ -121,6 +131,10 @@ public class Lane implements LaneEditable {
   @Override
   public Stream<CarEditable> streamCarsFromExitEditable() {
     return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false);
+  }
+
+  public boolean removeCar(CarEditable car) {
+    return this.cars.remove(car);
   }
 }
 

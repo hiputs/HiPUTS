@@ -90,16 +90,17 @@ public class Car implements CarEditable {
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     int offset = 0;
     double desiredPosition = calculateFuturePosition(acceleration);
+    Optional<LaneId> desiredLaneId;
 
     while (desiredPosition > destinationCandidate.getLength()) {
       desiredPosition -= destinationCandidate.getLength();
-      try {
-        currentLaneId = routeWithLocation.getOffsetLaneId(offset + 1);
-      } catch (RouteExceededException e) {
+      desiredLaneId = routeWithLocation.getOffsetLaneId(offset + 1);
+      if (desiredLaneId.isEmpty()) {
         currentLaneId = null;
         break;
       }
       offset++;
+      currentLaneId = desiredLaneId.get();
       destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     }
 
@@ -113,15 +114,16 @@ public class Car implements CarEditable {
   }
 
   @Override
-  public CarUpdateResult update() {
-    this.routeWithLocation.moveCurrentPositionWithOffset(decision.getOffsetToMoveOnRoute());
+  public Optional<CarUpdateResult> update() {
+    if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getLaneId() == null) // remove car from lane
+        return Optional.empty();
     this.speed = decision.getSpeed();
     this.acceleration = decision.getAcceleration();
     CarUpdateResult carUpdateResult =
         new CarUpdateResult(this.laneId, decision.getLaneId(), decision.getPositionOnLane());
     this.laneId = decision.getLaneId();
     this.positionOnLane = decision.getPositionOnLane();
-    return carUpdateResult;
+    return Optional.of(carUpdateResult);
   }
 
   /**

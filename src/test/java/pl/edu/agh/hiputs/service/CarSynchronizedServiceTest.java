@@ -53,8 +53,8 @@ public class CarSynchronizedServiceTest {
 
     //when
     taskExecutorService.init();
-    CarSynchronizedServiceImpl carSynchronizedService = new CarSynchronizedServiceImpl(mapFragment, subscriptionService, taskExecutorService, messageSenderService);
-    carSynchronizedService.sendCarsToNeighbours();
+    CarSynchronizedServiceImpl carSynchronizedService = new CarSynchronizedServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
+    carSynchronizedService.sendCarsToNeighbours(mapFragment);
 
     //then
     ArgumentCaptor<CarTransferMessage> argumentCaptor = ArgumentCaptor.forClass(CarTransferMessage.class);
@@ -127,8 +127,8 @@ public class CarSynchronizedServiceTest {
     when(mapFragment.getBorderPatches()).thenReturn(getBorderPatches2());
     //when
     taskExecutorService.init();
-    CarSynchronizedServiceImpl carSynchronizedService = new CarSynchronizedServiceImpl(mapFragment, subscriptionService, taskExecutorService, messageSenderService);
-    carSynchronizedService.sendCarsToNeighbours();
+    CarSynchronizedServiceImpl carSynchronizedService = new CarSynchronizedServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
+    carSynchronizedService.sendCarsToNeighbours(mapFragment);
 
     //then
     ArgumentCaptor<CarTransferMessage> argumentCaptor = ArgumentCaptor.forClass(CarTransferMessage.class);

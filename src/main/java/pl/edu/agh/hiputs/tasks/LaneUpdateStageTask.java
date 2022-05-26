@@ -1,7 +1,9 @@
 package pl.edu.agh.hiputs.tasks;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -26,7 +28,10 @@ public class LaneUpdateStageTask implements Runnable {
    * Removes from Lane.carsQueue all cars which decided to leave this lane
    */
   private void removeLeavingCars(LaneEditable lane) {
-    while (lane.getCarAtExit().map(car -> Objects.isNull(laneId) || !car.getDecision().getLaneId().equals(laneId)).orElse(false)) {
+    while (lane
+            .getCarAtExit()
+            .map(car -> Objects.isNull(laneId) || !Objects.equals(laneId, car.getDecision().getLaneId()))
+            .orElse(false)) {
       lane.pollCarAtExit();
     }
   }
@@ -37,7 +42,13 @@ public class LaneUpdateStageTask implements Runnable {
    * @param lane
    */
   private void updateCarsOnLane(LaneEditable lane) {
-    lane.streamCarsFromExitEditable().forEach(CarEditable::update);
+    List<CarEditable> carsToRemove = lane
+        .streamCarsFromExitEditable()
+        .filter(car -> car.update().isEmpty())
+        .collect(Collectors.toList());
+    for (CarEditable car : carsToRemove) {
+      lane.removeCar(car);
+    }
   }
 
   /**
@@ -49,8 +60,8 @@ public class LaneUpdateStageTask implements Runnable {
     lane.pollIncomingCars()
         .sorted(Comparator.<CarEditable>comparingDouble(car -> car.getDecision().getPositionOnLane()).reversed())
         .forEach(currentCar -> {
-          lane.addCarAtEntry(currentCar);
-          currentCar.update();
+          if (currentCar.update().isPresent())
+            lane.addCarAtEntry(currentCar);
         });
   }
 }
