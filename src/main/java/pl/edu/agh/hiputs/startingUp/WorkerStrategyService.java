@@ -91,9 +91,10 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   private void handleInitializationMessage(
       pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage message) {
+    waitForMapLoad();
     MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
     mapFragmentExecutor.setMapFragment(mapFragment);
-    createCar();
+    // createCar();
 
     if (configuration.isEnableGUI()) {
       try {
@@ -107,6 +108,16 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       messageSenderService.sendServerMessage(new CompletedInitializationMessage());
     } catch (IOException e) {
       log.error("Fail send CompletedInitializationMessage", e);
+    }
+  }
+
+  private void waitForMapLoad() {
+    while (!mapRepository.isReady()) {
+      try {
+        sleep(100); //active waiting for load map from disk
+      } catch (InterruptedException e) {
+        log.warn("Error util waiting for map will be load", e);
+      }
     }
   }
 

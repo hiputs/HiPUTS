@@ -22,7 +22,10 @@ public class MapFragmentCreator {
     MapFragmentBuilder mapFragmentBuilder = MapFragment.builder(mapFragmentId);
 
     try {
-      initializationMessage.getPatchIds().stream().map(PatchId::new).forEach(id -> mapFragmentBuilder.addLocalPatch(mapRepository.getPatch(id)));
+      initializationMessage.getPatchIds()
+          .stream()
+          .map(PatchId::new)
+          .forEach(id -> mapFragmentBuilder.addLocalPatch(mapRepository.getPatch(id)));
 
       initializationMessage.getWorkerInfo().forEach(worker -> {
         worker.getPatchIds()

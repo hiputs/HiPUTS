@@ -26,6 +26,7 @@ import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessag
 import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
+import pl.edu.agh.hiputs.communication.service.server.ConnectionInitializationService;
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
 import pl.edu.agh.hiputs.communication.service.server.WorkerRepository;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
@@ -45,6 +46,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
 public class ServerStrategyService implements Strategy {
 
   private final WorkerSynchronisationService workerSynchronisationService;
+  private final ConnectionInitializationService connectionInitializationService;
   private final ConfigurationService configurationService;
   private final WorkerStrategyService workerStrategyService;
   private final MapFragmentPartitioner mapFragmentPartitioner;
@@ -61,6 +63,7 @@ public class ServerStrategyService implements Strategy {
   public void executeStrategy() {
 
     log.info("Running server");
+    connectionInitializationService.init();
     workerPrepareExecutor.submit(new PrepareWorkerTask());
 
     Graph<PatchData, PatchConnectionData> patchesGraph = configurationService.getConfiguration().isReadFromOsmDirectly()

@@ -31,8 +31,7 @@ public class ConnectionInitializationService {
   private final WorkerRepository workerRepository;
   private final ConfigurationService configurationService;
 
-  @PostConstruct
-  private void initSocket() {
+  public void init() {
     listenerExecutor.submit(new Listener());
   }
 

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Connection;
 import pl.edu.agh.hiputs.communication.Subscriber;
@@ -18,6 +19,7 @@ import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MessageSenderService implements Subscriber {
@@ -39,6 +41,7 @@ public class MessageSenderService implements Subscriber {
    * @throws IOException <p>Method send message to specific client</p>
    */
   public void send(MapFragmentId mapFragmentId, Message message) throws IOException {
+    log.info("Worker send message to: " + mapFragmentId + " message type: " + message.getMessageType());
     neighbourRepository.get(mapFragmentId).send(message);
   }
 
@@ -46,7 +49,7 @@ public class MessageSenderService implements Subscriber {
     if (serverConnection == null) {
       createServerConnection();
     }
-
+    log.info("Worker send message to: SERVER message type: " + message.getMessageType());
     serverConnection.send(message);
   }
 

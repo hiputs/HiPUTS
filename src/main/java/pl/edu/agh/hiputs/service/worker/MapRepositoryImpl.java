@@ -1,9 +1,12 @@
 package pl.edu.agh.hiputs.service.worker;
 
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -35,51 +38,67 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
   private final PatchesGraphReader patchesGraphReader;
   private final Internal2SimulationModelMapper internal2SimulationModelMapper;
   private boolean mapReadyToRead = false;
+  private boolean mapReadyToUse = false;
 
   @Setter
   private Graph<PatchData, PatchConnectionData> patchesGraph;
 
   @PostConstruct
-  void init(){
+  void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.MapReadyToRead);
   }
 
   @Override
   public void readMapAndBuildModel() throws InterruptedException {
-      if(configurationService.getConfiguration().isReadFromOsmDirectly()){
-        waitForMapReadyToReadMessage();
-      }
+    if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
+      waitForMapReadyToReadMessage();
+    }
 
-      this.patchesGraph = patchesGraphReader.readGraphWithPatches(Path.of(configurationService.getConfiguration().getMapPath()).getParent());
-
-      if(configurationService.getConfiguration().isServerOnThisMachine()){
-        patches.putAll(internal2SimulationModelMapper.mapToSimulationModel(patchesGraph));
-        return;
-      }
-
-      Graph<PatchData, PatchConnectionData> patchesGraph = patchesGraphReader.readGraphWithPatches(Path.of(configurationService.getConfiguration().getMapPath()).getParent());
+    if (configurationService.getConfiguration().isServerOnThisMachine()) {
       patches.putAll(internal2SimulationModelMapper.mapToSimulationModel(patchesGraph));
+      mapReadyToUse = true;
+      return;
+    }
+
+    this.patchesGraph = patchesGraphReader.readGraphWithPatches(
+        Path.of(configurationService.getConfiguration().getMapPath()).getParent());
+
+    Graph<PatchData, PatchConnectionData> patchesGraph = patchesGraphReader.readGraphWithPatches(
+        Path.of(configurationService.getConfiguration().getMapPath()).getParent());
+    patches.putAll(internal2SimulationModelMapper.mapToSimulationModel(patchesGraph));
+    mapReadyToUse = true;
   }
 
   private synchronized void waitForMapReadyToReadMessage() throws InterruptedException {
-    while (!mapReadyToRead){
+    while (!mapReadyToRead) {
       wait();
     }
   }
 
   @Override
   public List<Patch> getPatches(List<PatchId> patchIds) {
-    return null;
+    if (!mapReadyToUse) {
+      throw new RuntimeException("Map is not ready to use");
+    }
+    return patchIds.stream().map(patches::get).toList();
   }
 
   @Override
   public Patch getPatch(PatchId id) {
+    if (!mapReadyToUse) {
+      throw new RuntimeException("Map is not ready to use");
+    }
     return patches.get(id);
   }
 
   @Override
+  public boolean isReady() {
+    return mapReadyToUse;
+  }
+
+  @Override
   public synchronized void notify(Message message) {
-    if(message.getMessageType() == MessagesTypeEnum.MapReadyToRead){
+    if (message.getMessageType() == MessagesTypeEnum.MapReadyToRead) {
       mapReadyToRead = true;
       notifyAll();
     }

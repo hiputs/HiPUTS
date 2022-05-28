@@ -13,4 +13,5 @@ public interface MapRepository {
 
   Patch getPatch(PatchId id);
 
+  boolean isReady();
 }
