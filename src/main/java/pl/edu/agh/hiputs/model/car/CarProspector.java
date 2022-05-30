@@ -30,10 +30,11 @@ public class CarProspector {
       LaneId nextLaneId;
       LaneReadable nextLane;
       while (precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
-        nextLaneId = currentCar.getRouteOffsetLaneId(++offset);
-        if (nextLaneId == null) {
+        Optional<LaneId> nextLaneIdOptional = currentCar.getRouteOffsetLaneId(++offset);
+        if (nextLaneIdOptional.isEmpty()) {
           break;
         }
+        nextLaneId = nextLaneIdOptional.get();
         distance += currentLane.getLength(); // adds previous lane length
         nextLane = roadStructureReader.getLaneReadable(nextLaneId);
         nextJunctionId = nextLane.getOutgoingJunctionId();
@@ -103,11 +104,14 @@ public class CarProspector {
   public LaneId getNextOutgoingLane(CarReadable car, JunctionId junctionId, RoadStructureReader roadStructureReader){
     LaneId outgoingLaneId = null;
     int offset = 0;
-    LaneId tmpLane;
+    LaneId tmpLane = null;
     do{
-      tmpLane = car.getRouteOffsetLaneId(offset++);
-      if(tmpLane != null && tmpLane.getReadable(roadStructureReader).getIncomingJunctionId().equals(junctionId)){
-        outgoingLaneId = tmpLane;
+      Optional<LaneId> nextLaneIdOptional = car.getRouteOffsetLaneId(offset++); //#TODO Check ++ before or after offset
+      if(nextLaneIdOptional.isPresent()) {
+        tmpLane = nextLaneIdOptional.get();
+        if (tmpLane.getReadable(roadStructureReader).getIncomingJunctionId().equals(junctionId)) {
+          outgoingLaneId = tmpLane;
+        }
       }
     }
     while(outgoingLaneId == null && tmpLane != null);
