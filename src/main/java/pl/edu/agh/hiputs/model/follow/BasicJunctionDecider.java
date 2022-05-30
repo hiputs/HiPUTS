@@ -4,6 +4,7 @@ import java.util.List;
 import pl.edu.agh.hiputs.model.car.CarBasicDeciderData;
 import pl.edu.agh.hiputs.model.car.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.CarProspector;
+import pl.edu.agh.hiputs.model.car.CarProspectorImpl;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -13,7 +14,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 
 public class BasicJunctionDecider{
 
-  CarProspector prospector = new CarProspector();
+  CarProspector prospector = new CarProspectorImpl();
 
   private final IFollowingModel followingModel;
 

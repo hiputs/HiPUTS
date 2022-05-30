@@ -2,12 +2,13 @@ package pl.edu.agh.hiputs.model.follow;
 
 import pl.edu.agh.hiputs.model.car.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.CarProspector;
+import pl.edu.agh.hiputs.model.car.CarProspectorImpl;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
 public class CarDecider {
 
-  CarProspector prospector = new CarProspector();
+  CarProspector prospector = new CarProspectorImpl();
   IdmDecider idmDecider = new IdmDecider();
   BasicJunctionDecider junctionDecider = new BasicJunctionDecider();
 

@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEnvironment;
+import pl.edu.agh.hiputs.model.car.CarProspector;
+import pl.edu.agh.hiputs.model.car.CarProspectorImpl;
 import pl.edu.agh.hiputs.model.driver.overtaking.OvertakingDecider;
 import pl.edu.agh.hiputs.model.driver.overtaking.OvertakingEnvironment;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
@@ -18,6 +20,7 @@ public class OvertakingDeciderTest {
   private MapFragment mapFragment;
   private Car carA, carB, carC, carD;
   private LaneEditable startLane, oppositeLane;
+  private CarProspector prospector;
 
   @BeforeEach
   public void setup() {
@@ -36,6 +39,7 @@ public class OvertakingDeciderTest {
     carB = Car.builder().laneId(startLane.getLaneId()).positionOnLane(200.0).length(4).build();
     carC = Car.builder().laneId(startLane.getLaneId()).positionOnLane(304.0).length(4).build();
     carD = Car.builder().laneId(oppositeLane.getLaneId()).positionOnLane(100.0).length(4).build();
+    prospector = new CarProspectorImpl();
   }
 
   @Test
@@ -44,7 +48,7 @@ public class OvertakingDeciderTest {
     startLane.addCarAtEntry(carB);
     startLane.addCarAtEntry(carA);
     oppositeLane.addCarAtEntry(carD);
-    CarEnvironment carAEnvironment = carA.getPrecedingCar(mapFragment);
+    CarEnvironment carAEnvironment = prospector.getPrecedingCarOrCrossroad(carA, mapFragment);
     OvertakingDecider decider = new OvertakingDecider();
     Optional<OvertakingEnvironment> environment = decider.getOvertakingInformation(carA, carAEnvironment, mapFragment);
     Assertions.assertAll(() -> Assertions.assertTrue(environment.isPresent()),
@@ -60,7 +64,7 @@ public class OvertakingDeciderTest {
     startLane.addCarAtEntry(carB);
     startLane.addCarAtEntry(carA);
     oppositeLane.addCarAtEntry(carD);
-    CarEnvironment carAEnvironment = carA.getPrecedingCar(mapFragment);
+    CarEnvironment carAEnvironment = prospector.getPrecedingCarOrCrossroad(carA, mapFragment);
     OvertakingDecider decider = new OvertakingDecider();
     Optional<OvertakingEnvironment> environment = decider.getOvertakingInformation(carA, carAEnvironment, mapFragment);
     Assertions.assertAll(() -> Assertions.assertTrue(environment.isPresent()),
@@ -76,7 +80,7 @@ public class OvertakingDeciderTest {
     startLane.addCarAtEntry(carC);
     startLane.addCarAtEntry(carB);
     startLane.addCarAtEntry(carA);
-    CarEnvironment carAEnvironment = carA.getPrecedingCar(mapFragment);
+    CarEnvironment carAEnvironment = prospector.getPrecedingCarOrCrossroad(carA, mapFragment);
     OvertakingDecider decider = new OvertakingDecider();
     Optional<OvertakingEnvironment> environment = decider.getOvertakingInformation(carA, carAEnvironment, mapFragment);
     Assertions.assertAll(() -> Assertions.assertTrue(environment.isPresent()),
@@ -91,7 +95,7 @@ public class OvertakingDeciderTest {
   public void getOvertakingInformationWithoutCAndDCar() {
     startLane.addCarAtEntry(carB);
     startLane.addCarAtEntry(carA);
-    CarEnvironment carAEnvironment = carA.getPrecedingCar(mapFragment);
+    CarEnvironment carAEnvironment = prospector.getPrecedingCarOrCrossroad(carA, mapFragment);
     OvertakingDecider decider = new OvertakingDecider();
     Optional<OvertakingEnvironment> environment = decider.getOvertakingInformation(carA, carAEnvironment, mapFragment);
     Assertions.assertAll(() -> Assertions.assertTrue(environment.isPresent()),
@@ -105,7 +109,7 @@ public class OvertakingDeciderTest {
   @Test
   public void getOvertakingInformationEmpty() {
     oppositeLane.addCarAtEntry(carD);
-    CarEnvironment carDEnvironment = carD.getPrecedingCar(mapFragment);
+    CarEnvironment carDEnvironment = prospector.getPrecedingCarOrCrossroad(carD, mapFragment);
     OvertakingDecider decider = new OvertakingDecider();
     Optional<OvertakingEnvironment> environment = decider.getOvertakingInformation(carD, carDEnvironment, mapFragment);
     Assertions.assertTrue(environment.isEmpty());

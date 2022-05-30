@@ -28,7 +28,7 @@ public class GetPrecedingCarTest {
         startLane = mapFragment.getLaneEditable(startLaneId);
         car1 = carProvider.generateCar(10.0, startLaneId, 3);
         car2 = carProvider.generateCar(60.0, startLaneId, 4);
-        prospector = new CarProspector();
+        prospector = new CarProspectorImpl();
     }
 
 
