@@ -32,7 +32,11 @@ public class BasicJunctionDecider{
   private double freeAcceleration = 1;
 
   public double makeDecision(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader) {
-    double minArriveTime = getClosestConflictVehicleArriveTime(car, environment, roadStructureReader);
+    double minArriveTime = Double.MAX_VALUE;
+    if(environment.getNextCrossroadId().isPresent()) {
+      minArriveTime = getClosestConflictVehicleArriveTime(car, environment, roadStructureReader);
+    }
+
     double crossroadOutTime = calculateCrossroadOutTime(new CarBasicDeciderData(car.getSpeed(), environment.getDistance(), car.getLength()));
 
     double maxSpeed = environment.getDistance() < lineHeight * 4 ? crossroadMaxSpeed : car.getMaxSpeed();
