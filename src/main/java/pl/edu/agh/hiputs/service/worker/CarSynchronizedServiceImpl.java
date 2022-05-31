@@ -72,7 +72,7 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
 
   @SneakyThrows
   @Override
-  public void synchronizedGetIncomingCar(TransferDataHandler mapFragment) {
+  public synchronized void synchronizedGetIncomingCar(TransferDataHandler mapFragment) {
     int countOfNeighbours = mapFragment.getNeighbors().size();
     while (incomingMessages.size() < countOfNeighbours) {
       this.wait();
@@ -90,7 +90,7 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
   }
 
   @Override
-  public void notify(Message message) {
+  public synchronized void notify(Message message) {
     if (message.getMessageType() != MessagesTypeEnum.CarTransferMessage) {
       return;
     }
