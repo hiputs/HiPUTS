@@ -115,6 +115,9 @@ public class CarProspectorImpl implements CarProspector {
           outgoingLaneId = tmpLane;
         }
       }
+      else{
+        tmpLane = null;
+      }
     }
     while(outgoingLaneId == null && tmpLane != null);
     return outgoingLaneId;
