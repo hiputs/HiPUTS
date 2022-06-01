@@ -85,6 +85,8 @@ public class Car implements CarEditable {
 
     double acceleration = this.decider.makeDecision(this, environment);
 
+    acceleration = limitAccelerationPreventReversing(acceleration, 1);
+
     LaneId currentLaneId = this.laneId;
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     int offset = 0;
@@ -110,6 +112,11 @@ public class Car implements CarEditable {
         .positionOnLane(desiredPosition)
         .offsetToMoveOnRoute(offset)
         .build();
+  }
+
+  private double limitAccelerationPreventReversing(double acceleration, int timeStep) {
+    double minimalAcceleration = - (speed * timeStep);
+    return Math.max(acceleration, minimalAcceleration);
   }
 
   @Override
