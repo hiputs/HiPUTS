@@ -2,8 +2,9 @@ package pl.edu.agh.hiputs.model.follow;
 
 import pl.edu.agh.hiputs.model.car.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
-public class IdmDecider implements IDecider {
+public class IdmDecider implements FunctionalDecider {
 
   final IFollowingModel followingModel;
 
@@ -17,7 +18,7 @@ public class IdmDecider implements IDecider {
 
   @Override
   public double makeDecision(CarReadable managedCar,
-      CarEnvironment environment) {    //Unpack environment and call IDM calculation
+      CarEnvironment environment, RoadStructureReader roadStructureReader) {    //Unpack environment and call IDM calculation
     double speed = managedCar.getSpeed();
     double desiredSpeed = managedCar.getMaxSpeed();
     double distance = environment.getDistance();
