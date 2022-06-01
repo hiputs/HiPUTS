@@ -23,6 +23,9 @@ public class IdmDecider implements IDecider {
     double distance = environment.getDistance();
     double deltaSpeed =
         environment.getPrecedingCar().map(precedingCar -> precedingCar.getSpeed() - managedCar.getSpeed()).orElse(0.0);
+    if(environment.getPrecedingCar().isEmpty()){
+      distance = Double.MAX_VALUE;
+    }
     return followingModel.calculateAcceleration(speed, desiredSpeed, distance, deltaSpeed);
   }
 
