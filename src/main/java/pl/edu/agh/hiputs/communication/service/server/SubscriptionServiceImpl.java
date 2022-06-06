@@ -23,10 +23,12 @@ public class SubscriptionServiceImpl implements SubscriptionService, MessageProp
             .forEach(messagesType -> subscriberRepository.put(messagesType, new LinkedList<>()));
   }
 
+  @Override
   public void subscribe(Subscriber subscriber, MessagesTypeEnum messagesEnum) {
     subscriberRepository.get(messagesEnum).add(subscriber);
   }
 
+  @Override
   public void propagateMessage(Message message, String workerId) {
     subscriberRepository.get(message.getMessageType()).forEach(subscriber -> subscriber.notify(message));
     workerSynchronisationService.handleWorker(message.getMessageType(), workerId);
