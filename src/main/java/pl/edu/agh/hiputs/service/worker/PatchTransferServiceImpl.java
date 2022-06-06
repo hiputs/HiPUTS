@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
-import pl.edu.agh.hiputs.communication.model.serializable.SLane;
+import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -42,25 +41,47 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
 
   @Override
   public void sendPatch(MapFragmentId receiver, Patch patch) {
-    List<SLane> serializedLanes = patch.streamLanesEditable().parallel().map(SLane::new).collect(Collectors.toList());
+    List<ConnectionDto> neighbourConnectionDtos = getNeighbourConnectionByPatch(patch, receiver);
 
-    PatchTransferMessage patchTransferMessage =
-        PatchTransferMessage.builder().patchId(patch.getPatchId().getValue()).sLanes(serializedLanes).build();
-
-    PatchTransferNotificationMessage patchTransferNotificationMessage = PatchTransferNotificationMessage.builder()
-        .transferPatchId(patch.getPatchId().getValue())
-        .receiverId(receiver.getId())
-        .senderId(meId.getId())
+    PatchTransferMessage patchTransferMessage = PatchTransferMessage.builder()
+        .patchId(patch.getPatchId().getValue())
+        .neighbourConnectionMessage(neighbourConnectionDtos)
         .build();
 
+
     try {
+      mapFragment.migratePatchToNeighbour(patch);
       messageSenderService.send(receiver, patchTransferMessage);
-      messageSenderService.broadcast(patchTransferNotificationMessage);
+
+      PatchTransferNotificationMessage patchTransferNotificationMessage = PatchTransferNotificationMessage.builder()
+          .transferPatchId(patch.getPatchId().getValue())
+          .receiverId(receiver.getId())
+          .senderId(meId.getId())
+          .build();
+
+      neighbourConnectionDtos.forEach(connectionDto -> {
+        try {
+          messageSenderService.send(new MapFragmentId(connectionDto.getId()), patchTransferNotificationMessage);
+        } catch (IOException e) {
+          log.error("Worker have not notification about match migration" + connectionDto.getId(), e);
+        }
+      });
+
+
+      // messageSenderService.broadcast(patchTransferNotificationMessage);
       // TODO fix for new structure (see MapFragment)
       //            mapFragment.migrateMyPatchToNeighbour(patchId, receiver);
     } catch (IOException e) {
       log.error("Could not send patch to " + receiver.getId());
     }
+  }
+
+  private List<ConnectionDto> getNeighbourConnectionByPatch(Patch patch, MapFragmentId receiver) {
+    return mapFragment.getNeighboursMapFragmentIds(patch.getPatchId())
+        .stream()
+        .filter(mapFragmentId -> !receiver.equals(mapFragmentId))
+        .map(mapFragmentId -> messageSenderService.getConnectionDtoMap().get(mapFragmentId))
+        .toList();
   }
 
   @Override

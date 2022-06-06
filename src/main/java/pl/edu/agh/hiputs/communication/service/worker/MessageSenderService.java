@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,8 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 public class MessageSenderService implements Subscriber {
 
   private final Map<MapFragmentId, Connection> neighbourRepository = new HashMap<>();
+  @Getter
+  private final Map<MapFragmentId, ConnectionDto> connectionDtoMap = new HashMap<>();
   private final ConfigurationService configurationService;
   private Connection serverConnection;
   private final SubscriptionService subscriptionService;
@@ -86,6 +89,7 @@ public class MessageSenderService implements Subscriber {
         .map(WorkerDataDto::getConnectionData)
         .forEach(c -> {
           Connection connection = new Connection(c);
+          connectionDtoMap.put(new MapFragmentId(c.getId()), c);
           neighbourRepository.put(new MapFragmentId(c.getId()), connection);
     });
   }

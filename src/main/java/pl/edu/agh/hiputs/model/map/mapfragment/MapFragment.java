@@ -2,7 +2,9 @@ package pl.edu.agh.hiputs.model.map.mapfragment;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -176,6 +178,65 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         .map(knownPatches::get)
         .flatMap(patch -> patch.getJunctionIds().stream())
         .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<MapFragmentId> getNeighboursMapFragmentIds(PatchId id){
+    Patch patch = knownPatches.get(id);
+    return patch.getNeighboringPatches()
+        .stream()
+        .filter(patchId -> !localPatchIds.contains(id))
+        .map(patchId -> mapFragmentIdToBorderPatchIds
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue().contains(patchId))
+            .map(Entry::getKey)
+            .findFirst())
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId) {
+    // remove from local paches
+    localPatchIds.remove(patch.getPatchId());
+
+    //remove from border patches
+    mapFragmentIdToBorderPatchIds.get(mapFragmentId).remove(patch.getPatchId());
+
+    // add new patches into border patches
+    List<PatchId> newBorderPatchesAfterTransfer = patch.getNeighboringPatches()
+        .stream()
+        .filter(localPatchIds::contains)
+        .toList();
+    mapFragmentIdToBorderPatchIds.get(mapFragmentId).addAll(newBorderPatchesAfterTransfer);
+
+    //add removed patch into shadow patches
+    mapFragmentIdToShadowPatchIds.get(mapFragmentId).add(patch.getPatchId());
+
+    //remove shadow patches - patch should be removed from shadow patches when no neighbors are adjacent to localPatches
+    List<Patch> shadowPatchesToRemove = patch.getNeighboringPatches()
+        .stream()
+        .map(knownPatches::get)
+        .filter(shadowPatch ->
+            shadowPatch.getNeighboringPatches()
+                .stream()
+                .anyMatch(id -> !localPatchIds.contains(id)))
+        .toList();
+
+    shadowPatchesToRemove.forEach(id -> {
+      Patch removedPatch = knownPatches.remove(id.getPatchId());
+
+      removedPatch.getLaneIds()
+          .forEach(laneIdToPatchId::remove);
+
+      removedPatch.getJunctionIds()
+          .forEach(junctionIdToPatchId::remove);
+    });
+
+    mapFragmentIdToShadowPatchIds.forEach(
+        (key, value) -> shadowPatchesToRemove.forEach(c -> value.remove(c.getPatchId())));
   }
 
   // TODO fix for new structure
