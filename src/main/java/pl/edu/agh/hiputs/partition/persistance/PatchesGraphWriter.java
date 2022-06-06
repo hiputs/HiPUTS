@@ -8,6 +8,6 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 
 public interface PatchesGraphWriter {
 
-  void saveGraphWithPatches(Graph<PatchData, PatchConnectionData> graph, Path exportPath) throws IOException;
+  void saveGraphWithPatches(Graph<PatchData, PatchConnectionData> graph, Path exportPath);
 
 }

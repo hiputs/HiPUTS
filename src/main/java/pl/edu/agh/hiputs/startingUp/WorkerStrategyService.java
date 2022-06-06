@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
-import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.CompletedInitializationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;

@@ -8,7 +8,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
@@ -24,6 +26,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
+@Slf4j
 @Service
 public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, PatchesGraphWriter {
 
@@ -31,8 +34,12 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
   private static final String MAP_KEY_VALUE_PAIR_CSV_DELIMITER = "::";
 
   @Override
-  public void saveGraphWithPatches(Graph<PatchData, PatchConnectionData> graph, Path exportPath) throws IOException {
-    saveGraphWithPatches(graph, ExportDescriptor.builder().exportDirAbsolutePath(exportPath.toAbsolutePath().toString()).build());
+  public void saveGraphWithPatches(Graph<PatchData, PatchConnectionData> graph, Path exportPath) {
+    try {
+      saveGraphWithPatches(graph, ExportDescriptor.builder().exportDirAbsolutePath(exportPath.toAbsolutePath().toString()).build());
+    } catch (IOException e) {
+      log.error("Error occurred while saving graph with patches: " + e.getMessage());
+    }
   }
 
   @Override
@@ -62,8 +69,10 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
             mapToCsv(p.getOutgoingEdges().stream().map(e -> e.getTarget().getId()).collect(Collectors.toList())));
 
         for (Node<JunctionData, WayData> n : p.getData().getGraphInsidePatch().getNodes().values()) {
-          nodesPrinter.printRecord(n.getId(), n.getData().getLat(), n.getData().getLon(), n.getData().getPatchId(),
-              mapToCsv(n.getData().getTags()));
+          if (Objects.equals(n.getData().getPatchId(), p.getId())) {
+            nodesPrinter.printRecord(n.getId(), n.getData().getLat(), n.getData().getLon(), n.getData().getPatchId(),
+                mapToCsv(n.getData().getTags()));
+          }
         }
 
         for (Edge<JunctionData, WayData> e : p.getData().getGraphInsidePatch().getEdges().values()) {

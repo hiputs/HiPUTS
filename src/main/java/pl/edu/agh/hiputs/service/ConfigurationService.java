@@ -16,6 +16,7 @@ import pl.edu.agh.hiputs.model.Configuration;
 public class ConfigurationService {
 
   private static final String SETTINGS_PATH = "settings.json";
+  private static final String OSM_EXTENSION = ".osm";
 
   @Getter
   private Configuration configuration;
@@ -40,6 +41,7 @@ public class ConfigurationService {
       }
 
       configuration = new Gson().fromJson(json, Configuration.class);
+      configuration.setReadFromOsmDirectly(configuration.getMapPath().endsWith(OSM_EXTENSION));
     } catch (IOException e) {
       log.error("Error loading configuration, system use default configuration", e);
       configuration = Configuration.getDefault();

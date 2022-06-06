@@ -8,7 +8,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 
 public interface MapStructureLoader {
 
-  Graph<PatchData, PatchConnectionData> loadFromOsmFile(Path osmFilepath) throws IOException;
+  Graph<PatchData, PatchConnectionData> loadFromOsmFile(Path osmFilepath);
 
   Graph<PatchData, PatchConnectionData> loadFromCsvImportPackage(Path importPackagePath);
 
