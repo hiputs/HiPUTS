@@ -45,10 +45,17 @@ public class OvertakingDecider {
       if (overtakingEnvironment.isPresent()) {
         CarReadable precedingCar = carEnvironment.getPrecedingCar().get();
         double safeDistanceForOvertakenCar = precedingCar.getSpeed() * safetyTimeDistance;
-        double minimalDistanceForOvertaking =
+        double maximalDistanceForOvertaking =
             carEnvironment.getDistance() + precedingCar.getLength() + safeDistanceForOvertakenCar;
-        double speedDelta = car.getSpeed() - precedingCar.getSpeed();
-        double timeNeededForOvertaking = minimalDistanceForOvertaking / speedDelta;
+        double speedDelta;
+        if (car.getSpeed() <= (precedingCar.getSpeed() + precedingCar.getAcceleration()) - minDeltaSpeed) {
+          // todo for future investigate situation where car is moving slow but can accelerate
+          // for now let's assume that it's effective speed is mean from actual and max speed
+          speedDelta = estimatePotentialCarSpeed(car) - precedingCar.getSpeed();
+        } else {
+          speedDelta = car.getSpeed() - precedingCar.getSpeed();
+        }
+        double timeNeededForOvertaking = maximalDistanceForOvertaking / speedDelta;
         if (enoughSpaceForReturningBeforeOvertakenCar(safeDistanceForOvertakenCar, car, overtakingEnvironment.get(),
             precedingCar, timeNeededForOvertaking)) {
           if (overtakingEnvironment.get().getOppositeCar().isPresent()) {
@@ -62,10 +69,10 @@ public class OvertakingDecider {
               distanceCoveredByOppositeCar =
                   timeNeededForOvertaking * (carOnOppositeLane.getSpeed() + carOnOppositeLane.getAcceleration());
             }
-            return minimalDistanceForOvertaking + distanceCoveredByOppositeCar < overtakingEnvironment.get()
+            return maximalDistanceForOvertaking + distanceCoveredByOppositeCar < overtakingEnvironment.get()
                 .getDistanceOnOppositeLane();
           } else {
-            return minimalDistanceForOvertaking < overtakingEnvironment.get().getDistanceOnOppositeLane();
+            return maximalDistanceForOvertaking < overtakingEnvironment.get().getDistanceOnOppositeLane();
           }
         }
       }
@@ -93,11 +100,44 @@ public class OvertakingDecider {
         return true;
       }
       if (precedingCarAcceleration <= accelerationThreshold
-          && car.getMaxSpeed() - (precedingCarSpeed + precedingCarAcceleration) >= minDeltaSpeed) {
+          && estimatePotentialCarSpeed(car) - (precedingCarSpeed + precedingCarAcceleration) >= minDeltaSpeed) {
         return true;
       }
     }
     return false;
+  }
+
+  /**
+   * Get potential car speed, for cars that are moving slow, slower than precedingCar + minDeltaSpeed
+   */
+  private double estimatePotentialCarSpeed(CarReadable car) {
+    return (car.getMaxSpeed() + car.getSpeed()) / 2;
+  }
+
+  /**
+   * Check if space before precedingCar is long enough,
+   * takes into consideration changing in position of carBeforeOvertakenCar
+   */
+  private boolean enoughSpaceForReturningBeforeOvertakenCar(double safeDistanceForOvertakenCar, CarReadable car,
+      OvertakingEnvironment overtakingEnvironment, CarReadable precedingCar, double timeNeededForOvertaking) {
+    if (overtakingEnvironment.getCarBeforeOvertakenCar().isEmpty()) {
+      return safeDistanceForOvertakenCar + car.getLength() + car.getMaxSpeed() * safetyTimeDistance
+          < overtakingEnvironment.getDistanceBeforeOvertakenCar();
+    } else {
+      CarReadable carBeforeOvertakenCar = overtakingEnvironment.getCarBeforeOvertakenCar().get();
+      double carBeforeOvertakenCarDelta = carBeforeOvertakenCar.getSpeed() - precedingCar.getSpeed();
+      double carBeforeOvertakenCarPositionChange;
+      if (carBeforeOvertakenCar.getAcceleration() < -accelerationThreshold) {
+        // carBeforeOvertakenCar is slowing down todo for future inspect this case
+        // for now let's assume that it acceleration will not change
+        carBeforeOvertakenCarPositionChange = carBeforeOvertakenCarDelta * timeNeededForOvertaking + (
+            carBeforeOvertakenCar.getAcceleration() * Math.pow(timeNeededForOvertaking, 2) / 2);
+      } else {
+        carBeforeOvertakenCarPositionChange = carBeforeOvertakenCarDelta * timeNeededForOvertaking;
+      }
+      return safeDistanceForOvertakenCar + car.getLength() + car.getMaxSpeed() * safetyTimeDistance
+          < overtakingEnvironment.getDistanceBeforeOvertakenCar() + carBeforeOvertakenCarPositionChange;
+    }
   }
 
   /**
@@ -184,31 +224,6 @@ public class OvertakingDecider {
         - currentCar.getPositionOnLane();
     return new OvertakingEnvironment(oppositeCar, carBeforeOvertakenCar, distanceOnOppositeLane,
         distanceBeforeOvertakenCar);
-  }
-
-  /**
-   * Check if space before precedingCar is long enough,
-   * takes into consideration changing in position of carBeforeOvertakenCar
-   */
-  private boolean enoughSpaceForReturningBeforeOvertakenCar(double safeDistanceForOvertakenCar, CarReadable car,
-      OvertakingEnvironment overtakingEnvironment, CarReadable precedingCar, double timeNeededForOvertaking) {
-    if (overtakingEnvironment.getCarBeforeOvertakenCar().isEmpty()) {
-      return safeDistanceForOvertakenCar + car.getLength() + car.getMaxSpeed() * safetyTimeDistance
-          < overtakingEnvironment.getDistanceBeforeOvertakenCar();
-    } else {
-      CarReadable carBeforeOvertakenCar = overtakingEnvironment.getCarBeforeOvertakenCar().get();
-      double carBeforeOvertakenCarDelta = carBeforeOvertakenCar.getSpeed() - precedingCar.getSpeed();
-      double carBeforeOvertakenCarPositionChange;
-      if (carBeforeOvertakenCar.getAcceleration() < -accelerationThreshold) {
-        // car is slowing down todo for future inspect this case
-        // for now let's assume that it acceleration will not change
-        carBeforeOvertakenCarPositionChange = carBeforeOvertakenCarDelta * timeNeededForOvertaking + (
-            carBeforeOvertakenCar.getAcceleration() * Math.pow(timeNeededForOvertaking, 2) / 2)
-      } else {
-        carBeforeOvertakenCarPositionChange = carBeforeOvertakenCarDelta * timeNeededForOvertaking;
-      } return safeDistanceForOvertakenCar + car.getLength() + car.getMaxSpeed() * safetyTimeDistance
-          < overtakingEnvironment.getDistanceBeforeOvertakenCar() + carBeforeOvertakenCarPositionChange;
-    }
   }
 
   private boolean canOvertakeOnLane(LaneReadable lane) {
