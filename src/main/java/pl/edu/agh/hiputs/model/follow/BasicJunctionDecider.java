@@ -14,15 +14,11 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 
 public class BasicJunctionDecider implements FunctionalDecider {
 
-  private CarProspector prospector = new CarProspectorImpl();
+  private final CarProspector prospector = new CarProspectorImpl();
 
-  private IFollowingModel followingModel = new Idm();
+  private final IFollowingModel followingModel = new Idm();
 
   public BasicJunctionDecider() {}
-
-  public BasicJunctionDecider(Idm followingModel) {
-    this.followingModel = followingModel;
-  }
 
   private double lineHeight = 6.0;
   private double securityDelay = 2;
