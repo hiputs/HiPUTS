@@ -77,7 +77,7 @@ public class CarProspectorImpl implements CarProspector {
           .filter(laneOnJunction -> laneOnJunction.getDirection().equals(LaneDirection.INCOMING)
               && laneOnJunction.getSubordination().equals(LaneSubordination.NOT_SUBORDINATE))).distinct().toList().stream();
     }
-    return conflictLanes.map(laneOnJunction -> laneOnJunction.getLaneId()).toList();
+    return conflictLanes.map(LaneOnJunction::getLaneId).toList();
   }
 
   private boolean isLaneOnJunctionIndexInRange(int index, int incoming, int outgoing){
