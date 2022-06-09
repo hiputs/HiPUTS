@@ -27,10 +27,7 @@ public class BasicJunctionDecider implements FunctionalDecider {
   private final double freeAcceleration = 1;
 
   public double makeDecision(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader) {
-    double minArriveTime = Double.MAX_VALUE;
-    if(environment.getNextCrossroadId().isPresent()) {
-      minArriveTime = getClosestConflictVehicleArriveTime(car, environment, roadStructureReader);
-    }
+    double minArriveTime = getClosestConflictVehicleArriveTime(car, environment, roadStructureReader);
 
     double crossroadOutTime = calculateCrossroadOutTime(new CarBasicDeciderData(car.getSpeed(), environment.getDistance(), car.getLength()));
 
@@ -48,6 +45,9 @@ public class BasicJunctionDecider implements FunctionalDecider {
   }
 
   private double getClosestConflictVehicleArriveTime(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader){
+    if(environment.getNextCrossroadId().isEmpty() || environment.getIncomingLaneId().isEmpty()){
+      return Double.MAX_VALUE;
+    }
     JunctionId nextJunctionId = environment.getNextCrossroadId().get();
     JunctionReadable junction = roadStructureReader.getJunctionReadable(nextJunctionId);
     List<LaneOnJunction> lanesOnJunction = junction.streamLanesOnJunction().toList();
