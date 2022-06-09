@@ -78,7 +78,7 @@ public class Car implements CarEditable {
 
   @Override
   public void decide(RoadStructureReader roadStructureReader) {
-    double timeStep = 1;
+    double timeStep = 1;  //Current only for limitAccelerationPreventReversing() function
     // make local decision based on read only road structure (watch environment) and save it locally
 
     //First prepare CarEnvironment
