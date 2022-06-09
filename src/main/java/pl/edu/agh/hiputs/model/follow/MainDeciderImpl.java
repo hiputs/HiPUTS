@@ -14,7 +14,7 @@ public class MainDeciderImpl implements MainDecider {
 
   public double makeDecision(CarReadable car, RoadStructureReader roadStructureReader){
     CarEnvironment environment = prospector.getPrecedingCarOrCrossroad(car, roadStructureReader);
-    if(!environment.getPrecedingCar().isEmpty()){
+    if(environment.getPrecedingCar().isPresent()){
       return idmDecider.makeDecision(car, environment, roadStructureReader);
     }
     else{
