@@ -58,7 +58,7 @@ public class BasicJunctionDecider implements FunctionalDecider {
     LaneId incomingLaneId = environment.getIncomingLaneId().get();
     LaneId outgoingLaneId = prospector.getNextOutgoingLane(car, nextJunctionId, roadStructureReader);
 
-    List<LaneId> conflictLanesId = prospector.getConflictLanesId(lanesOnJunction, incomingLaneId, outgoingLaneId);
+    List<LaneId> conflictLanesId = prospector.getConflictLaneIds(lanesOnJunction, incomingLaneId, outgoingLaneId);
 
     List<CarBasicDeciderData> conflictCars = prospector.getConflictCars(conflictLanesId, roadStructureReader);
     return getFirstArriveCarTime(conflictCars);
