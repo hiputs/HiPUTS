@@ -91,7 +91,6 @@ public class GetPrecedingCarTest {
 
   private void setJunctionTypeBend(JunctionReadable junction) {
     Object junctionId = ReflectionUtil.getFieldValue(junction, "junctionId");
-    System.out.println(junctionId);
     ReflectionUtil.setFieldValue(junctionId, "junctionType", JunctionType.BEND);
   }
 
@@ -106,7 +105,6 @@ public class GetPrecedingCarTest {
 
   private void setJunctionTypeCrossroad(JunctionReadable junction) {
     Object junctionId = ReflectionUtil.getFieldValue(junction, "junctionId");
-    System.out.println(junctionId);
     ReflectionUtil.setFieldValue(junctionId, "junctionType", JunctionType.CROSSROAD);
   }
 }
