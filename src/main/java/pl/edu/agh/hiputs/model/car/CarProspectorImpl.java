@@ -57,9 +57,13 @@ public class CarProspectorImpl implements CarProspector {
   }
 
   public List<LaneId> getConflictLaneIds(List<LaneOnJunction> lanesOnJunction, LaneId incomingLaneId, LaneId outgoingLaneId){
-    LaneOnJunction incomingLaneOnJunction = lanesOnJunction.stream().filter(
+    Optional<LaneOnJunction> incomingLaneOnJunctionOpt = lanesOnJunction.stream().filter(
         laneOnJunction -> laneOnJunction.getLaneId() == incomingLaneId
-            && laneOnJunction.getDirection().equals(LaneDirection.INCOMING)).findFirst().get();
+            && laneOnJunction.getDirection().equals(LaneDirection.INCOMING)).findFirst();
+    if(incomingLaneOnJunctionOpt.isEmpty()){
+      return new ArrayList<>();
+    }
+    LaneOnJunction incomingLaneOnJunction = incomingLaneOnJunctionOpt.get();
     LaneOnJunction outgoingLaneOnJunction = lanesOnJunction.stream().filter(
         laneOnJunction -> laneOnJunction.getLaneId() == outgoingLaneId
             && laneOnJunction.getDirection().equals(LaneDirection.OUTGOING)).findFirst().or(()->Optional.of(incomingLaneOnJunction)).get();
