@@ -78,6 +78,7 @@ public class Car implements CarEditable {
 
   @Override
   public void decide(RoadStructureReader roadStructureReader) {
+    double timeStep = 1;
     // make local decision based on read only road structure (watch environment) and save it locally
 
     //First prepare CarEnvironment
@@ -85,7 +86,7 @@ public class Car implements CarEditable {
 
     double acceleration = this.decider.makeDecision(this, environment);
 
-    acceleration = limitAccelerationPreventReversing(acceleration, 1);
+    acceleration = limitAccelerationPreventReversing(acceleration, timeStep);
 
     LaneId currentLaneId = this.laneId;
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
@@ -114,7 +115,7 @@ public class Car implements CarEditable {
         .build();
   }
 
-  /*
+  /**
   We limit acceleration for prevent car move backward
   v = v0 + a * t  // we want v = 0 - car will be stopped
   0 = v0 + a * t
@@ -122,8 +123,8 @@ public class Car implements CarEditable {
   - v0 / t = a
   a = - (v0 / t)
   minimalAcceleration = - (speed / timeStep)
-   */
-  private double limitAccelerationPreventReversing(double acceleration, int timeStep) {
+   **/
+  private double limitAccelerationPreventReversing(double acceleration, double timeStep) {
     double minimalAcceleration = - (speed / timeStep);
     return Math.max(acceleration, minimalAcceleration);
   }
