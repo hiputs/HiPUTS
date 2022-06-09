@@ -2,7 +2,7 @@ package pl.edu.agh.hiputs.model.car;
 
 import java.util.Optional;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
@@ -15,7 +15,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
  * or to crossroad (if nextCrossroadId is present),
  * or if both Optionals are empty, distance to last lane on car's route
  */
-@Data
+@Value
 @AllArgsConstructor
 public class CarEnvironment {
   double distance;
