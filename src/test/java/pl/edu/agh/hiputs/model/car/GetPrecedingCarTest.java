@@ -57,8 +57,7 @@ public class GetPrecedingCarTest {
         () -> Assertions.assertEquals(startLane.getLength() - car1.getPositionOnLane(), carEnvironment.getDistance()));
   }
 
-  //#TODO Repair this test
-/*    @Test
+    @Test
     public void getPrecedingCarWhereCarIsNotFoundAndAllJunctionAreBend() {
         car1 = carProvider.generateCar(10.0, startLaneId, 2);
         this.setAllJunctionTypeBend();
@@ -69,7 +68,7 @@ public class GetPrecedingCarTest {
         () -> Assertions.assertFalse(carEnvironment.getNextCrossroadId().isPresent()),
         () -> Assertions.assertEquals(3 * startLane.getLength() - car1.getPositionOnLane(),
             carEnvironment.getDistance()));
-  }*/
+  }
 
   @Test
   public void getPrecedingCarShouldFindItself() {
