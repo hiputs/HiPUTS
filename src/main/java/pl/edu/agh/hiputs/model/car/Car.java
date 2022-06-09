@@ -114,8 +114,17 @@ public class Car implements CarEditable {
         .build();
   }
 
+  /*
+  We limit acceleration for prevent car move backward
+  v = v0 + a * t  // we want v = 0 - car will be stopped
+  0 = v0 + a * t
+  - v0 = a * t
+  - v0 / t = a
+  a = - (v0 / t)
+  minimalAcceleration = - (speed / timeStep)
+   */
   private double limitAccelerationPreventReversing(double acceleration, int timeStep) {
-    double minimalAcceleration = - (speed * timeStep);
+    double minimalAcceleration = - (speed / timeStep);
     return Math.max(acceleration, minimalAcceleration);
   }
 
