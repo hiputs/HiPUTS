@@ -98,7 +98,7 @@ public class CarProspectorImpl implements CarProspector {
     for (LaneId laneId: conflictLanes) {
       LaneReadable lane = laneId.getReadable(roadStructureReader);
       Optional<CarReadable> conflictCarOptional = lane.streamCarsFromExitReadable().findFirst();
-      if(!conflictCarOptional.isEmpty()){
+      if(conflictCarOptional.isPresent()){
         CarReadable conflictCar = conflictCarOptional.get();
         double distance = lane.getLength() - conflictCar.getPositionOnLane();
         conflictCars.add(new CarBasicDeciderData(conflictCar.getSpeed(), distance, conflictCar.getLength()));
