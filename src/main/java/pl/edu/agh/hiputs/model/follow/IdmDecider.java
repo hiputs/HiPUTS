@@ -6,7 +6,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
 public class IdmDecider implements FunctionalDecider {
 
-  final IFollowingModel followingModel;
+  private final IFollowingModel followingModel;
 
   public IdmDecider() {
     this.followingModel = new Idm();
