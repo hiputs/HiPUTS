@@ -110,9 +110,9 @@ public class CarProspectorImpl implements CarProspector {
   public LaneId getNextOutgoingLane(CarReadable car, JunctionId junctionId, RoadStructureReader roadStructureReader){
     LaneId outgoingLaneId = null;
     int offset = 0;
-    LaneId tmpLane = null;
+    LaneId tmpLane;
     do{
-      Optional<LaneId> nextLaneIdOptional = car.getRouteOffsetLaneId(offset++); //#TODO Check ++ before or after offset
+      Optional<LaneId> nextLaneIdOptional = car.getRouteOffsetLaneId(offset++);
       if(nextLaneIdOptional.isPresent()) {
         tmpLane = nextLaneIdOptional.get();
         if (tmpLane.getReadable(roadStructureReader).getIncomingJunctionId().equals(junctionId)) {
