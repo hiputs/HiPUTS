@@ -1,9 +1,9 @@
 package pl.edu.agh.hiputs.model.car;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
 
-@Data
+@Value
 @AllArgsConstructor
 public class CarBasicDeciderData {
   double speed;
