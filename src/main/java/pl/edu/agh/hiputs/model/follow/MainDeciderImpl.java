@@ -8,9 +8,9 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
 public class MainDeciderImpl implements MainDecider {
 
-  CarProspector prospector = new CarProspectorImpl();
-  FunctionalDecider idmDecider = new IdmDecider();
-  FunctionalDecider junctionDecider = new BasicJunctionDecider();
+  private final CarProspector prospector = new CarProspectorImpl();
+  private final FunctionalDecider idmDecider = new IdmDecider();
+  private final FunctionalDecider junctionDecider = new BasicJunctionDecider();
 
   public double makeDecision(CarReadable car, RoadStructureReader roadStructureReader){
     CarEnvironment environment = prospector.getPrecedingCarOrCrossroad(car, roadStructureReader);
