@@ -20,11 +20,11 @@ public class BasicJunctionDecider implements FunctionalDecider {
 
   public BasicJunctionDecider() {}
 
-  private double lineHeight = 6.0;
-  private double securityDelay = 2;
-  private double crossroadMaxSpeed = 7;
-  private double speedThreshold = 2;
-  private double freeAcceleration = 1;
+  private final double lineHeight = 6.0;
+  private final double securityDelay = 2;
+  private final double crossroadMaxSpeed = 7;
+  private final double speedThreshold = 2;
+  private final double freeAcceleration = 1;
 
   public double makeDecision(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader) {
     double minArriveTime = Double.MAX_VALUE;
