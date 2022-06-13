@@ -42,7 +42,7 @@ public class OvertakingDecider {
     if (isCarCloseEnough(car.getSpeed(), carEnvironment) && isPrecedingCarSlower(car, carEnvironment)) {
       Optional<OvertakingEnvironment> overtakingEnvironment =
           getOvertakingInformation(car, carEnvironment, roadStructureReader);
-      if (overtakingEnvironment.isPresent()) {
+      if (overtakingEnvironment.isPresent() && carEnvironment.getPrecedingCar().isPresent()) {
         CarReadable precedingCar = carEnvironment.getPrecedingCar().get();
         double safeDistanceForOvertakenCar = precedingCar.getSpeed() * safetyTimeDistance;
         double maximalDistanceForOvertaking =
@@ -157,7 +157,7 @@ public class OvertakingDecider {
   public Optional<OvertakingEnvironment> getOvertakingInformation(CarEditable currentCar, CarEnvironment carEnvironment,
       RoadStructureReader roadStructureReader) {
     LaneReadable currentLane = roadStructureReader.getLaneReadable(currentCar.getLaneId());
-    if (!canOvertakeOnLane(currentLane)) {
+    if (!canOvertakeOnLane(currentLane) || carEnvironment.getPrecedingCar().isEmpty()) {
       return Optional.empty(); // we can't overtake
     }
     JunctionId nextJunctionId = currentLane.getOutgoingJunctionId();
@@ -173,7 +173,7 @@ public class OvertakingDecider {
           carBeforeOvertakenCar.map(car -> car.getPositionOnLane() - car.getLength()).orElse(currentLane.getLength())
               - overtakenCar.getPositionOnLane();
       double distanceOnOppositeLane =
-          currentLane.getLength() - oppositeCar.map(car -> car.getPositionOnLane()).orElse(0.0)
+          currentLane.getLength() - oppositeCar.map(CarReadable::getPositionOnLane).orElse(0.0)
               - currentCar.getPositionOnLane();
       overtakingEnvironment = new OvertakingEnvironment(oppositeCar, carBeforeOvertakenCar, distanceOnOppositeLane,
           distanceBeforeOvertakenCar);
@@ -220,7 +220,7 @@ public class OvertakingDecider {
     distanceBeforeOvertakenCar +=
         carBeforeOvertakenCar.map(car -> car.getPositionOnLane() - car.getLength()).orElse(currentLane.getLength())
             - overtakenCar.getPositionOnLane();
-    distanceOnOppositeLane += oppositeLane.getLength() - oppositeCar.map(car -> car.getPositionOnLane()).orElse(0.0)
+    distanceOnOppositeLane += oppositeLane.getLength() - oppositeCar.map(CarReadable::getPositionOnLane).orElse(0.0)
         - currentCar.getPositionOnLane();
     return new OvertakingEnvironment(oppositeCar, carBeforeOvertakenCar, distanceOnOppositeLane,
         distanceBeforeOvertakenCar);
