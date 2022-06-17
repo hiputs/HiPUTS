@@ -8,6 +8,10 @@ public interface JunctionReadable {
 
   JunctionId getJunctionId();
 
+  Double getLongitude();
+
+  Double getLatitude();
+
   Stream<LaneId> streamIncomingLaneIds();
 
   Stream<LaneId> streamOutgoingLaneIds();

@@ -1,9 +1,52 @@
 package pl.edu.agh.hiputs.communication.model;
 
 public enum MessagesTypeEnum {
+
+  // server - worker messages
+  /**
+   * Information from worker, when it started and actually it is ready for start work
+   */
   WorkerConnectionMessage,
+  /**
+   * Message with map fragment and neighbouring with connection parameter
+   */
+  ServerInitializationMessage,
+  /**
+   * Information from server when CSV map file is ready to read for worker
+   */
+  MapReadyToRead,
+  /**
+   * Information from worker when map is parsed and worker is ready for start simulation
+   */
+  CompletedInitializationMessage,
+  /**
+   * Command from server to worker, after this message worker should start calculation
+   */
   RunSimulationMessage,
+  /**
+   * Information from worker about finish simulation
+   */
+  FinishSimulationMessage,
+  /**
+   * If statistic is enabled, after finish simulation worker send statistic info
+   */
+  FinishSimulationStatisticMessage,
+  /**
+   * Information about disconnect worker
+   */
+  WorkerDisconnectMessage,
+
+  //worker - worker messages
+  /**
+   *  Synchronize car after every step
+   */
   CarTransferMessage,
+  /**
+   * Send Patch to neighbour
+   */
   PatchTransferMessage,
+  /**
+   * Notify adjacent areas to upload the patch
+   */
   PathTransferNotificationMessage,
 }

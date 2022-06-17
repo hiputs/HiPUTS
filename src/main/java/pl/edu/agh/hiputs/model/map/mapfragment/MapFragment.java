@@ -247,13 +247,20 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
           .flatMap(map -> map.entrySet().stream())
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-      Map<JunctionId, PatchId> junctionToPatch = knownPatches.values()
-          .stream()
-          .map(patch -> patch.getJunctionIds()
-              .stream()
-              .collect(Collectors.toMap(Function.identity(), junctionId -> patch.getPatchId())))
-          .flatMap(map -> map.entrySet().stream())
-          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      Map<JunctionId, PatchId> junctionToPatch = new HashMap<>();
+
+      knownPatches.values().forEach(patch -> {
+        patch.getJunctionIds()
+            .forEach(junctionId -> junctionToPatch.put(junctionId, patch.getPatchId()));
+      });
+
+      // Map<JunctionId, PatchId> junctionToPatch = knownPatches.values()
+      //     .stream()
+      //     .map(patch -> patch.getJunctionIds()
+      //         .stream()
+      //         .collect(Collectors.toMap(Function.identity(), junctionId -> patch.getPatchId())))
+      //     .flatMap(map -> map.entrySet().stream())
+      //     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
       return new MapFragment(mapFragmentId, knownPatches, localPatchIds, borderPatches, shadowPatches, laneToPatch,
           junctionToPatch);

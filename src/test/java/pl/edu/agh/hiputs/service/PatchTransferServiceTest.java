@@ -16,7 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
-import pl.edu.agh.hiputs.communication.service.MessageSenderService;
+import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
@@ -28,6 +28,7 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
+import pl.edu.agh.hiputs.service.worker.PatchTransferServiceImpl;
 
 @SpringBootTest
 @Disabled("TODO remove visualization during test")

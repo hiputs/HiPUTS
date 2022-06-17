@@ -27,7 +27,7 @@ public class ExampleCarProvider {
     readPatches(mapFragment);
   }
 
-  void readPatches(MapFragment mapFragment) {
+  void readPatches(MapFragment mapFragment) {// fixme tutaj trza by kożystać z map repository
     this.junctionIdToOutgoingLaneIdList =
         junctionId -> mapFragment.getJunctionReadable(junctionId).streamOutgoingLaneIds().toList();
 
