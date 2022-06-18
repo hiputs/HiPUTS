@@ -16,8 +16,8 @@ import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
-import pl.edu.agh.hiputs.model.follow.IDecider;
-import pl.edu.agh.hiputs.model.follow.IdmDecider;
+import pl.edu.agh.hiputs.model.follow.MainDeciderImpl;
+import pl.edu.agh.hiputs.model.follow.MainDecider;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
@@ -32,7 +32,7 @@ public class LaneDecisionStageTaskTest {
   private static final double DISTANCE_TO_LANE_END = 2.0;
 
   @Mock
-  private final IDecider decider = new IdmDecider();
+  private final MainDecider decider = new MainDeciderImpl();
 
   @InjectMocks
   private Car car;
