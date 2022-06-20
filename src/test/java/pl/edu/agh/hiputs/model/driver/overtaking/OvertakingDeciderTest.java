@@ -20,7 +20,7 @@ public class OvertakingDeciderTest {
   private MapFragment mapFragment;
   private Car carA, carB, carC, carD;
   private LaneEditable startLane, oppositeLane;
-  private CarProspector prospector;
+  private CarProspector prospector = new CarProspectorImpl();
 
   @BeforeEach
   public void setup() {
@@ -48,7 +48,7 @@ public class OvertakingDeciderTest {
         Car.builder().laneId(startLane.getLaneId()).positionOnLane(6).maxSpeed(16).speed(15).acceleration(0.1).build();
     startLane.addCarAtEntry(carB);
     startLane.addCarAtEntry(carA);
-    CarEnvironment carEnvironment = carA.getPrecedingCar(mapFragment);
+    CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(carA, mapFragment);
     OvertakingDecider decider = new OvertakingDecider();
     boolean decision = decider.overtakeDecision(carA, carEnvironment, mapFragment);
     Assertions.assertTrue(decision);
@@ -69,7 +69,7 @@ public class OvertakingDeciderTest {
     startLane.addCarAtEntry(carB);
     startLane.addCarAtEntry(carA);
     oppositeLane.addCarAtEntry(carD);
-    CarEnvironment carEnvironment = carA.getPrecedingCar(mapFragment);
+    CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(carA, mapFragment);
     OvertakingDecider decider = new OvertakingDecider();
     boolean decision = decider.overtakeDecision(carA, carEnvironment, mapFragment);
     Assertions.assertTrue(decision);
@@ -90,7 +90,7 @@ public class OvertakingDeciderTest {
     startLane.addCarAtEntry(carB);
     startLane.addCarAtEntry(carA);
     oppositeLane.addCarAtEntry(carD);
-    CarEnvironment carEnvironment = carA.getPrecedingCar(mapFragment);
+    CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(carA, mapFragment);
     OvertakingDecider decider = new OvertakingDecider();
     boolean decision = decider.overtakeDecision(carA, carEnvironment, mapFragment);
     Assertions.assertFalse(decision);
@@ -113,7 +113,7 @@ public class OvertakingDeciderTest {
     startLane.addCarAtEntry(carB);
     startLane.addCarAtEntry(carA);
     oppositeLane.addCarAtEntry(carD);
-    CarEnvironment carEnvironment = carA.getPrecedingCar(mapFragment);
+    CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(carA, mapFragment);
     OvertakingDecider decider = new OvertakingDecider();
     boolean decision = decider.overtakeDecision(carA, carEnvironment, mapFragment);
     Assertions.assertFalse(decision);
