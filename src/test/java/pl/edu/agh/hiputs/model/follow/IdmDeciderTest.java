@@ -5,8 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.car.CarEnvironment;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.Idm;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IdmDecider;
 
 class IdmDeciderTest {
 

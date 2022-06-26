@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.model.follow;
+package pl.edu.agh.hiputs.model.car.driver.deciders.follow;
 
 public class Idm implements IFollowingModel {
 

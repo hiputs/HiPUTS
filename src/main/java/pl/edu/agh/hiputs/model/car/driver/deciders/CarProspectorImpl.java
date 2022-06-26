@@ -1,10 +1,13 @@
-package pl.edu.agh.hiputs.model.car;
+package pl.edu.agh.hiputs.model.car.driver.deciders;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
+import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CarBasicDeciderData;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
