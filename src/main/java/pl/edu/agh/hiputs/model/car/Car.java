@@ -6,8 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Configurable;
-import pl.edu.agh.hiputs.model.follow.MainDeciderImpl;
-import pl.edu.agh.hiputs.model.follow.MainDecider;
+import pl.edu.agh.hiputs.model.car.driver.Driver;
+import pl.edu.agh.hiputs.model.car.driver.IDriver;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
@@ -38,10 +38,9 @@ public class Car implements CarEditable {
   private final double maxSpeed = 20;
 
   /**
-   * Decider instance
+   * Driver instance
    */
-  @Builder.Default
-  private final MainDecider decider = new MainDeciderImpl();
+  private final IDriver driver = new Driver(this);
 
   /**
    * Lane on which car is currently situated.
@@ -77,38 +76,7 @@ public class Car implements CarEditable {
 
   @Override
   public void decide(RoadStructureReader roadStructureReader) {
-    // make local decision based on read only road structure (watch environment) and save it locally
-
-    //First prepare CarEnvironment
-    //CarEnvironment environment = this.getPrecedingCar(roadStructureReader);
-
-    double acceleration = this.decider.makeDecision(this, roadStructureReader);
-
-    LaneId currentLaneId = this.laneId;
-    LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
-    int offset = 0;
-    double desiredPosition = calculateFuturePosition(acceleration);
-    Optional<LaneId> desiredLaneId;
-
-    while (desiredPosition > destinationCandidate.getLength()) {
-      desiredPosition -= destinationCandidate.getLength();
-      desiredLaneId = routeWithLocation.getOffsetLaneId(offset + 1);
-      if (desiredLaneId.isEmpty()) {
-        currentLaneId = null;
-        break;
-      }
-      offset++;
-      currentLaneId = desiredLaneId.get();
-      destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
-    }
-
-    decision = Decision.builder()
-        .acceleration(acceleration)
-        .speed(this.speed + acceleration)
-        .laneId(currentLaneId)
-        .positionOnLane(desiredPosition)
-        .offsetToMoveOnRoute(offset)
-        .build();
+    decision = this.driver.makeDecision(roadStructureReader);
   }
 
   @Override
@@ -122,17 +90,6 @@ public class Car implements CarEditable {
     this.laneId = decision.getLaneId();
     this.positionOnLane = decision.getPositionOnLane();
     return Optional.of(carUpdateResult);
-  }
-
-  /**
-   * Search for preceding car or crossroad
-   * on the way counting distance to car or to crossroad
-   *
-   * @return CarEnvironment
-   */
-
-  public double calculateFuturePosition(double acceleration) {
-    return this.positionOnLane + this.speed + acceleration / 2;
   }
 
   @Override
@@ -161,19 +118,5 @@ public class Car implements CarEditable {
   public int hashCode() {
     return Objects.hash(carId);
   }
-
-  // TODO: create Driver class with an algorithm that will take into consideration all deciders
-  //       and provide proper interface of a Car for the driver:
-  //       accelerate, decelerate, change lane to right, change lane to left
-  //    public void doMagic(RoadStructureReader roadStructureReader) {
-  //        DecisionOfFollowingModel decisionOfFollowingModel = this.followingModel.doYourStuff(roadStructureReader);
-  //        DecisionOfOtherModel decisionOfOtherModel = this.otherModel.doYourStuff(roadStructureReader);
-  //        ...
-  //        ...
-  //        ...
-  //        ...
-  //
-  //        magically combine all decisions
-  //    }
 
 }

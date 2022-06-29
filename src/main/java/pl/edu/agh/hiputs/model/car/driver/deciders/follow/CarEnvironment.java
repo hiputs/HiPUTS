@@ -1,8 +1,9 @@
-package pl.edu.agh.hiputs.model.car;
+package pl.edu.agh.hiputs.model.car.driver.deciders.follow;
 
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 

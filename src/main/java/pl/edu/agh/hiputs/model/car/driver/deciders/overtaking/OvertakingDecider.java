@@ -1,8 +1,8 @@
-package pl.edu.agh.hiputs.model.driver.overtaking;
+package pl.edu.agh.hiputs.model.car.driver.deciders.overtaking;
 
 import java.util.Optional;
 import pl.edu.agh.hiputs.model.car.CarEditable;
-import pl.edu.agh.hiputs.model.car.CarEnvironment;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;

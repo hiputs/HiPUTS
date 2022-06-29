@@ -1,12 +1,13 @@
-package pl.edu.agh.hiputs.model.follow;
+package pl.edu.agh.hiputs.model.car.driver;
 
 import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
 /** To implement a new FunctionalDecider you have to:
  implement FunctionalDecider interface
  and add it to MainDecider you already using in Car
  */
-public interface MainDecider {
-  double makeDecision(CarReadable car, RoadStructureReader roadStructureReader);
+public interface IDriver {
+  Decision makeDecision(RoadStructureReader roadStructureReader);
 }

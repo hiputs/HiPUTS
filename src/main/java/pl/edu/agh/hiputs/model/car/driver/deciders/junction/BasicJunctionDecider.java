@@ -1,11 +1,13 @@
-package pl.edu.agh.hiputs.model.follow;
+package pl.edu.agh.hiputs.model.car.driver.deciders.junction;
 
 import java.util.List;
-import pl.edu.agh.hiputs.model.car.CarBasicDeciderData;
-import pl.edu.agh.hiputs.model.car.CarEnvironment;
-import pl.edu.agh.hiputs.model.car.CarProspector;
-import pl.edu.agh.hiputs.model.car.CarProspectorImpl;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspectorImpl;
 import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.Idm;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;

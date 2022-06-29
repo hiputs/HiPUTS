@@ -1,7 +1,7 @@
-package pl.edu.agh.hiputs.model.follow;
+package pl.edu.agh.hiputs.model.car.driver.deciders.follow;
 
-import pl.edu.agh.hiputs.model.car.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
 public class IdmDecider implements FunctionalDecider {

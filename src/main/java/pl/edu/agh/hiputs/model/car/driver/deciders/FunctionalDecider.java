@@ -1,11 +1,11 @@
-package pl.edu.agh.hiputs.model.follow;
+package pl.edu.agh.hiputs.model.car.driver.deciders;
 
-import pl.edu.agh.hiputs.model.car.CarEnvironment;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
 /**
- * More information in MainDecider file
+ * More information in Driver class
  */
 
 public interface FunctionalDecider {

@@ -17,8 +17,8 @@ import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
-import pl.edu.agh.hiputs.model.follow.MainDeciderImpl;
-import pl.edu.agh.hiputs.model.follow.MainDecider;
+import pl.edu.agh.hiputs.model.car.driver.Driver;
+import pl.edu.agh.hiputs.model.car.driver.IDriver;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
@@ -33,8 +33,8 @@ public class LaneDecisionStageTaskTest {
 
   private static final double DISTANCE_TO_LANE_END = 2.0;
 
-  @Mock
-  private final MainDecider decider = new MainDeciderImpl();
+  //@Mock
+  //private final IDriver decider = new Driver();
 
   @InjectMocks
   private Car car;
@@ -44,8 +44,6 @@ public class LaneDecisionStageTaskTest {
 
   @BeforeEach
   public void setup() {
-    Mockito.when(decider.makeDecision(any(), any())).thenReturn(1.0);
-
     mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
     laneId = mapFragment.getLocalLaneIds().stream().findAny().get();
 

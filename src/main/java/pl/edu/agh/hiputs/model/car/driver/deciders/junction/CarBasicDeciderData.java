@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.model.car;
+package pl.edu.agh.hiputs.model.car.driver.deciders.junction;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
