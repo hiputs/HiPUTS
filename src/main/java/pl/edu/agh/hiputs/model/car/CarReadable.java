@@ -12,6 +12,8 @@ public interface CarReadable {
 
   double getLength();
 
+  double getAcceleration();
+
   double getSpeed();
 
   double getMaxSpeed();
