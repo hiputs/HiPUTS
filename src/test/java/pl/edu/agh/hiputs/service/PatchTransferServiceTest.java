@@ -31,6 +31,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.service.worker.PatchTransferServiceImpl;
 
 @SpringBootTest
+@Disabled("TODO remove visualization during test")
 public class PatchTransferServiceTest {
 
   @Autowired

@@ -16,7 +16,6 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.osm.OsmGraph;
 import pl.edu.agh.hiputs.partition.osm.OsmGraphReader;
 import pl.edu.agh.hiputs.partition.persistance.PatchesGraphReader;
-import pl.edu.agh.hiputs.partition.persistance.PatchesGraphWriter;
 
 @Slf4j
 @Service
@@ -31,25 +30,23 @@ public class MapStructureLoaderImpl implements MapStructureLoader {
 
   private final PatchesGraphReader patchesGraphReader;
 
-  private final PatchesGraphWriter patchesGraphWriter;
-
   @Override
-  public Graph<PatchData, PatchConnectionData> loadFromOsmFile(Path osmFilePath) throws IOException {
-    InputStream is = Files.newInputStream(osmFilePath);
+  public Graph<PatchData, PatchConnectionData> loadFromOsmFile(Path osmFilePath){
+    InputStream is;
+    try {
+      is = Files.newInputStream(osmFilePath);
+    } catch (IOException e) {
+      log.error(e.getMessage());
+      return null;
+    }
     OsmGraph osmGraph = osmGraphReader.loadOsmData(is);
     Graph<JunctionData, WayData> graph = osm2InternalModelMapper.mapToInternalModel(osmGraph);
-    Graph<PatchData, PatchConnectionData> patchesGraph = patchPartitioner.partition(graph);
-    Path deploymentPath = osmFilePath.getParent();
-    try {
-      patchesGraphWriter.saveGraphWithPatches(patchesGraph, deploymentPath);
-    } catch (IOException e) {
-      log.error("Error occurred while saving graph with patches: " + e.getMessage());
-    }
-    return patchesGraph;
+    return patchPartitioner.partition(graph);
   }
 
   @Override
   public Graph<PatchData, PatchConnectionData> loadFromCsvImportPackage(Path importPackagePath) {
     return patchesGraphReader.readGraphWithPatches(importPackagePath);
   }
+
 }

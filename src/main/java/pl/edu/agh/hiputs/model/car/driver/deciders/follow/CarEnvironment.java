@@ -1,9 +1,11 @@
-package pl.edu.agh.hiputs.model.car;
+package pl.edu.agh.hiputs.model.car.driver.deciders.follow;
 
 import java.util.Optional;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
+import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
+import pl.edu.agh.hiputs.model.id.LaneId;
 
 /**
  * precedingCar contain preceding car if found
@@ -14,11 +16,18 @@ import pl.edu.agh.hiputs.model.id.JunctionId;
  * or to crossroad (if nextCrossroadId is present),
  * or if both Optionals are empty, distance to last lane on car's route
  */
-@Data
+@Value
 @AllArgsConstructor
 public class CarEnvironment {
-
+  double distance;
   Optional<CarReadable> precedingCar;
   Optional<JunctionId> nextCrossroadId;
-  double distance;
+  Optional<LaneId> incomingLaneId;
+
+  public CarEnvironment(Optional<CarReadable> precedingCar, Optional<JunctionId> nextCrossroadId, double distance) {
+    this.distance = distance;
+    this.precedingCar = precedingCar;
+    this.nextCrossroadId = nextCrossroadId;
+    this.incomingLaneId = Optional.empty();
+  }
 }

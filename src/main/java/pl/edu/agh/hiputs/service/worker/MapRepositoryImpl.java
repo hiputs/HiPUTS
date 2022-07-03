@@ -1,18 +1,16 @@
 package pl.edu.agh.hiputs.service.worker;
 
-import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Repository;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
+import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.PatchId;
@@ -37,6 +35,7 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
 
   private final PatchesGraphReader patchesGraphReader;
   private final Internal2SimulationModelMapper internal2SimulationModelMapper;
+  private Path mapPackagePath;
   private boolean mapReadyToRead = false;
   private boolean mapReadyToUse = false;
 
@@ -54,17 +53,10 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
       waitForMapReadyToReadMessage();
     }
 
-    if (configurationService.getConfiguration().isServerOnThisMachine()) {
-      patches.putAll(internal2SimulationModelMapper.mapToSimulationModel(patchesGraph));
-      mapReadyToUse = true;
-      return;
+    if (!configurationService.getConfiguration().isServerOnThisMachine()) {
+      this.patchesGraph = patchesGraphReader.readGraphWithPatches(mapPackagePath);
     }
 
-    this.patchesGraph = patchesGraphReader.readGraphWithPatches(
-        Path.of(configurationService.getConfiguration().getMapPath()).getParent());
-
-    Graph<PatchData, PatchConnectionData> patchesGraph = patchesGraphReader.readGraphWithPatches(
-        Path.of(configurationService.getConfiguration().getMapPath()).getParent());
     patches.putAll(internal2SimulationModelMapper.mapToSimulationModel(patchesGraph));
     mapReadyToUse = true;
   }
@@ -99,6 +91,7 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
   @Override
   public synchronized void notify(Message message) {
     if (message.getMessageType() == MessagesTypeEnum.MapReadyToRead) {
+      mapPackagePath = Path.of(((MapReadyToReadMessage) message).getMapPackagePath());
       mapReadyToRead = true;
       notifyAll();
     }

@@ -1,19 +1,17 @@
 package pl.edu.agh.hiputs.communication.model.messages;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 
-@AllArgsConstructor
-@Getter
+@Value
 public class WorkerConnectionMessage implements Message {
 
-    private String address;
-    private int port;
-    private String workerId;
+  String address;
+  int port;
+  String workerId;
 
-    @Override
-    public MessagesTypeEnum getMessageType() {
-        return MessagesTypeEnum.WorkerConnectionMessage;
-    }
+  @Override
+  public MessagesTypeEnum getMessageType() {
+    return MessagesTypeEnum.WorkerConnectionMessage;
+  }
 }

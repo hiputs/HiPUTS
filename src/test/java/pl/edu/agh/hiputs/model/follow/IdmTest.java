@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.Idm;
 import pl.edu.agh.hiputs.model.id.CarId;
 
 class IdmTest {

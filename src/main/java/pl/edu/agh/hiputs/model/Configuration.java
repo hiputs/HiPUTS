@@ -41,7 +41,7 @@ public class Configuration {
   /**
    * Flag decided to read parsed map or parse map from osm file
    */
-  private boolean readFromOsmDirectly;
+  private transient boolean readFromOsmDirectly;
 
   /**
    * Path to map only for MultiWorker simulation mode

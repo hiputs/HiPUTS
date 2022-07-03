@@ -65,13 +65,13 @@ public class MessageReceiverService {
       try {
         //toDo create simply server to get port for worker
         Random random = new Random();
-        int portSeed = Math.abs(random.nextInt() % 40000);
+        int portSeed = 10000 + Math.abs(random.nextInt() % 40000);
         ServerSocket ss = null;
 
         while (true) {
           try {
-            ss = new ServerSocket(10000 + portSeed);
-            portSeed = Math.abs(random.nextInt() % 40000);
+            ss = new ServerSocket(portSeed);
+            portSeed = 10000 + Math.abs(random.nextInt() % 40000);
             break;
           } catch (Exception e) {
             log.warn("Port: " + portSeed + " is not available", e);

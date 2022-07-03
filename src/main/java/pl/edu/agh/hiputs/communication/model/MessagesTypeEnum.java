@@ -38,7 +38,7 @@ public enum MessagesTypeEnum {
 
   //worker - worker messages
   /**
-   * Synchronise care after every step
+   *  Synchronize car after every step
    */
   CarTransferMessage,
   /**
