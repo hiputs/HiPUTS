@@ -3,6 +3,8 @@ package pl.edu.agh.hiputs.model.map.mapfragment;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
@@ -10,6 +12,7 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 public interface TransferDataHandler {
 
@@ -60,4 +63,6 @@ public interface TransferDataHandler {
   Set<MapFragmentId> getNeighboursMapFragmentIds(PatchId id);
 
   void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId);
+
+  void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository, List<ImmutablePair<PatchId, MapFragmentId>> patchIdWithMapFragmentId);
 }

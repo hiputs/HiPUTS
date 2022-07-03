@@ -7,6 +7,8 @@ import java.util.Queue;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
@@ -17,8 +19,10 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
+import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 public class PatchTransferServiceImpl implements Subscriber, PatchTransferService {
 
   private final MapFragment mapFragment;
+  private final MapRepository mapRepository;
   private final SubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
   private MapFragmentId meId;
@@ -48,9 +53,8 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         .neighbourConnectionMessage(neighbourConnectionDtos)
         .build();
 
-
     try {
-      mapFragment.migratePatchToNeighbour(patch);
+      mapFragment.migratePatchToNeighbour(patch, receiver);
       messageSenderService.send(receiver, patchTransferMessage);
 
       PatchTransferNotificationMessage patchTransferNotificationMessage = PatchTransferNotificationMessage.builder()
@@ -66,11 +70,6 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
           log.error("Worker have not notification about match migration" + connectionDto.getId(), e);
         }
       });
-
-
-      // messageSenderService.broadcast(patchTransferNotificationMessage);
-      // TODO fix for new structure (see MapFragment)
-      //            mapFragment.migrateMyPatchToNeighbour(patchId, receiver);
     } catch (IOException e) {
       log.error("Could not send patch to " + receiver.getId());
     }
@@ -88,11 +87,20 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   public void getReceivedPatch() {
     while (!receivedPatch.isEmpty()) {
       PatchTransferMessage message = receivedPatch.remove();
-      // TODO fix for new structure (see MapFragment)
-      //            mapFragment.migratePatchToMe(new PatchId(message.getPatchId()));
+      List<ImmutablePair<PatchId, MapFragmentId>> pairs = message.getPatchIdWithMapFragmentId()
+          .stream()
+          .map(pair -> new ImmutablePair<>(
+              new PatchId(pair.getValue()), new MapFragmentId(pair.getKey())))
+          .toList();
 
-      // TODO this does nothing?
-      message.getSLanes().parallelStream().map(sLane -> mapFragment.getLaneEditable(new LaneId(sLane.getLaneId())));
+      mapFragment.migratePatchToMe(
+          new PatchId(message.getPatchId()),
+          new MapFragmentId(message.getMapFragmentId()),
+          mapRepository,
+          pairs);
+
+      //todo add into connection service connection info
+      //fixMe sending new variable in PatchTransferMessage
     }
   }
 
