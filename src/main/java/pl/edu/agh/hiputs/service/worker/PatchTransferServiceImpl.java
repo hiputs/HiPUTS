@@ -48,13 +48,22 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
 
   @Override
   public void sendPatch(MapFragmentId receiver, Patch patch) {
-    List<ConnectionDto> neighbourConnectionDtos = getNeighbourConnectionByPatch(patch, receiver);
     List<ImmutablePair<String, String>> patchIdWithMapFragmentId = patch.getNeighboringPatches()
         .stream()
         .map(id -> new ImmutablePair<>(id.getValue(), mapFragment.getMapFragmentIdByPatchId(patch.getPatchId()).getId()))
         .toList();
 
-    PatchTransferMessage patchTransferMessage = PatchTransferMessage.builder()
+    List<ConnectionDto> neighbourConnectionDtos = patchIdWithMapFragmentId
+        .stream()
+        .map(Pair::getRight)
+        .distinct()
+        .map(MapFragmentId::new)
+        .filter(mapFragmentId -> !receiver.equals(mapFragmentId))
+        .map(mapFragmentId -> messageSenderService.getConnectionDtoMap().get(mapFragmentId))
+        .toList();
+
+
+        PatchTransferMessage patchTransferMessage = PatchTransferMessage.builder()
         .patchId(patch.getPatchId().getValue())
         .neighbourConnectionMessage(neighbourConnectionDtos)
         .mapFragmentId(meId.getId())
@@ -81,14 +90,6 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     } catch (IOException e) {
       log.error("Could not send patch to " + receiver.getId());
     }
-  }
-
-  private List<ConnectionDto> getNeighbourConnectionByPatch(Patch patch, MapFragmentId receiver) {
-    return mapFragment.getNeighboursMapFragmentIds(patch.getPatchId())
-        .stream()
-        .filter(mapFragmentId -> !receiver.equals(mapFragmentId))
-        .map(mapFragmentId -> messageSenderService.getConnectionDtoMap().get(mapFragmentId))
-        .toList();
   }
 
   @Override

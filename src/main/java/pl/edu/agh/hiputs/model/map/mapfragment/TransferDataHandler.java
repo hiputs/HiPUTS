@@ -57,11 +57,6 @@ public interface TransferDataHandler {
    */
   Set<PatchReader> getShadowPatchesReadable();
 
-  /**
-   * get map fragmentIds by PatchId
-   */
-  Set<MapFragmentId> getNeighboursMapFragmentIds(PatchId id);
-
   void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId);
 
   void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository, List<ImmutablePair<PatchId, MapFragmentId>> patchIdWithMapFragmentId);
