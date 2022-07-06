@@ -65,10 +65,8 @@ public class PatchTransferServiceTest {
     //        verify(mapFragment, times(1))
     //                .migrateMyPatchToNeighbour(eq(new PatchId("PATCH_ID")), eq(new MapFragmentId("NEIGHBOUR")));
 
-    PatchTransferMessage patchTransferMessage = argumentCaptor.getValue();
     PatchTransferNotificationMessage notificationMessage = notificationArgumentCaptor.getValue();
 
-    assertEquals(2, patchTransferMessage.getSLanes().size());
     assertEquals("PATCH_ID", notificationMessage.getTransferPatchId());
     assertEquals("NEIGHBOUR", notificationMessage.getReceiverId());
   }

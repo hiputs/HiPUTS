@@ -202,7 +202,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   @Override
   public void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId) {
-    // remove from local paches
+    // remove from local patches
     localPatchIds.remove(patch.getPatchId());
 
     //remove from border patches
@@ -290,10 +290,22 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       addedPatch.getJunctionIds()
           .forEach(junctionId -> junctionIdToPatchId.put(junctionId, patchId));
     });
-    //////////////////////////
-    patchIdWithMapFragmentId.forEach(pair -> {
-      mapFragmentIdToShadowPatchIds.get(pair.getRight()).add(pair.getLeft());
-    });
+    patchIdWithMapFragmentId.forEach(pair -> mapFragmentIdToShadowPatchIds.get(pair.getRight()).add(pair.getLeft()));
+  }
+
+  @Override
+  public MapFragmentId getMapFragmentIdByPatchId(PatchId patchId){
+    if(localPatchIds.contains(patchId)){
+      return mapFragmentId;
+    }
+
+    for (Map.Entry<MapFragmentId, Set<PatchId>> entry : mapFragmentIdToShadowPatchIds.entrySet()) {
+      if(entry.getValue().contains(patchId)){
+        return entry.getKey();
+      }
+    }
+
+    throw new RuntimeException("Not found mapFragmentId");
   }
 
   public static final class MapFragmentBuilder {

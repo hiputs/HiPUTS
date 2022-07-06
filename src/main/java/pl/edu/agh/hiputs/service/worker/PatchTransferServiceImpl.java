@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
@@ -25,6 +26,7 @@ import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class PatchTransferServiceImpl implements Subscriber, PatchTransferService {
@@ -47,10 +49,16 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   @Override
   public void sendPatch(MapFragmentId receiver, Patch patch) {
     List<ConnectionDto> neighbourConnectionDtos = getNeighbourConnectionByPatch(patch, receiver);
+    List<ImmutablePair<String, String>> patchIdWithMapFragmentId = patch.getNeighboringPatches()
+        .stream()
+        .map(id -> new ImmutablePair<>(id.getValue(), mapFragment.getMapFragmentIdByPatchId(patch.getPatchId()).getId()))
+        .toList();
 
     PatchTransferMessage patchTransferMessage = PatchTransferMessage.builder()
         .patchId(patch.getPatchId().getValue())
         .neighbourConnectionMessage(neighbourConnectionDtos)
+        .mapFragmentId(meId.getId())
+        .patchIdWithMapFragmentId(patchIdWithMapFragmentId)
         .build();
 
     try {
@@ -99,7 +107,6 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
           mapRepository,
           pairs);
 
-      //todo add into connection service connection info
       //fixMe sending new variable in PatchTransferMessage
     }
   }
