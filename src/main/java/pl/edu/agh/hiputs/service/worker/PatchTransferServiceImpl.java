@@ -107,8 +107,6 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
           new MapFragmentId(message.getMapFragmentId()),
           mapRepository,
           pairs);
-
-      //fixMe sending new variable in PatchTransferMessage
     }
   }
 
