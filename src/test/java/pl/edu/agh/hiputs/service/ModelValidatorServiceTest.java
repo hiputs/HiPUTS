@@ -23,97 +23,99 @@ import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
+import pl.edu.agh.hiputs.service.worker.ModelValidatorServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 public class ModelValidatorServiceTest {
 
-    @InjectMocks
-    private ModelValidatorServiceImpl modelValidatorService;
+  @InjectMocks
+  private ModelValidatorServiceImpl modelValidatorService;
 
-    @Mock
-    private MapFragment mapFragment;
+  @Mock
+  private MapFragment mapFragment;
 
-    @Test
-    void shouldFailCheckMapFragment() {
-        when(mapFragment.getKnownPatchReadable()).thenReturn(null);
-        when(mapFragment.getShadowPatchesReadable()).thenReturn(null);
-        when(mapFragment.getBorderPatches()).thenReturn(null);
-        when(mapFragment.getNeighbors()).thenReturn(null);
-        when(mapFragment.getLocalLaneIds()).thenReturn(null);
-        when(mapFragment.getLocalJunctionIds()).thenReturn(null);
+  @Test
+  void shouldFailCheckMapFragment() {
+    when(mapFragment.getKnownPatchReadable()).thenReturn(null);
+    when(mapFragment.getShadowPatchesReadable()).thenReturn(null);
+    when(mapFragment.getBorderPatches()).thenReturn(null);
+    when(mapFragment.getNeighbors()).thenReturn(null);
+    when(mapFragment.getLocalLaneIds()).thenReturn(null);
+    when(mapFragment.getLocalJunctionIds()).thenReturn(null);
 
-        ModelValidationException exception = null;
+    ModelValidationException exception = null;
 
-        try{
-            modelValidatorService.checkModel(false, mapFragment);
-        } catch (ModelValidationException e){
-            exception = e;
-        }
-
-        assertTrue(exception != null);
-        assertEquals(6, exception.getErrors().size());
+    try {
+      modelValidatorService.checkModel(false, mapFragment);
+    } catch (ModelValidationException e) {
+      exception = e;
     }
 
-    @Test
-    void shouldFailLanesCheck(){
-        when(mapFragment.getKnownPatchReadable()).thenReturn(getMockPatchWithLainFail());
+    assertTrue(exception != null);
+    assertEquals(6, exception.getErrors().size());
+  }
 
-        ModelValidationException exception = null;
+  @Test
+  void shouldFailLanesCheck() {
+    when(mapFragment.getKnownPatchReadable()).thenReturn(getMockPatchWithLainFail());
 
-        try{
-            modelValidatorService.checkModel(false, mapFragment);
-        } catch (ModelValidationException e){
-            exception = e;
-        }
+    ModelValidationException exception = null;
 
-        assertTrue(exception != null);
-        assertEquals(3, exception.getErrors().size());
-        assertEquals(exception.toString(), "ModelValidationException(errors={outgoingJunction=IS_NULL, incoming junction=IS_NULL, lane length=TOO_SHORT })");
+    try {
+      modelValidatorService.checkModel(false, mapFragment);
+    } catch (ModelValidationException e) {
+      exception = e;
     }
 
-    @Test
-    void shouldFailJunctionCheck(){
-        when(mapFragment.getKnownPatchReadable()).thenReturn(getMockPatchWithJunctionFail());
+    assertTrue(exception != null);
+    assertEquals(3, exception.getErrors().size());
+    assertEquals(exception.toString(),
+        "ModelValidationException(errors={outgoingJunction=IS_NULL, incoming junction=IS_NULL, lane length=TOO_SHORT "
+            + "})");
+  }
 
-        ModelValidationException exception = null;
+  @Test
+  void shouldFailJunctionCheck() {
+    when(mapFragment.getKnownPatchReadable()).thenReturn(getMockPatchWithJunctionFail());
 
-        try{
-            modelValidatorService.checkModel(false, mapFragment);
-        } catch (ModelValidationException e){
-            exception = e;
-        }
+    ModelValidationException exception = null;
 
-        assertTrue(exception != null);
-        assertEquals(2, exception.getErrors().size());
+    try {
+      modelValidatorService.checkModel(false, mapFragment);
+    } catch (ModelValidationException e) {
+      exception = e;
     }
 
-    @Test
-    void shouldValidateRealModel(){
-        ModelValidationException exception = null;
+    assertTrue(exception != null);
+    assertEquals(2, exception.getErrors().size());
+  }
 
-        try{
-            modelValidatorService.checkModel(false, getSimpleMap2());
-        } catch (ModelValidationException e){
-            exception = e;
-        }
+  @Test
+  void shouldValidateRealModel() {
+    ModelValidationException exception = null;
 
-        assertTrue(exception == null);
+    try {
+      modelValidatorService.checkModel(false, getSimpleMap2());
+    } catch (ModelValidationException e) {
+      exception = e;
     }
 
-    private Set<PatchReader> getMockPatchWithJunctionFail() {
-        Junction junction = new Junction(
-            new JunctionId("", JunctionType.BEND), Set.of(), Set.of(), List.of());
+    assertTrue(exception == null);
+  }
 
-        Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(junction.getJunctionId(), junction), Map.of(), Set.of());
+  private Set<PatchReader> getMockPatchWithJunctionFail() {
+    Junction junction = new Junction(new JunctionId("", JunctionType.BEND), 1.d, 1.d, Set.of(), Set.of(), List.of());
 
-        return Set.of(patch);
-    }
+    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(junction.getJunctionId(), junction), Map.of(), Set.of());
 
-    private Set<PatchReader> getMockPatchWithLainFail() {
-        Lane lane = new Lane(new LaneId("Lane_ID"), null, null, null, null, null, 0,null);
+    return Set.of(patch);
+  }
 
-        Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(), Map.of(lane.getLaneId(), lane), Set.of());
+  private Set<PatchReader> getMockPatchWithLainFail() {
+    Lane lane = new Lane(new LaneId("Lane_ID"), null, null, null, null, null, 0, null);
 
-        return Set.of(patch);
-    }
+    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(), Map.of(lane.getLaneId(), lane), Set.of());
+
+    return Set.of(patch);
+  }
 }

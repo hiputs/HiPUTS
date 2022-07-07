@@ -20,6 +20,18 @@ public class Junction implements JunctionReadable, JunctionEditable {
   private final JunctionId junctionId;
 
   /**
+   * Longitude of this junction
+   */
+  @Getter
+  private final Double longitude;
+
+  /**
+   * Latitude of this junction
+   */
+  @Getter
+  private final Double latitude;
+
+  /**
    * Lanes incoming into this junction
    */
   private final Set<LaneId> incomingLaneIds;
@@ -48,15 +60,33 @@ public class Junction implements JunctionReadable, JunctionEditable {
     return outgoingLaneIds.stream();
   }
 
+  @Override
+  public Stream<LaneOnJunction> streamLanesOnJunction() {
+    return lanesOnJunction.stream();
+  }
+
   public static class JunctionBuilder {
 
     private JunctionId junctionId = JunctionId.randomCrossroad();
+
+    private Double longitude;
+    private Double latitude;
     private final Set<LaneId> incomingLaneIds = new HashSet<>();
     private final Set<LaneId> outgoingLaneIds = new HashSet<>();
     private final List<LaneOnJunction> lanesOnJunction = new ArrayList<>();
 
     public JunctionBuilder junctionId(JunctionId junctionId) {
       this.junctionId = junctionId;
+      return this;
+    }
+
+    public JunctionBuilder longitude(Double longitude) {
+      this.longitude = longitude;
+      return this;
+    }
+
+    public JunctionBuilder latitude(Double latitude) {
+      this.latitude = latitude;
       return this;
     }
 
@@ -76,7 +106,7 @@ public class Junction implements JunctionReadable, JunctionEditable {
     }
 
     public Junction build() {
-      return new Junction(junctionId, incomingLaneIds, outgoingLaneIds, lanesOnJunction);
+      return new Junction(junctionId, longitude, latitude, incomingLaneIds, outgoingLaneIds, lanesOnJunction);
     }
   }
 }

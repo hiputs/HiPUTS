@@ -1,9 +1,11 @@
 package pl.edu.agh.hiputs.visualization.graphstream;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 
+@Disabled("It just shows GUI")
 class TrivialGraphBasedVisualizerTest {
 
   @Test
