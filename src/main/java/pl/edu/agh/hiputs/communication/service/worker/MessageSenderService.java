@@ -13,6 +13,7 @@ import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
+import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
@@ -36,6 +37,7 @@ public class MessageSenderService implements Subscriber {
   void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
     subscriptionService.subscribe(this, MessagesTypeEnum.PatchTransferMessage);
+    subscriptionService.subscribe(this, MessagesTypeEnum.PatchTransferNotificationMessage);
   }
 
   /**
@@ -87,8 +89,21 @@ public class MessageSenderService implements Subscriber {
     switch (message.getMessageType()){
       case ServerInitializationMessage -> handleWorkerConnectionMessage(message);
       case PatchTransferMessage -> handlePatchTransferMessage(message);
+      case PatchTransferNotificationMessage -> handlePatchTransferNotificationMessage(message);
     }
 
+  }
+
+  private void handlePatchTransferNotificationMessage(Message message) {
+    PatchTransferNotificationMessage patchTransferNotificationMessage = (PatchTransferNotificationMessage) message;
+
+    if(neighbourRepository.containsKey(new MapFragmentId(patchTransferNotificationMessage.getReceiverId()))){
+      return;
+    }
+
+    Connection connection = new Connection(patchTransferNotificationMessage.getConnectionDto());
+    connectionDtoMap.put(new MapFragmentId(patchTransferNotificationMessage.getReceiverId()), patchTransferNotificationMessage.getConnectionDto());
+    neighbourRepository.put(new MapFragmentId(patchTransferNotificationMessage.getReceiverId()), connection);
   }
 
   private void handlePatchTransferMessage(Message message) {

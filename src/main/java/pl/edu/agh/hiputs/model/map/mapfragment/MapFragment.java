@@ -277,6 +277,22 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
+  public void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId source, MapFragmentId destination){
+    mapFragmentIdToShadowPatchIds.get(source).remove(patchId);
+    mapFragmentIdToShadowPatchIds.get(destination).add(patchId);
+
+    Patch migratedPatch = knownPatches.get(patchId);
+
+    Set<PatchId> sourcePatches = mapFragmentIdToShadowPatchIds.get(source);
+
+    migratedPatch.getNeighboringPatches()
+        .stream()
+        .anyMatch(sourcePatches::contains);
+
+
+  }
+
+  @Override
   public MapFragmentId getMapFragmentIdByPatchId(PatchId patchId){
     if(localPatchIds.contains(patchId)){
       return mapFragmentId;

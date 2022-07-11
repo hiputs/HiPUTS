@@ -62,4 +62,6 @@ public interface TransferDataHandler {
   void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository, List<ImmutablePair<PatchId, MapFragmentId>> patchIdWithMapFragmentId);
 
   MapFragmentId getMapFragmentIdByPatchId(PatchId patchId);
+
+  void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId source, MapFragmentId destination);
 }

@@ -18,7 +18,6 @@ import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationM
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
-import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
@@ -42,7 +41,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   @PostConstruct
   void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.PatchTransferMessage);
-    subscriptionService.subscribe(this, MessagesTypeEnum.PathTransferNotificationMessage);
+    subscriptionService.subscribe(this, MessagesTypeEnum.PatchTransferNotificationMessage);
     meId = MapFragmentId.from(mapFragment.getMapFragmentId());
   }
 
@@ -78,6 +77,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
           .transferPatchId(patch.getPatchId().getValue())
           .receiverId(receiver.getId())
           .senderId(meId.getId())
+          .connectionDto(messageSenderService.getConnectionDtoMap().get(receiver))
           .build();
 
       neighbourConnectionDtos.forEach(connectionDto -> {

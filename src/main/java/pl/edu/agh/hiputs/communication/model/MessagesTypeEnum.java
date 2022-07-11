@@ -48,5 +48,5 @@ public enum MessagesTypeEnum {
   /**
    * Notify adjacent areas to upload the patch
    */
-  PathTransferNotificationMessage,
+  PatchTransferNotificationMessage,
 }
