@@ -11,7 +11,6 @@ import pl.edu.agh.hiputs.model.car.driver.IDriver;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
 @Configurable
 @Getter
