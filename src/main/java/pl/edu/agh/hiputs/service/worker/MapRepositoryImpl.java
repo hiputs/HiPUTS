@@ -51,6 +51,8 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
   public void readMapAndBuildModel() throws InterruptedException {
     if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
       waitForMapReadyToReadMessage();
+    } else {
+      mapPackagePath = Path.of(configurationService.getConfiguration().getMapPath());
     }
 
     if (!configurationService.getConfiguration().isServerOnThisMachine()) {
