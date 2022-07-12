@@ -1,11 +1,13 @@
 package pl.edu.agh.hiputs.startingUp;
 
+import static java.lang.Math.abs;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.RunSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ServerInitializationMessage;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -69,7 +71,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   }
 
   private void enabledGUI() throws InterruptedException {
-    log.info("Starting GUI");
+    log.info("Start work in single mode");
     graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment());
 
     graphBasedVisualizer.showGui();
@@ -91,8 +93,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     waitForMapLoad();
     MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
     mapFragmentExecutor.setMapFragment(mapFragment);
-
-    createCars();
+    // createCar();
 
     if (configuration.isEnableGUI()) {
       try {
@@ -119,12 +120,17 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     }
   }
 
-  private void createCars() {
-    final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
+  private void createCar() { //fixMe impl real car provider
+    final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment());
+    Random random = new Random();
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-      Car car = exampleCarProvider.generateCar(10);
-      LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
-      lane.addCarAtEntry(car);
+      LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(laneId);
+      int randomCarCount = abs(random.nextInt() % 3);
+      for (int i = 0; i < randomCarCount; i++) {
+        double carPosition = (randomCarCount - i) * lane.getLength() / (randomCarCount + 1);
+        Car car = exampleCarProvider.generateCar(carPosition);
+        lane.addCarAtEntry(car);
+      }
     });
   }
 
@@ -134,10 +140,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   @Override
   public void run() {
-    long i = 0;
     try {
       long n = configuration.getSimulationStep();
-      for (i = 0; i < n; i++) {
+      for (long i = 0; i < n; i++) {
         mapFragmentExecutor.run();
 
         if (configuration.isEnableGUI()) {
@@ -146,7 +151,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
         }
       }
     } catch (Exception e) {
-      log.error(String.format("Worker simulation error in %d iteration", i), e);
+      log.error("Worker start simulation fail", e);
     } finally {
       try {
         log.info("Worker finish simulation");

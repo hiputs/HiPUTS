@@ -25,7 +25,7 @@ public class MapFragmentExecutor {
 
   @Setter
   @Getter
-  private MapFragment mapFragment;
+  private MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap2();
   private final MessageReceiverService messageReceiverService;
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutor;

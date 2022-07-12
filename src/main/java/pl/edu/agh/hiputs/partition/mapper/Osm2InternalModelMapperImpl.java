@@ -48,8 +48,8 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
           .isOneWay(tags.containsKey("oneway") && tags.get("oneway").equals("true"))
           .build();
       Edge<JunctionData, WayData> edge = new Edge<>(osmWay.getNodeId(i) + "->" + osmWay.getNodeId(i + 1), wayData);
-      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i)), JunctionData.builder().isCrossroad(i == 0).build()));
-      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), JunctionData.builder().isCrossroad(i == osmWay.getNumberOfNodes() - 2).build()));
+      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i)), null));
+      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), null));
       edges.add(edge);
 
       if (wayData.isOneWay()) {
@@ -62,8 +62,8 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
           .isOneWay(false)
           .build();
       edge = new Edge<>(osmWay.getNodeId(i + 1) + "->" + osmWay.getNodeId(i), wayData);
-      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), JunctionData.builder().isCrossroad(i == osmWay.getNumberOfNodes() - 2).build()));
-      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i)), JunctionData.builder().isCrossroad(i == 0).build()));
+      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), null));
+      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i)), null));
       edges.add(edge);
     }
     return edges;

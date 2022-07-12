@@ -3,7 +3,6 @@ package pl.edu.agh.hiputs.partition.model;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import pl.edu.agh.hiputs.partition.model.graph.EdgeData;
@@ -11,7 +10,6 @@ import pl.edu.agh.hiputs.partition.model.graph.EdgeData;
 @Getter
 @Setter
 @Builder
-@EqualsAndHashCode
 public class WayData implements EdgeData {
 
   private double length;
