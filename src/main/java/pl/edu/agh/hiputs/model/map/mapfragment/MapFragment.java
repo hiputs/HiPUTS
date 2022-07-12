@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.model.map.mapfragment;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -283,12 +284,21 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     Patch migratedPatch = knownPatches.get(patchId);
 
-    Set<PatchId> sourcePatches = mapFragmentIdToShadowPatchIds.get(source);
-
-    migratedPatch.getNeighboringPatches()
+    Map<PatchId, Long> patchConnectionCounter = mapFragmentIdToShadowPatchIds.get(source)
         .stream()
+        .map(knownPatches::get)
+        .map(Patch::getNeighboringPatches)
+        .flatMap(Collection::stream)
+        .filter(id -> !localPatchIds.contains(id)) // we want only border patches
+        .filter(knownPatches::containsKey) // and only known neighbouring
+        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-
+    migratedPatch.getNeighboringPatches().forEach(id -> {
+      if(patchConnectionCounter.get(id) == 1){
+        mapFragmentIdToShadowPatchIds.get(source).remove(id);
+      }
+      mapFragmentIdToShadowPatchIds.get(destination).add(id);
+    });
 
   }
 
