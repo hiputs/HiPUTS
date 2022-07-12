@@ -64,4 +64,6 @@ public interface TransferDataHandler {
   MapFragmentId getMapFragmentIdByPatchId(PatchId patchId);
 
   void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId source, MapFragmentId destination);
+
+  MapFragmentId getMe();
 }

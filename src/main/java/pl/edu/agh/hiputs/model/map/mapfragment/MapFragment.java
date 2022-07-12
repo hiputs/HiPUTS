@@ -273,7 +273,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       addedPatch.getJunctionIds()
           .forEach(junctionId -> junctionIdToPatchId.put(junctionId, patchId));
     });
-    patchIdWithMapFragmentId.forEach(pair -> mapFragmentIdToShadowPatchIds.get(pair.getRight()).add(pair.getLeft()));
+    patchIdWithMapFragmentId.forEach(pair -> mapFragmentIdToShadowPatchIds.getOrDefault(pair.getRight(), new HashSet<>()).add(pair.getLeft()));
   }
 
   @Override
@@ -287,7 +287,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     migratedPatch.getNeighboringPatches()
         .stream()
-        .anyMatch(sourcePatches::contains);
+
 
 
   }
@@ -305,6 +305,11 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     }
 
     throw new RuntimeException("Not found mapFragmentId");
+  }
+
+  @Override
+  public MapFragmentId getMe() {
+    return mapFragmentId;
   }
 
   public static final class MapFragmentBuilder {

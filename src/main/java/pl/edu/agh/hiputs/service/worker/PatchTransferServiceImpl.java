@@ -20,7 +20,7 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
-import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
@@ -30,30 +30,28 @@ import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 @Slf4j
 public class PatchTransferServiceImpl implements Subscriber, PatchTransferService {
 
-  private final MapFragment mapFragment;
   private final MapRepository mapRepository;
   private final SubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
-  private MapFragmentId meId;
 
   private final Queue<PatchTransferMessage> receivedPatch = new LinkedList<>();
+  private final Queue<PatchTransferNotificationMessage> patchMigrationNotification = new LinkedList<>();
 
   @PostConstruct
   void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.PatchTransferMessage);
     subscriptionService.subscribe(this, MessagesTypeEnum.PatchTransferNotificationMessage);
-    meId = MapFragmentId.from(mapFragment.getMapFragmentId());
   }
 
   @Override
-  public void sendPatch(MapFragmentId receiver, Patch patch) {
+  public void sendPatch(MapFragmentId receiver, Patch patch, TransferDataHandler transferDataHandler) {
     List<ImmutablePair<String, String>> patchIdWithMapFragmentId = patch.getNeighboringPatches()
         .stream()
-        .map(id -> new ImmutablePair<>(id.getValue(), mapFragment.getMapFragmentIdByPatchId(patch.getPatchId()).getId()))
+        .map(id -> new ImmutablePair<>(id.getValue(),
+            transferDataHandler.getMapFragmentIdByPatchId(patch.getPatchId()).getId()))
         .toList();
 
-    List<ConnectionDto> neighbourConnectionDtos = patchIdWithMapFragmentId
-        .stream()
+    List<ConnectionDto> neighbourConnectionDtos = patchIdWithMapFragmentId.stream()
         .map(Pair::getRight)
         .distinct()
         .map(MapFragmentId::new)
@@ -61,22 +59,21 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         .map(mapFragmentId -> messageSenderService.getConnectionDtoMap().get(mapFragmentId))
         .toList();
 
-
-        PatchTransferMessage patchTransferMessage = PatchTransferMessage.builder()
+    PatchTransferMessage patchTransferMessage = PatchTransferMessage.builder()
         .patchId(patch.getPatchId().getValue())
         .neighbourConnectionMessage(neighbourConnectionDtos)
-        .mapFragmentId(meId.getId())
+        .mapFragmentId(transferDataHandler.getMe().getId())
         .patchIdWithMapFragmentId(patchIdWithMapFragmentId)
         .build();
 
     try {
-      mapFragment.migratePatchToNeighbour(patch, receiver);
+      transferDataHandler.migratePatchToNeighbour(patch, receiver);
       messageSenderService.send(receiver, patchTransferMessage);
 
       PatchTransferNotificationMessage patchTransferNotificationMessage = PatchTransferNotificationMessage.builder()
           .transferPatchId(patch.getPatchId().getValue())
           .receiverId(receiver.getId())
-          .senderId(meId.getId())
+          .senderId(transferDataHandler.getMe().getId())
           .connectionDto(messageSenderService.getConnectionDtoMap().get(receiver))
           .build();
 
@@ -93,20 +90,28 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   }
 
   @Override
-  public void getReceivedPatch() {
+  public void handleReceivedPatch(TransferDataHandler transferDataHandler) {
     while (!receivedPatch.isEmpty()) {
       PatchTransferMessage message = receivedPatch.remove();
       List<ImmutablePair<PatchId, MapFragmentId>> pairs = message.getPatchIdWithMapFragmentId()
           .stream()
-          .map(pair -> new ImmutablePair<>(
-              new PatchId(pair.getValue()), new MapFragmentId(pair.getKey())))
+          .map(pair -> new ImmutablePair<>(new PatchId(pair.getValue()), new MapFragmentId(pair.getKey())))
           .toList();
 
-      mapFragment.migratePatchToMe(
-          new PatchId(message.getPatchId()),
-          new MapFragmentId(message.getMapFragmentId()),
-          mapRepository,
-          pairs);
+      transferDataHandler.migratePatchToMe(new PatchId(message.getPatchId()),
+          new MapFragmentId(message.getMapFragmentId()), mapRepository, pairs);
+    }
+  }
+
+  @Override
+  public void handleNotificationPatch(TransferDataHandler transferDataHandler) {
+    while (!patchMigrationNotification.isEmpty()) {
+      PatchTransferNotificationMessage message = patchMigrationNotification.remove();
+
+      transferDataHandler.migratePatchBetweenNeighbour(
+          new PatchId(message.getTransferPatchId()),
+          new MapFragmentId(message.getReceiverId()),
+          new MapFragmentId(message.getSenderId()));
     }
   }
 
@@ -128,10 +133,6 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   private void handlePatchTransferNotificationMessage(PatchTransferNotificationMessage message) {
     log.info("The patch id: " + message.getTransferPatchId() + " change owner from " + message.getSenderId() + " to "
         + message.getReceiverId());
-
-    // TODO fix for new structure (see MapFragment)
-    //        mapFragment.getPatch2Actor().put(
-    //                new PatchId(message.getTransferPatchId()),
-    //                new MapFragmentId(message.getReceiverId()));
+    patchMigrationNotification.add(message);
   }
 }
