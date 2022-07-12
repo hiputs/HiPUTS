@@ -159,7 +159,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   public Set<PatchReader> getShadowPatchesReadable() {
     return knownPatches.values()
         .stream()
-        .filter(patch -> !localPatchIds.contains(patch.getPatchId()))
+        .filter(id -> !localPatchIds.contains(id))
         .map(patch -> (PatchReader) patch)
         .collect(Collectors.toSet());
   }

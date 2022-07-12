@@ -97,13 +97,14 @@ public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
   }
 
   private Optional<Double> calculateAverageForPatchNodeAttribute(Node<PatchData, PatchConnectionData> patchNode, Function<JunctionData, Double> getter) {
-    List<Double>
+    Stream<Double>
         values = patchNode.getData()
-        .getGraphInsidePatch().getEdges().values()
-        .stream().flatMap(e -> Stream.of(e.getSource(), e.getTarget()))
-        .map(node -> getter.apply(node.getData())).collect(Collectors.toList());
-    long nodesCount = values.stream().count();
-    Double res = values.stream().reduce(Double::sum).map(sum -> sum/nodesCount).orElseThrow(() -> new RuntimeException("Cannot calculate average value of junction data attribute"));
+        .getGraphInsidePatch().getNodes().values()
+        .stream()
+        .map(node -> getter.apply(node.getData()));
+    int nodesCount = patchNode.getData().getGraphInsidePatch().getNodes().size();
+    if (nodesCount == 0) throw new RuntimeException("Patch have no nodes - map have been loaded incorrectly");
+    Double res = values.reduce(Double::sum).map(sum -> sum/nodesCount).orElseThrow(() -> new RuntimeException("Cannot calculate average value of junction data attribute"));
     return Optional.of(res);
   }
 

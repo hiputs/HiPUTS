@@ -54,8 +54,9 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
   }
 
   private Junction mapNodeToSimulationModel(Node<JunctionData, WayData> node) {
+    boolean isCrossroad = node.getIncomingEdges().size() > 1;
     JunctionBuilder junctionBuilder = Junction.builder()
-        .junctionId(new JunctionId(node.getId(), getJunctionType(node)))
+        .junctionId(new JunctionId(node.getId(), isCrossroad ? JunctionType.CROSSROAD : JunctionType.BEND))
         .longitude(node.getData().getLon())
         .latitude(node.getData().getLat());
 
@@ -79,8 +80,7 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
   }
 
   private JunctionType getJunctionType(Node<JunctionData, WayData> node) {
-    if (node.getData() == null ) return null; // todo this line should be removed
-    return node.getData().isCrossroad() ? JunctionType.CROSSROAD : JunctionType.BEND;
+    return node.getIncomingEdges().size() > 1 ? JunctionType.CROSSROAD : JunctionType.BEND;
   }
 
   private Optional<LaneId> getOppositeLaneId(Edge<JunctionData, WayData> edge) {

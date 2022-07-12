@@ -21,10 +21,6 @@ public class Node<T extends NodeData, S extends EdgeData> {
     data.merge(newNode.getData());
   }
 
-  public void mergeDataOnly(Node<T,S> newNode) {
-    data.merge(newNode.getData());
-  }
-
   public void addToIncomingEdges(Edge<T, S> edge) {
     if(!incomingEdges.contains(edge)){
       incomingEdges.add(edge);
