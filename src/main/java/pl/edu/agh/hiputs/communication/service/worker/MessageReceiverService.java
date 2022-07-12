@@ -19,7 +19,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
@@ -94,14 +93,32 @@ public class MessageReceiverService {
 
     private final Socket clientSocket;
 
-    @SneakyThrows
     @Override
     public void run() {
-      ObjectInputStream objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
+      ObjectInputStream objectInputStream = createObjectInputStreamOrThrowException();
 
       while(true){
-        Message message = (Message) objectInputStream.readObject();
+        Message message = readMessageOrThrowException(objectInputStream);
         propagateMessage(message);
+      }
+
+    }
+
+    private ObjectInputStream createObjectInputStreamOrThrowException() {
+      try {
+        return new ObjectInputStream(clientSocket.getInputStream());
+      } catch (IOException | NullPointerException e) {
+        log.error(e.getMessage());
+        throw new RuntimeException(e);
+      }
+    }
+
+    private Message readMessageOrThrowException(ObjectInputStream objectInputStream) {
+      try {
+        return (Message) objectInputStream.readObject();
+      } catch (IOException | ClassNotFoundException | NullPointerException e) {
+        log.error(e.getMessage());
+        throw new RuntimeException(e);
       }
     }
   }

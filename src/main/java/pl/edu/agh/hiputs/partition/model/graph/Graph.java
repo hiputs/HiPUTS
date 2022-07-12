@@ -32,12 +32,14 @@ public class Graph<T extends NodeData, S extends EdgeData> {
       public GraphBuilder<T, S> addEdge(Edge<T, S> edge) {
         Optional.ofNullable(graph.nodes.get(edge.getSource().getId()))
             .ifPresent(source -> {
+              source.mergeDataOnly(edge.getSource());
               edge.setSource(source);
               source.addToOutgoingEdges(edge);
             });
 
         Optional.ofNullable(graph.nodes.get(edge.getTarget().getId()))
             .ifPresent(target -> {
+              target.mergeDataOnly(edge.getTarget());
               edge.setTarget(target);
               target.addToIncomingEdges(edge);
             });
