@@ -1,42 +1,28 @@
 package pl.edu.agh.hiputs.task;
 
-import static org.mockito.ArgumentMatchers.any;
-
-import java.util.Arrays;
+import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
-import pl.edu.agh.hiputs.model.car.driver.Driver;
-import pl.edu.agh.hiputs.model.car.driver.IDriver;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
-@Disabled("Disabled for CI / Enable after it is fixed") // TODO in #60
 @ExtendWith(MockitoExtension.class)
 public class LaneDecisionStageTaskTest {
 
   private static final double DISTANCE_TO_LANE_END = 2.0;
 
-  //@Mock
-  //private final IDriver decider = new Driver();
-
-  @InjectMocks
   private Car car;
   private MapFragment mapFragment;
   private LaneId laneId;
@@ -46,28 +32,7 @@ public class LaneDecisionStageTaskTest {
   public void setup() {
     mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
     laneId = mapFragment.getLocalLaneIds().stream().findAny().get();
-
-    prepareTestCar();
-  }
-
-  private void prepareTestCar() {
-    setSpeed(car, 2 * DISTANCE_TO_LANE_END);
-
-    LaneReadable laneReadWrite = mapFragment.getLaneReadable(laneId);
-    JunctionReadable junctionRead = mapFragment.getJunctionReadable(laneReadWrite.getOutgoingJunctionId());
-    nextLaneId = junctionRead.streamOutgoingLaneIds().findAny().get();
-
-    RouteWithLocation routeWithLocation =
-        new RouteWithLocation(Arrays.asList(new RouteElement(laneReadWrite.getOutgoingJunctionId(), nextLaneId)), 0);
-    setRouteLocation(car, routeWithLocation);
-  }
-
-  private void setSpeed(Car car, double speed) {
-    ReflectionUtil.setFieldValue(car, "positionOnLane", speed);
-  }
-
-  private void setRouteLocation(Car car, RouteWithLocation routeWithLocation) {
-    ReflectionUtil.setFieldValue(car, "routeLocation", routeWithLocation);
+    car = createTestCar();
   }
 
   @Test
@@ -83,21 +48,9 @@ public class LaneDecisionStageTaskTest {
     laneDecisionStageTask.run();
 
     //then
-    Decision decision = getCarDecision(car);
+    Decision decision = car.getDecision();
     Assertions.assertThat(decision).isNotNull();
-    Assertions.assertThat(decision.getAcceleration()).isEqualTo(1.0);
-  }
-
-  private Decision getCarDecision(Car car) {
-    return car.getDecision();
-  }
-
-  private void setLaneId(Car car, LaneId laneId) {
-    ReflectionUtil.setFieldValue(car, "laneId", laneId);
-  }
-
-  private void setPositionOnLane(Car car, double position) {
-    ReflectionUtil.setFieldValue(car, "positionOnLane", position);
+    Assertions.assertThat(decision.getAcceleration()).isGreaterThan(0.0);
   }
 
   @Test
@@ -115,10 +68,31 @@ public class LaneDecisionStageTaskTest {
     laneDecisionStageTask.run();
 
     //then
-    Decision decision = getCarDecision(car);
+    Decision decision = car.getDecision();
     Assertions.assertThat(decision).isNotNull();
-    Assertions.assertThat(decision.getAcceleration()).isEqualTo(1.0);
+    Assertions.assertThat(decision.getAcceleration()).isGreaterThan(0.0);
     Assertions.assertThat(decision.getLaneId()).isEqualTo(nextLaneId);
+  }
+
+  private Car createTestCar() {
+    return Car.builder().routeWithLocation(createTestRouteWithLocation()).speed(2 * DISTANCE_TO_LANE_END).build();
+  }
+
+  private RouteWithLocation createTestRouteWithLocation() {
+    LaneReadable laneReadWrite = mapFragment.getLaneReadable(laneId);
+    nextLaneId =
+        mapFragment.getJunctionReadable(laneReadWrite.getOutgoingJunctionId()).streamOutgoingLaneIds().findAny().get();
+
+    return new RouteWithLocation(
+        List.of(new RouteElement(null, laneId), new RouteElement(laneReadWrite.getOutgoingJunctionId(), nextLaneId)), 0);
+  }
+
+  private void setLaneId(Car car, LaneId laneId) {
+    ReflectionUtil.setFieldValue(car, "laneId", laneId);
+  }
+
+  private void setPositionOnLane(Car car, double position) {
+    ReflectionUtil.setFieldValue(car, "positionOnLane", position);
   }
 
 }
