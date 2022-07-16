@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
@@ -15,6 +16,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizedService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MapFragmentExecutor {
@@ -29,28 +31,31 @@ public class MapFragmentExecutor {
   private final CarSynchronizedService carSynchronizedService;
 
   public void run() {
+    try {
+      // 3. decision
+      List<Runnable> decisionStageTasks = mapFragment.getLocalLaneIds()
+          .stream()
+          .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId))
+          .collect(Collectors.toList());
+      taskExecutor.executeBatch(decisionStageTasks);
 
-    // 3. decision
-    List<Runnable> decisionStageTasks = mapFragment.getLocalLaneIds()
-        .stream()
-        .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId))
-        .collect(Collectors.toList());
-    taskExecutor.executeBatch(decisionStageTasks);
+      // 4. prepare messages
+      carSynchronizedService.sendCarsToNeighbours(mapFragment);
 
-    // 4. prepare messages
-    carSynchronizedService.sendCarsToNeighbours(mapFragment);
+      // 5. send & receive border patches
+      carSynchronizedService.synchronizedGetIncomingCar(mapFragment);
 
-    // 5. send & receive border patches
-    carSynchronizedService.synchronizedGetIncomingCar(mapFragment);
+      // 6. 7. insert incoming cars & update lanes/cars
+      List<Runnable> updateStageTasks = mapFragment.getLocalLaneIds()
+          .stream()
+          .map(laneId -> new LaneUpdateStageTask(mapFragment, laneId))
+          .collect(Collectors.toList());
+      taskExecutor.executeBatch(updateStageTasks);
 
-    // 6. 7. insert incoming cars & update lanes/cars
-    List<Runnable> updateStageTasks = mapFragment.getLocalLaneIds()
-        .stream()
-        .map(laneId -> new LaneUpdateStageTask(mapFragment, laneId))
-        .collect(Collectors.toList());
-    taskExecutor.executeBatch(updateStageTasks);
-
-    // 8. send and receive remote patches (border patches)
-    // todo: fill when HiPUTS#34 is completed
+      // 8. send and receive remote patches (border patches)
+      // todo: fill when HiPUTS#34 is completed
+    } catch (Exception e) {
+      log.error("Unexpected exception occurred", e);
+    }
   }
 }

@@ -222,6 +222,8 @@ public class ServerStrategyService implements Strategy {
         workerStrategyService.executeStrategy();
       } catch (InterruptedException e) {
         log.error("Worker not started", e);
+      } catch (Exception e) {
+        log.error("Unexpected exception occurred", e);
       }
     }
   }
