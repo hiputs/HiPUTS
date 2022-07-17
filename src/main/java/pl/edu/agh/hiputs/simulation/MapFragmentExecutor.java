@@ -28,7 +28,7 @@ public class MapFragmentExecutor {
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutor;
   private final MessageSenderService messageSenderService;
-  private final IncomingCarsSetsSynchronizationService carSynchronizedService;
+  private final IncomingCarsSetsSynchronizationService incomingCarsSetsSynchronizationService;
 
   public void run() {
     try {
@@ -39,11 +39,11 @@ public class MapFragmentExecutor {
           .collect(Collectors.toList());
       taskExecutor.executeBatch(decisionStageTasks);
 
-      // 4. prepare messages
-      carSynchronizedService.sendCarsToNeighbours(mapFragment);
+      // 4. send incoming sets of cars to neighbours
+      incomingCarsSetsSynchronizationService.sendIncomingSetsOfCarsToNeighbours(mapFragment);
 
-      // 5. send & receive border patches
-      carSynchronizedService.synchronizedGetIncomingCar(mapFragment);
+      // 5. receive incoming sets of cars from neighbours
+      incomingCarsSetsSynchronizationService.synchronizedGetIncomingSetsOfCars(mapFragment);
 
       // 6. 7. insert incoming cars & update lanes/cars
       List<Runnable> updateStageTasks = mapFragment.getLocalLaneIds()

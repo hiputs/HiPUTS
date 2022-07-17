@@ -2,10 +2,9 @@ package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +19,7 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
-import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
-import pl.edu.agh.hiputs.scheduler.task.CarMapperTask;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
 import pl.edu.agh.hiputs.service.worker.usecase.IncomingCarsSetsSynchronizationService;
 
@@ -35,7 +32,7 @@ public class IncomingCarsSetsSynchronizationServiceImpl implements IncomingCarsS
   private final TaskExecutorService taskExecutorService;
   private final MessageSenderService messageSenderService;
   private final List<CarTransferMessage> incomingMessages = new ArrayList<>();
-  private final List<CarTransferMessage> featureIncomingMessages = new ArrayList<>();
+  private final List<CarTransferMessage> futureIncomingMessages = new ArrayList<>();
 
   @PostConstruct
   void init() {
@@ -43,17 +40,15 @@ public class IncomingCarsSetsSynchronizationServiceImpl implements IncomingCarsS
   }
 
   @Override
-  public void sendCarsToNeighbours(TransferDataHandler mapFragment) {
-    Map<MapFragmentId, List<SCar>> serializedCarMap = new HashMap<>();
-    List<Runnable> tasks = new ArrayList<>();
-    Map<MapFragmentId, Set<Patch>> borderPatches = mapFragment.getBorderPatches();
+  public void sendIncomingSetsOfCarsToNeighbours(TransferDataHandler mapFragment) {
+    Map<MapFragmentId, List<SCar>> serializedCarMap = mapFragment.pollOutgoingCars()
+        .entrySet()
+        .parallelStream()
+        .collect(Collectors.toMap(
+            Entry::getKey,
+            e -> e.getValue().parallelStream().map(SCar::new).collect(Collectors.toList())
+        ));
 
-    borderPatches.forEach((mapFragmentId, patches) -> {
-      List<SCar> toSendCars = serializedCarMap.computeIfAbsent(mapFragmentId, k -> new ArrayList<>());
-      patches.forEach(patch -> tasks.add(new CarMapperTask(patch, toSendCars)));
-    });
-
-    taskExecutorService.executeBatch(tasks);
     sendMessages(serializedCarMap);
   }
 
@@ -69,7 +64,7 @@ public class IncomingCarsSetsSynchronizationServiceImpl implements IncomingCarsS
   }
 
   @Override
-  public synchronized void synchronizedGetIncomingCar(TransferDataHandler mapFragment) {
+  public synchronized void synchronizedGetIncomingSetsOfCars(TransferDataHandler mapFragment) {
     int countOfNeighbours = mapFragment.getNeighbors().size();
     while (incomingMessages.size() < countOfNeighbours) {
       try {
@@ -87,8 +82,8 @@ public class IncomingCarsSetsSynchronizationServiceImpl implements IncomingCarsS
     taskExecutorService.executeBatch(injectIncomingCarTasks);
 
     incomingMessages.clear();
-    incomingMessages.addAll(featureIncomingMessages);
-    featureIncomingMessages.clear();
+    incomingMessages.addAll(futureIncomingMessages);
+    futureIncomingMessages.clear();
   }
 
   @Override
@@ -99,7 +94,7 @@ public class IncomingCarsSetsSynchronizationServiceImpl implements IncomingCarsS
 
     CarTransferMessage carTransferMessage = (CarTransferMessage) message;
     if (incomingMessages.contains(carTransferMessage)) {
-      featureIncomingMessages.add(carTransferMessage);
+      futureIncomingMessages.add(carTransferMessage);
     } else {
       incomingMessages.add(carTransferMessage);
     }

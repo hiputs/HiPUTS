@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -115,14 +116,14 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
-  public Map<MapFragmentId, Set<CarReadable>> pollOutgoingCars() {
+  public Map<MapFragmentId, Set<CarEditable>> pollOutgoingCars() {
     return mapFragmentIdToShadowPatchIds.entrySet()
         .stream()
         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
             .stream()
             .map(knownPatches::get)
-            .flatMap(Patch::streamLanesReadable)
-            .flatMap(LaneReadable::streamCarsFromExitReadable)
+            .flatMap(Patch::streamLanesEditable)
+            .flatMap(LaneEditable::pollIncomingCars)
             .collect(Collectors.toSet())));
   }
 
