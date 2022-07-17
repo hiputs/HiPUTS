@@ -54,7 +54,15 @@ public class SCar implements CustomSerializable<Car> {
    */
   private final List<SRouteElement> routeElements;
 
+  /**
+   * Serialized currentRoutePosition
+   */
   private final int currentRoutePosition;
+
+  /**
+   * Serialized decision
+   */
+  private final SDecision decision;
 
   public SCar(CarEditable realObject) {
     carId = realObject.getCarId().getValue();
@@ -71,6 +79,7 @@ public class SCar implements CustomSerializable<Car> {
         .map(routeElement -> new SRouteElement(routeElement.getJunctionId().getValue(),
             routeElement.getOutgoingLaneId().getValue(), routeElement.getJunctionId().getJunctionType().name()))
         .collect(Collectors.toList());
+    decision = new SDecision(realObject.getDecision());
   }
 
   @Override
@@ -92,6 +101,7 @@ public class SCar implements CustomSerializable<Car> {
         .speed(speed)
         .laneId(new LaneId(laneId))
         .positionOnLane(positionOnLane)
+        .decision(decision.toRealObject())
         .build();
   }
 }
