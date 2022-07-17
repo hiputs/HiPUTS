@@ -24,12 +24,12 @@ import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.CarMapperTask;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
-import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizedService;
+import pl.edu.agh.hiputs.service.worker.usecase.IncomingCarsSetsSynchronizationService;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subscriber {
+public class IncomingCarsSetsSynchronizationServiceImpl implements IncomingCarsSetsSynchronizationService, Subscriber {
 
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutorService;

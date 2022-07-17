@@ -12,7 +12,7 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
-import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizedService;
+import pl.edu.agh.hiputs.service.worker.usecase.IncomingCarsSetsSynchronizationService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
 
@@ -28,7 +28,7 @@ public class MapFragmentExecutor {
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutor;
   private final MessageSenderService messageSenderService;
-  private final CarSynchronizedService carSynchronizedService;
+  private final IncomingCarsSetsSynchronizationService carSynchronizedService;
 
   public void run() {
     try {

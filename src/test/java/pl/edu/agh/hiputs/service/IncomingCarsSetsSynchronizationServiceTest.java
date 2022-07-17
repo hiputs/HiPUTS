@@ -30,10 +30,10 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.scheduler.SchedulerService;
-import pl.edu.agh.hiputs.service.worker.CarSynchronizedServiceImpl;
+import pl.edu.agh.hiputs.service.worker.IncomingCarsSetsSynchronizationServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
-public class CarSynchronizedServiceTest {
+public class IncomingCarsSetsSynchronizationServiceTest {
 
   @Mock
   private MapFragment mapFragment;
@@ -54,7 +54,8 @@ public class CarSynchronizedServiceTest {
 
     //when
     taskExecutorService.init();
-    CarSynchronizedServiceImpl carSynchronizedService = new CarSynchronizedServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
+    IncomingCarsSetsSynchronizationServiceImpl
+        carSynchronizedService = new IncomingCarsSetsSynchronizationServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
     carSynchronizedService.sendCarsToNeighbours(mapFragment);
 
     //then
@@ -128,7 +129,8 @@ public class CarSynchronizedServiceTest {
     when(mapFragment.getBorderPatches()).thenReturn(getBorderPatches2());
     //when
     taskExecutorService.init();
-    CarSynchronizedServiceImpl carSynchronizedService = new CarSynchronizedServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
+    IncomingCarsSetsSynchronizationServiceImpl
+        carSynchronizedService = new IncomingCarsSetsSynchronizationServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
     carSynchronizedService.sendCarsToNeighbours(mapFragment);
 
     //then
