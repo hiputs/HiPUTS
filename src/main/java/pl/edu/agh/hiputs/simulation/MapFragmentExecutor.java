@@ -12,6 +12,7 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
+import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.IncomingCarsSetsSynchronizationService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
@@ -29,6 +30,7 @@ public class MapFragmentExecutor {
   private final TaskExecutorService taskExecutor;
   private final MessageSenderService messageSenderService;
   private final IncomingCarsSetsSynchronizationService incomingCarsSetsSynchronizationService;
+  private final CarsOnBorderSynchronizationService carsOnBorderSynchronizationService;
 
   public void run() {
     try {
@@ -53,7 +55,9 @@ public class MapFragmentExecutor {
       taskExecutor.executeBatch(updateStageTasks);
 
       // 8. send and receive remote patches (border patches)
-      // todo: fill when HiPUTS#34 is completed
+      carsOnBorderSynchronizationService.sendCarsOnBorderToNeighbours(mapFragment);
+      carsOnBorderSynchronizationService.synchronizedGetRemoteCars(mapFragment);
+
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);
     }

@@ -11,12 +11,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
-import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.patch.PatchEditor;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
@@ -177,6 +177,12 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         .map(knownPatches::get)
         .flatMap(patch -> patch.getJunctionIds().stream())
         .collect(Collectors.toSet());
+  }
+
+  @Override
+  public PatchEditor getShadowPatchEditableCopy(PatchId patchId) {
+    //todo it should be deepcopy in here
+    return knownPatches.get(patchId);
   }
 
   // TODO fix for new structure

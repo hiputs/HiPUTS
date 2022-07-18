@@ -17,7 +17,7 @@ public class SLane implements CustomSerializable<List<Car>> {
   List<SCar> cars;
 
   public SLane(LaneEditable lane) {
-    cars = lane.streamCarsFromExitEditable().map(SCar::new).collect(Collectors.toList());
+    cars = lane.streamCarsFromEntryEditable().map(SCar::new).collect(Collectors.toList());
     laneId = lane.getLaneId().getValue();
   }
 

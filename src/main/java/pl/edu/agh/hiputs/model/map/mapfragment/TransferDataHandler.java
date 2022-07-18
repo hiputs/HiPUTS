@@ -8,6 +8,7 @@ import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.patch.PatchEditor;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 
 public interface TransferDataHandler {
@@ -52,4 +53,9 @@ public interface TransferDataHandler {
    * Return neighbourPatches
    */
   Set<PatchReader> getShadowPatchesReadable();
+
+  /**
+   * Returns editable copy of shadow patch
+   */
+  PatchEditor getShadowPatchEditableCopy(PatchId patchId);
 }
