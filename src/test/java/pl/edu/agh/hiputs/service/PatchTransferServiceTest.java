@@ -51,7 +51,7 @@ public class PatchTransferServiceTest {
     Patch patch = getSimplePatch();
 
     //when
-    patchTransferService.sendPatch(new MapFragmentId("NEIGHBOUR"), patch);
+    // patchTransferService.sendPatch(new MapFragmentId("NEIGHBOUR"), patch);
 
     //then
     ArgumentCaptor<PatchTransferMessage> argumentCaptor = ArgumentCaptor.forClass(PatchTransferMessage.class);

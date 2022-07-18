@@ -282,6 +282,9 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     mapFragmentIdToShadowPatchIds.get(source).remove(patchId);
     mapFragmentIdToShadowPatchIds.get(destination).add(patchId);
 
+    mapFragmentIdToBorderPatchIds.get(source).remove(patchId);
+    mapFragmentIdToBorderPatchIds.get(destination).add(patchId);
+
     Patch migratedPatch = knownPatches.get(patchId);
 
     Map<PatchId, Long> patchConnectionCounter = mapFragmentIdToShadowPatchIds.get(source)
@@ -294,10 +297,12 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
     migratedPatch.getNeighboringPatches().forEach(id -> {
-      if(patchConnectionCounter.get(id) == 1){
+      if(patchConnectionCounter.get(id) != null && patchConnectionCounter.get(id) == 1){
         mapFragmentIdToShadowPatchIds.get(source).remove(id);
+        mapFragmentIdToBorderPatchIds.get(source).remove(id);
       }
       mapFragmentIdToShadowPatchIds.get(destination).add(id);
+      mapFragmentIdToBorderPatchIds.get(destination).add(id);
     });
 
   }
