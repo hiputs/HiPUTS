@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,8 @@ import pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.CarEditable;
+import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -27,8 +30,6 @@ import pl.edu.agh.hiputs.model.id.JunctionType;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.model.map.patch.Patch;
-import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.scheduler.SchedulerService;
 import pl.edu.agh.hiputs.service.worker.IncomingCarsSetsSynchronizationServiceImpl;
 
@@ -50,7 +51,7 @@ public class IncomingCarsSetsSynchronizationServiceTest {
   @Test
   void shouldSendFromTwoPatchesToOneNeighbour() {
     //given
-    when(mapFragment.getBorderPatches()).thenReturn(getBorderPatches());
+    when(mapFragment.pollOutgoingCars()).thenReturn(getOutgoingCars1());
 
     //when
     taskExecutorService.init();
@@ -66,28 +67,8 @@ public class IncomingCarsSetsSynchronizationServiceTest {
     assertEquals(8, argumentCaptor.getValue().getCars().size());
   }
 
-  private Map<MapFragmentId, Set<Patch>> getBorderPatches() {
-    return Map.of(new MapFragmentId("Actor1"), Set.of(getSimplePatch(), getSimplePatch2()));
-  }
-
-  private Patch getSimplePatch() {
-    Lane lane1 = Lane.builder()
-        .laneId(new LaneId("lane1"))
-        .build();
-    lane1.addIncomingCar(getCar("C1"));
-    lane1.addIncomingCar(getCar("C2"));
-
-    Lane lane2 = Lane.builder()
-        .laneId(new LaneId("lane2"))
-        .build();
-    lane2.addIncomingCar(getCar("C3"));
-    lane2.addIncomingCar(getCar("C4"));
-
-    return Patch.builder()
-        .lanes(Map.of(
-            lane1.getLaneId(), lane1,
-            lane2.getLaneId(), lane2))
-        .build();
+  private Map<MapFragmentId, Set<CarEditable>> getOutgoingCars1() {
+    return Map.of(new MapFragmentId("Actor1"), getCarsSet(Set.of("C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8")));
   }
 
   private Car getCar(String id) {
@@ -103,30 +84,15 @@ public class IncomingCarsSetsSynchronizationServiceTest {
         .laneId(new LaneId("abc"))
         .positionOnLane(0)
         .routeWithLocation(new RouteWithLocation(routeElementList, 0))
+        .decision(Decision.builder().laneId(new LaneId("destination")).build())
         .build();
-  }
-
-  private Patch getSimplePatch2() {
-    Lane lane1 = Lane.builder()
-        .laneId(new LaneId("Lane3"))
-        .build();
-    lane1.addIncomingCar(getCar("C5"));
-    lane1.addIncomingCar(getCar("C6"));
-
-    Lane lane2 = Lane.builder()
-        .laneId(new LaneId("Lane4"))
-        .build();
-    lane2.addIncomingCar(getCar("C7"));
-    lane2.addIncomingCar(getCar("C8"));
-
-    return Patch.builder().lanes(Map.of(lane1.getLaneId(), lane1, lane2.getLaneId(), lane2)).build();
   }
 
   @SneakyThrows
   @Test
   void shouldSendFromTwoPatchesToTwoNeighbour() {
     //given
-    when(mapFragment.getBorderPatches()).thenReturn(getBorderPatches2());
+    when(mapFragment.pollOutgoingCars()).thenReturn(getOutgoingCars2());
     //when
     taskExecutorService.init();
     IncomingCarsSetsSynchronizationServiceImpl
@@ -145,9 +111,12 @@ public class IncomingCarsSetsSynchronizationServiceTest {
     assertEquals(4, argumentCaptor2.getValue().getCars().size());
   }
 
-  private Map<MapFragmentId, Set<Patch>> getBorderPatches2() {
-    return Map.of(new MapFragmentId("Actor1"), Set.of(getSimplePatch()),
-        new MapFragmentId("Actor2"), Set.of( getSimplePatch2())
-        );
+  private Map<MapFragmentId, Set<CarEditable>> getOutgoingCars2() {
+    return Map.of(new MapFragmentId("Actor1"), getCarsSet(Set.of("C1", "C2", "C3", "C4")),
+        new MapFragmentId("Actor2"), getCarsSet(Set.of("C5", "C6", "C7", "C8")));
+  }
+
+  private Set<CarEditable> getCarsSet(Set<String> carsIds) {
+    return carsIds.stream().map(this::getCar).collect(Collectors.toSet());
   }
 }

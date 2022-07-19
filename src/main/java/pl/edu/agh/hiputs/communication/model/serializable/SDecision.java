@@ -1,8 +1,14 @@
 package pl.edu.agh.hiputs.communication.model.serializable;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
+@Getter
+@Builder
+@AllArgsConstructor
 public class SDecision implements CustomSerializable<Decision> {
 
   /**

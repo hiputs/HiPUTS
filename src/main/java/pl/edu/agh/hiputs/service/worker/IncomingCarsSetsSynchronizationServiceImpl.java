@@ -46,7 +46,10 @@ public class IncomingCarsSetsSynchronizationServiceImpl implements IncomingCarsS
         .parallelStream()
         .collect(Collectors.toMap(
             Entry::getKey,
-            e -> e.getValue().parallelStream().map(SCar::new).collect(Collectors.toList())
+            e -> e.getValue()
+                .parallelStream()
+                .map(SCar::new)
+                .collect(Collectors.toList())
         ));
 
     sendMessages(serializedCarMap);

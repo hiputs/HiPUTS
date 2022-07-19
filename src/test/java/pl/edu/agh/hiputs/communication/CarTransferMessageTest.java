@@ -5,8 +5,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.communication.model.serializable.SCar;
+import pl.edu.agh.hiputs.communication.model.serializable.SDecision;
 import pl.edu.agh.hiputs.communication.model.serializable.SRouteElement;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -54,6 +56,7 @@ public class CarTransferMessageTest {
         .laneId(new LaneId("abc"))
         .positionOnLane(0)
         .routeWithLocation(route)
+        .decision(Decision.builder().laneId(new LaneId("1111")).build())
         .build();
   }
 
@@ -69,6 +72,7 @@ public class CarTransferMessageTest {
         .laneId("abc")
         .positionOnLane(0)
         .routeElements(routeElementList)
+        .decision(SDecision.builder().laneId("1111").build())
         .build();
   }
 }
