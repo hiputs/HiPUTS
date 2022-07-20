@@ -228,20 +228,24 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         (key, value) -> shadowPatchesToRemove.forEach(c -> value.remove(c.getPatchId())));
   }
 
-  public void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository, List<ImmutablePair<PatchId, MapFragmentId>> patchIdWithMapFragmentId) {
+  public void migratePatchToMe(PatchId patchId, MapFragmentId neighbourId, MapRepository mapRepository, List<ImmutablePair<PatchId, MapFragmentId>> neighbourPatchIdsWithMapFragmentId) {
     Patch patch = knownPatches.get(patchId);
     // add to local patches
     localPatchIds.add(patch.getPatchId());
 
     //add to border patches
-    mapFragmentIdToBorderPatchIds
-        .values()
-        .forEach(patches -> patch.getNeighboringPatches()
-            .forEach(neighbourPatchId -> {
-              if (patches.contains(neighbourPatchId)) {
-                patches.add(patchId);
-              }
-            }));
+    neighbourPatchIdsWithMapFragmentId.forEach(
+        pair -> {
+          if(pair.getRight() == mapFragmentId){
+            return;
+          }
+
+          Set<PatchId> neighbouring =
+              mapFragmentIdToBorderPatchIds.computeIfAbsent(pair.getRight(), k -> new HashSet<>());
+
+          neighbouring.add(pair.getLeft());
+        }
+    );
 
     // remove patches from border that have become internal after migration
     List<PatchId> incomePatch = patch.getNeighboringPatches()
@@ -253,15 +257,15 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         .toList();
 
     incomePatch
-        .forEach(mapFragmentIdToBorderPatchIds.get(mapFragmentId)::remove);
+        .forEach(mapFragmentIdToBorderPatchIds.get(neighbourId)::remove);
 
     //removed patch from shadow patches
-    mapFragmentIdToShadowPatchIds.get(mapFragmentId).remove(patch.getPatchId());
+    mapFragmentIdToShadowPatchIds.get(neighbourId).remove(patch.getPatchId());
 
     //add shadow patches - patch should be added to shadow patches
     List<Patch> shadowPatchesToAdd = patch.getNeighboringPatches()
         .stream()
-        .filter(id -> !localPatchIds.contains(id))
+        .filter(id -> !knownPatches.containsKey(id))
         .map(mapRepository::getPatch)
         .toList();
 
@@ -274,7 +278,19 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       addedPatch.getJunctionIds()
           .forEach(junctionId -> junctionIdToPatchId.put(junctionId, patchId));
     });
-    patchIdWithMapFragmentId.forEach(pair -> mapFragmentIdToShadowPatchIds.getOrDefault(pair.getRight(), new HashSet<>()).add(pair.getLeft()));
+    neighbourPatchIdsWithMapFragmentId.forEach(pair -> {
+      if(pair.getValue().equals(mapFragmentId)){
+        return;
+      }
+
+      Set<PatchId> shadowPatchIds = mapFragmentIdToShadowPatchIds.get(pair.getRight());
+      if(shadowPatchIds == null){
+        shadowPatchIds = new HashSet<>();
+      }
+
+      shadowPatchIds.add(pair.getLeft());
+      mapFragmentIdToShadowPatchIds.put(pair.getRight(), shadowPatchIds);
+    });
   }
 
   @Override
