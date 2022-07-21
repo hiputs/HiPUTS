@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 
 @Getter
 @Setter
@@ -64,6 +65,11 @@ public class Configuration {
   private boolean localHostMode;
 
   /**
+   * Run load balancing strategy   NONE | SIMPLY | PID
+   */
+  private BalancingMode balancingMode;
+
+  /**
    * Local variable not use in JSON file. This flag will by true only when this worker has server task
    */
   private transient boolean serverOnThisMachine;
@@ -78,6 +84,7 @@ public class Configuration {
         .mapPath("")
         .serverAddress("localhost")
         .serverPort(8081)
+        .balancingMode(BalancingMode.NONE)
         .build();
   }
 }

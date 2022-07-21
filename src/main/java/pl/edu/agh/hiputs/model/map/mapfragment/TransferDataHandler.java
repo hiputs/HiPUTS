@@ -4,10 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
-import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
@@ -64,6 +62,8 @@ public interface TransferDataHandler {
   MapFragmentId getMapFragmentIdByPatchId(PatchId patchId);
 
   void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId source, MapFragmentId destination);
+
+  Patch getPatchById(PatchId patchId);
 
   MapFragmentId getMe();
 }
