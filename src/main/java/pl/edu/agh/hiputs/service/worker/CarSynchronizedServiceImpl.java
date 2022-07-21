@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
@@ -20,7 +19,6 @@ import pl.edu.agh.hiputs.communication.model.serializable.SCar;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
@@ -70,12 +68,16 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
     }
   }
 
-  @SneakyThrows
   @Override
   public synchronized void synchronizedGetIncomingCar(TransferDataHandler mapFragment) {
     int countOfNeighbours = mapFragment.getNeighbors().size();
     while (incomingMessages.size() < countOfNeighbours) {
-      this.wait();
+      try {
+        this.wait();
+      } catch (InterruptedException e) {
+        log.error(e.getMessage());
+        throw new RuntimeException(e);
+      }
     }
 
     List<Runnable> injectIncomingCarTasks = incomingMessages.stream()

@@ -5,16 +5,12 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
-import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.scheduler.SchedulerService;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
-import pl.edu.agh.hiputs.service.worker.CarSynchronizedServiceImpl;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizedService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
@@ -25,7 +21,7 @@ public class MapFragmentExecutor {
 
   @Setter
   @Getter
-  private MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap2();
+  private MapFragment mapFragment;
   private final MessageReceiverService messageReceiverService;
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutor;
