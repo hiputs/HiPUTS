@@ -4,10 +4,13 @@ import java.util.Set;
 import java.util.stream.Stream;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
 public interface PatchReader {
+
+  PatchId getPatchId();
 
   Set<LaneId> getLaneIds();
 

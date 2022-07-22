@@ -54,6 +54,8 @@ public class Driver implements IDriver {
     }
     //= this.decider.makeDecision(this, roadStructureReader);
 
+    acceleration = limitAccelerationPreventReversing(acceleration, car, timeStep);
+
     LaneId currentLaneId = this.car.getLaneId();
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     int offset = 0;
@@ -84,6 +86,20 @@ public class Driver implements IDriver {
   @Override
   public double getDistanceHeadway() {
     return distanceHeadway;
+  }
+
+  /**
+   We limit acceleration for prevent car move backward
+   v = v0 + a * t  // we want v = 0 - car will be stopped
+   0 = v0 + a * t
+   - v0 = a * t
+   - v0 / t = a
+   a = - (v0 / t)
+   minimalAcceleration = - (speed / timeStep)
+   **/
+  private double limitAccelerationPreventReversing(double acceleration, CarReadable car, double timeStep) {
+    double minimalAcceleration = - (car.getSpeed() / timeStep);
+    return Math.max(acceleration, minimalAcceleration);
   }
 
   private double calculateFuturePosition(double acceleration) {
