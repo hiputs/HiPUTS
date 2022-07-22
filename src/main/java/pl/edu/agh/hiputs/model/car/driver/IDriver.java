@@ -10,4 +10,6 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
  */
 public interface IDriver {
   Decision makeDecision(RoadStructureReader roadStructureReader);
+
+  double getDistanceHeadway();
 }

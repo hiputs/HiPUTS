@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CarBasicDeciderData;
+import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CarTrailDeciderData;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
@@ -96,7 +97,7 @@ public class CarProspectorImpl implements CarProspector {
     }
   }
 
-  public List<CarBasicDeciderData> getConflictCars(List<LaneId> conflictLanes, RoadStructureReader roadStructureReader){
+  public List<CarBasicDeciderData> getFirstCarsFromLanes(List<LaneId> conflictLanes, RoadStructureReader roadStructureReader){
     List<CarBasicDeciderData> conflictCars = new ArrayList<>();
     for (LaneId laneId: conflictLanes) {
       LaneReadable lane = laneId.getReadable(roadStructureReader);
@@ -105,6 +106,20 @@ public class CarProspectorImpl implements CarProspector {
         CarReadable conflictCar = conflictCarOptional.get();
         double distance = lane.getLength() - conflictCar.getPositionOnLane();
         conflictCars.add(new CarBasicDeciderData(conflictCar.getSpeed(), distance, conflictCar.getLength()));
+      }
+    }
+    return conflictCars;
+  }
+
+  public List<CarTrailDeciderData> getAllCarsFromLanes(List<LaneId> conflictLanes, RoadStructureReader roadStructureReader, double conflictAreaLength){
+    List<CarTrailDeciderData> conflictCars = new ArrayList<>();
+    for (LaneId laneId: conflictLanes) {
+      LaneReadable lane = laneId.getReadable(roadStructureReader);
+      double maxSpeed = Double.MAX_VALUE;//lane.getMaxSpeed(); // #TODO Get max speed from lane when it will be available
+      for (CarReadable conflictCar: lane.streamCarsFromExitReadable().toList()){
+        double distance = lane.getLength() - conflictCar.getPositionOnLane() - conflictAreaLength / 2;
+        conflictCars.add(new CarTrailDeciderData(conflictCar.getSpeed(), distance, conflictCar.getLength(),
+                            conflictCar.getAcceleration(), Math.min(maxSpeed, conflictCar.getMaxSpeed()), conflictCar.getRouteOffsetLaneId(1)));
       }
     }
     return conflictCars;

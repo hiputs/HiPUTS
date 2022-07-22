@@ -21,4 +21,6 @@ public interface CarReadable {
   CarId getCarId();
 
   Optional<LaneId> getRouteOffsetLaneId(int offset);
+
+  double getDistanceHeadway();
 }
