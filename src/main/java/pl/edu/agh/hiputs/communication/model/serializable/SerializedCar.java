@@ -17,7 +17,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 @Getter
 @Builder
 @AllArgsConstructor
-public class SCar implements CustomSerializable<Car> {
+public class SerializedCar implements CustomSerializable<Car> {
 
   /**
    * CarId
@@ -52,7 +52,7 @@ public class SCar implements CustomSerializable<Car> {
   /**
    * Serialized route
    */
-  private final List<SRouteElement> routeElements;
+  private final List<SerializedRouteElement> routeElements;
 
   /**
    * Serialized currentRoutePosition
@@ -62,9 +62,9 @@ public class SCar implements CustomSerializable<Car> {
   /**
    * Serialized decision
    */
-  private final SDecision decision;
+  private final SerializedDecision decision;
 
-  public SCar(CarEditable realObject) {
+  public SerializedCar(CarEditable realObject) {
     carId = realObject.getCarId().getValue();
     speed = realObject.getSpeed();
     length = realObject.getLength();
@@ -76,10 +76,10 @@ public class SCar implements CustomSerializable<Car> {
     routeElements = realObject.getRouteWithLocation()
         .getRouteElements()
         .stream()
-        .map(routeElement -> new SRouteElement(routeElement.getJunctionId().getValue(),
+        .map(routeElement -> new SerializedRouteElement(routeElement.getJunctionId().getValue(),
             routeElement.getOutgoingLaneId().getValue(), routeElement.getJunctionId().getJunctionType().name()))
         .collect(Collectors.toList());
-    decision = new SDecision(realObject.getDecision());
+    decision = new SerializedDecision(realObject.getDecision());
   }
 
   @Override

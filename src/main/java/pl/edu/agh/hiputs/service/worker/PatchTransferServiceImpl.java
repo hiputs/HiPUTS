@@ -13,7 +13,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
-import pl.edu.agh.hiputs.communication.model.serializable.SLane;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -42,10 +42,10 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
 
   @Override
   public void sendPatch(MapFragmentId receiver, Patch patch) {
-    List<SLane> serializedLanes = patch.streamLanesEditable().parallel().map(SLane::new).collect(Collectors.toList());
+    List<SerializedLane> serializedLanes = patch.streamLanesEditable().parallel().map(SerializedLane::new).collect(Collectors.toList());
 
     PatchTransferMessage patchTransferMessage =
-        PatchTransferMessage.builder().patchId(patch.getPatchId().getValue()).sLanes(serializedLanes).build();
+        PatchTransferMessage.builder().patchId(patch.getPatchId().getValue()).serializedLanes(serializedLanes).build();
 
     PatchTransferNotificationMessage patchTransferNotificationMessage = PatchTransferNotificationMessage.builder()
         .transferPatchId(patch.getPatchId().getValue())
@@ -71,7 +71,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
       //            mapFragment.migratePatchToMe(new PatchId(message.getPatchId()));
 
       // TODO this does nothing?
-      message.getSLanes().parallelStream().map(sLane -> mapFragment.getLaneEditable(new LaneId(sLane.getLaneId())));
+      message.getSerializedLanes().parallelStream().map(sLane -> mapFragment.getLaneEditable(new LaneId(sLane.getLaneId())));
     }
   }
 

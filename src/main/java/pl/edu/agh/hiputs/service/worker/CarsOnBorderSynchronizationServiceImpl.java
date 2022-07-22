@@ -15,7 +15,7 @@ import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.BorderSynchronizationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.model.serializable.SLane;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
@@ -108,9 +108,9 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   }
 
   private BorderSynchronizationMessage createMessageFrom(Set<Patch> patches) {
-    Map<String, Set<SLane>> patchContent = patches.stream()
+    Map<String, Set<SerializedLane>> patchContent = patches.stream()
         .collect(Collectors.toMap(e -> e.getPatchId().getValue(),
-            e -> e.streamLanesEditable().map(SLane::new).collect(Collectors.toSet())));
+            e -> e.streamLanesEditable().map(SerializedLane::new).collect(Collectors.toSet())));
     return new BorderSynchronizationMessage(patchContent);
   }
 

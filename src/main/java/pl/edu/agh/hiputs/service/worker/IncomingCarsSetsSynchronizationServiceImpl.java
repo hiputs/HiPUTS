@@ -14,7 +14,7 @@ import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.model.serializable.SCar;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
@@ -41,22 +41,22 @@ public class IncomingCarsSetsSynchronizationServiceImpl implements IncomingCarsS
 
   @Override
   public void sendIncomingSetsOfCarsToNeighbours(TransferDataHandler mapFragment) {
-    Map<MapFragmentId, List<SCar>> serializedCarMap = mapFragment.pollOutgoingCars()
+    Map<MapFragmentId, List<SerializedCar>> serializedCarMap = mapFragment.pollOutgoingCars()
         .entrySet()
         .parallelStream()
         .collect(Collectors.toMap(
             Entry::getKey,
             e -> e.getValue()
                 .parallelStream()
-                .map(SCar::new)
+                .map(SerializedCar::new)
                 .collect(Collectors.toList())
         ));
 
     sendMessages(serializedCarMap);
   }
 
-  private void sendMessages(Map<MapFragmentId, List<SCar>> serializedCarMap) {
-    for (Map.Entry<MapFragmentId, List<SCar>> entry : serializedCarMap.entrySet()) {
+  private void sendMessages(Map<MapFragmentId, List<SerializedCar>> serializedCarMap) {
+    for (Map.Entry<MapFragmentId, List<SerializedCar>> entry : serializedCarMap.entrySet()) {
       CarTransferMessage carTransferMessage = new CarTransferMessage(entry.getValue());
       try {
         messageSenderService.send(entry.getKey(), carTransferMessage);

@@ -9,7 +9,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 @Getter
 @Builder
 @AllArgsConstructor
-public class SDecision implements CustomSerializable<Decision> {
+public class SerializedDecision implements CustomSerializable<Decision> {
 
   /**
    * Serialized speed
@@ -36,7 +36,7 @@ public class SDecision implements CustomSerializable<Decision> {
    */
   private final int offsetToMoveOnRoute;
 
-  public SDecision(Decision readObject) {
+  public SerializedDecision(Decision readObject) {
     this.speed = readObject.getSpeed();
     this.acceleration = readObject.getAcceleration();
     this.laneId = readObject.getLaneId().getValue();
