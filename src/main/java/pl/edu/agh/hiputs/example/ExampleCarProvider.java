@@ -121,25 +121,26 @@ public class ExampleCarProvider {
     JunctionId startJunctionId = mapFragment.getLaneReadable(startLaneId).getIncomingJunctionId();
     routeElements.add(new RouteElement(startJunctionId, startLaneId));
     LaneId nextLaneId, laneId = startLaneId;
-    JunctionId junctionId , prevJunctionId = null;
+    JunctionId nextJunctionId , junctionId = startJunctionId;
     for (int i = 0; i < hops; i++) {
-      junctionId = this.laneIdToOutgoingJunctionId.apply(laneId);
-      if (junctionId == null) {
+      nextJunctionId = this.laneIdToOutgoingJunctionId.apply(laneId);
+      if (nextJunctionId == null) {
         break;
       }
-      List<LaneId> junctionLaneIds = new LinkedList<>(this.junctionIdToOutgoingLaneIdList.apply(junctionId));
-      if (!junctionId.isCrossroad()) {
+      List<LaneId> junctionLaneIds = new LinkedList<>(this.junctionIdToOutgoingLaneIdList.apply(nextJunctionId));
+      if (!nextJunctionId.isCrossroad()) {
         for(LaneId nextCandidateLaneId : new LinkedList<>(junctionLaneIds)) {
-          if (this.laneIdToOutgoingJunctionId.apply(nextCandidateLaneId) == prevJunctionId) {
+          if (this.laneIdToOutgoingJunctionId.apply(nextCandidateLaneId).equals(junctionId)) {
             junctionLaneIds.remove(nextCandidateLaneId);
           }
         }
       }
       nextLaneId = junctionLaneIds.get(ThreadLocalRandom.current().nextInt(junctionLaneIds.size()));
-      routeElements.add(new RouteElement(junctionId, nextLaneId));
+      routeElements.add(new RouteElement(nextJunctionId, nextLaneId));
       laneId = nextLaneId;
-      prevJunctionId = junctionId;
+      junctionId = nextJunctionId;
     }
+
     return new RouteWithLocation(routeElements, 0);
   }
 
