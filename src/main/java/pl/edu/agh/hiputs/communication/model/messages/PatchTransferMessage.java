@@ -7,6 +7,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
+import pl.edu.agh.hiputs.communication.model.serializable.SCar;
 
 @Builder
 @Getter
@@ -31,6 +32,11 @@ public class PatchTransferMessage implements Message {
    * Pair of shadow patches and map fragmentId
    */
   private final List<ImmutablePair<String, String>> patchIdWithMapFragmentId;
+
+  /**
+   * Car from patch - we have patch structure in repository, but we haven't knowledge about current cars position
+   */
+  private final List<SCar> cars;
 
 
   @Override

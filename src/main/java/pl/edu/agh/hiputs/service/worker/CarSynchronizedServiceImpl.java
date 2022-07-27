@@ -20,9 +20,10 @@ import pl.edu.agh.hiputs.communication.model.serializable.SCar;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.CarMapperTask;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
@@ -45,7 +46,7 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
   }
 
   @Override
-  public void sendCarsToNeighbours(TransferDataHandler mapFragment) {
+  public void getSerializedCarByPatch(TransferDataHandler mapFragment) {
     Map<MapFragmentId, List<SCar>> serializedCarMap = new HashMap<>();
     List<Runnable> tasks = new ArrayList<>();
     Map<MapFragmentId, Set<Patch>> borderPatches = mapFragment.getBorderPatches();
@@ -57,6 +58,18 @@ public class CarSynchronizedServiceImpl implements CarSynchronizedService, Subsc
 
     taskExecutorService.executeBatch(tasks);
     sendMessages(serializedCarMap);
+  }
+
+  @Override
+  public List<SCar> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
+
+    Patch patch = transferDataHandler.getPatch(patchId);
+    List<Runnable> tasks = new ArrayList<>();
+    List<SCar> toSendCars = new ArrayList<>();
+    tasks.add(new CarMapperTask(patch, toSendCars));
+
+    taskExecutorService.executeBatch(tasks);
+    return toSendCars;
   }
 
   private void sendMessages(Map<MapFragmentId, List<SCar>> serializedCarMap) {

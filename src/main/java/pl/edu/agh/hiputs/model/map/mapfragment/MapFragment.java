@@ -343,6 +343,11 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     return mapFragmentId;
   }
 
+  @Override
+  public Patch getPatch(PatchId patchId) {
+    return knownPatches.get(patchId);
+  }
+
   public static final class MapFragmentBuilder {
 
     private final MapFragmentId mapFragmentId;

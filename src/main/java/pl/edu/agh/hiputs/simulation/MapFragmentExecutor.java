@@ -5,16 +5,13 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.scheduler.SchedulerService;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
-import pl.edu.agh.hiputs.service.worker.CarSynchronizedServiceImpl;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizedService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
@@ -42,7 +39,7 @@ public class MapFragmentExecutor {
     taskExecutor.executeBatch(decisionStageTasks);
 
     // 4. prepare messages
-    carSynchronizedService.sendCarsToNeighbours(mapFragment);
+    carSynchronizedService.getSerializedCarByPatch(mapFragment);
 
     // 5. send & receive border patches
     carSynchronizedService.synchronizedGetIncomingCar(mapFragment);
