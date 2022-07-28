@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
@@ -195,27 +196,17 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         .forEach(patches -> patches.remove(patch.getPatchId()));
 
     // add new patches into border patches
-    List<PatchId> newBorderPatchesAfterTransfer = patch.getNeighboringPatches()
-        .stream()
-        .filter(localPatchIds::contains)
-        .toList();
+    List<PatchId> newBorderPatchesAfterTransfer = PatchConnectionSearchUtil.findNeighbouringPatches(patch.getPatchId(), this);
     mapFragmentIdToBorderPatchIds.get(mapFragmentId).addAll(newBorderPatchesAfterTransfer);
 
     //add removed patch into shadow patches
     mapFragmentIdToShadowPatchIds.get(mapFragmentId).add(patch.getPatchId());
 
     //remove shadow patches - patch should be removed from shadow patches when no neighbors are adjacent to localPatches
-    List<Patch> shadowPatchesToRemove = patch.getNeighboringPatches()
-        .stream()
-        .map(knownPatches::get)
-        .filter(shadowPatch ->
-            shadowPatch.getNeighboringPatches()
-                .stream()
-                .anyMatch(id -> !localPatchIds.contains(id)))
-        .toList();
+    List<PatchId> shadowPatchesToRemove = PatchConnectionSearchUtil.findShadowPatchesNeighbouringOnlyWithPatch(patch.getPatchId(), this);
 
     shadowPatchesToRemove.forEach(id -> {
-      Patch removedPatch = knownPatches.remove(id.getPatchId());
+      Patch removedPatch = knownPatches.remove(id);
 
       removedPatch.getLaneIds()
           .forEach(laneIdToPatchId::remove);
@@ -225,7 +216,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     });
 
     mapFragmentIdToShadowPatchIds.forEach(
-        (key, value) -> shadowPatchesToRemove.forEach(c -> value.remove(c.getPatchId())));
+        (key, value) -> shadowPatchesToRemove.forEach(value::remove));
   }
 
   public void migratePatchToMe(PatchId patchId, MapFragmentId neighbourId, MapRepository mapRepository, List<ImmutablePair<PatchId, MapFragmentId>> neighbourPatchIdsWithMapFragmentId) {
@@ -346,6 +337,11 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   @Override
   public MapFragmentId getMe() {
     return mapFragmentId;
+  }
+
+  @Override
+  public boolean isLocalPatch(PatchId patchId) {
+    return localPatchIds.contains(patchId);
   }
 
   public static final class MapFragmentBuilder {

@@ -66,4 +66,9 @@ public interface TransferDataHandler {
   Patch getPatchById(PatchId patchId);
 
   MapFragmentId getMe();
+
+  /**
+   * checks if patch belongs to the local set
+   */
+  boolean isLocalPatch(PatchId patchId);
 }
