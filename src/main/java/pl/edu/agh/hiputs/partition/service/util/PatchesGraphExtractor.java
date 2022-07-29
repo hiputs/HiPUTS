@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
@@ -16,6 +17,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
+@Slf4j
 public class PatchesGraphExtractor {
 
   public Graph<PatchData, PatchConnectionData> createFrom(Graph<JunctionData, WayData> inputGraph) {
@@ -97,6 +99,15 @@ public class PatchesGraphExtractor {
 
     String unassignedNodesString = unassignedNodes.stream().map(Node::getId).collect(Collectors.joining(" "));
     String unassignedEdgesString = unassignedEdges.stream().map(Edge::getId).collect(Collectors.joining(" "));
+
+    log.info(String.format("Node cover by colouring into patches = %f (%d/%d)",
+        (double)(inputGraph.getNodes().size() - unassignedNodes.size())/inputGraph.getNodes().size(),
+        inputGraph.getNodes().size() - unassignedNodes.size(),
+        inputGraph.getNodes().size()));
+    log.info(String.format("Edge cover by colouring into patches = %f (%d/%d)",
+        (double)(inputGraph.getEdges().size() - unassignedEdges.size())/inputGraph.getEdges().size(),
+        inputGraph.getEdges().size() - unassignedEdges.size(),
+        inputGraph.getEdges().size()));
 
     if (unassignedNodes.size() > 0 && unassignedEdges.size() > 0) {
       throw new IllegalStateException(

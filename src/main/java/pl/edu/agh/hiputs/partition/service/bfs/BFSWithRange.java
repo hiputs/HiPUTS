@@ -2,8 +2,10 @@ package pl.edu.agh.hiputs.partition.service.bfs;
 
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -19,7 +21,11 @@ public class BFSWithRange<T extends NodeData, S extends EdgeData> {
   private final Measure<Edge<T, S>> measure;
 
   public BFSWithRangeResult<T, S> getInRange(Graph<T, S> graph, Node<T, S> root) {
-    Set<Edge<T, S>> resultSet = new HashSet<>();
+    return getInRange(graph, root, null);
+  }
+
+  public BFSWithRangeResult<T, S> getInRange(Graph<T, S> graph, Node<T, S> root, Set<Edge<T,S>> edgesToMoveOn) {
+    List<Edge<T, S>> resultSet = new LinkedList<>();
     Set<Node<T, S>> borderNodes = new HashSet<>();
     Queue<Node<T, S>> front = new LinkedList<>();
     root.setDistance(0.0);
@@ -33,6 +39,9 @@ public class BFSWithRange<T extends NodeData, S extends EdgeData> {
       }
 
       currentNode.getOutgoingEdges().forEach(e -> {
+        if(edgesToMoveOn != null && !edgesToMoveOn.stream().map(Edge::getId).collect(Collectors.toSet()).contains(e.getId())) {
+          return;
+        }
         resultSet.add(e);
 
         Node<T, S> nextNode = e.getTarget();

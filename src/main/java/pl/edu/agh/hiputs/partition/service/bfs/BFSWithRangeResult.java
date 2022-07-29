@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.partition.service.bfs;
 
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import pl.edu.agh.hiputs.partition.model.graph.NodeData;
 @AllArgsConstructor
 public class BFSWithRangeResult<T extends NodeData, S extends EdgeData> {
 
-  Set<Edge<T, S>> edgesInRange;
+  List<Edge<T, S>> edgesInRange;
 
   Set<Node<T, S>> borderNodes;
 

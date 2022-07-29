@@ -1,6 +1,8 @@
 package pl.edu.agh.hiputs.partition.service;
 
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -31,16 +33,16 @@ public class GrowingPatchPartitioner implements PatchPartitioner {
 
   private final Map<String, Node<PatchData, PatchConnectionData>> patchId2patch = new HashMap<>();
 
-  private final BFSWithRange<JunctionData, WayData> bfsWithRange = new BFSWithRange<>(1000.0, new TimeDistance());
+  private final BFSWithRange<JunctionData, WayData> bfsWithRange = new BFSWithRange<>(50.0, new TimeDistance());
 
   @Override
   public Graph<PatchData, PatchConnectionData> partition(Graph<JunctionData, WayData> graph) {
-    Node<JunctionData, WayData> root = getGraphSource(graph);
+    List<Node<JunctionData, WayData>> roots = getGraphSources(graph);
     Queue<Node<JunctionData, WayData>> front = new LinkedList<>();
 
-    front.add(root);
+    front.addAll(roots);
     while(!front.isEmpty()) {
-      root = front.poll();
+      Node<JunctionData, WayData> root = front.poll();
       if (root.getOutgoingEdges().stream().allMatch(e -> e.getData().getPatchId() != null)) {
         continue;
       }
@@ -50,38 +52,51 @@ public class GrowingPatchPartitioner implements PatchPartitioner {
       BFSWithRangeResult<JunctionData, WayData> bfsResult = bfsWithRange.getInRange(graph, root);
 
       // detakcja kolorów w przeglądanym obszarze (kolory z edgy powinny wystarczyć)
-      Set<String> colors = bfsResult.getEdgesInRange()
+      List<String> colorsList = bfsResult.getEdgesInRange()
           .stream()
-          .map(e -> e.getData().getPatchId() == null ? "NEW_COLOR" : e.getData().getPatchId())
-          .collect(Collectors.toSet());
-      colors.remove("NEW_COLOR");
-      log.info(String.format("Wykryto %d nowych kolorów", colors.size()));
+          .filter(e -> e.getData().getPatchId() != null)
+          .map(e -> e.getData().getPatchId())
+          .toList();
+      Set<String> colorsSet = new HashSet<>(colorsList);
+      log.info(String.format("Wykryto %d nowych kolorów", colorsSet.size()));
 
       // jeśli nie napotkam kolorów to koloruje na nowy
-      if(colors.size() == 0) {
+      if(colorsSet.size() == 0) {
         currentPatchId = randomPatchId();
       }
       // jeśli natopotkam w obszarze jeden inny kolor trzeba podjąć decyzje czy kolorować na znaleziony czy możę na nowy. Tymczasowo wybrana opcja druga (loklana optymalizacja)
-      else if (colors.size() == 1) {
+      else if (colorsSet.size() == 1) {
         currentPatchId = randomPatchId();
+        // currentPatchId = colors.stream().findAny().get();
       }
 
-      // jeśli napotkam dwa kolory to wybieram "któryś" (tutaj może być bardziej złożony algorytm
-      else if (colors.size() == 2) {
-        List<String> colorsList = colors.stream().toList();
-        currentPatchId = ThreadLocalRandom.current().nextBoolean() ? colorsList.get(0) : colorsList.get(1);
+      // jeśli napotkam dwa kolory to wybieram "któryś" (tutaj może być bardziej złożony
+      else if (colorsSet.size() == 2) {
+        // List<String> colorsList = colors.stream().toList();
+        // currentPatchId = ThreadLocalRandom.current().nextBoolean() ? colorsList.get(0) : colorsList.get(1);
+
+        currentPatchId = colorsList.get(0);
+        root.getData().setPatchId(currentPatchId);
+        root.getOutgoingEdges().forEach(e -> setPatchIdIfNotSet(e, currentPatchId));
+        front.addAll(root.getOutgoingEdges().stream().map(Edge::getTarget).toList());
+        continue;
       }
       else {
-        throw new IllegalStateException("To many observed colors - patch partitioning failed");
+        currentPatchId = colorsList.get(0);
+
+        root.getData().setPatchId(currentPatchId);
+        root.getOutgoingEdges().forEach(e -> setPatchIdIfNotSet(e, currentPatchId));
+        front.addAll(root.getOutgoingEdges().stream().map(Edge::getTarget).toList());
+        continue;
       }
 
 
-      //pokoloruj wszystkie krawędzie i wirzchołki z oglądanego obszaru + krawędzie wchodzące do kolorowanych wierzchołków
+      //pokoloruj wszystkie krawędzie i wierzchołki z oglądanego obszaru + krawędzie wchodzące do kolorowanych wierzchołków
       root.getData().setPatchId(currentPatchId);
       bfsResult.getEdgesInRange().forEach(e -> {
         setPatchIdIfNotSet(e, currentPatchId);
         setPatchIdIfNotSet(e.getTarget(), currentPatchId);
-        e.getTarget().getIncomingEdges().forEach(f -> setPatchIdIfNotSet(f, currentPatchId));
+        // e.getTarget().getIncomingEdges().forEach(f -> setPatchIdIfNotSet(f, currentPatchId));
       });
 
       front.addAll(bfsResult.getBorderNodes());
@@ -92,14 +107,18 @@ public class GrowingPatchPartitioner implements PatchPartitioner {
     return patchesGraph;
   }
 
-  private Node<JunctionData, WayData> getGraphSource(Graph<JunctionData, WayData> graph) {
-    return graph.getNodes()
-        .values()
-        .stream()
-        // .filter(n -> n.getIncomingEdges().size() == 0)
-        // .filter(n -> n.getId().equals("1000"))
-        .findFirst()
-        .get();
+  private List<Node<JunctionData, WayData>> getGraphSources(Graph<JunctionData, WayData> graph) {
+    // List<Node<JunctionData, WayData>> result =
+    //     graph.getNodes().values().stream().filter(n -> n.getIncomingEdges().size() == 0).toList();
+    // if (result.size() > 0) {
+    //   return result;
+    // }
+
+    // return List.of(graph.getNodes()
+    //     .values().stream().toList().get(ThreadLocalRandom.current().nextInt(0, graph.getNodes().size())));
+
+    return List.of(graph.getNodes().values().stream().max(Comparator.comparing(n -> ((Node<JunctionData, WayData>)n).getData().getLat())).get());
+
   }
 
   private void setPatchIdIfNotSet(Edge<JunctionData, WayData> edge, String patchId) {

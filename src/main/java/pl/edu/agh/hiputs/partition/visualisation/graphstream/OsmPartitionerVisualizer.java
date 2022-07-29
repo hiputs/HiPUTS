@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.partition.visualisation.graphstream;
 
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
@@ -10,11 +11,12 @@ import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
+@Slf4j
 public class OsmPartitionerVisualizer {
 
   private final StringBuilder graphStylesBuilder = new StringBuilder("""
-      node { size: 7px; fill-color: #777; text-mode: hidden; z-index: 0; }
-      edge { shape: line; fill-color: #222; arrow-size: 0px, 0px; }
+      node { size: 3px; fill-color: #777; text-mode: hidden; z-index: 0; }
+      edge { shape: line; size: 3px; fill-color: #222; arrow-size: 1px, 1px; }
       sprite { text-color: rgb(255,255,255); size: 18; text-size: 15;  }
       """);
 
@@ -46,8 +48,8 @@ public class OsmPartitionerVisualizer {
 
     for (val osmEdge : map.getEdges().values()) {
       Edge edge = this.graph.addEdge(osmEdge.getId(), osmEdge.getSource().getId(), osmEdge.getTarget().getId(), true);
-      edge.setAttribute("ui.class", "e" + osmEdge.getId().replace("->", ""));
-      graphStylesBuilder.append(generateStyleFromUUID(edge.getId()));
+      edge.setAttribute("ui.class", "e" +  osmEdge.getData().getPatchId().replace("-", ""));
+      graphStylesBuilder.append(generateStyleFromUUID(edge.getId(), osmEdge.getData().getPatchId()));
     }
   }
 
@@ -55,8 +57,13 @@ public class OsmPartitionerVisualizer {
     this.graph.display(false);
   }
 
-  private String generateStyleFromUUID(String id) {
-    return "edge.e" +  id.replace("->", "") + " { shape: line; fill-color: #" + int2rgb(id.hashCode())
+  private String generateStyleFromUUID(String id, String patchId) {
+    if(patchId.equals("UNKNOWN")) {
+      log.info("Unclassified edge");
+      return "edge.e" +  patchId.replace("-", "") + " { shape: line; size: 1px; fill-color: #" + "000"
+          + "; arrow-size: 0px, 0px; }\n";
+    }
+    return "edge.e" +  patchId.replace("-", "") + " { shape: line; size: 3px; fill-color: #" + int2rgb(patchId.hashCode())
         + "; arrow-size: 0px, 0px; }\n";
   }
 
