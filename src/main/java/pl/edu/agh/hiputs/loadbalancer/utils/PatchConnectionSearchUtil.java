@@ -1,8 +1,8 @@
 package pl.edu.agh.hiputs.loadbalancer.utils;
 
 import java.util.List;
-import java.util.Set;
 import lombok.experimental.UtilityClass;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
@@ -30,5 +30,4 @@ public class PatchConnectionSearchUtil {
         .map(Patch::getPatchId)
         .toList();
   }
-
 }

@@ -1,17 +1,19 @@
 package pl.edu.agh.hiputs.loadbalancer;
 
+import static java.util.stream.Collectors.groupingBy;
 import static pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil.countCars;
+import static pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil.*;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.PatchBalancingInfo;
-import pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil;
-import pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil;
+import pl.edu.agh.hiputs.loadbalancer.utils.CostCalculatorUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
@@ -49,14 +51,38 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
     patchTransferService.sendPatch(recipient, transferDataHandler.getPatchById(patchId), transferDataHandler);
   }
 
-  private PatchId findPatchIdToSend(MapFragmentId recipient, TransferDataHandler transferDataHandler) {
+  private PatchId findPatchIdToSend(MapFragmentId recipient, TransferDataHandler transferDataHandler, int carBalanceTarget) {
     Set<Patch> candidatesToLoadBalancing = transferDataHandler.getBorderPatches().get(recipient);
+    List<PatchBalancingInfo> candidatesWithStatistic =
+        bindWitchStatistic(candidatesToLoadBalancing, transferDataHandler);
 
-    List<PatchBalancingInfo> candidatesWithStatistic = candidatesToLoadBalancing.parallelStream().map(patch -> {
+    List<ImmutablePair<PatchBalancingInfo, Double>> orderCandidates = candidatesWithStatistic
+        .stream()
+        .map(i -> new ImmutablePair<PatchBalancingInfo, Double>(i, CostCalculatorUtil.calculateCost(i, carBalanceTarget)))
+        .sorted(Comparator.comparingDouble(ImmutablePair::getRight))
+        .toList();
+
+
+    ImmutablePair<PatchBalancingInfo, Double> selectedCandidate = findFirstCandidateNotLossGraphCoherence(orderCandidates);
+
+
+    log.info("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(), selectedCandidate.getRight());
+
+    return selectedCandidate.getLeft().getPatchId();
+  }
+
+  private ImmutablePair<PatchBalancingInfo, Double> findFirstCandidateNotLossGraphCoherence(
+      List<ImmutablePair<PatchBalancingInfo, Double>> orderCandidates) {
+  }
+
+  private List<PatchBalancingInfo> bindWitchStatistic(Set<Patch> candidatesToLoadBalancing,
+      TransferDataHandler transferDataHandler) {
+
+    return candidatesToLoadBalancing.parallelStream().map(patch -> {
       List<PatchId> newNeighbours =
-          PatchConnectionSearchUtil.findNeighbouringPatches(patch.getPatchId(), transferDataHandler);
+          findNeighbouringPatches(patch.getPatchId(), transferDataHandler);
       List<PatchId> removedShadowPatches =
-          PatchConnectionSearchUtil.findShadowPatchesNeighbouringOnlyWithPatch(patch.getPatchId(), transferDataHandler);
+          findShadowPatchesNeighbouringOnlyWithPatch(patch.getPatchId(), transferDataHandler);
 
       return PatchBalancingInfo.builder()
           .patchId(patch.getPatchId())
@@ -67,17 +93,6 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
           .countCarsInRemovedShadowPatches(countCars(removedShadowPatches, transferDataHandler))
           .build();
     }).toList();
-
-    PatchBalancingInfo candidate =
-        candidatesWithStatistic.stream().max(Comparator.comparingInt(this::calculateCost)).get();
-
-    log.info("Select candidate id {} with cost {}", candidate.getPatchId(), calculateCost(candidate));
-
-    return candidate.getPatchId();
-  }
-
-  private int calculateCost(PatchBalancingInfo patchBalancingInfo) {
-    return
   }
 
   private MapFragmentId selectRecipient(TransferDataHandler transferDataHandler) {
