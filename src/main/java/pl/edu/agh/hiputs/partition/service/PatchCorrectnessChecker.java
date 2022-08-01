@@ -1,8 +1,6 @@
 package pl.edu.agh.hiputs.partition.service;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,33 +21,36 @@ import pl.edu.agh.hiputs.partition.service.bfs.TimeDistance;
 @Slf4j
 public class PatchCorrectnessChecker {
 
-  private final BFSWithRange<JunctionData, WayData> bfsWithRange = new BFSWithRange<>(50.0, new TimeDistance());
-  private final Boolean useInsideChecker = false;
-
-  public boolean testSinglePatch(Graph<PatchData, PatchConnectionData> patchesGraph,
-      Graph<JunctionData, WayData> mapGraph,
-      String patchId) {
-    return useInsideChecker ? testInsideCorrectness(patchesGraph, mapGraph, patchId) : testVisibilityCorrectness(patchesGraph, mapGraph, patchId);
-  }
+  private final BFSWithRange<JunctionData, WayData> bfsWithRange = new BFSWithRange<>(1050.0, new TimeDistance());
 
   public boolean testAllPatches(
       Graph<PatchData, PatchConnectionData> patchesGraph,
       Graph<JunctionData, WayData> mapGraph) {
-    int correctCount = 0;
-    int incorrectCount = 0;
+    int incorrectByVisibilityCheckCount = 0;
+    int incorrectByInsideCheck = 0;
     for(String patchId : patchesGraph.getNodes().keySet()) {
-      boolean isPatchCorrect = testSinglePatch(patchesGraph, mapGraph, patchId);
-      if (isPatchCorrect) {
-        log.info(String.format("Patch with id=%s is correct", patchId));
-        correctCount++;
+      if (testVisibilityCorrectness(patchesGraph, mapGraph, patchId)) {
+        log.info(String.format("Patch with id=%s is correct by visibilityCheck", patchId));
       } else {
-        log.warn(String.format("Patch with id=%s is invalid", patchId));
-        incorrectCount++;
+        log.warn(String.format("Patch with id=%s is incorrect by visibilityCheck", patchId));
+        incorrectByVisibilityCheckCount++;
+      }
+
+      if (testInsideCorrectness(patchesGraph, mapGraph, patchId)) {
+        log.info(String.format("Patch with id=%s is correct by insideCheck", patchId));
+      } else {
+        log.warn(String.format("Patch with id=%s is incorrect by insideCheck", patchId));
+        incorrectByInsideCheck++;
       }
     }
-    log.info(String.format("Patch partitioning result %d incorrect /%d all patches", incorrectCount, incorrectCount+correctCount));
+    log.info(String.format("Patch partitioning result by visibility check:  %d/%d (incorrect/all)", incorrectByVisibilityCheckCount, patchesGraph.getNodes().values().size()));
+    log.info(String.format("Patch partitioning result by inside check:  %d/%d (incorrect/all)", incorrectByInsideCheck, patchesGraph.getNodes().values().size()));
 
-    return incorrectCount == 0;
+    if(incorrectByVisibilityCheckCount * incorrectByInsideCheck == 0 && incorrectByVisibilityCheckCount + incorrectByInsideCheck != 0) {
+      throw new RuntimeException("All validation approaches should have same result.");
+    }
+
+    return incorrectByVisibilityCheckCount == 0;
   }
 
   /**
@@ -87,8 +88,6 @@ public class PatchCorrectnessChecker {
       Graph<JunctionData, WayData> mapGraph,
       String patchId) {
     Node<PatchData, PatchConnectionData> patchNode = patchesGraph.getNodes().get(patchId);
-    Set<String> neighbouringPatches =
-        patchNode.getOutgoingEdges().stream().map(Edge::getTarget).map(Node::getId).collect(Collectors.toSet());
 
     Set<Node<JunctionData, WayData>> borderInNodes = patchNode.getData()
         .getGraphInsidePatch()
@@ -111,13 +110,21 @@ public class PatchCorrectnessChecker {
     ChordFinder chordFinder = new ChordFinder(patchNode);
     return borderInNodes.stream()
         .flatMap(sn -> chordFinder.findChord(sn, borderOutNodes).stream().map(tn -> new ImmutablePair<>(sn, tn)))
-        .map(p -> checkNeighbouringBorderNodesPatches(p.getLeft(), p.getRight(), patchesGraph))
+        .map(p -> checkNeighbouringBorderNodesPatches(p.getLeft(), p.getRight(), patchesGraph, patchId))
         .allMatch(b -> b);
   }
 
-  private boolean checkNeighbouringBorderNodesPatches(Node<JunctionData, WayData> source, Node<JunctionData, WayData> target, Graph<PatchData, PatchConnectionData> patchesGraph) {
-    Set<String> sourcePatchesIds = source.getIncomingEdges().stream().map(e -> e.getData().getPatchId()).collect(Collectors.toSet());
-    Set<String> targetPatchesIds = target.getOutgoingEdges().stream().map(e -> e.getData().getPatchId()).collect(Collectors.toSet());
+  private boolean checkNeighbouringBorderNodesPatches(
+      Node<JunctionData, WayData> source,
+      Node<JunctionData, WayData> target,
+      Graph<PatchData, PatchConnectionData> patchesGraph,
+      String patchIdToBeFiltered) {
+    Set<String> sourcePatchesIds = source.getIncomingEdges().stream().map(e -> e.getData().getPatchId())
+        .filter(patchId -> !patchId.equals(patchIdToBeFiltered))
+        .collect(Collectors.toSet());
+    Set<String> targetPatchesIds = target.getOutgoingEdges().stream().map(e -> e.getData().getPatchId())
+        .filter(patchId -> !patchId.equals(patchIdToBeFiltered))
+        .collect(Collectors.toSet());
 
     for (final String sourcePatchesId : sourcePatchesIds) {
       for (final String targetPatchesId : targetPatchesIds) {
@@ -154,10 +161,10 @@ public class PatchCorrectnessChecker {
 
     public Set<Node<JunctionData, WayData>> findChord(Node<JunctionData, WayData> source, Set<Node<JunctionData, WayData>> targetCandidates) {
       Set<Edge<JunctionData, WayData>> edgesToMoveOn = new HashSet<>(patch.getEdges().values());
-      BFSWithRangeResult<JunctionData, WayData> bfsWithRangeResult = bfsWithRange.getInRange(patch, source, edgesToMoveOn);
+      BFSWithRangeResult<JunctionData, WayData> bfsWithRangeResult = bfsWithRange.getInRange(patch, source, edgesToMoveOn, true);
       Set<Node<JunctionData, WayData>> chordTargets = bfsWithRangeResult.getEdgesInRange()
           .stream()
-          .map(Edge::getSource) //this does not consider situation where real border of view range in os node
+          .map(Edge::getTarget) //this does not consider situation where real border of view range in os node
           .filter(targetCandidates::contains)
           .collect(Collectors.toSet());
       return chordTargets;

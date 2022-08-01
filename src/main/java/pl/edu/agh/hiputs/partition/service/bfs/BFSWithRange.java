@@ -21,12 +21,11 @@ public class BFSWithRange<T extends NodeData, S extends EdgeData> {
   private final Measure<Edge<T, S>> measure;
 
   public BFSWithRangeResult<T, S> getInRange(Graph<T, S> graph, Node<T, S> root) {
-    return getInRange(graph, root, null);
+    return getInRange(graph, root, null, false);
   }
 
-  public BFSWithRangeResult<T, S> getInRange(Graph<T, S> graph, Node<T, S> root, Set<Edge<T,S>> edgesToMoveOn) {
+  public BFSWithRangeResult<T, S> getInRange(Graph<T, S> graph, Node<T, S> root, Set<Edge<T,S>> edgesToMoveOn, boolean removePartiallyReachableEdges) {
     List<Edge<T, S>> resultSet = new LinkedList<>();
-    Set<Node<T, S>> borderNodes = new HashSet<>();
     Queue<Node<T, S>> front = new LinkedList<>();
     root.setDistance(0.0);
     front.add(root);
@@ -34,7 +33,6 @@ public class BFSWithRange<T extends NodeData, S extends EdgeData> {
       Node<T, S> currentNode = front.poll();
 
       if (currentNode.getDistance() > range) {
-        borderNodes.add(currentNode);
         continue;
       }
 
@@ -53,11 +51,21 @@ public class BFSWithRange<T extends NodeData, S extends EdgeData> {
       });
     }
 
+    Set<Node<T, S>> borderNodes = resultSet.stream()
+        .flatMap(e -> Stream.of(e.getSource(), e.getTarget()))
+        .filter(n -> n.getDistance() > range)
+        .collect(
+        Collectors.toSet());
+
     //cleanup
     resultSet.stream().flatMap(e -> Stream.of(e.getSource(), e.getTarget())).forEach(n -> n.setDistance(null));
+    List<Edge<T, S>> edgesInRange = resultSet;
+    if (removePartiallyReachableEdges) {
+      edgesInRange = resultSet.stream().filter(e -> !borderNodes.contains(e.getTarget())).collect(Collectors.toList());
+    }
 
     return BFSWithRangeResult.<T, S>builder()
-        .edgesInRange(resultSet)
+        .edgesInRange(edgesInRange)
         .borderNodes(borderNodes)
         .build();
   }
