@@ -8,4 +8,5 @@ public interface LoadBalancingStrategy {
 
   MapFragmentId selectNeighbourToBalancing(TransferDataHandler transferDataHandler);
 
+  int getTargetBalanceCarsCount(MapFragmentId recipient);
 }

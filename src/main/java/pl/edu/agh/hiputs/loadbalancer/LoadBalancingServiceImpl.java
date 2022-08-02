@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.loadbalancer;
 
 import static java.util.stream.Collectors.groupingBy;
 import static pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil.countCars;
+import static pl.edu.agh.hiputs.loadbalancer.utils.GraphCoherencyUtil.isCoherency;
 import static pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil.*;
 
 import java.util.Comparator;
@@ -46,7 +47,8 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
     LoadBalancingStrategy strategy = getStrategyByMode();
 
     MapFragmentId recipient = strategy.selectNeighbourToBalancing(transferDataHandler);
-    PatchId patchId = findPatchIdToSend(recipient, transferDataHandler);
+    int targetBalanceCars = strategy.getTargetBalanceCarsCount(recipient);
+    PatchId patchId = findPatchIdToSend(recipient, transferDataHandler, targetBalanceCars);
 
     patchTransferService.sendPatch(recipient, transferDataHandler.getPatchById(patchId), transferDataHandler);
   }
@@ -63,7 +65,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
         .toList();
 
 
-    ImmutablePair<PatchBalancingInfo, Double> selectedCandidate = findFirstCandidateNotLossGraphCoherence(orderCandidates);
+    ImmutablePair<PatchBalancingInfo, Double> selectedCandidate = findFirstCandidateNotLossGraphCoherence(orderCandidates, transferDataHandler);
 
 
     log.info("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(), selectedCandidate.getRight());
@@ -72,7 +74,20 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
   }
 
   private ImmutablePair<PatchBalancingInfo, Double> findFirstCandidateNotLossGraphCoherence(
-      List<ImmutablePair<PatchBalancingInfo, Double>> orderCandidates) {
+      List<ImmutablePair<PatchBalancingInfo, Double>> orderCandidates, TransferDataHandler transferDataHandler) {
+
+    int attempt = 0;
+    for (final ImmutablePair<PatchBalancingInfo, Double> orderCandidate : orderCandidates) {
+      if(isCoherency(transferDataHandler, orderCandidate.getLeft().getPatchId())){
+        return orderCandidate;
+      }
+
+      if (attempt++ == 5){
+        return orderCandidates.get(0);
+      }
+    }
+
+    return orderCandidates.get(0);
   }
 
   private List<PatchBalancingInfo> bindWitchStatistic(Set<Patch> candidatesToLoadBalancing,
@@ -93,10 +108,6 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
           .countCarsInRemovedShadowPatches(countCars(removedShadowPatches, transferDataHandler))
           .build();
     }).toList();
-  }
-
-  private MapFragmentId selectRecipient(TransferDataHandler transferDataHandler) {
-    return null;
   }
 
   private boolean shouldBalancingProcess() {
