@@ -4,9 +4,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import pl.edu.agh.hiputs.communication.model.serializable.SCar;
-import pl.edu.agh.hiputs.communication.model.serializable.SRouteElement;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedDecision;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedRouteElement;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -19,10 +21,10 @@ public class CarTransferMessageTest {
   @Test
   void toRealObject() {
     //given
-    SCar sCar = getSerializedCar();
+    SerializedCar serializedCar = getSerializedCar();
 
     //when
-    Car car = sCar.toRealObject();
+    Car car = serializedCar.toRealObject();
 
     //then
     assertThat(car).usingRecursiveComparison().isEqualTo(getCar());
@@ -34,10 +36,10 @@ public class CarTransferMessageTest {
     Car car = getCar();
 
     //when
-    SCar sCar = new SCar(car);
+    SerializedCar serializedCar = new SerializedCar(car);
 
     //then
-    assertThat(sCar).usingRecursiveComparison().isEqualTo(getSerializedCar());
+    assertThat(serializedCar).usingRecursiveComparison().isEqualTo(getSerializedCar());
   }
 
   private Car getCar() {
@@ -54,14 +56,15 @@ public class CarTransferMessageTest {
         .laneId(new LaneId("abc"))
         .positionOnLane(0)
         .routeWithLocation(route)
+        .decision(Decision.builder().laneId(new LaneId("1111")).build())
         .build();
   }
 
-  private SCar getSerializedCar() {
-    List<SRouteElement> routeElementList =
-        List.of(new SRouteElement("zxc", "vbn", "BEND"), new SRouteElement("zxc1", "vbn1", "BEND"));
+  private SerializedCar getSerializedCar() {
+    List<SerializedRouteElement> routeElementList =
+        List.of(new SerializedRouteElement("zxc", "vbn", "BEND"), new SerializedRouteElement("zxc1", "vbn1", "BEND"));
 
-    return SCar.builder()
+    return SerializedCar.builder()
         .carId("12345")
         .length(12)
         .speed(13)
@@ -69,6 +72,7 @@ public class CarTransferMessageTest {
         .laneId("abc")
         .positionOnLane(0)
         .routeElements(routeElementList)
+        .decision(SerializedDecision.builder().laneId("1111").build())
         .build();
   }
 }

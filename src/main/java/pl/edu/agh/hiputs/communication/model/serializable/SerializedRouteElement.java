@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class SRouteElement implements Serializable {
+public class SerializedRouteElement implements Serializable {
 
   private final String junctionId;
   private final String outgoingLaneId;

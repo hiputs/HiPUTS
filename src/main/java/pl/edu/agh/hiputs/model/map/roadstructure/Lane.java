@@ -96,6 +96,11 @@ public class Lane implements LaneEditable {
   }
 
   @Override
+  public Stream<CarReadable> streamCarsFromEntryReadable() {
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.iterator(), 0), false);
+  }
+
+  @Override
   public Stream<CarReadable> streamCarsFromExitReadable() {
     return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false);
   }
@@ -126,6 +131,11 @@ public class Lane implements LaneEditable {
     Set<CarEditable> oldIncomingCars = incomingCars;
     this.incomingCars = new HashSet<>();
     return oldIncomingCars.stream();
+  }
+
+  @Override
+  public Stream<CarEditable> streamCarsFromEntryEditable() {
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.iterator(), 0), false);
   }
 
   @Override

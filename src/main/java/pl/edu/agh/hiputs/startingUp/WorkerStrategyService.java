@@ -6,7 +6,12 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.RunSimulati
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ServerInitializationMessage;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -122,9 +127,15 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private void createCars() {
     final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-      Car car = exampleCarProvider.generateCar(10);
-      LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
-      lane.addCarAtEntry(car);
+      List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
+          .mapToObj(x -> exampleCarProvider.generateCar(10))
+          .sorted(Comparator.comparing(Car::getPositionOnLane))
+          .collect(Collectors.toList());
+      Collections.reverse(generatedCars);
+      generatedCars.forEach(car -> {
+        LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
+        lane.addCarAtEntry(car);
+      });
     });
   }
 
