@@ -68,7 +68,7 @@ public class PatchTransferServiceTest {
     PatchTransferMessage patchTransferMessage = argumentCaptor.getValue();
     PatchTransferNotificationMessage notificationMessage = notificationArgumentCaptor.getValue();
 
-    assertEquals(2, patchTransferMessage.getSLanes().size());
+    assertEquals(2, patchTransferMessage.getSerializedLanes().size());
     assertEquals("PATCH_ID", notificationMessage.getTransferPatchId());
     assertEquals("NEIGHBOUR", notificationMessage.getReceiverId());
   }

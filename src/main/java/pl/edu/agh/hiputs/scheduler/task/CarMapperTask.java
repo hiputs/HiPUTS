@@ -1,13 +1,13 @@
 package pl.edu.agh.hiputs.scheduler.task;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import pl.edu.agh.hiputs.communication.model.serializable.SCar;
+import lombok.extern.slf4j.Slf4j;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 
+@Slf4j
 @RequiredArgsConstructor
 public class CarMapperTask implements Runnable {
 
@@ -19,13 +19,17 @@ public class CarMapperTask implements Runnable {
   /**
    * List to save collection after serialized
    */
-  private final List<SCar> serializedCars;
+  private final List<SerializedCar> serializedCars;
 
   @Override
   public void run() {
-    serializedCars.addAll(patch.streamLanesEditable()
-        .flatMap(LaneEditable::pollIncomingCars)
-        .map(SCar::new)
-        .toList());
+    try {
+      serializedCars.addAll(patch.streamLanesEditable()
+          .flatMap(LaneEditable::pollIncomingCars)
+          .map(SerializedCar::new)
+          .toList());
+    } catch (Exception e) {
+      log.error("Unexpected exception occurred", e);
+    }
   }
 }
