@@ -4,11 +4,11 @@ public class CoordinatesUtil {
 
   private static final Double EARTH_RADIUS = 6371.0;
   public static Double latitude2plain(Double lat) {
-      return EARTH_RADIUS * Math.toRadians(lat);
+      return EARTH_RADIUS * Math.toRadians(lat) * 1000;
     }
 
   public static Double longitude2plain(Double lon, Double lat) {
-    return EARTH_RADIUS * Math.toRadians(lon) * Math.cos(Math.toRadians(lat));
+    return EARTH_RADIUS * Math.toRadians(lon) * Math.cos(Math.toRadians(lat)) * 1000;
   }
 
   /**

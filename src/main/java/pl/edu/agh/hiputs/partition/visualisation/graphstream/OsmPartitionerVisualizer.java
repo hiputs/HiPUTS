@@ -41,7 +41,7 @@ public class OsmPartitionerVisualizer {
   protected void buildGraphStructure() {
     for (val osmNode : map.getNodes().values()) {
       Node node = this.graph.addNode(osmNode.getId());
-      node.setAttribute("label", osmNode.getId().substring(0, 3));
+      node.setAttribute("ui.label", osmNode.getId().length() > 3 ? osmNode.getId().substring(0, 3) : osmNode.getId());
       node.setAttribute("xy", CoordinatesUtil.longitude2plain(osmNode.getData().getLon(), osmNode.getData().getLat()),
           CoordinatesUtil.latitude2plain(osmNode.getData().getLat()));
     }
@@ -58,11 +58,6 @@ public class OsmPartitionerVisualizer {
   }
 
   private String generateStyleFromUUID(String id, String patchId) {
-    if(patchId.equals("UNKNOWN")) {
-      log.info("Unclassified edge");
-      return "edge.e" +  patchId.replace("-", "") + " { shape: line; size: 1px; fill-color: #" + "000"
-          + "; arrow-size: 0px, 0px; }\n";
-    }
     return "edge.e" +  patchId.replace("-", "") + " { shape: line; size: 3px; fill-color: #" + int2rgb(patchId.hashCode())
         + "; arrow-size: 0px, 0px; }\n";
   }
