@@ -21,7 +21,11 @@ import pl.edu.agh.hiputs.partition.service.bfs.TimeDistance;
 @Slf4j
 public class PatchCorrectnessChecker {
 
-  private final BFSWithRange<JunctionData, WayData> bfsWithRange = new BFSWithRange<>(1000.0, new TimeDistance());
+  private final BFSWithRange<JunctionData, WayData> bfsWithRange;
+
+  public PatchCorrectnessChecker(double carViewRange) {
+    bfsWithRange = new BFSWithRange<>(carViewRange, new TimeDistance());
+  }
 
   public boolean testAllPatches(
       Graph<PatchData, PatchConnectionData> patchesGraph,

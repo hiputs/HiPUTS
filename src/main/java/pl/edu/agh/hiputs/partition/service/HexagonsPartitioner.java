@@ -1,9 +1,8 @@
 package pl.edu.agh.hiputs.partition.service;
 
-import java.util.Comparator;
-import lombok.Data;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -11,19 +10,24 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.service.util.HexagonCoordinate;
 import pl.edu.agh.hiputs.partition.service.util.HexagonGrid;
+import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever;
+import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever.MapBoundaries;
 import pl.edu.agh.hiputs.partition.service.util.PatchesGraphExtractor;
 import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
 @Slf4j
+@RequiredArgsConstructor
 public class HexagonsPartitioner implements PatchPartitioner {
 
-  private MapBoundaries mapBoundaries;
+  @NonNull
+  private final BorderEdgesHandlingStrategy borderEdgesHandlingStrategy;
+  private final double carViewRange;
 
   @Override
   public Graph<PatchData, PatchConnectionData> partition(Graph<JunctionData, WayData> graph) {
-    retrieveMapBoundaries(graph);
+    MapBoundaries mapBoundaries = retrieveMapBoundaries(graph);
 
-    HexagonGrid hexagonGrid = new HexagonGrid(mapBoundaries.leftBottomPlanarX, mapBoundaries.leftBottomPlanarY, 100.0);
+    HexagonGrid hexagonGrid = new HexagonGrid(mapBoundaries.getLeftBottomPlanarX(), mapBoundaries.getLeftBottomPlanarY(), carViewRange);
     graph.getNodes().values()
         .forEach(node -> {
           double x = CoordinatesUtil.longitude2plain(node.getData().getLon(), node.getData().getLat());
@@ -39,40 +43,13 @@ public class HexagonsPartitioner implements PatchPartitioner {
     return patchesGraph;
   }
 
-  private void retrieveMapBoundaries(Graph<JunctionData, WayData> graph) {
-    double maxLon = graph.getNodes().values().stream().max(Comparator.comparing(n -> n.getData().getLon())).get().getData().getLon();
-    double minLon = graph.getNodes().values().stream().min(Comparator.comparing(n -> n.getData().getLon())).get().getData().getLon();
-
-    double maxLat = graph.getNodes().values().stream().max(Comparator.comparing(n -> n.getData().getLat())).get().getData().getLat();
-    double minLat = graph.getNodes().values().stream().min(Comparator.comparing(n -> n.getData().getLat())).get().getData().getLat();
-
-    //południk 180
-    if (maxLon * minLon < 0) {
-      throw new NotImplementedException("Case on lon 180/-180 is not supported yet");
-    }
-
-    //równik i kształt trapezu
-    if (maxLat * minLat < 0) {
-      throw new NotImplementedException("Case on lat ~0 is not supported yet");
-    }
-
-    double minX = Math.min(CoordinatesUtil.longitude2plain(minLon, minLat), CoordinatesUtil.longitude2plain(minLon, maxLat));
-    double minY = CoordinatesUtil.latitude2plain(minLat);
-    double maxX = Math.max(CoordinatesUtil.longitude2plain(maxLon, minLat), CoordinatesUtil.longitude2plain(maxLon, maxLat));
-    double maxY = CoordinatesUtil.latitude2plain(maxLat);
-
-    mapBoundaries = new MapBoundaries();
-    mapBoundaries.setLeftBottomPlanarX(minX);
-    mapBoundaries.setLeftBottomPlanarY(minY);
-    mapBoundaries.setWidth(maxX - minX);
-    mapBoundaries.setHeight(maxY - minY);
+  private MapBoundaries retrieveMapBoundaries(Graph<JunctionData, WayData> graph) {
+    return MapBoundariesRetriever.retrieveMapBoundaries(graph);
   }
 
-  @Data
-  public static class MapBoundaries {
-    private double width;
-    private double height;
-    private double leftBottomPlanarX;
-    private double leftBottomPlanarY;
+  public enum BorderEdgesHandlingStrategy {
+    edgeCutting,
+    maxLaneLengthBuffer,
+    hybrid
   }
 }
