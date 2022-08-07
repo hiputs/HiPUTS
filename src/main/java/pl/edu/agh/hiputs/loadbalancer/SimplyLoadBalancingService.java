@@ -27,6 +27,7 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscriber {
 
   private static final int MAX_AGE_DIFF = 10;
+  private static final double ALLOW_LOAD_IMBALANCE = 1.03;
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
 
@@ -56,10 +57,10 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler) {
     LoadBalancingDecision loadBalancingDecision = new LoadBalancingDecision();
 
-    LoadBalancingHistoryInfo myCost = loadStatisticService.getMyLastLoad();
-    ImmutablePair<MapFragmentId, Long> candidate = selectNeighbourToBalancing(transferDataHandler);
+    LoadBalancingHistoryInfo info = loadStatisticService.getMyLastLoad();
+    ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
 
-    boolean shouldBalancing = calculateCost(myCost) > candidate.getRight();
+    boolean shouldBalancing = calculateCost(info) > candidate.getRight() * ALLOW_LOAD_IMBALANCE;
     age++;
     loadBalancingDecision.setLoadBalancingRecommended(shouldBalancing);
 
@@ -68,28 +69,26 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
     }
 
     loadBalancingDecision.setSelectedNeighbour(candidate.getLeft());
-    loadBalancingDecision.setCarImbalanceRate(myCost.getCarCost() - loadRepository.get(candidate.getLeft()).getCarCost());
+    loadBalancingDecision.setCarImbalanceRate(info.getCarCost() - loadRepository.get(candidate.getLeft()).getCarCost());
 
     return loadBalancingDecision;
   }
 
-  private ImmutablePair<MapFragmentId, Long> selectNeighbourToBalancing(TransferDataHandler transferDataHandler) {
+  private ImmutablePair<MapFragmentId, Double> selectNeighbourToBalancing(TransferDataHandler transferDataHandler) {
 
-    ImmutablePair<MapFragmentId, Long> lowCostNeighbour = transferDataHandler.getNeighbors()
+    return transferDataHandler.getNeighbors()
         .stream()
         .filter(this::hasActualCostInfo)
-        .map(id -> new ImmutablePair<MapFragmentId, Long>(id, calculateCost(id)))
-        .min(Comparator.comparingLong(ImmutablePair::getRight))
+        .map(id -> new ImmutablePair<MapFragmentId, Double>(id, calculateCost(id)))
+        .min(Comparator.comparingDouble(ImmutablePair::getRight))
         .get();
-
-    return lowCostNeighbour;
   }
 
-  private long calculateCost(MapFragmentId id) {
+  private double calculateCost(MapFragmentId id) {
     return calculateCost(loadRepository.get(id));
   }
 
-  private long calculateCost(LoadBalancingHistoryInfo info) {
+  private double calculateCost(LoadBalancingHistoryInfo info) {
     return MapFragmentCostCalculatorUtil.calculateCost(info);
   }
 
