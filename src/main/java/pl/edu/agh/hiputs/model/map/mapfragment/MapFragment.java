@@ -15,12 +15,13 @@ import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.patch.PatchEditor;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
@@ -121,20 +122,20 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
-  public Map<MapFragmentId, Set<CarReadable>> pollOutgoingCars() {
+  public Map<MapFragmentId, Set<CarEditable>> pollOutgoingCars() {
     return mapFragmentIdToShadowPatchIds.entrySet()
         .stream()
         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
             .stream()
             .map(knownPatches::get)
-            .flatMap(Patch::streamLanesReadable)
-            .flatMap(LaneReadable::streamCarsFromExitReadable)
+            .flatMap(Patch::streamLanesEditable)
+            .flatMap(LaneEditable::pollIncomingCars)
             .collect(Collectors.toSet())));
   }
 
   @Override
   public void acceptIncomingCars(Set<Car> incomingCars) {
-    incomingCars.forEach(car -> car.getLaneId().getEditable(this).addIncomingCar(car));
+    incomingCars.forEach(car -> car.getDecision().getLaneId().getEditable(this).addIncomingCar(car));
   }
 
   @Override
@@ -165,7 +166,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   public Set<PatchReader> getShadowPatchesReadable() {
     return knownPatches.values()
         .stream()
-        .filter(id -> !localPatchIds.contains(id))
+        .filter(patch -> !localPatchIds.contains(patch.getPatchId()))
         .map(patch -> (PatchReader) patch)
         .collect(Collectors.toSet());
   }
@@ -182,6 +183,12 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         .map(knownPatches::get)
         .flatMap(patch -> patch.getJunctionIds().stream())
         .collect(Collectors.toSet());
+  }
+
+  @Override
+  public PatchEditor getShadowPatchEditableCopy(PatchId patchId) {
+    //todo it should be deepcopy in here
+    return knownPatches.get(patchId);
   }
 
   @Override

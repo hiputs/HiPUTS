@@ -38,9 +38,13 @@ public enum MessagesTypeEnum {
 
   //worker - worker messages
   /**
-   *  Synchronize car after every step
+   *  Transfer incoming cars set after decision stage
    */
   CarTransferMessage,
+  /**
+   * Synchronize state of cars on border patches between workers
+   */
+  BorderSynchronizationMessage,
   /**
    * Send Patch to neighbour
    */

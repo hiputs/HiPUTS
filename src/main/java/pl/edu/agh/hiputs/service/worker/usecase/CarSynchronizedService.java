@@ -10,7 +10,4 @@ public interface CarSynchronizedService {
   void getSerializedCarByPatch(TransferDataHandler transferDataHandler);
 
   List<SCar> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId);
-
-  void synchronizedGetIncomingCar(TransferDataHandler transferDataHandler);
-
 }

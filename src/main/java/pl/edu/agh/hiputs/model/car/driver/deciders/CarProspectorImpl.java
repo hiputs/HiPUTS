@@ -42,6 +42,9 @@ public class CarProspectorImpl implements CarProspector {
         nextLaneId = nextLaneIdOptional.get();
         distance += currentLane.getLength(); // adds previous lane length
         nextLane = roadStructureReader.getLaneReadable(nextLaneId);
+        if (nextLane == null) {
+          break;
+        }
         nextJunctionId = nextLane.getOutgoingJunctionId();
         precedingCar = nextLane.getCarAtEntryReadable();
         incomingLaneId = Optional.of(nextLaneId);

@@ -6,11 +6,13 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.patch.PatchEditor;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
@@ -23,11 +25,11 @@ public interface TransferDataHandler {
 
   /**
    * Returns and clears the contents of collections holding Cars incoming to remote Lanes.
-   * The Cars should be partitioned based on the MapFragmentId of the owner of the targeted lanes.
+   * The Cars should be partitioned based on the MapFragmentId of the owner of the destination lane of each car.
    * The method should also ensure that the Cars will not be returned again in the subsequent invocations
    * (usually in the next iteration of the simulation).
    */
-  Map<MapFragmentId, Set<CarReadable>> pollOutgoingCars();
+  Map<MapFragmentId, Set<CarEditable>> pollOutgoingCars();
 
   /**
    * Accepts Cars incoming to border Lanes.
@@ -56,6 +58,11 @@ public interface TransferDataHandler {
    * Return neighbourPatches
    */
   Set<PatchReader> getShadowPatchesReadable();
+
+  /**
+   * Returns editable copy of shadow patch
+   */
+  PatchEditor getShadowPatchEditableCopy(PatchId patchId);
 
   void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId);
 
