@@ -49,4 +49,9 @@ public enum MessagesTypeEnum {
    * Notify adjacent areas to upload the patch
    */
   PatchTransferNotificationMessage,
+
+  /**
+   * Info adjacent areas about load
+   */
+  LoadInfo
 }

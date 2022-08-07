@@ -22,4 +22,12 @@ public class CarCounterUtil {
           .map(CarCounterUtil::countCars)
           .reduce(0, Integer::sum);
     }
+
+    public static int countAllCars(TransferDataHandler transferDataHandler) {
+      return transferDataHandler.getKnownPatchReadable()
+          .stream()
+          .filter(p -> transferDataHandler.isLocalPatch(p.getPatchId()))
+          .map(CarCounterUtil::countCars)
+          .reduce(0, Integer::sum);
+    }
 }

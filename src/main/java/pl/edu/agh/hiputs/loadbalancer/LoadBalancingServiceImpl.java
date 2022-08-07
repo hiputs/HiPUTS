@@ -14,7 +14,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.PatchBalancingInfo;
-import pl.edu.agh.hiputs.loadbalancer.utils.CostCalculatorUtil;
+import pl.edu.agh.hiputs.loadbalancer.utils.PatchCostCalculatorUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
@@ -60,7 +60,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
 
     List<ImmutablePair<PatchBalancingInfo, Double>> orderCandidates = candidatesWithStatistic
         .stream()
-        .map(i -> new ImmutablePair<PatchBalancingInfo, Double>(i, CostCalculatorUtil.calculateCost(i, carBalanceTarget)))
+        .map(i -> new ImmutablePair<PatchBalancingInfo, Double>(i, PatchCostCalculatorUtil.calculateCost(i, carBalanceTarget)))
         .sorted(Comparator.comparingDouble(ImmutablePair::getRight))
         .toList();
 

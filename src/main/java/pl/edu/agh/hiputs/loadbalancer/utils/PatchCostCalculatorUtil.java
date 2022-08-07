@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 import pl.edu.agh.hiputs.loadbalancer.model.PatchBalancingInfo;
 
 @UtilityClass
-public class CostCalculatorUtil {
+public class PatchCostCalculatorUtil {
 
   private static final float PATCHES_DIFF = 5;
   private static final float PART_A_WEIGHT = 0.50f;
