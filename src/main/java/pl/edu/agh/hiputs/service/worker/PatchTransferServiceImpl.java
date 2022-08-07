@@ -4,22 +4,19 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.scheduling.config.Task;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
-import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
-import pl.edu.agh.hiputs.communication.model.serializable.SCar;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
@@ -28,7 +25,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
-import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizedService;
+import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 
@@ -40,7 +37,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   private final MapRepository mapRepository;
   private final SubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
-  private final CarSynchronizedService carSynchronizedService;
+  private final CarSynchronizationService carSynchronizedService;
   private final TaskExecutorService taskExecutorService;
 
   private final Queue<PatchTransferMessage> receivedPatch = new LinkedList<>();
@@ -57,7 +54,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
 
     Patch patch = transferDataHandler.getPatch(patchId);
 
-    List<SCar> cars = carSynchronizedService.getSerializedCarByPatch(transferDataHandler, patch.getPatchId());
+    List<SerializedCar> cars = carSynchronizedService.getSerializedCarByPatch(transferDataHandler, patch.getPatchId());
 
     List<ImmutablePair<String, String>> patchIdWithMapFragmentId = patch.getNeighboringPatches()
         .stream()

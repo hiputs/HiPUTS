@@ -4,11 +4,9 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
-import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
-import pl.edu.agh.hiputs.communication.model.serializable.SCar;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 
 @Builder
 @Getter
@@ -37,7 +35,7 @@ public class PatchTransferMessage implements Message {
   /**
    * Car from patch - we have patch structure in repository, but we haven't knowledge about current cars position
    */
-  private final List<SCar> cars;
+  private final List<SerializedCar> cars;
 
 
   @Override
