@@ -31,7 +31,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
 
-  private final LoadStatisticService loadStatisticService;
+  private final LocalLoadStatisticService localLoadStatisticService;
   private final Map<MapFragmentId, LoadBalancingHistoryInfo> loadRepository = new HashMap<>();
   private int age = 0;
 
@@ -57,7 +57,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler) {
     LoadBalancingDecision loadBalancingDecision = new LoadBalancingDecision();
 
-    LoadBalancingHistoryInfo info = loadStatisticService.getMyLastLoad();
+    LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
     ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
 
     boolean shouldBalancing = calculateCost(info) > candidate.getRight() * ALLOW_LOAD_IMBALANCE;

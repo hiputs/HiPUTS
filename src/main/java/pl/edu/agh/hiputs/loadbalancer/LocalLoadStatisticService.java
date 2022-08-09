@@ -3,7 +3,7 @@ package pl.edu.agh.hiputs.loadbalancer;
 import java.util.List;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 
-public interface LoadStatisticService {
+public interface LocalLoadStatisticService {
 
   LoadBalancingHistoryInfo getMyLastLoad();
 

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.loadbalancer.LoadBalancingStrategy.LoadBalancingDecision;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.PatchBalancingInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.PatchCostCalculatorUtil;
@@ -40,14 +41,15 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
       return;
     }
 
-    if (!shouldBalancingProcess()) {
+    LoadBalancingStrategy strategy = getStrategyByMode();
+    LoadBalancingDecision loadBalancingDecision = strategy.makeBalancingDecision(transferDataHandler);
+
+    if(!loadBalancingDecision.isLoadBalancingRecommended()){
       return;
     }
 
-    LoadBalancingStrategy strategy = getStrategyByMode();
-
-    MapFragmentId recipient = strategy.selectNeighbourToBalancing(transferDataHandler);
-    int targetBalanceCars = strategy.getTargetBalanceCarsCount(recipient);
+    MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
+    int targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
     PatchId patchId = findPatchIdToSend(recipient, transferDataHandler, targetBalanceCars);
 
     patchTransferService.sendPatch(recipient, transferDataHandler.getPatchById(patchId), transferDataHandler);
