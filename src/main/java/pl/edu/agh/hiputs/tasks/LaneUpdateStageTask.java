@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureEditor;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 
+@Slf4j
 @RequiredArgsConstructor
 public class LaneUpdateStageTask implements Runnable {
 
@@ -18,10 +20,14 @@ public class LaneUpdateStageTask implements Runnable {
 
   @Override
   public void run() {
-    LaneEditable lane = mapFragment.getLaneEditable(laneId);
-    this.removeLeavingCars(lane);
-    this.updateCarsOnLane(lane);
-    this.handleIncomingCars(lane);
+    try {
+      LaneEditable lane = mapFragment.getLaneEditable(laneId);
+      this.removeLeavingCars(lane);
+      this.updateCarsOnLane(lane);
+      this.handleIncomingCars(lane);
+    } catch (Exception e) {
+      log.error("Unexpected exception occurred", e);
+    }
   }
 
   /**

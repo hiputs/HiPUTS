@@ -10,6 +10,8 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
 public interface PatchReader {
 
+  PatchId getPatchId();
+
   Set<LaneId> getLaneIds();
 
   LaneReadable getLaneReadable(LaneId laneId);

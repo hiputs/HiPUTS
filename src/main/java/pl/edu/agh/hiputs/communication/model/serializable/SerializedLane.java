@@ -11,18 +11,18 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 @Getter
 @Builder
 @AllArgsConstructor
-public class SLane implements CustomSerializable<List<Car>> {
+public class SerializedLane implements CustomSerializable<List<Car>> {
 
   String laneId;
-  List<SCar> cars;
+  List<SerializedCar> cars;
 
-  public SLane(LaneEditable lane) {
-    cars = lane.streamCarsFromExitEditable().map(SCar::new).collect(Collectors.toList());
+  public SerializedLane(LaneEditable lane) {
+    cars = lane.streamCarsFromEntryEditable().map(SerializedCar::new).collect(Collectors.toList());
     laneId = lane.getLaneId().getValue();
   }
 
   @Override
   public List<Car> toRealObject() {
-    return cars.stream().map(SCar::toRealObject).collect(Collectors.toList());
+    return cars.stream().map(SerializedCar::toRealObject).collect(Collectors.toList());
   }
 }

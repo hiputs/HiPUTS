@@ -70,14 +70,26 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
 
         for (Node<JunctionData, WayData> n : p.getData().getGraphInsidePatch().getNodes().values()) {
           if (Objects.equals(n.getData().getPatchId(), p.getId())) {
-            nodesPrinter.printRecord(n.getId(), n.getData().getLat(), n.getData().getLon(), n.getData().getPatchId(),
+            nodesPrinter.printRecord(
+                n.getId(),
+                n.getData().getLon(),
+                n.getData().getLat(),
+                n.getData().isCrossroad(),
+                n.getData().getPatchId(),
                 mapToCsv(n.getData().getTags()));
           }
         }
 
         for (Edge<JunctionData, WayData> e : p.getData().getGraphInsidePatch().getEdges().values()) {
-          edgesPrinter.printRecord(e.getSource().getId(), e.getTarget().getId(), e.getData().getLength(),
-              e.getData().getMaxSpeed(), e.getData().getPatchId(), mapToCsv(e.getData().getTags()));
+          edgesPrinter.printRecord(
+              e.getSource().getId(),
+              e.getTarget().getId(),
+              e.getData().getLength(),
+              e.getData().getMaxSpeed(),
+              e.getData().isPriorityRoad(),
+              e.getData().isOneWay(),
+              e.getData().getPatchId(),
+              mapToCsv(e.getData().getTags()));
         }
       }
     }
@@ -89,41 +101,51 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     FileReader edgesReader = new FileReader(exportDescriptor.getEdgesFilePath());
     FileReader patchesReader = new FileReader(exportDescriptor.getPatchesFilePath());
 
+    Graph.GraphBuilder<JunctionData, WayData> wholeMapGraph = new GraphBuilder<>();
     Map<String, Graph.GraphBuilder<JunctionData, WayData>> insideGraphs = new HashMap<>();
+
+    Map<String, Node<JunctionData, WayData>> nodeId2Node = new HashMap<>();
 
     Iterable<CSVRecord> records =
         CSVFormat.DEFAULT.builder().setHeader(NodeHeaders.class).setSkipHeaderRecord(true).build().parse(nodesReader);
 
     for (CSVRecord record : records) {
       JunctionData junctionData = JunctionData.builder()
-          .lon(Double.parseDouble(record.get("longitude")))
-          .lat(Double.parseDouble(record.get("latitude")))
-          .patchId(record.get("patch_id"))
-          .tags(csvToMap(record.get("tags")))
+          .lon(Double.parseDouble(record.get(NodeHeaders.longitude)))
+          .lat(Double.parseDouble(record.get(NodeHeaders.latitude)))
+          .isCrossroad(Boolean.parseBoolean(record.get(NodeHeaders.is_crossroad)))
+          .patchId(record.get(NodeHeaders.patch_id))
+          .tags(csvToMap(record.get(NodeHeaders.tags)))
           .build();
 
-      if (!insideGraphs.containsKey(record.get("patch_id"))) {
-        insideGraphs.put(record.get("patch_id"), new GraphBuilder<>());
+      if (!insideGraphs.containsKey(record.get(NodeHeaders.patch_id))) {
+        insideGraphs.put(record.get(NodeHeaders.patch_id), new GraphBuilder<>());
       }
-      insideGraphs.get(record.get("patch_id")).addNode(new Node<>(record.get("id"), junctionData));
+      Node<JunctionData, WayData> newNode = new Node<>(record.get(NodeHeaders.id), junctionData);
+      nodeId2Node.put(record.get(NodeHeaders.id), newNode);
+      insideGraphs.get(record.get(NodeHeaders.patch_id)).addNode(newNode);
+      wholeMapGraph.addNode(newNode);
     }
 
     records =
         CSVFormat.DEFAULT.builder().setHeader(EdgeHeader.class).setSkipHeaderRecord(true).build().parse(edgesReader);
     for (CSVRecord record : records) {
       WayData wayData = WayData.builder()
-          .length(Double.parseDouble(record.get("length")))
-          .maxSpeed(Integer.parseInt(record.get("max_speed")))
-          .patchId(record.get("patch_id"))
-          .tags(csvToMap(record.get("tags")))
+          .length(Double.parseDouble(record.get(EdgeHeader.length)))
+          .maxSpeed(Integer.parseInt(record.get(EdgeHeader.max_speed)))
+          .isPriorityRoad(Boolean.parseBoolean(record.get(EdgeHeader.is_priority_road)))
+          .isOneWay(Boolean.parseBoolean(record.get(EdgeHeader.is_one_way)))
+          .patchId(record.get(EdgeHeader.patch_id))
+          .tags(csvToMap(record.get(EdgeHeader.tags)))
           .build();
-      Edge<JunctionData, WayData> edge = new Edge<>(record.get("source") + "->" + record.get("target"), wayData);
-      edge.setSource(new Node<>(record.get("source"), null));
-      edge.setTarget(new Node<>(record.get("target"), null));
-      if (!insideGraphs.containsKey(record.get("patch_id"))) {
-        insideGraphs.put(record.get("patch_id"), new GraphBuilder<>());
+      Edge<JunctionData, WayData> edge = new Edge<>(record.get(EdgeHeader.source) + "->" + record.get(EdgeHeader.target), wayData);
+      edge.setSource(nodeId2Node.get(record.get(EdgeHeader.source)));
+      edge.setTarget(nodeId2Node.get(record.get(EdgeHeader.target)));
+      if (!insideGraphs.containsKey(record.get(EdgeHeader.patch_id))) {
+        insideGraphs.put(record.get(EdgeHeader.patch_id), new GraphBuilder<>());
       }
-      insideGraphs.get(record.get("patch_id")).addEdge(edge);
+      insideGraphs.get(record.get(EdgeHeader.patch_id)).addEdge(edge);
+      wholeMapGraph.addEdge(edge);
     }
 
     Graph.GraphBuilder<PatchData, PatchConnectionData> resultGraph = new GraphBuilder<>();
@@ -136,9 +158,9 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
         CSVFormat.DEFAULT.builder().setHeader(PatchHeader.class).setSkipHeaderRecord(true).build().parse(patchesReader);
     for (CSVRecord record : records) {
       record.get("id");
-      for (String neighbouringPatchId : csvToCollection(record.get("neighbouring_patches_ids"))) {
-        Edge<PatchData, PatchConnectionData> edge = new Edge<>(record.get("id") + "->" + neighbouringPatchId, null);
-        edge.setSource(new Node<>(record.get("id"), null));
+      for (String neighbouringPatchId : csvToCollection(record.get(PatchHeader.neighbouring_patches_ids))) {
+        Edge<PatchData, PatchConnectionData> edge = new Edge<>(record.get(PatchHeader.id) + "->" + neighbouringPatchId, null);
+        edge.setSource(new Node<>(record.get(PatchHeader.id), null));
         edge.setTarget(new Node<>(neighbouringPatchId, null));
         resultGraph.addEdge(edge);
       }
@@ -168,7 +190,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
   }
 
   private Collection<String> csvToCollection(String csvRepr) {
-    return Arrays.stream(csvRepr.split(COLLECTION_ELEMENT_CSV_DELIMITER)).collect(Collectors.toList());
+    return Arrays.stream(csvRepr.split(COLLECTION_ELEMENT_CSV_DELIMITER)).filter(Strings::isNotEmpty).collect(Collectors.toList());
   }
 
 }

@@ -35,6 +35,11 @@ public interface LaneEditable extends LaneReadable {
   Stream<CarEditable> pollIncomingCars();
 
   /**
+   * Returns a stream of cars, beginning from the one closest to the incoming junction.
+   */
+  Stream<CarEditable> streamCarsFromEntryEditable();
+
+  /**
    * Returns a stream of cars, beginning from the one closest to the outgoing junction.
    */
   Stream<CarEditable> streamCarsFromExitEditable();

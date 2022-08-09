@@ -28,6 +28,8 @@ public class Driver implements IDriver {
   private final FunctionalDecider junctionDecider = new BasicJunctionDecider();
 
   public Decision makeDecision(RoadStructureReader roadStructureReader) {
+    double timeStep = 1;  //Current only for limitAccelerationPreventReversing() function
+
     // make local decision based on read only road structure (watch environment) and save it locally
 
     //First prepare CarEnvironment
@@ -42,6 +44,8 @@ public class Driver implements IDriver {
       acceleration = junctionDecider.makeDecision(car, environment, roadStructureReader);
     }
     //= this.decider.makeDecision(this, roadStructureReader);
+
+    acceleration = limitAccelerationPreventReversing(acceleration, car, timeStep);
 
     LaneId currentLaneId = this.car.getLaneId();
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
@@ -68,6 +72,20 @@ public class Driver implements IDriver {
         .positionOnLane(desiredPosition)
         .offsetToMoveOnRoute(offset)
         .build();
+  }
+
+  /**
+   We limit acceleration for prevent car move backward
+   v = v0 + a * t  // we want v = 0 - car will be stopped
+   0 = v0 + a * t
+   - v0 = a * t
+   - v0 / t = a
+   a = - (v0 / t)
+   minimalAcceleration = - (speed / timeStep)
+   **/
+  private double limitAccelerationPreventReversing(double acceleration, CarReadable car, double timeStep) {
+    double minimalAcceleration = - (car.getSpeed() / timeStep);
+    return Math.max(acceleration, minimalAcceleration);
   }
 
   private double calculateFuturePosition(double acceleration) {

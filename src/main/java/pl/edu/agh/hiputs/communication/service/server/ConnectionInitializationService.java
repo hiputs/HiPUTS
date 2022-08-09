@@ -57,7 +57,9 @@ public class ConnectionInitializationService {
           }
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        log.error("IOException occurred", e);
+      } catch (Exception e) {
+        log.error("Unexpected exception occurred", e);
       }
     }
   }

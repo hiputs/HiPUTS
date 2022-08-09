@@ -15,6 +15,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
@@ -22,6 +23,9 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
+import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
+import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 
@@ -33,6 +37,8 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   private final MapRepository mapRepository;
   private final SubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
+  private final CarSynchronizationService carSynchronizedService;
+  private final TaskExecutorService taskExecutorService;
 
   private final Queue<PatchTransferMessage> receivedPatch = new LinkedList<>();
   private final Queue<PatchTransferNotificationMessage> patchMigrationNotification = new LinkedList<>();
@@ -44,7 +50,12 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   }
 
   @Override
-  public void sendPatch(MapFragmentId receiver, Patch patch, TransferDataHandler transferDataHandler) {
+  public void sendPatch(MapFragmentId receiver, PatchId patchId, TransferDataHandler transferDataHandler) {
+
+    Patch patch = transferDataHandler.getPatch(patchId);
+
+    List<SerializedCar> cars = carSynchronizedService.getSerializedCarByPatch(transferDataHandler, patch.getPatchId());
+
     List<ImmutablePair<String, String>> patchIdWithMapFragmentId = patch.getNeighboringPatches()
         .stream()
         .map(id -> new ImmutablePair<>(id.getValue(),
@@ -64,6 +75,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         .neighbourConnectionMessage(neighbourConnectionDtos)
         .mapFragmentId(transferDataHandler.getMe().getId())
         .patchIdWithMapFragmentId(patchIdWithMapFragmentId)
+        .cars(cars)
         .build();
 
     try {
@@ -100,6 +112,10 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
 
       transferDataHandler.migratePatchToMe(new PatchId(message.getPatchId()),
           new MapFragmentId(message.getMapFragmentId()), mapRepository, pairs);
+
+      InjectIncomingCarsTask task = new InjectIncomingCarsTask(message.getCars(), transferDataHandler);
+
+      taskExecutorService.executeBatch(List.of(task));
     }
   }
 
