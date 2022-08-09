@@ -17,9 +17,65 @@ public class HexagonGrid {
     return getHexagonCoordinateOnRelativeCoords(x - originX, y - originY);
   }
 
+  public SlopeInterceptLine getLineBetween(HexagonCoordinate c1, HexagonCoordinate c2) {
+    //horizontal line
+    if (c1.getXHex() == c2.getXHex()) {
+      if (c1.getYHex() == c2.getYHex() + 1) {
+        //up for c2
+        return getUpBoundaryLineFor(c2);
+      } else if (c1.getYHex() == c2.getYHex() - 1) {
+        // up for c1
+        return getUpBoundaryLineFor(c1);
+      } else {
+        return null;
+      }
+    }
+
+    //c1 should have lower x
+    if (c1.getXHex() > c2.getXHex()) {
+      HexagonCoordinate tmp = c2;
+      c2 = c1;
+      c1 = tmp;
+    }
+
+    //
+    if (c1.getXHex() % 2 == 0) {
+      if (c1.getYHex() == c2.getYHex()) {
+        //up right for c1
+        return getUpRightBoundaryLineFor(c1);
+      } else if (c1.getYHex() == c2.getYHex() + 1) {
+        //up left for c2
+        return getUpLeftBoundaryLineFor(c2);
+      }
+    } else {
+      if (c1.getYHex() == c2.getYHex()) {
+        //up left for c2
+        return getUpLeftBoundaryLineFor(c2);
+      } else if (c1.getYHex() == c2.getYHex() - 1) {
+        // up right for c1
+        return getUpRightBoundaryLineFor(c1);
+      }
+    }
+    return null;
+  }
+
+  private SlopeInterceptLine getUpBoundaryLineFor(HexagonCoordinate c) {
+    double intercept = (c.getXHex() % 2) * a * ROOT_THREE / 2 + a * ROOT_THREE * c.getYHex() + a * ROOT_THREE / 2;
+    return new SlopeInterceptLine(0, intercept);
+  }
+
+  private SlopeInterceptLine getUpLeftBoundaryLineFor(HexagonCoordinate c) {
+    double intercept = - 3 * ROOT_THREE * a * c.getXHex() / 2 + ROOT_THREE * a * (c.getXHex() % 2) / 2 + a * ROOT_THREE * c.getYHex() + a * ROOT_THREE;
+    return new SlopeInterceptLine(ROOT_THREE, intercept);
+  }
+
+  private SlopeInterceptLine getUpRightBoundaryLineFor(HexagonCoordinate c) {
+    double intercept = 3 * ROOT_THREE * a * c.getXHex() / 2 + ROOT_THREE * a * (c.getXHex() % 2) / 2 + a * ROOT_THREE * c.getYHex() + a * ROOT_THREE;
+    return new SlopeInterceptLine(-ROOT_THREE, intercept);
+  }
+
   private HexagonCoordinate getHexagonCoordinateOnRelativeCoords(double x, double y) {
-    return getHexagonCoordinateAssumingIMod(x, y, 0)
-        .orElse(getHexagonCoordinateAssumingIMod(x, y, 1).orElse(null));
+    return getHexagonCoordinateAssumingIMod(x, y, 0).orElse(getHexagonCoordinateAssumingIMod(x, y, 1).orElse(null));
   }
 
   private Optional<HexagonCoordinate> getHexagonCoordinateAssumingIMod(double x, double y, int iMod2) {
