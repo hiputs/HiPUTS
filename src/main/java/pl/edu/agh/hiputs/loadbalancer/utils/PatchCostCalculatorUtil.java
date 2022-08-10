@@ -13,7 +13,7 @@ public class PatchCostCalculatorUtil {
   /**
    * Calculate patch cost by parts. Parts are between 0 - 1
    */
-  public static double calculateCost(PatchBalancingInfo info, int carBalanceTarget){
+  public static double calculateCost(PatchBalancingInfo info, long carBalanceTarget){
 
     double partA = getMyCarsRatio(info, carBalanceTarget);
     double partB = getContactCarRatio(info, carBalanceTarget);
@@ -47,7 +47,7 @@ public class PatchCostCalculatorUtil {
     return ratio + 0.5d;
   }
 
-  private static double getMyCarsRatio(PatchBalancingInfo info, int carBalanceTarget) {
+  private static double getMyCarsRatio(PatchBalancingInfo info, long carBalanceTarget) {
     return Math.min(
         Math.abs(carBalanceTarget - info.getCountOfVehicle()) / carBalanceTarget,
         1

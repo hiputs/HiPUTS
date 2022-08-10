@@ -14,6 +14,6 @@ public interface LoadBalancingStrategy {
   class LoadBalancingDecision {
     private boolean loadBalancingRecommended;
     private MapFragmentId selectedNeighbour;
-    private int carImbalanceRate;
+    private long carImbalanceRate;
   }
 }

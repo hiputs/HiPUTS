@@ -7,5 +7,4 @@ public interface LocalLoadStatisticService {
 
   LoadBalancingHistoryInfo getMyLastLoad();
 
-  List<LoadBalancingHistoryInfo> getMyLastLoads(int size);
 }

@@ -24,5 +24,4 @@ public interface PatchReader {
 
   Stream<JunctionReadable> streamJunctionsReadable();
 
-  PatchId getPatchId();
 }

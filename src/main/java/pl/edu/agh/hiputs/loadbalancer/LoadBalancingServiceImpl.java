@@ -49,13 +49,13 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
     }
 
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
-    int targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
+    long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
     PatchId patchId = findPatchIdToSend(recipient, transferDataHandler, targetBalanceCars);
 
-    patchTransferService.sendPatch(recipient, transferDataHandler.getPatchById(patchId), transferDataHandler);
+    patchTransferService.sendPatch(recipient, patchId, transferDataHandler);
   }
 
-  private PatchId findPatchIdToSend(MapFragmentId recipient, TransferDataHandler transferDataHandler, int carBalanceTarget) {
+  private PatchId findPatchIdToSend(MapFragmentId recipient, TransferDataHandler transferDataHandler, long carBalanceTarget) {
     Set<Patch> candidatesToLoadBalancing = transferDataHandler.getBorderPatches().get(recipient);
     List<PatchBalancingInfo> candidatesWithStatistic =
         bindWitchStatistic(candidatesToLoadBalancing, transferDataHandler);

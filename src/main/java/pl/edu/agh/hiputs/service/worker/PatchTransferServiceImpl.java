@@ -52,7 +52,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   @Override
   public void sendPatch(MapFragmentId receiver, PatchId patchId, TransferDataHandler transferDataHandler) {
 
-    Patch patch = transferDataHandler.getPatch(patchId);
+    Patch patch = transferDataHandler.getPatchById(patchId);
 
     List<SerializedCar> cars = carSynchronizedService.getSerializedCarByPatch(transferDataHandler, patch.getPatchId());
 

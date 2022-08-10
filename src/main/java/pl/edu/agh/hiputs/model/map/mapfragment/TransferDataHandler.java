@@ -6,7 +6,6 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
-import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
@@ -74,8 +73,6 @@ public interface TransferDataHandler {
   Patch getPatchById(PatchId patchId);
 
   MapFragmentId getMe();
-
-  Patch getPatch(PatchId patchId);
 
   /**
    * checks if patch belongs to the local set
