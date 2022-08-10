@@ -3,12 +3,21 @@ package pl.edu.agh.hiputs.utils;
 public class CoordinatesUtil {
 
   private static final Double EARTH_RADIUS = 6371.0;
+
   public static Double latitude2plain(Double lat) {
-      return EARTH_RADIUS * Math.toRadians(lat) * 1000;
-    }
+    return EARTH_RADIUS * Math.toRadians(lat) * 1000;
+  }
+
+  public static Double plain2Latitude(Double y) {
+    return Math.toDegrees(y / (1000 * EARTH_RADIUS));
+  }
 
   public static Double longitude2plain(Double lon, Double lat) {
     return EARTH_RADIUS * Math.toRadians(lon) * Math.cos(Math.toRadians(lat)) * 1000;
+  }
+
+  public static Double plain2Longitude(Double x, Double y) {
+    return Math.toDegrees(x/(1000 * EARTH_RADIUS * Math.cos(Math.toRadians(plain2Latitude(y)))));
   }
 
   /**
