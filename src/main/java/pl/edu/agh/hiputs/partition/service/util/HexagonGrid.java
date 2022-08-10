@@ -18,6 +18,11 @@ public class HexagonGrid {
   }
 
   public SlopeInterceptLine getLineBetween(HexagonCoordinate c1, HexagonCoordinate c2) {
+    SlopeInterceptLine line = getLineBetweenRelativeCoords(c1, c2);
+    return line == null ? null : new SlopeInterceptLine(line.getSlope(), line.getIntercept() + originY - line.getSlope()*originX);
+  }
+
+  private SlopeInterceptLine getLineBetweenRelativeCoords(HexagonCoordinate c1, HexagonCoordinate c2) {
     //horizontal line
     if (c1.getXHex() == c2.getXHex()) {
       if (c1.getYHex() == c2.getYHex() + 1) {
@@ -26,8 +31,6 @@ public class HexagonGrid {
       } else if (c1.getYHex() == c2.getYHex() - 1) {
         // up for c1
         return getUpBoundaryLineFor(c1);
-      } else {
-        return null;
       }
     }
 
@@ -38,24 +41,23 @@ public class HexagonGrid {
       c1 = tmp;
     }
 
-    //
-    if (c1.getXHex() % 2 == 0) {
-      if (c1.getYHex() == c2.getYHex()) {
-        //up right for c1
+    //up right for c1
+    if (c1.getXHex() % 2 == 0 && c1.getYHex() == c2.getYHex()) {
         return getUpRightBoundaryLineFor(c1);
-      } else if (c1.getYHex() == c2.getYHex() + 1) {
-        //up left for c2
-        return getUpLeftBoundaryLineFor(c2);
-      }
-    } else {
-      if (c1.getYHex() == c2.getYHex()) {
-        //up left for c2
-        return getUpLeftBoundaryLineFor(c2);
-      } else if (c1.getYHex() == c2.getYHex() - 1) {
-        // up right for c1
-        return getUpRightBoundaryLineFor(c1);
-      }
     }
+    //up left for c2
+    if (c1.getXHex() % 2 == 0 && c1.getYHex() == c2.getYHex() + 1) {
+        return getUpLeftBoundaryLineFor(c2);
+    }
+    //up left for c2
+    if (c1.getXHex() % 2 == 1 && c1.getYHex() == c2.getYHex()) {
+        return getUpLeftBoundaryLineFor(c2);
+    }
+    // up right for c1
+    if (c1.getXHex() % 2 == 1 && c1.getYHex() == c2.getYHex() - 1) {
+        return getUpRightBoundaryLineFor(c1);
+    }
+
     return null;
   }
 
