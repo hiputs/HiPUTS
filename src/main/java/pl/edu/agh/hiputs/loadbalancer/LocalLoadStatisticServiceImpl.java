@@ -3,7 +3,6 @@ package pl.edu.agh.hiputs.loadbalancer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,7 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Service
 @RequiredArgsConstructor
-public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService, MonitorLocalLodeService{
+public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService, MonitorLocalService {
 
   private final ConfigurationService configurationService;
   private List<IterationInfo> iterationInfo;
@@ -64,7 +63,6 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
 
   @Override
   public void endSimulationStep() {
-    markPointAsFinish(SimulationPoint.LOAD_BALANCING);
     step++;
   }
 

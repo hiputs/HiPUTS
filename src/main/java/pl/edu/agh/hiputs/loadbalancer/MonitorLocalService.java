@@ -3,7 +3,7 @@ package pl.edu.agh.hiputs.loadbalancer;
 import pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 
-public interface MonitorLocalLodeService {
+public interface MonitorLocalService {
 
   void init(TransferDataHandler transferDataHandler);
 

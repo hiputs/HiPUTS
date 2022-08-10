@@ -25,6 +25,7 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
+import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
@@ -53,6 +54,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   private final ExecutorService simulationExecutor = newSingleThreadExecutor();
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
+
+  private final MonitorLocalService monitorLocalService;
 
   @PostConstruct
   void init() {
@@ -148,6 +151,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     long i = 0;
     try {
       long n = configuration.getSimulationStep();
+      monitorLocalService.init(mapFragmentExecutor.getMapFragment());
       for (i = 0; i < n; i++) {
         mapFragmentExecutor.run();
 
