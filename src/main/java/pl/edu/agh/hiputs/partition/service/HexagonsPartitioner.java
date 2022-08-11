@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.partition.service;
 
 import java.awt.Point;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -9,6 +10,7 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.MutablePair;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -37,7 +39,24 @@ public class HexagonsPartitioner implements PatchPartitioner {
   public Graph<PatchData, PatchConnectionData> partition(Graph<JunctionData, WayData> graph) {
     MapBoundaries mapBoundaries = retrieveMapBoundaries(graph);
 
-    if (borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.maxLaneLengthBuffer)) {
+    if (borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.hybrid)) {
+      List<Edge<JunctionData, WayData>> edgesToSplit = graph.getEdges().values().stream()
+          .sorted(Comparator.comparing(e -> -e.getData().getLength()))
+          .limit((int) (graph.getEdges().size() * 0.1))
+          .toList();
+
+      edgesToSplit.stream().collect(Collectors.groupingBy(e -> Stream.of(e.getSource().getId(), e.getTarget().getId()).sorted().collect(
+          Collectors.joining("---"))))
+          .forEach((k,v) -> {
+            Edge<JunctionData, WayData> e = v.get(0);
+            double newLongitude = (e.getSource().getData().getLon() + e.getTarget().getData().getLon()) / 2;
+            double newLatitude = (e.getSource().getData().getLat() + e.getTarget().getData().getLat()) / 2;
+            cutEdgesAtPoint(graph, v, newLongitude, newLatitude);
+          });
+    }
+
+    if (borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.maxLaneLengthBuffer)
+    ||  borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.hybrid)) {
       double maxLaneLength = graph.getEdges().values().stream()
           .map(e -> e.getData().getLength()).max(java.lang.Double::compareTo)
           .orElse(0.0);
@@ -73,12 +92,16 @@ public class HexagonsPartitioner implements PatchPartitioner {
   }
 
   private void cutEdges(Graph<JunctionData, WayData> graph, List<Edge<JunctionData, WayData>> edges, HexagonGrid hexagonGrid) {
-    Edge<JunctionData, WayData> e = edges.get(0);
-    Point.Double intersectionPlainPoint = calculateNewNodePoint(e, hexagonGrid);
+    Point.Double intersectionPlainPoint = calculateNewNodePoint(edges.get(0), hexagonGrid);
 
     double newLongitude = CoordinatesUtil.plain2Longitude(intersectionPlainPoint.getX(), intersectionPlainPoint.getY());
     double newLatitude = CoordinatesUtil.plain2Latitude(intersectionPlainPoint.getY());
 
+    cutEdgesAtPoint(graph, edges, newLongitude, newLatitude);
+  }
+
+  private void cutEdgesAtPoint(Graph<JunctionData, WayData> graph, List<Edge<JunctionData, WayData>> edges, double newLongitude, double newLatitude) {
+    Edge<JunctionData, WayData> e = edges.get(0);
     Node<JunctionData, WayData> newNode = createChildNode(newLongitude, newLatitude, e.getData().getPatchId());
     graph.addNode(newNode);
 
