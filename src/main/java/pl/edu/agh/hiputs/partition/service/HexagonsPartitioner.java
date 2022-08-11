@@ -74,87 +74,64 @@ public class HexagonsPartitioner implements PatchPartitioner {
 
   private void cutEdges(Graph<JunctionData, WayData> graph, List<Edge<JunctionData, WayData>> edges, HexagonGrid hexagonGrid) {
     Edge<JunctionData, WayData> e = edges.get(0);
-    // wyznacz nowe koordynaty wierzchołka do cięcia
+    Point.Double intersectionPlainPoint = calculateNewNodePoint(e, hexagonGrid);
+
+    double newLongitude = CoordinatesUtil.plain2Longitude(intersectionPlainPoint.getX(), intersectionPlainPoint.getY());
+    double newLatitude = CoordinatesUtil.plain2Latitude(intersectionPlainPoint.getY());
+
+    Node<JunctionData, WayData> newNode = createChildNode(newLongitude, newLatitude, e.getData().getPatchId());
+    graph.addNode(newNode);
+
+    edges.forEach(edge -> graph.removeEdgeById(edge.getId()));
+
+    edges.forEach(edge -> {
+      Edge<JunctionData, WayData> edge1 = createChildEdge(e.getSource(), newNode, e, e.getSource().getData().getPatchId());
+      Edge<JunctionData, WayData> edge2 = createChildEdge(newNode, e.getTarget(), e, e.getTarget().getData().getPatchId());
+
+      graph.addEdge(edge1);
+      graph.addEdge(edge2);
+    });
+  }
+
+  private Point.Double calculateNewNodePoint(Edge<JunctionData, WayData> e, HexagonGrid hexagonGrid) {
     HexagonCoordinate c1 = hexagonCoordinateFromPatchId(e.getSource().getData().getPatchId());
     HexagonCoordinate c2 = hexagonCoordinateFromPatchId(e.getTarget().getData().getPatchId());
     SlopeInterceptLine line = hexagonGrid.getLineBetween(c1, c2);
     Point.Double p1 = getPlanarPointFromNode(e.getSource());
     Point.Double p2 = getPlanarPointFromNode(e.getTarget());
 
-    Point.Double intersectionPlainPoint = GeomUtil.calculateIntersectionPoint(p1, p2, line)
+    return GeomUtil.calculateIntersectionPoint(p1, p2, line)
         .orElseThrow();
+  }
 
-    double newLongitude = CoordinatesUtil.plain2Longitude(intersectionPlainPoint.getX(), intersectionPlainPoint.getY());
-    double newLatitude = CoordinatesUtil.plain2Latitude(intersectionPlainPoint.getY());
-
-    // utwórz nowy wirzchołek
-    JunctionData junctionData = JunctionData.builder()
-        .lon(newLongitude)
-        .lat(newLatitude)
-        .isCrossroad(false)
-        .tags(new HashMap<>())
-        .patchId(e.getData().getPatchId())
-        .build();
-    Node<JunctionData, WayData> newNode = new Node<>(UUID.randomUUID().toString(), junctionData);
-
-    // utwórz lane-y
-    Edge<JunctionData, WayData> edge1 = new Edge<>(UUID.randomUUID().toString(),
-        WayData.builder()
-            .length(CoordinatesUtil.plainDistanceInMeters(e.getSource().getData().getLat(), newLatitude, e.getSource().getData().getLon(), newLongitude))
-            .patchId(e.getSource().getData().getPatchId())
-            .isPriorityRoad(e.getData().isPriorityRoad())
-            .isOneWay(e.getData().isOneWay())
-            .maxSpeed(e.getData().getMaxSpeed())
-            .tags(e.getData().getTags())
+  private Node<JunctionData, WayData> createChildNode(double lon, double lat, String patchId) {
+    return new Node<>(UUID.randomUUID().toString(),
+        JunctionData.builder()
+            .lon(lon)
+            .lat(lat)
+            .isCrossroad(false)
+            .tags(new HashMap<>())
+            .patchId(patchId)
             .build());
-    edge1.setSource(e.getSource());
-    edge1.setTarget(newNode);
+  }
 
-    Edge<JunctionData, WayData> edge2 = new Edge<>(UUID.randomUUID().toString(),
+  private Edge<JunctionData, WayData> createChildEdge(
+      Node<JunctionData, WayData> source,
+      Node<JunctionData, WayData> target,
+      Edge<JunctionData, WayData> parentEdge,
+      String patchId) {
+    Edge<JunctionData, WayData> newEdge = new Edge<>(UUID.randomUUID().toString(),
         WayData.builder()
-            .length(CoordinatesUtil.plainDistanceInMeters(e.getTarget().getData().getLat(), newLatitude, e.getTarget().getData().getLon(), newLongitude))
-            .patchId(e.getTarget().getData().getPatchId())
-            .isPriorityRoad(e.getData().isPriorityRoad())
-            .isOneWay(e.getData().isOneWay())
-            .maxSpeed(e.getData().getMaxSpeed())
-            .tags(e.getData().getTags())
+            .length(CoordinatesUtil.plainDistanceInMeters(source.getData().getLat(), target.getData().getLat(), source.getData().getLon(), target.getData().getLon()))
+            .patchId(patchId)
+            .isPriorityRoad(parentEdge.getData().isPriorityRoad())
+            .isOneWay(parentEdge.getData().isOneWay())
+            .maxSpeed(parentEdge.getData().getMaxSpeed())
+            .tags(parentEdge.getData().getTags())
             .build());
-    edge2.setSource(newNode);
-    edge2.setTarget(e.getTarget());
-
-    Edge<JunctionData, WayData> edge3 = new Edge<>(UUID.randomUUID().toString(),
-        WayData.builder()
-            .length(CoordinatesUtil.plainDistanceInMeters(e.getSource().getData().getLat(), newLatitude, e.getSource().getData().getLon(), newLongitude))
-            .patchId(e.getTarget().getData().getPatchId())
-            .isPriorityRoad(e.getData().isPriorityRoad())
-            .isOneWay(e.getData().isOneWay())
-            .maxSpeed(e.getData().getMaxSpeed())
-            .tags(e.getData().getTags())
-            .build());
-    edge3.setSource(e.getTarget());
-    edge3.setTarget(newNode);
-
-    Edge<JunctionData, WayData> edge4 = new Edge<>(UUID.randomUUID().toString(),
-        WayData.builder()
-            .length(CoordinatesUtil.plainDistanceInMeters(e.getTarget().getData().getLat(), newLatitude, e.getTarget().getData().getLon(), newLongitude))
-            .patchId(e.getSource().getData().getPatchId())
-            .isPriorityRoad(e.getData().isPriorityRoad())
-            .isOneWay(e.getData().isOneWay())
-            .maxSpeed(e.getData().getMaxSpeed())
-            .tags(e.getData().getTags())
-            .build());
-    edge4.setSource(newNode);
-    edge4.setTarget(e.getSource());
-
-    // usuń stare lane'y
-    edges.forEach(edge -> graph.removeEdgeById(edge.getId()));
-
-    // dodaj nowy wierzchołek i edge do grafu
-    graph.addNode(newNode);
-    graph.addEdge(edge1);
-    graph.addEdge(edge2);
-    graph.addEdge(edge3);
-    graph.addEdge(edge4);
+    newEdge.setSource(source);
+    newEdge.setTarget(target);
+    return newEdge;
   }
 
   private HexagonCoordinate hexagonCoordinateFromPatchId(String patchId) {
