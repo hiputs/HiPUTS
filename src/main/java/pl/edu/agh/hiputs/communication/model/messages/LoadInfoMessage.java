@@ -6,7 +6,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 @Value
 public class LoadInfoMessage implements Message {
 
-  int carCost;
+  long carCost;
   long time;
   String mapFragmentId;
 

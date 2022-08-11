@@ -3,9 +3,12 @@ package pl.edu.agh.hiputs.loadbalancer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.communication.model.messages.LoadInfoMessage;
+import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 import pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint;
 import pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil;
@@ -16,11 +19,14 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 @RequiredArgsConstructor
 public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService, MonitorLocalService {
 
+  private static final Set<SimulationPoint> ACTIVE_WORK = Set.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SECOND_ITERATION);
   private final ConfigurationService configurationService;
   private List<IterationInfo> iterationInfo;
   private int step = 0;
   private long tmpTime;
   private TransferDataHandler transferDataHandler;
+
+  private MessageSenderService messageSenderService;
 
   @Override
   public void init(TransferDataHandler transferDataHandler){
@@ -36,6 +42,7 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
         .carCost(info.carCountAfterStep)
         .timeCost(info.iterationInfo
             .stream()
+            .filter(p -> ACTIVE_WORK.contains(p.getLeft()))
             .map(ImmutablePair::getRight)
             .reduce(0L, Long::sum)
         )
@@ -64,6 +71,12 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
   @Override
   public void endSimulationStep() {
     step++;
+  }
+
+  @Override
+  public void notifyAboutMyLoad() {
+    LoadBalancingHistoryInfo info = getMyLastLoad();
+    messageSenderService.broadcast(new LoadInfoMessage(info.getCarCost(), info.getTimeCost(), transferDataHandler.getMe().getId()));
   }
 
   static class IterationInfo {

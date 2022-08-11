@@ -62,6 +62,7 @@ public class MapFragmentExecutor {
           .collect(Collectors.toList());
       taskExecutor.executeBatch(updateStageTasks);
       monitorLocalService.markPointAsFinish(SimulationPoint.SECOND_ITERATION);
+      monitorLocalService.notifyAboutMyLoad();
 
       // 8. load balancing
       loadBalancingService.startLoadBalancing(mapFragment);

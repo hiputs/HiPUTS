@@ -13,4 +13,5 @@ public interface MonitorLocalService {
 
   void endSimulationStep();
 
+  void notifyAboutMyLoad();
 }
