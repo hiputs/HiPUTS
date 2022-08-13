@@ -75,11 +75,11 @@ public class HexagonGridTest {
     HexagonCoordinate c2 =
         HexagonCoordinate.builder().xHex(testData.getKey().get(2)).yHex(testData.getKey().get(3)).build();
 
-    Assertions.assertThat(hexagonGrid.getLineBetween(c1, c2).getSlope()).isEqualTo(testData.getValue().getSlope());
+    Assertions.assertThat(hexagonGrid.getLineBetween(c1, c2).getA()).isEqualTo(testData.getValue().getA());
     Assertions.assertThat(hexagonGrid.getLineBetween(c1, c2).getB())
         .isCloseTo(testData.getValue().getB(), Offset.offset(eps));
-    Assertions.assertThat(hexagonGrid.getLineBetween(c1, c2).getIntercept())
-        .isCloseTo(testData.getValue().getIntercept(), Offset.offset(eps));
+    Assertions.assertThat(hexagonGrid.getLineBetween(c1, c2).getC())
+        .isCloseTo(testData.getValue().getC(), Offset.offset(eps));
   }
 
   @ParameterizedTest

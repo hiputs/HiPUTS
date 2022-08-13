@@ -10,8 +10,8 @@ import lombok.Data;
 @AllArgsConstructor
 public class StandardEquationLine {
 
-  private double slope;
+  private double A;
   private double B;
-  private double intercept;
+  private double C;
 
 }

@@ -19,7 +19,7 @@ public class HexagonGrid {
 
   public StandardEquationLine getLineBetween(HexagonCoordinate c1, HexagonCoordinate c2) {
     StandardEquationLine line = getLineBetweenRelativeCoords(c1, c2);
-    return line == null ? null : new StandardEquationLine(line.getSlope(), line.getB(), line.getIntercept() + originY - line.getSlope()*originX);
+    return line == null ? null : new StandardEquationLine(line.getA(), line.getB(), line.getC() + originY - line.getA()*originX);
   }
 
   private StandardEquationLine getLineBetweenRelativeCoords(HexagonCoordinate c1, HexagonCoordinate c2) {

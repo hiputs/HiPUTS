@@ -28,9 +28,9 @@ public class GeomUtil {
       StandardEquationLine line1,
       StandardEquationLine line2) {
 
-    double w = line1.getSlope() * line2.getB() - line1.getB() * line2.getSlope();
-    double wx = - line1.getIntercept() * line2.getB() + line1.getB() * line2.getIntercept();
-    double wy = - line1.getSlope() * line2.getIntercept() + line1.getIntercept() * line2.getSlope();
+    double w = line1.getA() * line2.getB() - line1.getB() * line2.getA();
+    double wx = - line1.getC() * line2.getB() + line1.getB() * line2.getC();
+    double wy = - line1.getA() * line2.getC() + line1.getC() * line2.getA();
 
     double x = wx / w;
     double y = wy / w;
