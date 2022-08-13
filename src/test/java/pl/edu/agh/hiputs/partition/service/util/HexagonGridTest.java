@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -54,20 +55,20 @@ public class HexagonGridTest {
 
   private static final double eps = 0.0001;
 
-  private static Stream<Entry<List<Integer>, SlopeInterceptLine>> hexagonsWithExpectedBetweenLine() {
-    Map<List<Integer>, SlopeInterceptLine> expectedLinesForHexCoordinates = new HashMap<>();
-    expectedLinesForHexCoordinates.put(List.of(1, 1, 1, 0), new SlopeInterceptLine(0.0, 1.7321));
-    expectedLinesForHexCoordinates.put(List.of(1, 1, 1, 2), new SlopeInterceptLine(0.0, 3.4641));
-    expectedLinesForHexCoordinates.put(List.of(1, 1, 0, 1), new SlopeInterceptLine(-Math.sqrt(3), 3.4641));
-    expectedLinesForHexCoordinates.put(List.of(1, 1, 0, 2), new SlopeInterceptLine(Math.sqrt(3), 1.7321));
-    expectedLinesForHexCoordinates.put(List.of(1, 1, 2, 1), new SlopeInterceptLine(Math.sqrt(3), -1.7321));
-    expectedLinesForHexCoordinates.put(List.of(1, 1, 2, 2), new SlopeInterceptLine(-Math.sqrt(3), 6.9282));
+  private static Stream<Entry<List<Integer>, StandardEquationLine>> hexagonsWithExpectedBetweenLine() {
+    Map<List<Integer>, StandardEquationLine> expectedLinesForHexCoordinates = new HashMap<>();
+    expectedLinesForHexCoordinates.put(List.of(1, 1, 1, 0), new StandardEquationLine(0.0, -1.0, 1.7321));
+    expectedLinesForHexCoordinates.put(List.of(1, 1, 1, 2), new StandardEquationLine(0.0, -1.0,3.4641));
+    expectedLinesForHexCoordinates.put(List.of(1, 1, 0, 1), new StandardEquationLine(-Math.sqrt(3), -1.0, 3.4641));
+    expectedLinesForHexCoordinates.put(List.of(1, 1, 0, 2), new StandardEquationLine(Math.sqrt(3), -1.0, 1.7321));
+    expectedLinesForHexCoordinates.put(List.of(1, 1, 2, 1), new StandardEquationLine(Math.sqrt(3), -1.0, -1.7321));
+    expectedLinesForHexCoordinates.put(List.of(1, 1, 2, 2), new StandardEquationLine(-Math.sqrt(3), -1.0, 6.9282));
     return expectedLinesForHexCoordinates.entrySet().stream();
   }
 
   @ParameterizedTest
   @MethodSource("hexagonsWithExpectedBetweenLine")
-  public void getLineBetweenTest1(Entry<List<Integer>, SlopeInterceptLine> testData) {
+  public void getLineBetweenTest1(Entry<List<Integer>, StandardEquationLine> testData) {
     HexagonGrid hexagonGrid = new HexagonGrid(0.0, 0.0, 1.0);
     HexagonCoordinate c1 =
         HexagonCoordinate.builder().xHex(testData.getKey().get(0)).yHex(testData.getKey().get(1)).build();
@@ -75,13 +76,15 @@ public class HexagonGridTest {
         HexagonCoordinate.builder().xHex(testData.getKey().get(2)).yHex(testData.getKey().get(3)).build();
 
     Assertions.assertThat(hexagonGrid.getLineBetween(c1, c2).getSlope()).isEqualTo(testData.getValue().getSlope());
+    Assertions.assertThat(hexagonGrid.getLineBetween(c1, c2).getB())
+        .isCloseTo(testData.getValue().getB(), Offset.offset(eps));
     Assertions.assertThat(hexagonGrid.getLineBetween(c1, c2).getIntercept())
-        .isBetween(testData.getValue().getIntercept() - eps, testData.getValue().getIntercept() + eps);
+        .isCloseTo(testData.getValue().getIntercept(), Offset.offset(eps));
   }
 
   @ParameterizedTest
   @MethodSource("hexagonsWithExpectedBetweenLine")
-  public void getLineBetweenTest2(Entry<List<Integer>, SlopeInterceptLine> testData) {
+  public void getLineBetweenTest2(Entry<List<Integer>, StandardEquationLine> testData) {
     HexagonGrid hexagonGrid = new HexagonGrid(0.0, 0.0, 1.0);
     HexagonCoordinate c1 =
         HexagonCoordinate.builder().xHex(testData.getKey().get(0)).yHex(testData.getKey().get(1)).build();

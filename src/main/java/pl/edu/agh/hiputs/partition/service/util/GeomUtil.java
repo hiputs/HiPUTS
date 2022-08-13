@@ -8,33 +8,38 @@ public class GeomUtil {
   public static Optional<Point.Double> calculateIntersectionPoint(
       Point.Double p1,
       Point.Double p2,
-      SlopeInterceptLine line1
+      StandardEquationLine line1
   ) {
-    SlopeInterceptLine line2 = calculateSlopeInterceptLine(p1, p2);
+    StandardEquationLine line2 = calculateStandardEquationLine(p1, p2);
     return calculateIntersectionPoint(line1, line2);
   }
 
-  private static SlopeInterceptLine calculateSlopeInterceptLine(
+  private static StandardEquationLine calculateStandardEquationLine(
       Point.Double p1,
       Point.Double p2) {
-    return new SlopeInterceptLine(
-        (p1.y - p2.y) / (p1.x - p2.x),
-        p1.y - p1.x * (p1.y - p2.y) / (p1.x - p2.x)
+    return new StandardEquationLine(
+        -(p2.y - p1.y),
+         (p2.x - p1.x),
+        -(p2.x - p1.x) * p1.y + (p2.y - p1.y) * p1.x
     );
   }
 
   private static Optional<Point.Double> calculateIntersectionPoint(
-      SlopeInterceptLine line1,
-      SlopeInterceptLine line2) {
+      StandardEquationLine line1,
+      StandardEquationLine line2) {
 
-    if (line1.getSlope() == line2.getSlope()) {
-      return Optional.empty();
+    double w = line1.getSlope() * line2.getB() - line1.getB() * line2.getSlope();
+    double wx = - line1.getIntercept() * line2.getB() + line1.getB() * line2.getIntercept();
+    double wy = - line1.getSlope() * line2.getIntercept() + line1.getIntercept() * line2.getSlope();
+
+    double x = wx / w;
+    double y = wy / w;
+
+    if (Double.isFinite(wx / w) || Double.isFinite(wy / w)) {
+      return Optional.of(new Point.Double(x, y));
     }
 
-    double x = (line2.getIntercept() - line1.getIntercept()) / (line1.getSlope() - line2.getSlope());
-    double y = line1.getSlope() * x + line1.getIntercept();
-
-    return Optional.of(new Point.Double(x, y));
+    return Optional.empty();
   }
 
 }

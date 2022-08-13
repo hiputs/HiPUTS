@@ -17,12 +17,12 @@ public class HexagonGrid {
     return getHexagonCoordinateOnRelativeCoords(x - originX, y - originY);
   }
 
-  public SlopeInterceptLine getLineBetween(HexagonCoordinate c1, HexagonCoordinate c2) {
-    SlopeInterceptLine line = getLineBetweenRelativeCoords(c1, c2);
-    return line == null ? null : new SlopeInterceptLine(line.getSlope(), line.getIntercept() + originY - line.getSlope()*originX);
+  public StandardEquationLine getLineBetween(HexagonCoordinate c1, HexagonCoordinate c2) {
+    StandardEquationLine line = getLineBetweenRelativeCoords(c1, c2);
+    return line == null ? null : new StandardEquationLine(line.getSlope(), line.getB(), line.getIntercept() + originY - line.getSlope()*originX);
   }
 
-  private SlopeInterceptLine getLineBetweenRelativeCoords(HexagonCoordinate c1, HexagonCoordinate c2) {
+  private StandardEquationLine getLineBetweenRelativeCoords(HexagonCoordinate c1, HexagonCoordinate c2) {
     //horizontal line
     if (c1.getXHex() == c2.getXHex()) {
       if (c1.getYHex() == c2.getYHex() + 1) {
@@ -61,19 +61,19 @@ public class HexagonGrid {
     return null;
   }
 
-  private SlopeInterceptLine getUpBoundaryLineFor(HexagonCoordinate c) {
+  private StandardEquationLine getUpBoundaryLineFor(HexagonCoordinate c) {
     double intercept = (c.getXHex() % 2) * a * ROOT_THREE / 2 + a * ROOT_THREE * c.getYHex() + a * ROOT_THREE / 2;
-    return new SlopeInterceptLine(0, intercept);
+    return new StandardEquationLine(0, -1.0, intercept);
   }
 
-  private SlopeInterceptLine getUpLeftBoundaryLineFor(HexagonCoordinate c) {
+  private StandardEquationLine getUpLeftBoundaryLineFor(HexagonCoordinate c) {
     double intercept = - 3 * ROOT_THREE * a * c.getXHex() / 2 + ROOT_THREE * a * (c.getXHex() % 2) / 2 + a * ROOT_THREE * c.getYHex() + a * ROOT_THREE;
-    return new SlopeInterceptLine(ROOT_THREE, intercept);
+    return new StandardEquationLine(ROOT_THREE, -1.0, intercept);
   }
 
-  private SlopeInterceptLine getUpRightBoundaryLineFor(HexagonCoordinate c) {
+  private StandardEquationLine getUpRightBoundaryLineFor(HexagonCoordinate c) {
     double intercept = 3 * ROOT_THREE * a * c.getXHex() / 2 + ROOT_THREE * a * (c.getXHex() % 2) / 2 + a * ROOT_THREE * c.getYHex() + a * ROOT_THREE;
-    return new SlopeInterceptLine(-ROOT_THREE, intercept);
+    return new StandardEquationLine(-ROOT_THREE, -1.0, intercept);
   }
 
   private HexagonCoordinate getHexagonCoordinateOnRelativeCoords(double x, double y) {

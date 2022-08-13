@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.MutablePair;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -24,7 +23,7 @@ import pl.edu.agh.hiputs.partition.service.util.HexagonGrid;
 import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever;
 import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever.MapBoundaries;
 import pl.edu.agh.hiputs.partition.service.util.PatchesGraphExtractor;
-import pl.edu.agh.hiputs.partition.service.util.SlopeInterceptLine;
+import pl.edu.agh.hiputs.partition.service.util.StandardEquationLine;
 import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
 @Slf4j
@@ -119,7 +118,7 @@ public class HexagonsPartitioner implements PatchPartitioner {
   private Point.Double calculateNewNodePoint(Edge<JunctionData, WayData> e, HexagonGrid hexagonGrid) {
     HexagonCoordinate c1 = hexagonCoordinateFromPatchId(e.getSource().getData().getPatchId());
     HexagonCoordinate c2 = hexagonCoordinateFromPatchId(e.getTarget().getData().getPatchId());
-    SlopeInterceptLine line = hexagonGrid.getLineBetween(c1, c2);
+    StandardEquationLine line = hexagonGrid.getLineBetween(c1, c2);
     Point.Double p1 = getPlanarPointFromNode(e.getSource());
     Point.Double p2 = getPlanarPointFromNode(e.getTarget());
 
