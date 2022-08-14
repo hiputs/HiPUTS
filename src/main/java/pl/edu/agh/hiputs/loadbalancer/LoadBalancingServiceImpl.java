@@ -22,6 +22,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
+import pl.edu.agh.hiputs.statistic.SimulationStatisticService;
 
 @Slf4j
 @Service
@@ -32,6 +33,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
   private final ConfigurationService configurationService;
   private final SimplyLoadBalancingService simplyLoadBalancingService;
   private final PidLoadBalancingService pidLoadBalancingService;
+  private final SimulationStatisticService simulationStatisticService;
 
   @Override
   public void startLoadBalancing(TransferDataHandler transferDataHandler) {
@@ -52,6 +54,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
     long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
     PatchId patchId = findPatchIdToSend(recipient, transferDataHandler, targetBalanceCars);
+    simulationStatisticService.saveLoadBalancingDecision();
 
     patchTransferService.sendPatch(recipient, patchId, transferDataHandler);
   }

@@ -20,6 +20,7 @@ import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.statistic.SimulationStatisticService;
 
 @Slf4j
 @Service
@@ -30,14 +31,15 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   private static final double ALLOW_LOAD_IMBALANCE = 1.03;
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
+  private final SimulationStatisticService simulationStatisticService;
 
   private final LocalLoadStatisticService localLoadStatisticService;
   private final Map<MapFragmentId, LoadBalancingHistoryInfo> loadRepository = new HashMap<>();
   private int age = 0;
 
   @PostConstruct
-  void init(){
-    if(configurationService.getConfiguration().getBalancingMode() == BalancingMode.SIMPLY){
+  void init() {
+    if (configurationService.getConfiguration().getBalancingMode() == BalancingMode.SIMPLY) {
       subscriptionService.subscribe(this, LoadInfo);
     }
   }
@@ -59,12 +61,15 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
 
     LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
     ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
+    double myCost = calculateCost(info);
 
-    boolean shouldBalancing = calculateCost(info) > candidate.getRight() * ALLOW_LOAD_IMBALANCE;
+    simulationStatisticService.saveLoadBalancingCost(info.getTimeCost(), info.getCarCost(), myCost, age);
+
+    boolean shouldBalancing = myCost > candidate.getRight() * ALLOW_LOAD_IMBALANCE;
     age++;
     loadBalancingDecision.setLoadBalancingRecommended(shouldBalancing);
 
-    if(!shouldBalancing){
+    if (!shouldBalancing) {
       return loadBalancingDecision;
     }
 
