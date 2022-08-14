@@ -15,5 +15,6 @@ public interface LoadBalancingStrategy {
     private boolean loadBalancingRecommended;
     private MapFragmentId selectedNeighbour;
     private long carImbalanceRate;
+    private int age;
   }
 }

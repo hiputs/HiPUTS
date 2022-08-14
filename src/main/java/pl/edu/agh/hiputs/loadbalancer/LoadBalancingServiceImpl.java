@@ -46,37 +46,42 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
     LoadBalancingStrategy strategy = getStrategyByMode();
     LoadBalancingDecision loadBalancingDecision = strategy.makeBalancingDecision(transferDataHandler);
 
-    if(!loadBalancingDecision.isLoadBalancingRecommended()){
+    if (!loadBalancingDecision.isLoadBalancingRecommended()) {
+      simulationStatisticService.saveLoadBalancingDecision(false, null, null, 0f, loadBalancingDecision.getAge());
       return;
     }
 
     log.info("Start loadbalancing worker id: {}", transferDataHandler.getMe());
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
     long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
-    PatchId patchId = findPatchIdToSend(recipient, transferDataHandler, targetBalanceCars);
-    simulationStatisticService.saveLoadBalancingDecision();
 
-    patchTransferService.sendPatch(recipient, patchId, transferDataHandler);
+    ImmutablePair<PatchBalancingInfo, Double> patchInfo =
+        findPatchToSend(recipient, transferDataHandler, targetBalanceCars);
+    simulationStatisticService.saveLoadBalancingDecision(true, patchInfo.getLeft().getPatchId().getValue(),
+        recipient.getId(), patchInfo.getRight(), loadBalancingDecision.getAge());
+
+    patchTransferService.sendPatch(recipient, patchInfo.getLeft().getPatchId(), transferDataHandler);
   }
 
-  private PatchId findPatchIdToSend(MapFragmentId recipient, TransferDataHandler transferDataHandler, long carBalanceTarget) {
+  private ImmutablePair<PatchBalancingInfo, Double> findPatchToSend(MapFragmentId recipient,
+      TransferDataHandler transferDataHandler, long carBalanceTarget) {
     Set<Patch> candidatesToLoadBalancing = transferDataHandler.getBorderPatches().get(recipient);
     List<PatchBalancingInfo> candidatesWithStatistic =
         bindWitchStatistic(candidatesToLoadBalancing, transferDataHandler);
 
-    List<ImmutablePair<PatchBalancingInfo, Double>> orderCandidates = candidatesWithStatistic
-        .stream()
-        .map(i -> new ImmutablePair<PatchBalancingInfo, Double>(i, PatchCostCalculatorUtil.calculateCost(i, carBalanceTarget)))
+    List<ImmutablePair<PatchBalancingInfo, Double>> orderCandidates = candidatesWithStatistic.stream()
+        .map(i -> new ImmutablePair<PatchBalancingInfo, Double>(i,
+            PatchCostCalculatorUtil.calculateCost(i, carBalanceTarget)))
         .sorted(Comparator.comparingDouble(ImmutablePair::getRight))
         .toList();
 
+    ImmutablePair<PatchBalancingInfo, Double> selectedCandidate =
+        findFirstCandidateNotLossGraphCoherence(orderCandidates, transferDataHandler);
 
-    ImmutablePair<PatchBalancingInfo, Double> selectedCandidate = findFirstCandidateNotLossGraphCoherence(orderCandidates, transferDataHandler);
+    log.info("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(),
+        selectedCandidate.getRight());
 
-
-    log.info("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(), selectedCandidate.getRight());
-
-    return selectedCandidate.getLeft().getPatchId();
+    return selectedCandidate;
   }
 
   private ImmutablePair<PatchBalancingInfo, Double> findFirstCandidateNotLossGraphCoherence(
@@ -84,11 +89,11 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
 
     int attempt = 0;
     for (final ImmutablePair<PatchBalancingInfo, Double> orderCandidate : orderCandidates) {
-      if(isCoherency(transferDataHandler, orderCandidate.getLeft().getPatchId())){
+      if (isCoherency(transferDataHandler, orderCandidate.getLeft().getPatchId())) {
         return orderCandidate;
       }
 
-      if (attempt++ == 5){
+      if (attempt++ == 5) {
         return orderCandidates.get(0);
       }
     }
@@ -100,8 +105,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
       TransferDataHandler transferDataHandler) {
 
     return candidatesToLoadBalancing.parallelStream().map(patch -> {
-      List<PatchId> newNeighbours =
-          findNeighbouringPatches(patch.getPatchId(), transferDataHandler);
+      List<PatchId> newNeighbours = findNeighbouringPatches(patch.getPatchId(), transferDataHandler);
       List<PatchId> removedShadowPatches =
           findShadowPatchesNeighbouringOnlyWithPatch(patch.getPatchId(), transferDataHandler);
 

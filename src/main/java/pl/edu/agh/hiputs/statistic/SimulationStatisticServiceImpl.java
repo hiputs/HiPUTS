@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.statistic;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.PostConstruct;
@@ -9,65 +10,75 @@ import lombok.Value;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
+import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationStatisticMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
+import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Service
 @RequiredArgsConstructor
-public class SimulationStatisticServiceImpl implements SimulationStatisticService, Subscriber{
+public class SimulationStatisticServiceImpl implements SimulationStatisticService, Subscriber {
 
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
+
+  private final MessageSenderService messageSenderService;
 
   private boolean enableLogs = false;
   private final List<LoadBalancingStatistic> balancingCostRepository = new LinkedList<>();
   private final List<DecisionStatistic> decisionRepository = new LinkedList<>();
 
   @PostConstruct
-  void init(){
+  void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.FinishSimulationMessage);
     enableLogs = configurationService.getConfiguration().isStatisticModeActive();
   }
+
   @Override
   public void saveLoadBalancingCost(long timeInMilis, long cars, double totalCost, int age) {
-    if(!enableLogs){
+    if (!enableLogs) {
       return;
     }
 
-    balancingCostRepository.add(LoadBalancingStatistic.builder()
-              .age(age)
-              .cars(cars)
-              .timeInMilis(timeInMilis)
-              .totalCost(totalCost)
-          .build());
+    balancingCostRepository.add(
+        LoadBalancingStatistic.builder().age(age).cars(cars).timeInMilis(timeInMilis).totalCost(totalCost).build());
   }
 
   @Override
-  public void saveLoadBalancingDecision(boolean decision, String selectedPatchId, String selectedNeighbourId, double patchCost, int age) {
-    if(!enableLogs){
+  public void saveLoadBalancingDecision(boolean decision, String selectedPatchId, String selectedNeighbourId,
+      double patchCost, int age) {
+    if (!enableLogs) {
       return;
     }
 
     decisionRepository.add(DecisionStatistic.builder()
-            .age(age)
-            .selectedNeighbourId(selectedNeighbourId)
-            .patchCost(patchCost)
-            .selectedPatch(selectedPatchId)
-            .patchCost(patchCost)
+        .age(age)
+        .selectedNeighbourId(selectedNeighbourId)
+        .patchCost(patchCost)
+        .selectedPatch(selectedPatchId)
+        .patchCost(patchCost)
         .build());
   }
 
   @Override
   public void notify(Message message) {
-    if(!enableLogs){
+    if (!enableLogs) {
       return;
+    }
+
+    try {
+      messageSenderService.sendServerMessage(
+          new FinishSimulationStatisticMessage(balancingCostRepository, decisionRepository));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
   @Builder
   @Value
-  private static class LoadBalancingStatistic {
+  public static class LoadBalancingStatistic {
+
     long timeInMilis;
     long cars;
     double totalCost;
@@ -76,7 +87,8 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
 
   @Builder
   @Value
-  private static class DecisionStatistic {
+  public static class DecisionStatistic {
+
     int age;
     String selectedNeighbourId;
     String selectedPatch;
