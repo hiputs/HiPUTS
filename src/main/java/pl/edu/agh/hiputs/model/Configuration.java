@@ -79,13 +79,19 @@ public class Configuration {
    */
   private int initialNumberOfCarsPerLane;
 
+  /**
+   * Pause between every simulation step in ms. When visualise mode is enabled recommended min 100ms
+   */
+  private int pauseAfterStep;
+
   public static Configuration getDefault() {
     return Configuration.builder()
         .testMode(true)
         .workerCount(1)
         .enableGUI(true)
         .statisticModeActive(false)
-        .simulationStep(Long.MAX_VALUE)
+        .simulationStep(1000L)
+        .pauseAfterStep(1000)
         .mapPath("")
         .serverAddress("localhost")
         .serverPort(8081)

@@ -26,7 +26,7 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
   private long tmpTime;
   private TransferDataHandler transferDataHandler;
 
-  private MessageSenderService messageSenderService;
+  private final MessageSenderService messageSenderService;
 
   @Override
   public void init(TransferDataHandler transferDataHandler){

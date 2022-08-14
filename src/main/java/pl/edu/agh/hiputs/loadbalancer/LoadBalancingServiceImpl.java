@@ -48,6 +48,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
       return;
     }
 
+    log.info("Start loadbalancing worker id: {}", transferDataHandler.getMe());
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
     long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
     PatchId patchId = findPatchIdToSend(recipient, transferDataHandler, targetBalanceCars);

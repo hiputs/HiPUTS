@@ -81,7 +81,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment());
 
     graphBasedVisualizer.showGui();
-    sleep(1000);
+    sleep(300);
   }
 
   @Override
@@ -157,7 +157,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
-          sleep(200);
+          sleep(configuration.getPauseAfterStep());
         }
       }
     } catch (Exception e) {
