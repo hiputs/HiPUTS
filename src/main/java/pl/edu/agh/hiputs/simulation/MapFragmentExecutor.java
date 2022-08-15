@@ -14,6 +14,7 @@ import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizedService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
+import pl.edu.agh.hiputs.visualization.connection.VisualizationService;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,7 @@ public class MapFragmentExecutor {
   private final TaskExecutorService taskExecutor;
   private final MessageSenderService messageSenderService;
   private final CarSynchronizedService carSynchronizedService;
+  private final VisualizationService visualizationService;
 
   public void run() {
 
@@ -36,6 +38,7 @@ public class MapFragmentExecutor {
         .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId))
         .collect(Collectors.toList());
     taskExecutor.executeBatch(decisionStageTasks);
+    visualizationService.sendCarsFromMapFragment(mapFragment);
 
     // 4. prepare messages
     carSynchronizedService.sendCarsToNeighbours(mapFragment);

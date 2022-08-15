@@ -1,0 +1,15 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: 1
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer
+      properties:
+        buffer.memory: 33_554_432 # 32MiB
+        batch.size: 1_048_576 # 1MiB
+        linger.ms: 10 # 10ms
+
+    properties:
+      schema.registry.url: http://localhost:8085
+      auto.register.schemas: true

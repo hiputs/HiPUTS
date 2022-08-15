@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option java_package = "proto.model";
+option java_outer_classname = "Model";
+option java_multiple_files = true;
+
+message CarMessage {
+    string carId = 1;
+    double length = 2;
+    double acceleration = 3;
+    double speed = 4;
+    double maxSpeed = 5;
+    string laneId = 6;
+    double positionOnLane = 7;
+}
