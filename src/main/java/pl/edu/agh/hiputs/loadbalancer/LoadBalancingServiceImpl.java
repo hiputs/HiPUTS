@@ -22,7 +22,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
-import pl.edu.agh.hiputs.statistic.SimulationStatisticService;
+import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 
 @Slf4j
 @Service

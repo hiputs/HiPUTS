@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.statistic;
+package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -15,6 +15,7 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 
 @Service
 @RequiredArgsConstructor
@@ -36,13 +37,19 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
   }
 
   @Override
-  public void saveLoadBalancingCost(long timeInMilis, long cars, double totalCost, int age) {
+  public void saveLoadBalancingCost(long timeInMilis, long cars, double totalCost, int age, long waitingTime) {
     if (!enableLogs) {
       return;
     }
 
     balancingCostRepository.add(
-        LoadBalancingStatistic.builder().age(age).cars(cars).timeInMilis(timeInMilis).totalCost(totalCost).build());
+        LoadBalancingStatistic.builder()
+            .age(age)
+            .cars(cars)
+            .timeInMilis(timeInMilis)
+            .totalCost(totalCost)
+            .waitingTime(waitingTime)
+            .build());
   }
 
   @Override
@@ -69,7 +76,7 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
 
     try {
       messageSenderService.sendServerMessage(
-          new FinishSimulationStatisticMessage(balancingCostRepository, decisionRepository));
+          new FinishSimulationStatisticMessage(balancingCostRepository, decisionRepository, ));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -82,6 +89,7 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
     long timeInMilis;
     long cars;
     double totalCost;
+    long waitingTime;
     int age;
   }
 

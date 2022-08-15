@@ -11,7 +11,6 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +39,7 @@ import pl.edu.agh.hiputs.partition.persistance.PatchesGraphWriter;
 import pl.edu.agh.hiputs.partition.service.MapFragmentPartitioner;
 import pl.edu.agh.hiputs.partition.service.MapStructureLoader;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.server.WorkerSynchronisationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
 
@@ -56,6 +56,7 @@ public class ServerStrategyService implements Strategy {
   private final ExecutorService workerPrepareExecutor = newSingleThreadExecutor();
   private final MessageSenderServerService messageSenderServerService;
   private final MapStructureLoader mapStructureLoader;
+  private final StatisticSummaryService statisticSummaryService;
 
   private final MapRepositoryServerHandler mapRepository;
   private final PatchesGraphReader patchesGraphReader;
@@ -175,6 +176,7 @@ public class ServerStrategyService implements Strategy {
   }
 
   private void generateReport() {
+    statisticSummaryService.generateStatisticCSVs();
   }
 
   private void distributeRunSimulationMessage(Collection<Graph<PatchData, PatchConnectionData>> dividedPatchesIds) {

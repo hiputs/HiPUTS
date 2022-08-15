@@ -19,7 +19,10 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 @RequiredArgsConstructor
 public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService, MonitorLocalService {
 
-  private static final Set<SimulationPoint> ACTIVE_WORK = Set.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SECOND_ITERATION);
+  private static final Set<SimulationPoint> ACTIVE_TIME =
+      Set.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SECOND_ITERATION);
+  private static final Set<SimulationPoint> WAITING_TIME =
+      Set.of(SimulationPoint.WAITING_FOR_FIRST_ITERATION, SimulationPoint.WAITING_FOR_SECOND_ITERATION);
   private final ConfigurationService configurationService;
   private List<IterationInfo> iterationInfo;
   private int step = 0;
@@ -29,10 +32,11 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
   private final MessageSenderService messageSenderService;
 
   @Override
-  public void init(TransferDataHandler transferDataHandler){
+  public void init(TransferDataHandler transferDataHandler) {
     iterationInfo = new ArrayList<>((int) configurationService.getConfiguration().getSimulationStep());
     this.transferDataHandler = transferDataHandler;
   }
+
   @Override
   public LoadBalancingHistoryInfo getMyLastLoad() {
     IterationInfo info = iterationInfo.get(step);
@@ -40,12 +44,14 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
     return LoadBalancingHistoryInfo.builder()
         .age(step)
         .carCost(info.carCountAfterStep)
-        .timeCost(info.iterationInfo
-            .stream()
-            .filter(p -> ACTIVE_WORK.contains(p.getLeft()))
+        .timeCost(info.iterationInfo.stream()
+            .filter(p -> ACTIVE_TIME.contains(p.getLeft()))
             .map(ImmutablePair::getRight)
-            .reduce(0L, Long::sum)
-        )
+            .reduce(0L, Long::sum))
+        .waitingTime(info.iterationInfo.stream()
+            .filter(p -> WAITING_TIME.contains(p.getLeft()))
+            .map(ImmutablePair::getRight)
+            .reduce(0L, Long::sum))
         .build();
   }
 
@@ -57,15 +63,14 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
 
   @Override
   public void markPointAsFinish(SimulationPoint simulationPoint) {
-      IterationInfo info = iterationInfo.get(step);
-      info.iterationInfo.add(new ImmutablePair<>(simulationPoint,
-          System.currentTimeMillis() - tmpTime));
+    IterationInfo info = iterationInfo.get(step);
+    info.iterationInfo.add(new ImmutablePair<>(simulationPoint, System.currentTimeMillis() - tmpTime));
 
-      if(simulationPoint == SimulationPoint.SECOND_ITERATION){
-        info.carCountAfterStep = CarCounterUtil.countAllCars(transferDataHandler);
-      }
+    if (simulationPoint == SimulationPoint.SECOND_ITERATION) {
+      info.carCountAfterStep = CarCounterUtil.countAllCars(transferDataHandler);
+    }
 
-      tmpTime = System.currentTimeMillis();
+    tmpTime = System.currentTimeMillis();
   }
 
   @Override
@@ -76,11 +81,13 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
   @Override
   public void notifyAboutMyLoad() {
     LoadBalancingHistoryInfo info = getMyLastLoad();
-    messageSenderService.broadcast(new LoadInfoMessage(info.getCarCost(), info.getTimeCost(), transferDataHandler.getMe().getId()));
+    messageSenderService.broadcast(
+        new LoadInfoMessage(info.getCarCost(), info.getTimeCost(), transferDataHandler.getMe().getId()));
   }
 
   static class IterationInfo {
-      List<ImmutablePair<SimulationPoint, Long>> iterationInfo = new LinkedList<>();
-      long carCountAfterStep;
+
+    List<ImmutablePair<SimulationPoint, Long>> iterationInfo = new LinkedList<>();
+    long carCountAfterStep;
   }
 }

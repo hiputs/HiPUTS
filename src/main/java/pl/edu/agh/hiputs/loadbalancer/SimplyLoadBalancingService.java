@@ -20,7 +20,7 @@ import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.service.ConfigurationService;
-import pl.edu.agh.hiputs.statistic.SimulationStatisticService;
+import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 
 @Slf4j
 @Service
@@ -52,7 +52,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   private void addToLoadBalancing(LoadInfoMessage message) {
     MapFragmentId id = new MapFragmentId(message.getMapFragmentId());
 
-    loadRepository.put(id, new LoadBalancingHistoryInfo(message.getCarCost(), message.getTime(), age));
+    loadRepository.put(id, new LoadBalancingHistoryInfo(message.getCarCost(), message.getTime(), 0L, age));
   }
 
   @Override
@@ -63,7 +63,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
     ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
     double myCost = calculateCost(info);
 
-    simulationStatisticService.saveLoadBalancingCost(info.getTimeCost(), info.getCarCost(), myCost, age);
+    simulationStatisticService.saveLoadBalancingCost(info.getTimeCost(), info.getCarCost(), myCost, age, info.getWaitingTime());
 
     boolean shouldBalancing = myCost > candidate.getRight() * ALLOW_LOAD_IMBALANCE;
     age++;
