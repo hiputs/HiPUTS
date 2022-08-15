@@ -75,6 +75,7 @@ public class HexagonGridTest {
     HexagonCoordinate c2 =
         HexagonCoordinate.builder().xHex(testData.getKey().get(2)).yHex(testData.getKey().get(3)).build();
 
+    Assertions.assertThat((hexagonGrid.getLineBetween(c1, c2))).isNotNull();
     Assertions.assertThat(hexagonGrid.getLineBetween(c1, c2).getA()).isEqualTo(testData.getValue().getA());
     Assertions.assertThat(hexagonGrid.getLineBetween(c1, c2).getB())
         .isCloseTo(testData.getValue().getB(), Offset.offset(eps));

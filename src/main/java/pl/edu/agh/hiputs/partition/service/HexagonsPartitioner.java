@@ -1,6 +1,5 @@
 package pl.edu.agh.hiputs.partition.service;
 
-import java.awt.Point;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +22,7 @@ import pl.edu.agh.hiputs.partition.service.util.HexagonGrid;
 import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever;
 import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever.MapBoundaries;
 import pl.edu.agh.hiputs.partition.service.util.PatchesGraphExtractor;
+import pl.edu.agh.hiputs.partition.service.util.Point;
 import pl.edu.agh.hiputs.partition.service.util.StandardEquationLine;
 import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
@@ -91,7 +91,7 @@ public class HexagonsPartitioner implements PatchPartitioner {
   }
 
   private void cutEdges(Graph<JunctionData, WayData> graph, List<Edge<JunctionData, WayData>> edges, HexagonGrid hexagonGrid) {
-    Point.Double intersectionPlainPoint = calculateNewNodePoint(edges.get(0), hexagonGrid);
+    Point intersectionPlainPoint = calculateNewNodePoint(edges.get(0), hexagonGrid);
 
     double newLongitude = CoordinatesUtil.plain2Longitude(intersectionPlainPoint.getX(), intersectionPlainPoint.getY());
     double newLatitude = CoordinatesUtil.plain2Latitude(intersectionPlainPoint.getY());
@@ -115,12 +115,12 @@ public class HexagonsPartitioner implements PatchPartitioner {
     });
   }
 
-  private Point.Double calculateNewNodePoint(Edge<JunctionData, WayData> e, HexagonGrid hexagonGrid) {
+  private Point calculateNewNodePoint(Edge<JunctionData, WayData> e, HexagonGrid hexagonGrid) {
     HexagonCoordinate c1 = hexagonCoordinateFromPatchId(e.getSource().getData().getPatchId());
     HexagonCoordinate c2 = hexagonCoordinateFromPatchId(e.getTarget().getData().getPatchId());
     StandardEquationLine line = hexagonGrid.getLineBetween(c1, c2);
-    Point.Double p1 = getPlanarPointFromNode(e.getSource());
-    Point.Double p2 = getPlanarPointFromNode(e.getTarget());
+    Point p1 = getPlanarPointFromNode(e.getSource());
+    Point p2 = getPlanarPointFromNode(e.getTarget());
 
     return GeomUtil.calculateIntersectionPoint(p1, p2, line)
         .orElseThrow();
@@ -164,10 +164,10 @@ public class HexagonsPartitioner implements PatchPartitioner {
             .build();
   }
 
-  private Point.Double getPlanarPointFromNode(Node<JunctionData, WayData> node) {
+  private Point getPlanarPointFromNode(Node<JunctionData, WayData> node) {
     double x = CoordinatesUtil.longitude2plain(node.getData().getLon(), node.getData().getLat());
     double y = CoordinatesUtil.latitude2plain(node.getData().getLat());
-    return new Point.Double(x, y);
+    return new Point(x, y);
   }
 
   public enum BorderEdgesHandlingStrategy {
