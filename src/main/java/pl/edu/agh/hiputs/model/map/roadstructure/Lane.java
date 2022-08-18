@@ -12,11 +12,13 @@ import java.util.stream.StreamSupport;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
+@Slf4j
 @Builder
 @AllArgsConstructor
 public class Lane implements LaneEditable {
@@ -113,6 +115,9 @@ public class Lane implements LaneEditable {
 
   @Override
   public void addCarAtEntry(CarEditable car) {
+    if(!cars.isEmpty() && cars.peekFirst().getPositionOnLane() < car.getPositionOnLane()){
+      log.error("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane");
+    }
     cars.addFirst(car);
   }
 

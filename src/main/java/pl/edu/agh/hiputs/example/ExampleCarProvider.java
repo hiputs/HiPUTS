@@ -82,6 +82,10 @@ public class ExampleCarProvider {
 
   public Car generateCar(int hops) {
     LaneId startLaneId = getRandomStartLaneId();
+    return generateCar(startLaneId, hops);
+  }
+
+  public Car generateCar(LaneId startLaneId, int hops) {
     double position = ThreadLocalRandom.current().nextDouble(0, mapFragment.getLaneReadable(startLaneId).getLength());
     return this.generateCar(position, startLaneId, hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
   }
