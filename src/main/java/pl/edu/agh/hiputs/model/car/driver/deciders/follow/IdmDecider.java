@@ -21,7 +21,7 @@ public class IdmDecider implements FunctionalDecider {
       CarEnvironment environment, RoadStructureReader roadStructureReader) {    //Unpack environment and call IDM calculation
     double speed = managedCar.getSpeed();
     double desiredSpeed = managedCar.getMaxSpeed();
-    double distance = Math.max(0.0, environment.getDistance());
+    double distance = environment.getDistance();
     double deltaSpeed =
         environment.getPrecedingCar().map(precedingCar -> managedCar.getSpeed() - precedingCar.getSpeed()).orElse(0.0);
     return followingModel.calculateAcceleration(speed, desiredSpeed, distance, deltaSpeed);
