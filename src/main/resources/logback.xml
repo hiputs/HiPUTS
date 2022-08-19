@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <withJansi>true</withJansi>
+    <encoder>
+      <pattern>[%date] %highlight(%-5level) [%logger{10}] %msg%n</pattern>
+      <!--             ^^^^^^^^^^ -->
+    </encoder>
+  </appender>
+
+  <!-- Insert the current time formatted as "yyyyMMdd'T'HHmmss" under
+       the key "bySecond" into the logger context. This value will be
+       available to all subsequent configuration elements. -->
+  <timestamp key="bySecond" datePattern="yyyy-MM-dd'T'HH-mm-ss"/>
+
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <!-- use the previously created timestamp to create a uniquely
+         named log file -->
+    <file>logs/log-${bySecond}.txt</file>
+    <encoder>
+      <pattern>[%date] %-5level %logger{35} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+
+  <root level="info">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+  </root>
+
+  <!--
+  To log any package on another level use <logger> bellow
+  -->
+  <!--
+  <logger name="pl.edu.agh.hiputs.example" level="debug" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  -->
+
+</configuration>
