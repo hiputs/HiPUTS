@@ -31,6 +31,7 @@ public class LaneDecisionStageTask implements Runnable {
     if (destinationLaneId != null && !laneId.equals(destinationLaneId)) {
       LaneEditable destinationLane = mapFragment.getLaneEditable(destinationLaneId);
       destinationLane.addIncomingCar(car);
+      log.debug("Car: " + car.getCarId() + " addToIncomingCarsOfDestinationLane: " + destinationLaneId);
     }
   }
 }
