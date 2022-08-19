@@ -26,7 +26,6 @@
 
   <root level="info">
     <appender-ref ref="CONSOLE"/>
-    <appender-ref ref="FILE"/>
   </root>
 
   <!--
@@ -34,7 +33,7 @@
   -->
   <!--
   <logger name="pl.edu.agh.hiputs.example" level="debug" additivity="false">
-    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
   </logger>
   -->
 
