@@ -62,6 +62,8 @@ public class Graph<T extends NodeData, S extends EdgeData> {
     public Edge<T,S> removeEdgeById(String edgeId) {
       Edge<T, S> edgeToBeRemoved = this.edges.get(edgeId);
       //todo checks for safety of this operation
+      edgeToBeRemoved.getSource().getOutgoingEdges().remove(edgeToBeRemoved);
+      edgeToBeRemoved.getTarget().getIncomingEdges().remove(edgeToBeRemoved);
       edges.remove(edgeId);
       return edgeToBeRemoved;
     }
@@ -113,6 +115,11 @@ public class Graph<T extends NodeData, S extends EdgeData> {
       }
 
       public GraphBuilder<T, S> addEdge(Edge<T, S> edge) {
+        //todo remove that check - multiple roads connecting same nodes should be handled in simulation
+        if (graph.getEdges().containsKey(edge.getId())) {
+          return this;
+        }
+
         Optional.ofNullable(graph.nodes.get(edge.getSource().getId()))
             .ifPresent(source -> {
               source.mergeDataOnly(edge.getSource());

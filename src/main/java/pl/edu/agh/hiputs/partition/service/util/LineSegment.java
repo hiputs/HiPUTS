@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public class LineSegment {
 
-  public Line2D line;
+  private final Line2D line;
 
   public LineSegment(Point p1, Point p2) {
     this.line = new Double(p1.getX(), p1.getY(), p2.getX(), p2.getY());
@@ -31,6 +31,9 @@ public class LineSegment {
   }
 
   public Optional<Point> intersectionPointWith(LineSegment lineSegment) {
+    if(!this.line.intersectsLine(lineSegment.line)) {
+      return Optional.empty();
+    }
     return this.intersectionPointWith(lineSegment.getStandardEquationLine());
   }
 

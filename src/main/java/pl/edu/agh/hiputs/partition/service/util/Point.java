@@ -18,4 +18,12 @@ public class Point {
     return point.getY();
   }
 
+  public Point translate(double vx, double vy) {
+    return new Point(point.getX() + vx, point.getY() + vy);
+  }
+
+  public double distanceTo(Point other) {
+    return point.distance(other.point);
+  }
+
 }

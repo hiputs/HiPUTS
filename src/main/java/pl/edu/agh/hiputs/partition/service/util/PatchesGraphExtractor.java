@@ -1,11 +1,15 @@
 package pl.edu.agh.hiputs.partition.service.util;
 
+import de.topobyte.osm4j.core.model.impl.Way;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -21,7 +25,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 public class PatchesGraphExtractor {
 
   public Graph<PatchData, PatchConnectionData> createFrom(Graph<JunctionData, WayData> inputGraph) {
-    checkPreconditions(inputGraph);
+    GraphPreconditionsChecker.checkPreconditions(inputGraph);
 
     Map<String, Graph.GraphBuilder<JunctionData, WayData>> builders = new HashMap<>();
 
@@ -84,43 +88,92 @@ public class PatchesGraphExtractor {
     return patchesGraphBuilder.build();
   }
 
-  private void checkPreconditions(Graph<JunctionData, WayData> inputGraph) {
-    Set<Node<JunctionData, WayData>> unassignedNodes = inputGraph.getNodes()
-        .values()
-        .stream()
-        .filter(node -> node.getData().getPatchId() == null)
-        .collect(Collectors.toSet());
+  public class GraphPreconditionsChecker {
 
-    Set<Edge<JunctionData, WayData>> unassignedEdges = inputGraph.getEdges()
-        .values()
-        .stream()
-        .filter(edge -> edge.getData().getPatchId() == null)
-        .collect(Collectors.toSet());
+    // private static Graph<JunctionData, WayData> inputGraph;
 
-    String unassignedNodesString = unassignedNodes.stream().map(Node::getId).collect(Collectors.joining(" "));
-    String unassignedEdgesString = unassignedEdges.stream().map(Edge::getId).collect(Collectors.joining(" "));
-
-    log.info(String.format("Node cover by colouring into patches = %f (%d/%d)",
-        (double)(inputGraph.getNodes().size() - unassignedNodes.size())/inputGraph.getNodes().size(),
-        inputGraph.getNodes().size() - unassignedNodes.size(),
-        inputGraph.getNodes().size()));
-    log.info(String.format("Edge cover by colouring into patches = %f (%d/%d)",
-        (double)(inputGraph.getEdges().size() - unassignedEdges.size())/inputGraph.getEdges().size(),
-        inputGraph.getEdges().size() - unassignedEdges.size(),
-        inputGraph.getEdges().size()));
-
-    if (unassignedNodes.size() > 0 && unassignedEdges.size() > 0) {
-      throw new IllegalStateException(
-          String.format("Unassigned nodes and edges detected. Cannot extract patches graph.\n Nodes: %s \n Edges: %s", unassignedNodesString, unassignedEdgesString));
+    public static void checkPreconditions(Graph<JunctionData, WayData> inputGraph) {
+      allNodesInGraphHaveAssignedPatchId(inputGraph);
+      allEdgesInGraphHaveAssignedPatchId(inputGraph);
+      setOfEdgesConnectedToNodesIsEqualToEdgesSetFromGraph(inputGraph);
+      setOfNodesConnectedToEdgesIsEqualToNodesSetFromGraph(inputGraph);
+      inGraphThereIsNoSingleNodePatches(inputGraph);
     }
 
-    if (unassignedNodes.size() > 0) {
-      throw new IllegalStateException(String.format("Unassigned nodes detected. Cannot extract patches graph.\n Nodes: %s", unassignedNodesString));
+    private static void allNodesInGraphHaveAssignedPatchId(Graph<JunctionData, WayData> inputGraph) {
+      Set<Node<JunctionData, WayData>> unassignedNodes = inputGraph.getNodes()
+          .values()
+          .stream()
+          .filter(node -> node.getData().getPatchId() == null)
+          .collect(Collectors.toSet());
+
+      String unassignedNodesString = unassignedNodes.stream().map(Node::getId).collect(Collectors.joining(" "));
+
+      if (unassignedNodes.size() > 0) {
+        throw new IllegalStateException(String.format("Unassigned nodes detected. Cannot extract patches graph.\n Nodes: %s", unassignedNodesString));
+      }
     }
 
-    if (unassignedEdges.size() > 0) {
+    private static void allEdgesInGraphHaveAssignedPatchId(Graph<JunctionData, WayData> inputGraph) {
+      Set<Edge<JunctionData, WayData>> unassignedEdges = inputGraph.getEdges()
+          .values()
+          .stream()
+          .filter(edge -> edge.getData().getPatchId() == null)
+          .collect(Collectors.toSet());
+
+      String unassignedEdgesString = unassignedEdges.stream().map(Edge::getId).collect(Collectors.joining(" "));
+
+      if (unassignedEdges.size() > 0) {
+        throw new IllegalStateException(
+            String.format("Unassigned edges detected. Cannot extract patches graph.\n Edges: %s", unassignedEdgesString));
+      }
+    }
+  }
+
+  private static void setOfEdgesConnectedToNodesIsEqualToEdgesSetFromGraph(Graph<JunctionData, WayData> inputGraph) {
+    Set<Edge<JunctionData, WayData>> edgesConnectedToNodes = inputGraph.getNodes().values()
+        .stream()
+        .flatMap(node -> Stream.concat(node.getIncomingEdges().stream(), node.getOutgoingEdges().stream()))
+        .collect(Collectors.toSet());
+
+    Set<Edge<JunctionData, WayData>> edgesFromGraph = new HashSet<>(inputGraph.getEdges().values());
+
+    if (!edgesConnectedToNodes.equals(edgesFromGraph)) {
       throw new IllegalStateException(
-          String.format("Unassigned edges detected. Cannot extract patches graph.\n Edges: %s", unassignedEdgesString));
+          String.format("Edges set in graph is not equal to edges connected to nodes of this graph. Edges in graph = %d, edges connected to nodes of this graph = %d ", edgesFromGraph.size(), edgesConnectedToNodes.size()));
+    }
+  }
+
+
+  private static void setOfNodesConnectedToEdgesIsEqualToNodesSetFromGraph(Graph<JunctionData, WayData> inputGraph) {
+    Set<Node<JunctionData, WayData>> nodesConnectedToEdges = inputGraph.getEdges().values()
+        .stream()
+        .flatMap(edge -> Stream.of(edge.getSource(), edge.getTarget()))
+        .collect(Collectors.toSet());
+
+    Set<Node<JunctionData, WayData>> nodesFromGraph = new HashSet<>(inputGraph.getNodes().values());
+
+    if(!nodesConnectedToEdges.equals(nodesFromGraph)) {
+      throw new IllegalStateException(
+          String.format("Nodes set in graph is not equal to nodes connected to edges of this graph. Nodes in graph = %d, nodes connected to nodes of this graph = %d ", nodesFromGraph.size(), nodesConnectedToEdges.size()));
+    }
+  }
+
+  private static void inGraphThereIsNoSingleNodePatches(Graph<JunctionData, WayData> inputGraph) {
+    Set<String> patchesFromNodes = inputGraph.getNodes().values()
+        .stream()
+        .map(node -> node.getData().getPatchId())
+        .collect(Collectors.toSet());
+
+    Set<String> patchesFromEdges = inputGraph.getEdges().values()
+        .stream()
+        .map(edge -> edge.getData().getPatchId())
+        .collect(Collectors.toSet());
+
+    if(!patchesFromNodes.equals(patchesFromEdges)) {
+      throw new IllegalStateException(String.format(
+          "Set of nodes patches ids is no equal to set of edgesPatchesIds. Patches ids from nodes = %d, patches ids "
+              + "from edges = %d", patchesFromNodes.size(), patchesFromEdges.size()));
     }
   }
 

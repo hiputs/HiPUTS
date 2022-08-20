@@ -1,8 +1,11 @@
 package pl.edu.agh.hiputs.partition.service.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -17,9 +20,70 @@ public class HexagonGrid {
     return getHexagonCoordinateOnRelativeCoords(x - originX, y - originY);
   }
 
+  public HexagonCoordinate getNeighbourHexagonCoordinate(HexagonCoordinate current, HexagonLineSegmentOrientation neighbourOrientation) {
+    switch (neighbourOrientation) {
+      case UP_LEFT -> {
+        return new HexagonCoordinate(current.getXHex() - 1, current.getYHex() + current.getXHex() % 2);
+      }
+      case UP -> {
+        return new HexagonCoordinate(current.getXHex(), current.getYHex() + 1);
+      }
+      case UP_RIGHT -> {
+        return new HexagonCoordinate(current.getXHex() + 1, current.getYHex() + current.getXHex() % 2);
+      }
+      case DOW_RIGHT -> {
+        return new HexagonCoordinate(current.getXHex() + 1, current.getYHex() + current.getXHex() % 2 - 1);
+      }
+      case DOWN -> {
+        return new HexagonCoordinate(current.getXHex(), current.getYHex() - 1);
+      }
+      case DOWN_LEFT -> {
+        return new HexagonCoordinate(current.getXHex() - 1, current.getYHex() + current.getXHex() % 2 - 1);
+      }
+    }
+    return null;
+  }
+
   public StandardEquationLine getLineBetween(HexagonCoordinate c1, HexagonCoordinate c2) {
     StandardEquationLine line = getLineBetweenRelativeCoords(c1, c2);
     return line == null ? null : new StandardEquationLine(line.getA(), line.getB(), line.getC() + originY - line.getA()*originX);
+  }
+
+  public boolean areNeighbours(HexagonCoordinate c1, HexagonCoordinate c2) {
+    int x = c1.getXHex();
+    int y = c1.getYHex();
+    List<HexagonCoordinate> c1Neighbours = List.of(
+        new HexagonCoordinate(x - 1, y + x % 2),
+        new HexagonCoordinate(x - 1, y + x % 2 - 1),
+        new HexagonCoordinate(x, y + 1),
+        new HexagonCoordinate(x, y - 1),
+        new HexagonCoordinate(x + 1, y + x % 2),
+        new HexagonCoordinate(x + 1, y + x % 2 - 1)
+    );
+    return c1Neighbours.contains(c2);
+  }
+
+  public List<HexagonLineSegment> getLineSegmentsOfHexagon(HexagonCoordinate c) {
+    List<Point> sortedHexagonPointsByCentralAngle = List.of(
+        getCentralPointOfHexagon(c).translate(-a, 0),
+        getCentralPointOfHexagon(c).translate(-a/2, a*ROOT_THREE/2),
+        getCentralPointOfHexagon(c).translate(a/2, a*ROOT_THREE/2),
+        getCentralPointOfHexagon(c).translate(a, 0),
+        getCentralPointOfHexagon(c).translate(a/2, -a*ROOT_THREE/2),
+        getCentralPointOfHexagon(c).translate(-a/2, -a*ROOT_THREE/2),
+        getCentralPointOfHexagon(c).translate(-a, 0)
+        );
+
+    List<HexagonLineSegment> lineSegments = new LinkedList<>();
+    for(int i=0; i<6; i++) {
+      lineSegments.add(new HexagonLineSegment(sortedHexagonPointsByCentralAngle.get(i), sortedHexagonPointsByCentralAngle.get(i+1), HexagonLineSegmentOrientation.valueOf(i)));
+    }
+
+    return lineSegments;
+  }
+
+  private Point getCentralPointOfHexagon(HexagonCoordinate c) {
+    return new Point(originX + c.getXHex()*3*a/2, originY + c.getYHex()*a*ROOT_THREE + c.getXHex()%2*a*ROOT_THREE/2);
   }
 
   private StandardEquationLine getLineBetweenRelativeCoords(HexagonCoordinate c1, HexagonCoordinate c2) {
@@ -114,5 +178,35 @@ public class HexagonGrid {
       i++;
     }
     return result;
+  }
+
+  @Getter
+  public static class HexagonLineSegment extends LineSegment {
+
+    private final HexagonLineSegmentOrientation orientation;
+
+    public HexagonLineSegment(Point p1, Point p2, HexagonLineSegmentOrientation orientation) {
+      super(p1, p2);
+      this.orientation = orientation;
+    }
+  }
+
+  public enum HexagonLineSegmentOrientation {
+    UP_LEFT(0),
+    UP(1),
+    UP_RIGHT(2),
+    DOW_RIGHT(3),
+    DOWN(4),
+    DOWN_LEFT(5);
+
+    private final int i;
+    HexagonLineSegmentOrientation(int i) {
+      this.i = i;
+    }
+
+    public static HexagonLineSegmentOrientation valueOf(int val) {
+      return Arrays.stream(HexagonLineSegmentOrientation.values())
+          .filter(e -> e.i == val).findAny().orElseThrow();
+    }
   }
 }
