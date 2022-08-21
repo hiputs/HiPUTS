@@ -23,6 +23,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
 
   private static final String SEPARATOR = ",";
   private static final String WORKER_COSTS_CSV = "workerCost.csv";
+  private static final String WORKER_WAITING_TIME_CSV = "workerWaitingTime.csv";
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
   private final List<FinishSimulationStatisticMessage> repository = new ArrayList<>();
@@ -38,13 +39,28 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     createCSVWaitingTimeByWorker();
   }
 
-  private void createCSVTotalCostByWorker() {
+  private void createCSVWaitingTimeByWorker() {
     List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
 
     repository.forEach(repo -> {
       final int[] i = {1};
       repo.getBalancingCostRepository().forEach(info -> {
         lines.get(i[0]).append(info.getTotalCost());
+        lines.get(i[0]).append(SEPARATOR);
+        i[0]++;
+      });
+    });
+
+    save(lines, WORKER_WAITING_TIME_CSV);
+  }
+
+  private void createCSVTotalCostByWorker() {
+    List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
+
+    repository.forEach(repo -> {
+      final int[] i = {1};
+      repo.getBalancingCostRepository().forEach(info -> {
+        lines.get(i[0]).append(info.getWaitingTime());
         lines.get(i[0]).append(SEPARATOR);
         i[0]++;
       });
@@ -73,6 +89,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
       lines.stream()
           .map(StringBuffer::toString)
           .forEach(pw::println);
+      pw.close();
     } catch (Exception e) {
         log.error("Error until save csv file {}", filename, e);
     }

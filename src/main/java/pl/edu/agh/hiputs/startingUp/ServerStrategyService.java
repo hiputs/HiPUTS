@@ -21,6 +21,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ExitCodeGenerator;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
@@ -105,8 +109,11 @@ public class ServerStrategyService implements Strategy {
 
     if (configurationService.getConfiguration().isStatisticModeActive()) {
       workerSynchronisationService.waitForAllWorkers(FinishSimulationStatisticMessage);
+      log.info("Start generating summary");
       generateReport();
     }
+
+    shutDown();
   }
 
   private void calculateAndDistributeConfiguration(Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents) {
@@ -213,6 +220,13 @@ public class ServerStrategyService implements Strategy {
     if (!deploymentPackagePath.toFile().mkdir()) {
       throw new RuntimeException(String.format("Directory with path %s cannot be created", deploymentPackagePath));
     }
+  }
+
+  @Autowired
+  private ApplicationContext context;
+  private void shutDown() {
+    int exitCode = SpringApplication.exit(context, (ExitCodeGenerator) () -> 0);
+    System.exit(exitCode);
   }
 
   private class PrepareWorkerTask implements Runnable {

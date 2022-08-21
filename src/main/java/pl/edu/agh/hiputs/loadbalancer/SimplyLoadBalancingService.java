@@ -58,24 +58,34 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   @Override
   public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler) {
     LoadBalancingDecision loadBalancingDecision = new LoadBalancingDecision();
+    loadBalancingDecision.setAge(age);
 
     LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
-    ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
     double myCost = calculateCost(info);
 
     simulationStatisticService.saveLoadBalancingCost(info.getTimeCost(), info.getCarCost(), myCost, age, info.getWaitingTime());
-
-    boolean shouldBalancing = myCost > candidate.getRight() * ALLOW_LOAD_IMBALANCE;
     age++;
-    loadBalancingDecision.setLoadBalancingRecommended(shouldBalancing);
 
-    if (!shouldBalancing) {
-      return loadBalancingDecision;
+    if(age<5){
+      loadBalancingDecision.setLoadBalancingRecommended(false);
     }
 
-    loadBalancingDecision.setSelectedNeighbour(candidate.getLeft());
-    loadBalancingDecision.setCarImbalanceRate(info.getCarCost() - loadRepository.get(candidate.getLeft()).getCarCost());
+    try {
+      ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
+      boolean shouldBalancing = myCost > candidate.getRight() * ALLOW_LOAD_IMBALANCE;
 
+      loadBalancingDecision.setLoadBalancingRecommended(shouldBalancing);
+
+      if (!shouldBalancing) {
+        return loadBalancingDecision;
+      }
+
+      loadBalancingDecision.setSelectedNeighbour(candidate.getLeft());
+      loadBalancingDecision.setCarImbalanceRate(info.getCarCost() - loadRepository.get(candidate.getLeft()).getCarCost());
+    }catch(Exception e){
+      log.error("Could not make decision", e);
+      loadBalancingDecision.setLoadBalancingRecommended(false);
+    }
     return loadBalancingDecision;
   }
 
@@ -86,7 +96,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
         .filter(this::hasActualCostInfo)
         .map(id -> new ImmutablePair<MapFragmentId, Double>(id, calculateCost(id)))
         .min(Comparator.comparingDouble(ImmutablePair::getRight))
-        .get();
+        .orElse(null);
   }
 
   private double calculateCost(MapFragmentId id) {

@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.RouteElement;
@@ -14,6 +15,7 @@ import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
+@Slf4j
 @Getter
 @Builder
 @AllArgsConstructor
@@ -62,7 +64,7 @@ public class SerializedCar implements CustomSerializable<Car> {
   /**
    * Serialized decision
    */
-  private final SerializedDecision decision;
+  private SerializedDecision decision;
 
   public SerializedCar(CarEditable realObject) {
     carId = realObject.getCarId().getValue();
@@ -79,7 +81,11 @@ public class SerializedCar implements CustomSerializable<Car> {
         .map(routeElement -> new SerializedRouteElement(routeElement.getJunctionId().getValue(),
             routeElement.getOutgoingLaneId().getValue(), routeElement.getJunctionId().getJunctionType().name()))
         .collect(Collectors.toList());
-    decision = new SerializedDecision(realObject.getDecision());
+    try {
+      decision = new SerializedDecision(realObject.getDecision());
+    } catch (Exception e) {
+      log.error("NLP TMP FIXES !!!!", e);
+    }
   }
 
   @Override

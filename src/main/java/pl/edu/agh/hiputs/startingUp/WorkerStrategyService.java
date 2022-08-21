@@ -15,6 +15,10 @@ import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ExitCodeGenerator;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.messages.CompletedInitializationMessage;
@@ -33,6 +37,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
+import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
@@ -51,6 +56,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final MessageReceiverService messageReceiverService;
   private Configuration configuration;
   private final MapFragmentCreator mapFragmentCreator;
+  private final SimulationStatisticService simulationStatisticService;
 
   private final ExecutorService simulationExecutor = newSingleThreadExecutor();
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
@@ -128,7 +134,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   }
 
   private void createCars() {
-    final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
+    final ExampleCarProvider exampleCarProvider =
+        new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
       List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
           .mapToObj(x -> exampleCarProvider.generateCar(10))
@@ -153,6 +160,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       long n = configuration.getSimulationStep();
       monitorLocalService.init(mapFragmentExecutor.getMapFragment());
       for (i = 0; i < n; i++) {
+        log.info("Start iteration no. {}/{}", i+1, n);
         mapFragmentExecutor.run();
 
         if (configuration.isEnableGUI()) {
@@ -166,6 +174,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       try {
         log.info("Worker finish simulation");
         messageSenderService.sendServerMessage(new FinishSimulationMessage(mapFragmentId.getId()));
+        simulationStatisticService.sendStatistic(mapFragmentId);
       } catch (IOException e) {
         log.error("Error with send finish simulation message", e);
       }

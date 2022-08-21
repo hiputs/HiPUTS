@@ -76,7 +76,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
         .toList();
 
     ImmutablePair<PatchBalancingInfo, Double> selectedCandidate =
-        findFirstCandidateNotLossGraphCoherence(orderCandidates, transferDataHandler);
+        findFirstCandidateNotLossGraphCoherence(orderCandidates, transferDataHandler, recipient);
 
     log.info("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(),
         selectedCandidate.getRight());
@@ -85,11 +85,12 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
   }
 
   private ImmutablePair<PatchBalancingInfo, Double> findFirstCandidateNotLossGraphCoherence(
-      List<ImmutablePair<PatchBalancingInfo, Double>> orderCandidates, TransferDataHandler transferDataHandler) {
+      List<ImmutablePair<PatchBalancingInfo, Double>> orderCandidates, TransferDataHandler transferDataHandler,
+      MapFragmentId targetMapFragmentId) {
 
     int attempt = 0;
     for (final ImmutablePair<PatchBalancingInfo, Double> orderCandidate : orderCandidates) {
-      if (isCoherency(transferDataHandler, orderCandidate.getLeft().getPatchId())) {
+      if (isCoherency(transferDataHandler, orderCandidate.getLeft().getPatchId(), targetMapFragmentId)) {
         return orderCandidate;
       }
 

@@ -66,7 +66,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         .map(Pair::getRight)
         .distinct()
         .map(MapFragmentId::new)
-        .filter(mapFragmentId -> !receiver.equals(mapFragmentId))
+        .filter(mapFragmentId -> !receiver.equals(mapFragmentId) && !transferDataHandler.getMe().equals(mapFragmentId))
         .map(mapFragmentId -> messageSenderService.getConnectionDtoMap().get(mapFragmentId))
         .toList();
 
@@ -107,7 +107,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
       PatchTransferMessage message = receivedPatch.remove();
       List<ImmutablePair<PatchId, MapFragmentId>> pairs = message.getPatchIdWithMapFragmentId()
           .stream()
-          .map(pair -> new ImmutablePair<>(new PatchId(pair.getValue()), new MapFragmentId(pair.getKey())))
+          .map(pair -> new ImmutablePair<>(new PatchId(pair.getLeft()), new MapFragmentId(pair.getRight())))
           .toList();
 
       transferDataHandler.migratePatchToMe(new PatchId(message.getPatchId()),
@@ -124,10 +124,13 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     while (!patchMigrationNotification.isEmpty()) {
       PatchTransferNotificationMessage message = patchMigrationNotification.remove();
 
-      transferDataHandler.migratePatchBetweenNeighbour(
-          new PatchId(message.getTransferPatchId()),
-          new MapFragmentId(message.getReceiverId()),
-          new MapFragmentId(message.getSenderId()));
+      if (message.getReceiverId().equals(transferDataHandler.getMe().getId()) ||
+          message.getSenderId().equals(transferDataHandler.getMe().getId())) {
+        continue;
+      }
+
+      transferDataHandler.migratePatchBetweenNeighbour(new PatchId(message.getTransferPatchId()),
+          new MapFragmentId(message.getReceiverId()), new MapFragmentId(message.getSenderId()));
     }
   }
 

@@ -29,8 +29,7 @@ public class GraphCoherencyUtil {
    *
    * 3. Check, all border patches are marked as visited
    */
-  public static boolean isCoherency(TransferDataHandler transferDataHandler, PatchId removedPatchId) {
-    MapFragmentId borderParticipant = transferDataHandler.getMapFragmentIdByPatchId(removedPatchId);
+  public static boolean isCoherency(TransferDataHandler transferDataHandler, PatchId removedPatchId, MapFragmentId borderParticipant) {
 
     //1.
     Patch godPatch = createGodPatch(transferDataHandler, borderParticipant, removedPatchId);
@@ -51,7 +50,12 @@ public class GraphCoherencyUtil {
         continue;
       }
 
-      Patch patch = neighbouringPatchesRepository.get(patchId);
+     Patch patch = neighbouringPatchesRepository.get(patchId);
+
+      if(patch == null){
+        continue;
+      }
+
       visitedPatchId.add(patch.getPatchId());
 
       waitingForProcessed.addAll(patch.getNeighboringPatches()

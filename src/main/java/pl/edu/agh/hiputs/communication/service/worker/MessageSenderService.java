@@ -110,7 +110,7 @@ public class MessageSenderService implements Subscriber {
     PatchTransferMessage workerConnectionMessage = (PatchTransferMessage) message;
     workerConnectionMessage.getNeighbourConnectionMessage()
         .forEach(c -> {
-          if(neighbourRepository.containsKey(new MapFragmentId(c.getId()))){
+          if(c == null || neighbourRepository.containsKey(new MapFragmentId(c.getId()))){
             return;
           }
           Connection connection = new Connection(c);

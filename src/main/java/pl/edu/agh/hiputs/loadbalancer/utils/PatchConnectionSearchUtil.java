@@ -22,11 +22,12 @@ public class PatchConnectionSearchUtil {
 
     return patch.getNeighboringPatches()
         .stream()
+        .filter(id -> !transferDataHandler.isLocalPatch(id))
         .map(transferDataHandler::getPatchById)
         .filter(shadowPatch ->
-            shadowPatch.getNeighboringPatches()
+            shadowPatch != null && shadowPatch.getNeighboringPatches()
                 .stream()
-                .anyMatch(id -> !transferDataHandler.isLocalPatch(id)))
+                .noneMatch(transferDataHandler::isLocalPatch))
         .map(Patch::getPatchId)
         .toList();
   }
