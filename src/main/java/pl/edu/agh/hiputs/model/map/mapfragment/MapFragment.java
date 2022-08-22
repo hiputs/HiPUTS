@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil;
@@ -41,6 +42,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
  *     <li>border Patches - having some shadow Patches as their neighbors; subset of local Patches.</li>
  * </ul>
  */
+@Slf4j
 @AllArgsConstructor
 public class MapFragment implements TransferDataHandler, RoadStructureReader, RoadStructureEditor {
 
@@ -224,6 +226,8 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     // add to local patches
     localPatchIds.add(patch.getPatchId());
 
+    log.info("migrate to local patch {}", patchId.getValue());
+
     // remove patches from border that have become internal after migration
     List<PatchId> incomePatch = patch.getNeighboringPatches()
         .stream()
@@ -239,17 +243,16 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     //add shadow patches - patch should be added to shadow patches
 
-    List<ImmutablePair<PatchId, MapFragmentId>> shadowPatchesToAdd = neighbourPatchIdsWithMapFragmentId.stream()
-        .filter(p -> !p.getRight().equals(mapFragmentId))
-        .toList();
+    List<ImmutablePair<PatchId, MapFragmentId>> shadowPatchesToAdd =
+        neighbourPatchIdsWithMapFragmentId.stream().filter(p -> !p.getRight().equals(mapFragmentId)).toList();
 
     shadowPatchesToAdd.forEach(p -> {
       Patch addedPatch = mapRepository.getPatch(p.getLeft());
       knownPatches.put(addedPatch.getPatchId(), addedPatch);
 
-      addedPatch.getLaneIds().forEach(laneId -> laneIdToPatchId.put(laneId, patchId));
+      addedPatch.getLaneIds().forEach(laneId -> laneIdToPatchId.put(laneId, addedPatch.getPatchId()));
 
-      addedPatch.getJunctionIds().forEach(junctionId -> junctionIdToPatchId.put(junctionId, patchId));
+      addedPatch.getJunctionIds().forEach(junctionId -> junctionIdToPatchId.put(junctionId, addedPatch.getPatchId()));
     });
 
     shadowPatchesToAdd.forEach(pair -> {

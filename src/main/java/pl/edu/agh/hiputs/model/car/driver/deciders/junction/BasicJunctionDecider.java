@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.model.car.driver.deciders.junction;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspectorImpl;
@@ -14,6 +15,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 
+@Slf4j
 public class BasicJunctionDecider implements FunctionalDecider {
 
   private final CarProspector prospector = new CarProspectorImpl();
