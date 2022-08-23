@@ -15,7 +15,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.partition.service.bfs.BFSWithRange;
 import pl.edu.agh.hiputs.partition.service.bfs.BFSWithRangeResult;
-import pl.edu.agh.hiputs.partition.service.bfs.TimeDistance;
+import pl.edu.agh.hiputs.partition.service.bfs.EuclideanDistance;
 
 
 @Slf4j
@@ -24,7 +24,7 @@ public class PatchCorrectnessChecker {
   private final BFSWithRange<JunctionData, WayData> bfsWithRange;
 
   public PatchCorrectnessChecker(double carViewRange) {
-    bfsWithRange = new BFSWithRange<>(carViewRange, new TimeDistance());
+    bfsWithRange = new BFSWithRange<>(carViewRange, new EuclideanDistance());
   }
 
   public boolean testAllPatches(

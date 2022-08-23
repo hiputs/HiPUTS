@@ -11,6 +11,9 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import pl.edu.agh.hiputs.partition.model.geom.HexagonCoordinate;
+import pl.edu.agh.hiputs.partition.model.geom.HexagonGrid;
+import pl.edu.agh.hiputs.partition.model.geom.StandardEquationLine;
 
 public class HexagonGridTest {
 

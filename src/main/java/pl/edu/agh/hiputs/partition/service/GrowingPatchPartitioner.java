@@ -1,19 +1,14 @@
 package pl.edu.agh.hiputs.partition.service;
 
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
@@ -30,8 +25,6 @@ import pl.edu.agh.hiputs.partition.service.util.PatchesGraphExtractor;
 @Slf4j
 @Service
 public class GrowingPatchPartitioner implements PatchPartitioner {
-
-  private final Map<String, Node<PatchData, PatchConnectionData>> patchId2patch = new HashMap<>();
 
   private final BFSWithRange<JunctionData, WayData> bfsWithRange = new BFSWithRange<>(50.0, new TimeDistance());
 
@@ -51,7 +44,6 @@ public class GrowingPatchPartitioner implements PatchPartitioner {
 
       BFSWithRangeResult<JunctionData, WayData> bfsResult = bfsWithRange.getInRange(graph, root);
 
-      // detakcja kolorów w przeglądanym obszarze (kolory z edgy powinny wystarczyć)
       List<String> colorsList = bfsResult.getEdgesInRange()
           .stream()
           .filter(e -> e.getData().getPatchId() != null)
@@ -64,17 +56,13 @@ public class GrowingPatchPartitioner implements PatchPartitioner {
       if(colorsSet.size() == 0) {
         currentPatchId = randomPatchId();
       }
-      // jeśli natopotkam w obszarze jeden inny kolor trzeba podjąć decyzje czy kolorować na znaleziony czy możę na nowy. Tymczasowo wybrana opcja druga (loklana optymalizacja)
+      // if one color is visible decide if color on new color or use visible one (currently for optimisation reasons)
       else if (colorsSet.size() == 1) {
         currentPatchId = randomPatchId();
-        // currentPatchId = colors.stream().findAny().get();
       }
 
-      // jeśli napotkam dwa kolory to wybieram "któryś" (tutaj może być bardziej złożony
+      // if there are two different colors, choose one
       else if (colorsSet.size() == 2) {
-        // List<String> colorsList = colors.stream().toList();
-        // currentPatchId = ThreadLocalRandom.current().nextBoolean() ? colorsList.get(0) : colorsList.get(1);
-
         currentPatchId = colorsList.get(0);
         root.getData().setPatchId(currentPatchId);
         root.getOutgoingEdges().forEach(e -> setPatchIdIfNotSet(e, currentPatchId));
@@ -90,13 +78,12 @@ public class GrowingPatchPartitioner implements PatchPartitioner {
         continue;
       }
 
-
-      //pokoloruj wszystkie krawędzie i wierzchołki z oglądanego obszaru + krawędzie wchodzące do kolorowanych wierzchołków
+      //color all edges and vertices from visible area + outgoing edges to colored vertices
       root.getData().setPatchId(currentPatchId);
       bfsResult.getEdgesInRange().forEach(e -> {
         setPatchIdIfNotSet(e, currentPatchId);
         setPatchIdIfNotSet(e.getTarget(), currentPatchId);
-        // e.getTarget().getIncomingEdges().forEach(f -> setPatchIdIfNotSet(f, currentPatchId));
+        e.getTarget().getIncomingEdges().forEach(f -> setPatchIdIfNotSet(f, currentPatchId));
       });
 
       front.addAll(bfsResult.getBorderNodes());
@@ -108,17 +95,15 @@ public class GrowingPatchPartitioner implements PatchPartitioner {
   }
 
   private List<Node<JunctionData, WayData>> getGraphSources(Graph<JunctionData, WayData> graph) {
-    // List<Node<JunctionData, WayData>> result =
-    //     graph.getNodes().values().stream().filter(n -> n.getIncomingEdges().size() == 0).toList();
-    // if (result.size() > 0) {
-    //   return result;
-    // }
+    List<Node<JunctionData, WayData>> result =
+        graph.getNodes().values().stream().filter(n -> n.getIncomingEdges().size() == 0).toList();
 
-    // return List.of(graph.getNodes()
-    //     .values().stream().toList().get(ThreadLocalRandom.current().nextInt(0, graph.getNodes().size())));
+    if (result.size() > 0) {
+      return result;
+    }
 
-    return List.of(graph.getNodes().values().stream().max(Comparator.comparing(n -> ((Node<JunctionData, WayData>)n).getData().getLat())).get());
-
+    return List.of(graph.getNodes()
+        .values().stream().toList().get(ThreadLocalRandom.current().nextInt(0, graph.getNodes().size())));
   }
 
   private void setPatchIdIfNotSet(Edge<JunctionData, WayData> edge, String patchId) {

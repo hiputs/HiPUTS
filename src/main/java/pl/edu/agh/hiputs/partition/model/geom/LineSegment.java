@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.service.util;
+package pl.edu.agh.hiputs.partition.model.geom;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Line2D.Double;

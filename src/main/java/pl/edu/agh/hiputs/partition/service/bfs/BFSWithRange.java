@@ -1,6 +1,5 @@
 package pl.edu.agh.hiputs.partition.service.bfs;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;

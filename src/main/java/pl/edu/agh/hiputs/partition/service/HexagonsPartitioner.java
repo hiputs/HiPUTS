@@ -23,16 +23,16 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
-import pl.edu.agh.hiputs.partition.service.util.GeomUtil;
-import pl.edu.agh.hiputs.partition.service.util.HexagonCoordinate;
-import pl.edu.agh.hiputs.partition.service.util.HexagonGrid;
-import pl.edu.agh.hiputs.partition.service.util.HexagonGrid.HexagonLineSegment;
-import pl.edu.agh.hiputs.partition.service.util.LineSegment;
+import pl.edu.agh.hiputs.partition.model.geom.GeomUtil;
+import pl.edu.agh.hiputs.partition.model.geom.HexagonCoordinate;
+import pl.edu.agh.hiputs.partition.model.geom.HexagonGrid;
+import pl.edu.agh.hiputs.partition.model.geom.HexagonGrid.HexagonLineSegment;
+import pl.edu.agh.hiputs.partition.model.geom.LineSegment;
 import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever;
 import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever.MapBoundaries;
 import pl.edu.agh.hiputs.partition.service.util.PatchesGraphExtractor;
-import pl.edu.agh.hiputs.partition.service.util.Point;
-import pl.edu.agh.hiputs.partition.service.util.StandardEquationLine;
+import pl.edu.agh.hiputs.partition.model.geom.Point;
+import pl.edu.agh.hiputs.partition.model.geom.StandardEquationLine;
 import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
 @Slf4j

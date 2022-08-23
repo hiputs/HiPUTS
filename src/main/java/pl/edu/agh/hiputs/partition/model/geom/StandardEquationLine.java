@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.service.util;
+package pl.edu.agh.hiputs.partition.model.geom;
 
 import java.util.Optional;
 import lombok.AllArgsConstructor;
