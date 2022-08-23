@@ -45,6 +45,13 @@ public class HexagonsPartitioner implements PatchPartitioner {
 
   @Override
   public Graph<PatchData, PatchConnectionData> partition(Graph<JunctionData, WayData> graph) {
+    colorGraph(graph);
+    Graph<PatchData, PatchConnectionData> patchesGraph = new PatchesGraphExtractor().createFrom(graph);
+    log.info("Partitioning into patches finished");
+    return patchesGraph;
+  }
+
+  void colorGraph(Graph<JunctionData, WayData> graph) {
     MapBoundaries mapBoundaries = retrieveMapBoundaries(graph);
 
     if (borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.hybrid)) {
@@ -58,7 +65,7 @@ public class HexagonsPartitioner implements PatchPartitioner {
       edgesToSplit.stream()
           .filter(e -> !(e.getData().getLength() == lastLength))
           .collect(Collectors.groupingBy(e -> Stream.of(e.getSource().getId(), e.getTarget().getId()).sorted().collect(
-          Collectors.joining("---"))))
+              Collectors.joining("---"))))
           .forEach((k,v) -> {
             Edge<JunctionData, WayData> e = v.get(0);
             double newLongitude = (e.getSource().getData().getLon() + e.getTarget().getData().getLon()) / 2;
@@ -68,7 +75,7 @@ public class HexagonsPartitioner implements PatchPartitioner {
     }
 
     if (borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.maxLaneLengthBuffer)
-    ||  borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.hybrid)) {
+        ||  borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.hybrid)) {
       double maxLaneLength = graph.getEdges().values().stream()
           .map(e -> e.getData().getLength()).max(java.lang.Double::compareTo)
           .orElse(0.0);
@@ -103,10 +110,6 @@ public class HexagonsPartitioner implements PatchPartitioner {
               Collectors.joining("---"))))
           .forEach((k,v)-> cutEdges(graph, v, hexagonGrid));
     }
-
-    Graph<PatchData, PatchConnectionData> patchesGraph = new PatchesGraphExtractor().createFrom(graph);
-    log.info("Partitioning into patches finished");
-    return patchesGraph;
   }
 
   private MapBoundaries retrieveMapBoundaries(Graph<JunctionData, WayData> graph) {
@@ -160,8 +163,8 @@ public class HexagonsPartitioner implements PatchPartitioner {
     edges.forEach(edge -> graph.removeEdgeById(edge.getId()));
 
     edges.forEach(edge -> {
-      Edge<JunctionData, WayData> edge1 = createChildEdge(e.getSource(), newNode, e, e.getSource().getData().getPatchId());
-      Edge<JunctionData, WayData> edge2 = createChildEdge(newNode, e.getTarget(), e, e.getTarget().getData().getPatchId());
+      Edge<JunctionData, WayData> edge1 = createChildEdge(edge.getSource(), newNode, edge, edge.getSource().getData().getPatchId());
+      Edge<JunctionData, WayData> edge2 = createChildEdge(newNode, edge.getTarget(), edge, edge.getTarget().getData().getPatchId());
 
       graph.addEdge(edge1);
       graph.addEdge(edge2);
@@ -187,12 +190,12 @@ public class HexagonsPartitioner implements PatchPartitioner {
       Edge<JunctionData, WayData> edge2;
 
       if (edge.getSource().equals(e.getSource())) {
-        edge1 = createChildEdge(e.getSource(), newNode, e, e.getSource().getData().getPatchId());
-        edge2 = createChildEdge(newNode, e.getTarget(), e, patchId);
+        edge1 = createChildEdge(edge.getSource(), newNode, edge, edge.getSource().getData().getPatchId());
+        edge2 = createChildEdge(newNode, edge.getTarget(), edge, patchId);
         remainingEdges.add(edge2);
       } else {
-        edge1 = createChildEdge(e.getSource(), newNode, e, patchId);
-        edge2 = createChildEdge(newNode, e.getTarget(), e, e.getTarget().getData().getPatchId());
+        edge1 = createChildEdge(edge.getSource(), newNode, edge, patchId);
+        edge2 = createChildEdge(newNode, edge.getTarget(), edge, edge.getTarget().getData().getPatchId());
         remainingEdges.add(edge1);
       }
 
