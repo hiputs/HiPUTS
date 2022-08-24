@@ -1,0 +1,174 @@
+Country,Region,Highway,Rural,Urban,SpeedUnit
+Albania,Rest of Europe,90-110,80,40,kph
+Algeria,Africa,120,80,50,kph
+Andorra,Rest of Europe,NA,90,50,kph
+Angola,Africa,120,100,60,kph
+Anguilla,Caribbean,N/A,30,20,MPH
+Antigua,Caribbean,n/a,40,20,mph
+Argentina,South America,120-130,110,40-60,kph
+Aruba,Caribbean,80,60,30,kph
+Australia,Oceania,100-130,100,50,kph
+Austria,Europe,130,100,50,kph
+Azerbaijan,Rest of Europe,110,90,60,kph
+Bahamas,Caribbean,n/a,80,32,kph
+Bahrain,Middle East,120,60,80-100,kph
+Bangladesh,South Asia,80,30,25,KPH
+Barbados,Caribbean,50,37,20,mph
+Belarus,Rest of Europe,120,90,60,kph
+Belgium,Europe,120,90,20-30,kph
+Belize,Central America,90,60,40,kph
+Bolivia,South America,80,70,50,kph
+Bonaire,Caribbean,n/a,60,40,kph
+Bosnia and Herzegovina,Rest of Europe,120,80,60,kph
+Botswana,Africa,120,60-100,30,kph
+Brazil,South America,80-110,60-80,30 - 60,kph
+Bulgaria,Europe,140,90,50,kph
+Cambodia,Southeast Asia,120,80,40,kph
+Cameroon,Africa,100,100,60,kph
+Canada,North America,100-120,80,50,kph
+Canary Islands,Europe,120,100,50,kph
+Cayman Islands,Caribbean,80,40,25-30,MPH
+Chile,South America,100-120,100,50,kph
+China,East Asia,80-120,100,40,kph
+Colombia,South America,100,80,60,kph
+Congo,Africa,110,110,69,kph
+Costa Rica,Central America,80-100,80,40-60,kph
+Croatia,Europe,110-130,80,50,kph
+Curacao,Caribbean,n/a,80,50,kph
+Cyprus,Europe,100,60-80,50,kph
+Czech Republic,Europe,130,90,50,kph
+Denmark,Europe,110-130,80,50,kph
+Dominica,Caribbean,80,50,50,kph
+Dominican Republic,Caribbean,120,80,40,kph
+Ecuador,South America,110,90,50,kph
+Egypt,Africa,100,90,50,kph
+El Salvador,Central America,90,90,50,kph
+Estonia,Europe,110,90,50,kph
+Faroe Islands,Europe,N/A,80,50,kph
+Fiji,Oceania,N/A,80,50,kph
+Finland,Europe,120,80 or 100,50,kph
+France,Europe,110-130,80,50,kph
+Gabon,Africa,110,110,60,kph
+Georgia,Europe,110,80,60,KPH
+Germany,Europe,130,100,50,kph
+Ghana,Africa,100,80,30-50,KPH
+Gibraltar,Europe,N/A,50,50,kph
+Greece,Europe,110-130,110,50,kph
+Greenland,North America,60,60,40,kph
+Grenada,Caribbean,N/A,N/A,N/A,kph
+Guadeloupe,Caribbean,110,80,50,kph
+Guam,Oceania,n/a,35,15-25,mph
+Guatemala,Central America,110,80,50,kph
+Guernsey,Rest of Europe,n/a,35,25,mph
+Haiti,Caribbean,NA,50,50,kph
+Holland,Europe,100,80,50,kph
+Honduras,Central America,80,80,40,kph
+Hong Kong,East Asia,80-110,70,50,kph
+Hungary,Europe,110-130,90,50,kph
+Ibiza,Europe,120,90,50,kph
+Ibiza,Europe,120,90,50,kph
+Iceland,Europe,90,80,50,kph
+India,South Asia,100-120,80,50,kph
+Indonesia,Southeast Asia,100,80,50,kph
+Ireland,Europe,120,100,50,kph
+Isle Of Man,Rest of Europe,N/A,N/A,N/A,mph
+Israel,Middle East,110,80-90,50,kph
+Italy,Europe,130,90,50,kph
+Jamaica,Caribbean,110,80,50,kph
+Japan,East Asia,100,80,30-50,kph
+Jersey,Rest of Europe,n/a,40,40,mph
+Jordan,Middle East,120,80,60,kph
+Kazakhstan,Asia,110,90,20-60,kph
+Kenya,Africa,110,110,50,kph
+Kosovo,Rest of Europe,130,80,50,kph
+Kuwait,Middle East,120,50-80,45,kph
+Lanzarote,Europe,120,90,50,kph
+Latvia,Europe,90-100,90,50,kph
+Lebanon,Middle East,n/a,100,50,kph
+Lesotho,Africa,100,80,50,kph
+Liechtenstein,Europe,120,80,50,kph
+Lithuania,Europe,110-130,90,50,kph
+Luxembourg,Europe,130,90,50,kph
+Macedonia,Rest of Europe,130,80,50,kph
+Madagascar,Africa,n/a,60-70,50,kph
+Malawi,Africa,120,80,60,kph
+Malaysia,Southeast Asia,110,90,60,kph
+Mali,Africa,100,100,40-60,kph
+Mallorca,Europe,120,80,50,kph
+Mallorca,Europe,120,90,50,kph
+Malta,Europe,n/a,60,50,kph
+Martinique,Caribbean,110,90,50,kph
+Mauritius,Africa,100,80,40,kph
+Mexico,North America,100-120,90,30-70,kph
+Moldova,Rest of Europe,110,80,50,kph
+Montenegro,Rest of Europe,100,80,50,kph
+Morocco,Africa,90-100,100,60,kph
+Mozambique,Africa,120,80,60,kph
+Namibia,Africa,120,80-120,60,kph
+Netherlands,Europe,100,80,50,kph
+New Caledonia,Oceania,110,50,30,kph
+New Zealand,Oceania,100-110,100,50,kph
+Nicaragua,Central America,100,60,45,kph
+Nigeria,Africa,120,80,40,kph
+Northern Ireland,Europe,70,60,30,mph
+Norway,Europe,90-100,80,50,kph
+Oman,Middle East,120,90,40-80,kph
+Pakistan,South Asia,120,50,80-100,kph
+Panama,Central America,n/a,80,50,kph
+Papua New Guinea,Oceania,75,75,60,kph
+Paraguay,South America,110,50,80,kph
+Peru,South America,100,90,50,kph
+Philippines,Southeast Asia,100,50,30,kph
+Poland,Europe,120-140,90,50,kph
+Portugal,Europe,120,90,50,kph
+Puerto Rico,Caribbean,55-65,45,25,mph
+Qatar,Middle East,120,100,60,kph
+Reunion,Caribbean,110,90,50,kph
+Romania,Europe,130,90,50,kph
+Russia,Rest of Europe,110,90-110,60,kph
+Saint Lucia,Caribbean,NA,80,50,kph
+Samoa,Oceania,55,55,40,kph
+Saudi Arabia,Middle East,120-125,80,45,kph
+Scotland,Europe,70,60,30,mph
+Senegal,Africa,n/a,90,50,kph
+Serbia,Rest of Europe,100-120,80,50,kph
+Seychelles,Africa,80,65,40,kph
+Sicily,Europe,110-130,90,50,kph
+Singapore,Southeast Asia,90,70,50,kph
+Slovakia,Europe,90-130,90,50,kph
+Slovenia,Europe,110-130,90,50,kph
+South Africa,Africa,120,100,60,kph
+South Korea,East Asia,80-120,80,60,kph
+Spain,Europe,120,90,50,kph
+Sri Lanka,South Asia,100,70,50,kph
+St Lucia,Caribbean,n/a,80,50,kph
+St Maarten,Caribbean,80,60,40,kph
+St Vincent and the Grenadines,Caribbean,n/a,Variable,32,kph
+Swaziland,Africa,120,80,60,kph
+Sweden,Europe,110-120,90,50,kph
+Switzerland,Europe,100-120,50,30,kph
+Syria,Middle East,100,100,40,kph
+Taiwan,East Asia,100-110,80,40,kph
+Tanzania,Africa,80,80,60,kph
+Tasmania,Australasia,110,100,50,kph
+Tenerife,Europe,120,100,50,kph
+Tenerife,Europe,120,90,50,kph
+Thailand,Southeast Asia,120,90,50,kph
+Togo,Africa,110,50,30,kph
+Trinidad and Tobago,Caribbean,110,80,55,kph
+Tunisia,Africa,110,90,50,kph
+Turkey,Rest of Europe,120,90,50,kph
+UAE,Middle East,100-140,120,80,kph
+Uganda,Africa,100,80,50,kph
+UK,Europe,70,60,30,mph
+England,Europe,70,60,30,mph
+Ukraine,Rest of Europe,110-130,90,50,kph
+Uruguay,South America,90-110,90,45,kph
+USA,North America,97-129,variable,variable,mph
+Vanuatu,Oceania,N/A,80,50,km/h
+Venezuela,South America,120,80,60,kph
+Vietnam,Southeast Asia,60-80,40-60,30-40,kph
+Wales,Europe,50-70,60,30,mph
+Yemen,Middle East,100,100,35,kph
+Zambia,Africa,100,100,50-60,kph
+Zimbabwe,Africa,120,120,60,kph
