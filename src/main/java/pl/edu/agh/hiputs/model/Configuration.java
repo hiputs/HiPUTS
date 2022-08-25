@@ -49,6 +49,11 @@ public class Configuration {
   private String mapPath;
 
   /**
+   * Path to .csv file with speed limits per country
+   */
+  private String speedLimitsPath;
+
+  /**
    * Good knowledge server ip address
    */
   private String serverAddress;
