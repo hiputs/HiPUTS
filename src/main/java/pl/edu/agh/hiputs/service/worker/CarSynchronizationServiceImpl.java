@@ -18,15 +18,18 @@ import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
+import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
+import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
+import pl.edu.agh.hiputs.scheduler.task.CarMapperTask;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
-import pl.edu.agh.hiputs.service.worker.usecase.IncomingCarsSetsSynchronizationService;
+import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class IncomingCarsSetsSynchronizationServiceImpl implements IncomingCarsSetsSynchronizationService, Subscriber {
+public class CarSynchronizationServiceImpl implements CarSynchronizationService, Subscriber {
 
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutorService;
@@ -53,6 +56,18 @@ public class IncomingCarsSetsSynchronizationServiceImpl implements IncomingCarsS
         ));
 
     sendMessages(serializedCarMap);
+  }
+
+  @Override
+  public List<SerializedCar> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
+
+    Patch patch = transferDataHandler.getPatch(patchId);
+    List<Runnable> tasks = new ArrayList<>();
+    List<SerializedCar> toSendCars = new ArrayList<>();
+    tasks.add(new CarMapperTask(patch, toSendCars));
+
+    taskExecutorService.executeBatch(tasks);
+    return toSendCars;
   }
 
   private void sendMessages(Map<MapFragmentId, List<SerializedCar>> serializedCarMap) {
