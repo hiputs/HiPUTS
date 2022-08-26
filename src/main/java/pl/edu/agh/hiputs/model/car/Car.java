@@ -5,6 +5,7 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Configurable;
 import pl.edu.agh.hiputs.model.car.driver.Driver;
 import pl.edu.agh.hiputs.model.car.driver.IDriver;
@@ -59,6 +60,7 @@ public class Car implements CarEditable {
   /**
    * Current speed of car.
    */
+  @Setter
   @Builder.Default
   private double speed = 0;
 
