@@ -176,7 +176,7 @@ public class ExampleCarProvider {
     }
 
     if (currentCar.getSpeed() > maxSpeed){
-      log.debug("Car: " + currentCar.getCarId() + " has reduced its speed before start from: " + currentCar.getSpeed() + " to: " + maxSpeed);
+      log.debug("Car: " + currentCar.getCarId() + " has reduced its speed before start from: " + currentCar.getSpeed() + " to: " + maxSpeed + ", distance: " + distance);
       currentCar.setSpeed(maxSpeed);
     }
   }

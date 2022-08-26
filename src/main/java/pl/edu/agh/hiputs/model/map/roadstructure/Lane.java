@@ -116,7 +116,9 @@ public class Lane implements LaneEditable {
   @Override
   public void addCarAtEntry(CarEditable car) {
     if(!cars.isEmpty() && cars.peekFirst().getPositionOnLane() < car.getPositionOnLane()){
-      log.error("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane");
+      log.error("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
+          + car.getCarId() + ", position: " + car.getPositionOnLane() + ", first car: " + cars.peekFirst().getCarId()
+          + ", position: " + cars.peekFirst().getPositionOnLane());
     }
     cars.addFirst(car);
   }
