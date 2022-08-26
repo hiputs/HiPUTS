@@ -35,20 +35,18 @@ public class Driver implements IDriver {
     // make local decision based on read only road structure (watch environment) and save it locally
 
 
-    if(log.isDebugEnabled()) {
-      log.debug(
-          "Car: " + car.getCarId() + ", lane: " + car.getLaneId() + ", position: " + car.getPositionOnLane()
+    log.debug("Car: " + car.getCarId() + ", lane: " + car.getLaneId() + ", position: " + car.getPositionOnLane()
               + ", acc: " + car.getAcceleration() + ", speed: " + car.getSpeed()
               + ", route0: " + car.getRouteOffsetLaneId(0) + ", route1: " + car.getRouteOffsetLaneId(1));
-    }
+
 
     //First prepare CarEnvironment
 
     double acceleration;
     CarEnvironment environment = prospector.getPrecedingCarOrCrossroad(car, roadStructureReader);
-    if(log.isTraceEnabled()) {
-      log.trace("Car: " + car.getCarId() + ", environment: " + environment);
-    }
+
+    log.trace("Car: " + car.getCarId() + ", environment: " + environment);
+
     if(environment.getPrecedingCar().isPresent()){
       acceleration = idmDecider.makeDecision(car, environment, roadStructureReader);
     }
@@ -91,9 +89,7 @@ public class Driver implements IDriver {
         .offsetToMoveOnRoute(offset)
         .build();
 
-    if(log.isDebugEnabled()){
-      log.debug("Car: " + car.getCarId() + ", decision: " + decision);
-    }
+    log.debug("Car: " + car.getCarId() + ", decision: " + decision);
 
     return decision;
   }

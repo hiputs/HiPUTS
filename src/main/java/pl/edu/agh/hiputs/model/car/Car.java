@@ -85,9 +85,7 @@ public class Car implements CarEditable {
   @Override
   public Optional<CarUpdateResult> update() {
     if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getLaneId() == null) { // remove car from lane
-      if (log.isTraceEnabled()) {
-        log.trace("Car: " + this.getCarId() + " was removed due to finish his route");
-      }
+      log.trace("Car: " + this.getCarId() + " was removed due to finish his route");
       return Optional.empty();
     }
     this.speed = decision.getSpeed();
