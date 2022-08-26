@@ -6,11 +6,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.osm.speed.repository.SpeedLimitRecord;
 
 @Service
 @Qualifier("DataValidatorDefault")
+@Order(4)
 public class DataValidatorDefault implements DataValidator{
 
   @Override

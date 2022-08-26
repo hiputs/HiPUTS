@@ -2,11 +2,13 @@ package pl.edu.agh.hiputs.partition.osm.speed.validator;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.osm.speed.repository.SpeedLimitRecord;
 
 @Service
 @Qualifier("DataValidatorValues")
+@Order(2)
 public class DataValidatorValues implements DataValidator{
   private final static String dashSign = "-";
 

@@ -3,11 +3,13 @@ package pl.edu.agh.hiputs.partition.osm.speed.validator;
 import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.osm.speed.repository.SpeedLimitRecord;
 
 @Service
 @Qualifier("DataValidatorCSV")
+@Order(1)
 public class DataValidatorCSV implements DataValidator{
   private final static Set<String> formsOfNA = Set.of("NA", "na", "N/A", "n/a", "variable");
 
