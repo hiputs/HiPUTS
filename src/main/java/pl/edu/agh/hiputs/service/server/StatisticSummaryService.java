@@ -4,4 +4,6 @@ public interface StatisticSummaryService {
 
   void generateStatisticCSVs();
 
+  void startTiming();
+
 }

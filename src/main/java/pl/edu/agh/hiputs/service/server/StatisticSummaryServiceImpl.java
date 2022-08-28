@@ -32,8 +32,12 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
   private static final String WORKER_WAITING_TIME_CSV = "workerWaitingTime.csv";
   private static final String WORKER_LOAD_BALANCING_COST_CSV = "workerLoadBalancingTime.csv";
   private static final String PATCH_EXCHANGES_CSV = "patchExchanges.csv";
+
+  private static final String SUMMARY_TXT = "summary.txt";
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
+
+  private long startTime;
   private final List<FinishSimulationStatisticMessage> repository = new ArrayList<>();
 
   @PostConstruct
@@ -45,10 +49,23 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
 
   @Override
   public void generateStatisticCSVs() {
+    createSummary();
     createCSVTotalCostByWorker();
     createCSVWaitingTimeByWorker();
     createCSVLoadBalancingCostByWorker();
     createCSVPatchExchangesRecords();
+  }
+
+  @Override
+  public void startTiming() {
+    startTime = System.currentTimeMillis();
+  }
+
+  private void createSummary() {
+
+    final String content = "Simulation time -> " + (System.currentTimeMillis() - startTime) + "ms \n";
+
+    save(content, SUMMARY_TXT);
   }
 
   private void createCSVPatchExchangesRecords() {
@@ -57,9 +74,10 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
         .flatMap(i -> i.getDecisionRepository()
             .stream()
                 .filter(r -> r.getSelectedPatch() != null)
-            .map(r -> new PatchMigration(r.getStep(), i.getId(), r.getSelectedNeighbourId(), r.getSelectedPatch()).toString())
+            .map(r -> new PatchMigration(r.getStep(), i.getId(), r.getSelectedNeighbourId(), r.getSelectedPatch()))
             )
-        .sorted()
+        .sorted(Comparator.comparingInt(r -> r.step))
+        .map(PatchMigration::toString)
         .collect(Collectors.joining());
 
     save(content, PATCH_EXCHANGES_CSV);

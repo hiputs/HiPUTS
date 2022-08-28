@@ -44,7 +44,7 @@ public class MapFragmentExecutor {
   public void run() {
     try {
       // 3. decision
-      log.info("Step 3 start");
+      log.debug("Step 3 start");
       monitorLocalService.startSimulationStep();
       List<Runnable> decisionStageTasks = mapFragment.getLocalLaneIds()
           .stream()
@@ -54,16 +54,16 @@ public class MapFragmentExecutor {
       monitorLocalService.markPointAsFinish(SimulationPoint.FIRST_ITERATION);
 
       // 4. send incoming sets of cars to neighbours
-      log.info("Step 4 start");
+      log.debug("Step 4 start");
       carSynchronizationService.sendIncomingSetsOfCarsToNeighbours(mapFragment);
 
       // 5. receive incoming sets of cars from neighbours
-      log.info("Step 5 start");
+      log.debug("Step 5 start");
       carSynchronizationService.synchronizedGetIncomingSetsOfCars(mapFragment);
       monitorLocalService.markPointAsFinish(SimulationPoint.WAITING_FOR_FIRST_ITERATION);
 
       // 6. 7. insert incoming cars & update lanes/cars
-      log.info("Step 6,7 start");
+      log.debug("Step 6,7 start");
       List<Runnable> updateStageTasks = mapFragment.getLocalLaneIds()
           .stream()
           .map(laneId -> new LaneUpdateStageTask(mapFragment, laneId))
@@ -73,14 +73,14 @@ public class MapFragmentExecutor {
       monitorLocalService.notifyAboutMyLoad();
 
       // 8. load balancing
-      log.info("Step 8 start");
+      log.debug("Step 8 start");
       loadBalancingService.startLoadBalancing(mapFragment);
       patchTransferService.handleReceivedPatch(mapFragment);
       patchTransferService.handleNotificationPatch(mapFragment);
       monitorLocalService.markPointAsFinish(SimulationPoint.LOAD_BALANCING);
 
       // 9. send and receive remote patches (border patches)
-      log.info("Step 9 start");
+      log.debug("Step 9 start");
       carsOnBorderSynchronizationService.sendCarsOnBorderToNeighbours(mapFragment);
       carsOnBorderSynchronizationService.synchronizedGetRemoteCars(mapFragment);
 
