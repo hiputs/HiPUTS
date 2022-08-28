@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint;
 import pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.LoadBalancingCostStatistic;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +27,8 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
       Set.of(SimulationPoint.WAITING_FOR_FIRST_ITERATION, SimulationPoint.WAITING_FOR_SECOND_ITERATION);
   private final ConfigurationService configurationService;
   private List<IterationInfo> iterationInfo;
+
+  @Getter
   private int step = 0;
   private long tmpTime;
   private TransferDataHandler transferDataHandler;
@@ -53,6 +57,25 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
             .map(ImmutablePair::getRight)
             .reduce(0L, Long::sum))
         .build();
+  }
+
+  @Override
+  public List<ImmutablePair<Integer, Long>> getAllByType(SimulationPoint point) {
+    List<ImmutablePair<Integer, Long>> list = new ArrayList<>(step);
+    int i = 0;
+    for (IterationInfo info : iterationInfo) {
+
+      ImmutablePair<Integer, Long> timePair = new ImmutablePair<>(i++,
+          info.iterationInfo.stream()
+              .filter(o -> o.getLeft() == point)
+              .findFirst()
+              .orElse(new ImmutablePair<>(SimulationPoint.LOAD_BALANCING, -1L))
+              .getRight());
+
+      list.add(i++, timePair);
+    }
+
+    return list;
   }
 
   @Override

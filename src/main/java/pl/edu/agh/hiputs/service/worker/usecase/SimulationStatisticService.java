@@ -4,7 +4,7 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 
 public interface SimulationStatisticService {
 
-  void saveLoadBalancingCost(long timeInMilis, long cars, double totalCost,int age, long waitingTime);
+  void saveLoadBalancingStatistic(long timeInMilis, long cars, double totalCost,int age, long waitingTime);
 
   void saveLoadBalancingDecision(boolean decision, String selectedPatchId, String selectedNeighbourId, double patchCost, int age);
 

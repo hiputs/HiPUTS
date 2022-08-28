@@ -44,7 +44,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
 
     repository.forEach(repo -> {
       final int[] i = {1};
-      repo.getBalancingCostRepository().forEach(info -> {
+      repo.getBalancingStatisticRepository().forEach(info -> {
         lines.get(i[0]).append(info.getTotalCost());
         lines.get(i[0]).append(SEPARATOR);
         i[0]++;
@@ -59,7 +59,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
 
     repository.forEach(repo -> {
       final int[] i = {1};
-      repo.getBalancingCostRepository().forEach(info -> {
+      repo.getBalancingStatisticRepository().forEach(info -> {
         lines.get(i[0]).append(info.getWaitingTime());
         lines.get(i[0]).append(SEPARATOR);
         i[0]++;

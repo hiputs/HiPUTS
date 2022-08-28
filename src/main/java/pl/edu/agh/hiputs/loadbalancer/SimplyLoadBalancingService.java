@@ -63,7 +63,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
     LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
     double myCost = calculateCost(info);
 
-    simulationStatisticService.saveLoadBalancingCost(info.getTimeCost(), info.getCarCost(), myCost, age, info.getWaitingTime());
+    simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, age, info.getWaitingTime());
     age++;
 
     if(age<5){

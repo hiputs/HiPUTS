@@ -18,6 +18,7 @@ import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
+import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
 
