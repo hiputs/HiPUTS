@@ -31,6 +31,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
   private static final String WORKER_COSTS_CSV = "workerCost.csv";
   private static final String WORKER_WAITING_TIME_CSV = "workerWaitingTime.csv";
   private static final String WORKER_LOAD_BALANCING_COST_CSV = "workerLoadBalancingTime.csv";
+  private static final String PATCH_EXCHANGES_CSV = "patchExchanges.csv";
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
   private final List<FinishSimulationStatisticMessage> repository = new ArrayList<>();
@@ -61,7 +62,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
         .sorted()
         .collect(Collectors.joining());
 
-    save(content, WORKER_LOAD_BALANCING_COST_CSV);
+    save(content, PATCH_EXCHANGES_CSV);
   }
 
   private void createCSVLoadBalancingCostByWorker() {
@@ -91,7 +92,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
       });
     });
 
-    save(lines, WORKER_WAITING_TIME_CSV);
+    save(lines, WORKER_COSTS_CSV);
   }
 
   private void createCSVTotalCostByWorker() {
@@ -106,7 +107,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
       });
     });
 
-    save(lines, WORKER_COSTS_CSV);
+    save(lines, WORKER_WAITING_TIME_CSV);
   }
 
   private List<StringBuffer> createEmptyStringBufferWithHeaders() {
