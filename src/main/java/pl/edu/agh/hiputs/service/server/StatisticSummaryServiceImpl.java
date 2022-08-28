@@ -3,12 +3,16 @@ package pl.edu.agh.hiputs.service.server;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import javax.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationStatisticMessage;
@@ -21,9 +25,12 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 @RequiredArgsConstructor
 public class StatisticSummaryServiceImpl implements StatisticSummaryService, Subscriber {
 
-  private static final String SEPARATOR = ",";
+  private static final String SEPARATOR = ", ";
+
+  private static final String DIR = "statistic";
   private static final String WORKER_COSTS_CSV = "workerCost.csv";
   private static final String WORKER_WAITING_TIME_CSV = "workerWaitingTime.csv";
+  private static final String WORKER_LOAD_BALANCING_COST_CSV = "workerLoadBalancingTime.csv";
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
   private final List<FinishSimulationStatisticMessage> repository = new ArrayList<>();
@@ -31,12 +38,45 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
   @PostConstruct
   void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.FinishSimulationStatisticMessage);
+    File file = new File(DIR);
+    file.mkdir();
   }
 
   @Override
   public void generateStatisticCSVs() {
     createCSVTotalCostByWorker();
     createCSVWaitingTimeByWorker();
+    createCSVLoadBalancingCostByWorker();
+    createCSVPatchExchangesRecords();
+  }
+
+  private void createCSVPatchExchangesRecords() {
+    String content = repository
+        .stream()
+        .flatMap(i -> i.getDecisionRepository()
+            .stream()
+                .filter(r -> r.getSelectedPatch() != null)
+            .map(r -> new PatchMigration(r.getStep(), i.getId(), r.getSelectedNeighbourId(), r.getSelectedPatch()).toString())
+            )
+        .sorted()
+        .collect(Collectors.joining());
+
+    save(content, WORKER_LOAD_BALANCING_COST_CSV);
+  }
+
+  private void createCSVLoadBalancingCostByWorker() {
+    List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
+
+    repository.forEach(repo -> {
+      final int[] i = {1};
+      repo.getBalancingCostRepository().forEach(info -> {
+        lines.get(i[0]).append(info.getCost());
+        lines.get(i[0]).append(SEPARATOR);
+        i[0]++;
+      });
+    });
+
+    save(lines, WORKER_LOAD_BALANCING_COST_CSV);
   }
 
   private void createCSVWaitingTimeByWorker() {
@@ -84,7 +124,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
   }
 
   private void save(List<StringBuffer> lines, String filename) {
-    File csvOutputFile = new File(filename);
+    File csvOutputFile = new File(DIR + "/" + filename);
     try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
       lines.stream()
           .map(StringBuffer::toString)
@@ -95,9 +135,32 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     }
   }
 
+  private void save(String content, String filename) {
+    File csvOutputFile = new File(DIR + "/" + filename);
+    try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
+      pw.print(content);
+      pw.close();
+    } catch (Exception e) {
+      log.error("Error until save csv file {}", filename, e);
+    }
+  }
+
   @Override
   public void notify(Message message) {
     repository.add((FinishSimulationStatisticMessage) message);
 
+  }
+
+  @AllArgsConstructor
+  private static class PatchMigration {
+    private int step;
+    private String sourceWorkerId;
+    private String targetWorkerId;
+    private String patchId;
+
+    @Override
+    public String toString() {
+      return step + SEPARATOR + sourceWorkerId + SEPARATOR + targetWorkerId + SEPARATOR + patchId + "\n";
+    }
   }
 }

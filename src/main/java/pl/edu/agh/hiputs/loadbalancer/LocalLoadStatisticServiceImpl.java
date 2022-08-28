@@ -72,7 +72,7 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
               .orElse(new ImmutablePair<>(SimulationPoint.LOAD_BALANCING, -1L))
               .getRight());
 
-      list.add(i++, timePair);
+      list.add(timePair);
     }
 
     return list;
