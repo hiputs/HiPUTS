@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.osm.speed.validator;
+package pl.edu.agh.hiputs.partition.osm.speed.table.validator;
 
 import java.util.List;
 import java.util.Map.Entry;
@@ -8,7 +8,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.partition.osm.speed.repository.SpeedLimitRecord;
+import pl.edu.agh.hiputs.partition.osm.speed.table.repository.SpeedLimitRecord;
 
 @Service
 @Qualifier("DataValidatorDefault")

@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.osm.speed.repository;
+package pl.edu.agh.hiputs.partition.osm.speed.table.repository;
 
 import java.util.Map;
 

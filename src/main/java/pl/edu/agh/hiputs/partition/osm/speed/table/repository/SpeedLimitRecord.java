@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.osm.speed.repository;
+package pl.edu.agh.hiputs.partition.osm.speed.table.repository;
 
 import com.opencsv.bean.CsvBindByName;
 import lombok.Getter;

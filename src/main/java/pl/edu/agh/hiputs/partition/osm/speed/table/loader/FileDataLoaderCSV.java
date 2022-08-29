@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.osm.speed.loader;
+package pl.edu.agh.hiputs.partition.osm.speed.table.loader;
 
 import com.opencsv.bean.CsvToBeanBuilder;
 import java.io.FileReader;
@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.partition.osm.speed.repository.SpeedLimitRecord;
+import pl.edu.agh.hiputs.partition.osm.speed.table.repository.SpeedLimitRecord;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Service

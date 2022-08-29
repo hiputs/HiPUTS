@@ -1,8 +1,8 @@
-package pl.edu.agh.hiputs.partition.osm.speed.loader;
+package pl.edu.agh.hiputs.partition.osm.speed.table.loader;
 
 import java.io.IOException;
 import java.util.List;
-import pl.edu.agh.hiputs.partition.osm.speed.repository.SpeedLimitRecord;
+import pl.edu.agh.hiputs.partition.osm.speed.table.repository.SpeedLimitRecord;
 
 public interface FileDataLoader {
 

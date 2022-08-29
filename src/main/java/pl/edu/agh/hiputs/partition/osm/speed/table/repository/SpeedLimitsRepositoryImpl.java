@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.osm.speed.repository;
+package pl.edu.agh.hiputs.partition.osm.speed.table.repository;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -10,8 +10,8 @@ import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import pl.edu.agh.hiputs.partition.osm.speed.loader.FileDataLoader;
-import pl.edu.agh.hiputs.partition.osm.speed.validator.DataValidator;
+import pl.edu.agh.hiputs.partition.osm.speed.table.loader.FileDataLoader;
+import pl.edu.agh.hiputs.partition.osm.speed.table.validator.DataValidator;
 
 @Repository
 @RequiredArgsConstructor
