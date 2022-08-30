@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.partition.osm.speed.rule.decider;
 
+import static pl.edu.agh.hiputs.partition.osm.speed.CommonConstants.countryKeyInTags;
+
 import de.topobyte.osm4j.core.model.iface.OsmWay;
 import de.topobyte.osm4j.core.model.util.OsmModelUtil;
 import java.util.ArrayList;
@@ -15,7 +17,6 @@ import pl.edu.agh.hiputs.partition.osm.speed.rule.resolver.Resolver;
 @Order(2)
 @RequiredArgsConstructor
 public class CountryDecider implements Decider{
-  private final static String countryKey = "addr:country";
   private final Resolver defaultCountryResolver;
 
   @Override
@@ -23,8 +24,8 @@ public class CountryDecider implements Decider{
     List<String> foundCountries = getNodesIds(speedDataHandler.getOsmWay()).stream()
         .filter(id -> speedDataHandler.getMapOfOsmNodes().containsKey(id))
         .map(id -> speedDataHandler.getMapOfOsmNodes().get(id))
-        .filter(node -> OsmModelUtil.getTagsAsMap(node).containsKey(countryKey))
-        .map(node -> OsmModelUtil.getTagsAsMap(node).get(countryKey))
+        .filter(node -> OsmModelUtil.getTagsAsMap(node).containsKey(countryKeyInTags))
+        .map(node -> OsmModelUtil.getTagsAsMap(node).get(countryKeyInTags))
         .map(String::toUpperCase)
         .collect(Collectors.toList());
 

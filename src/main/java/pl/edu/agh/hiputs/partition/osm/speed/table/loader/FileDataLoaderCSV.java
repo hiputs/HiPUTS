@@ -12,15 +12,14 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 @Service
 @RequiredArgsConstructor
 public class FileDataLoaderCSV implements FileDataLoader{
-  private static final String CSV_FORMAT = ".csv";
-
+  private static final String csvFormat = ".csv";
   private final ConfigurationService configurationService;
 
   @Override
   public List<SpeedLimitRecord> readSpeedLimitsFromFile() throws IOException {
     String fileName = configurationService.getConfiguration().getSpeedLimitsPath();
 
-    if (!fileName.endsWith(CSV_FORMAT)) {
+    if (!fileName.endsWith(csvFormat)) {
       throw new IOException("Wrong file format.");
     }
 

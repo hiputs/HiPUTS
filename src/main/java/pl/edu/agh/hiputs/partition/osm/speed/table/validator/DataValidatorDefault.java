@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.partition.osm.speed.table.validator;
 
+import static pl.edu.agh.hiputs.partition.osm.speed.CommonConstants.defaultSpeedLimitRecordName;
+
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -18,7 +20,7 @@ public class DataValidatorDefault implements DataValidator{
   @Override
   public void checkAndCorrect(List<SpeedLimitRecord> speedLimits) {
     SpeedLimitRecord defaultOne = new SpeedLimitRecord();
-    defaultOne.setCountry("DEFAULT");
+    defaultOne.setCountry(defaultSpeedLimitRecordName);
     defaultOne.setHighway(getMostUsedLimit(speedLimits, SpeedLimitRecord::getHighway));
     defaultOne.setRural(getMostUsedLimit(speedLimits, SpeedLimitRecord::getRural));
     defaultOne.setUrban(getMostUsedLimit(speedLimits, SpeedLimitRecord::getUrban));
