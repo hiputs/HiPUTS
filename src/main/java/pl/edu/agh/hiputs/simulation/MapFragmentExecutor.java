@@ -13,7 +13,7 @@ import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationService;
-import pl.edu.agh.hiputs.service.worker.usecase.IncomingCarsSetsSynchronizationService;
+import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
 
@@ -29,7 +29,7 @@ public class MapFragmentExecutor {
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutor;
   private final MessageSenderService messageSenderService;
-  private final IncomingCarsSetsSynchronizationService incomingCarsSetsSynchronizationService;
+  private final CarSynchronizationService carSynchronizationService;
   private final CarsOnBorderSynchronizationService carsOnBorderSynchronizationService;
 
   public void run() {
@@ -42,10 +42,10 @@ public class MapFragmentExecutor {
       taskExecutor.executeBatch(decisionStageTasks);
 
       // 4. send incoming sets of cars to neighbours
-      incomingCarsSetsSynchronizationService.sendIncomingSetsOfCarsToNeighbours(mapFragment);
+      carSynchronizationService.sendIncomingSetsOfCarsToNeighbours(mapFragment);
 
       // 5. receive incoming sets of cars from neighbours
-      incomingCarsSetsSynchronizationService.synchronizedGetIncomingSetsOfCars(mapFragment);
+      carSynchronizationService.synchronizedGetIncomingSetsOfCars(mapFragment);
 
       // 6. 7. insert incoming cars & update lanes/cars
       List<Runnable> updateStageTasks = mapFragment.getLocalLaneIds()
