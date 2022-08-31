@@ -61,7 +61,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
     loadBalancingDecision.setAge(age);
 
     LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
-    double myCost = calculateCost(info);
+    double myCost = MapFragmentCostCalculatorUtil.calculateCost(info);
 
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, age, info.getWaitingTime());
     age++;
@@ -100,10 +100,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   }
 
   private double calculateCost(MapFragmentId id) {
-    return calculateCost(loadRepository.get(id));
-  }
-
-  private double calculateCost(LoadBalancingHistoryInfo info) {
+    LoadBalancingHistoryInfo info = loadRepository.get(id);
     return MapFragmentCostCalculatorUtil.calculateCost(info);
   }
 
