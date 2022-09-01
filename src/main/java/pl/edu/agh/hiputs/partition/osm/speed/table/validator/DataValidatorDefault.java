@@ -20,6 +20,7 @@ public class DataValidatorDefault implements DataValidator{
   @Override
   public void checkAndCorrect(List<SpeedLimitRecord> speedLimits) {
     SpeedLimitRecord defaultOne = new SpeedLimitRecord();
+    defaultOne.setCountryId(defaultSpeedLimitRecordName);
     defaultOne.setCountry(defaultSpeedLimitRecordName);
     defaultOne.setHighway(getMostUsedLimit(speedLimits, SpeedLimitRecord::getHighway));
     defaultOne.setRural(getMostUsedLimit(speedLimits, SpeedLimitRecord::getRural));

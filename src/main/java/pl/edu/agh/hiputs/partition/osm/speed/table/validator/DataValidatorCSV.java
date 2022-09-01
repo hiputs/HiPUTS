@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.partition.osm.speed.table.validator;
 
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,7 @@ import pl.edu.agh.hiputs.partition.osm.speed.table.repository.SpeedLimitRecord;
 @Qualifier("DataValidatorCSV")
 @Order(1)
 public class DataValidatorCSV implements DataValidator{
-  private final static Set<String> formsOfNA = Set.of("NA", "na", "N/A", "n/a", "variable");
+  private final static Set<String> formsOfNA = Set.of("NA", "na", "N/A", "n/a", "variable", "");
 
   @Override
   public void checkAndCorrect(List<SpeedLimitRecord> speedLimits) {
@@ -28,6 +29,7 @@ public class DataValidatorCSV implements DataValidator{
 
     // null records are useless
     speedLimits.removeIf(this::allContainsNA);
+    speedLimits.removeIf(this::countryIdIsEmpty);
   }
 
   private String determineBetterLimit(String examined, String firstChoice, String secondChoice) {
@@ -46,5 +48,9 @@ public class DataValidatorCSV implements DataValidator{
     return formsOfNA.contains(speedLimitRecord.getHighway())
         && formsOfNA.contains(speedLimitRecord.getUrban())
         && formsOfNA.contains(speedLimitRecord.getRural());
+  }
+
+  private boolean countryIdIsEmpty(SpeedLimitRecord speedLimitRecord) {
+    return StringUtils.isBlank(speedLimitRecord.getCountryId());
   }
 }

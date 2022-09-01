@@ -1,171 +1,170 @@
-Country,Region,Highway,Rural,Urban,SpeedUnit
-Albania,Rest of Europe,90-110,80,40,kph
-Algeria,Africa,120,80,50,kph
-Andorra,Rest of Europe,NA,90,50,kph
-Angola,Africa,120,100,60,kph
-Anguilla,Caribbean,N/A,30,20,MPH
-Antigua,Caribbean,n/a,40,20,mph
-Argentina,South America,120-130,110,40-60,kph
-Aruba,Caribbean,80,60,30,kph
-Australia,Oceania,100-130,100,50,kph
-Austria,Europe,130,100,50,kph
-Azerbaijan,Rest of Europe,110,90,60,kph
-Bahamas,Caribbean,n/a,80,32,kph
-Bahrain,Middle East,120,60,80-100,kph
-Bangladesh,South Asia,80,30,25,KPH
-Barbados,Caribbean,50,37,20,mph
-Belarus,Rest of Europe,120,90,60,kph
-Belgium,Europe,120,90,20-30,kph
-Belize,Central America,90,60,40,kph
-Bolivia,South America,80,70,50,kph
-Bonaire,Caribbean,n/a,60,40,kph
-Bosnia and Herzegovina,Rest of Europe,120,80,60,kph
-Botswana,Africa,120,60-100,30,kph
-Brazil,South America,80-110,60-80,30 - 60,kph
-Bulgaria,Europe,140,90,50,kph
-Cambodia,Southeast Asia,120,80,40,kph
-Cameroon,Africa,100,100,60,kph
-Canada,North America,100-120,80,50,kph
-Canary Islands,Europe,120,100,50,kph
-Cayman Islands,Caribbean,80,40,25-30,MPH
-Chile,South America,100-120,100,50,kph
-China,East Asia,80-120,100,40,kph
-Colombia,South America,100,80,60,kph
-Congo,Africa,110,110,69,kph
-Costa Rica,Central America,80-100,80,40-60,kph
-Croatia,Europe,110-130,80,50,kph
-Curacao,Caribbean,n/a,80,50,kph
-Cyprus,Europe,100,60-80,50,kph
-Czech Republic,Europe,130,90,50,kph
-Denmark,Europe,110-130,80,50,kph
-Dominica,Caribbean,80,50,50,kph
-Dominican Republic,Caribbean,120,80,40,kph
-Ecuador,South America,110,90,50,kph
-Egypt,Africa,100,90,50,kph
-El Salvador,Central America,90,90,50,kph
-Estonia,Europe,110,90,50,kph
-Faroe Islands,Europe,N/A,80,50,kph
-Fiji,Oceania,N/A,80,50,kph
-Finland,Europe,120,80 or 100,50,kph
-France,Europe,110-130,80,50,kph
-Gabon,Africa,110,110,60,kph
-Georgia,Europe,110,80,60,KPH
-Germany,Europe,130,100,50,kph
-Ghana,Africa,100,80,30-50,KPH
-Gibraltar,Europe,N/A,50,50,kph
-Greece,Europe,110-130,110,50,kph
-Greenland,North America,60,60,40,kph
-Grenada,Caribbean,N/A,N/A,N/A,kph
-Guadeloupe,Caribbean,110,80,50,kph
-Guam,Oceania,n/a,35,15-25,mph
-Guatemala,Central America,110,80,50,kph
-Guernsey,Rest of Europe,n/a,35,25,mph
-Haiti,Caribbean,NA,50,50,kph
-Holland,Europe,100,80,50,kph
-Honduras,Central America,80,80,40,kph
-Hong Kong,East Asia,80-110,70,50,kph
-Hungary,Europe,110-130,90,50,kph
-Ibiza,Europe,120,90,50,kph
-Iceland,Europe,90,80,50,kph
-India,South Asia,100-120,80,50,kph
-Indonesia,Southeast Asia,100,80,50,kph
-Ireland,Europe,120,100,50,kph
-Isle Of Man,Rest of Europe,N/A,N/A,N/A,mph
-Israel,Middle East,110,80-90,50,kph
-Italy,Europe,130,90,50,kph
-Jamaica,Caribbean,110,80,50,kph
-Japan,East Asia,100,80,30-50,kph
-Jersey,Rest of Europe,n/a,40,40,mph
-Jordan,Middle East,120,80,60,kph
-Kazakhstan,Asia,110,90,20-60,kph
-Kenya,Africa,110,110,50,kph
-Kosovo,Rest of Europe,130,80,50,kph
-Kuwait,Middle East,120,50-80,45,kph
-Lanzarote,Europe,120,90,50,kph
-Latvia,Europe,90-100,90,50,kph
-Lebanon,Middle East,n/a,100,50,kph
-Lesotho,Africa,100,80,50,kph
-Liechtenstein,Europe,120,80,50,kph
-Lithuania,Europe,110-130,90,50,kph
-Luxembourg,Europe,130,90,50,kph
-Macedonia,Rest of Europe,130,80,50,kph
-Madagascar,Africa,n/a,60-70,50,kph
-Malawi,Africa,120,80,60,kph
-Malaysia,Southeast Asia,110,90,60,kph
-Mali,Africa,100,100,40-60,kph
-Mallorca,Europe,120,90,50,kph
-Malta,Europe,n/a,60,50,kph
-Martinique,Caribbean,110,90,50,kph
-Mauritius,Africa,100,80,40,kph
-Mexico,North America,100-120,90,30-70,kph
-Moldova,Rest of Europe,110,80,50,kph
-Montenegro,Rest of Europe,100,80,50,kph
-Morocco,Africa,90-100,100,60,kph
-Mozambique,Africa,120,80,60,kph
-Namibia,Africa,120,80-120,60,kph
-Netherlands,Europe,100,80,50,kph
-New Caledonia,Oceania,110,50,30,kph
-New Zealand,Oceania,100-110,100,50,kph
-Nicaragua,Central America,100,60,45,kph
-Nigeria,Africa,120,80,40,kph
-Northern Ireland,Europe,70,60,30,mph
-Norway,Europe,90-100,80,50,kph
-Oman,Middle East,120,90,40-80,kph
-Pakistan,South Asia,120,50,80-100,kph
-Panama,Central America,n/a,80,50,kph
-Papua New Guinea,Oceania,75,75,60,kph
-Paraguay,South America,110,50,80,kph
-Peru,South America,100,90,50,kph
-Philippines,Southeast Asia,100,50,30,kph
-Poland,Europe,120-140,90,50,kph
-Portugal,Europe,120,90,50,kph
-Puerto Rico,Caribbean,55-65,45,25,mph
-Qatar,Middle East,120,100,60,kph
-Reunion,Caribbean,110,90,50,kph
-Romania,Europe,130,90,50,kph
-Russia,Rest of Europe,110,90-110,60,kph
-Saint Lucia,Caribbean,NA,80,50,kph
-Samoa,Oceania,55,55,40,kph
-Saudi Arabia,Middle East,120-125,80,45,kph
-Scotland,Europe,70,60,30,mph
-Senegal,Africa,n/a,90,50,kph
-Serbia,Rest of Europe,100-120,80,50,kph
-Seychelles,Africa,80,65,40,kph
-Sicily,Europe,110-130,90,50,kph
-Singapore,Southeast Asia,90,70,50,kph
-Slovakia,Europe,90-130,90,50,kph
-Slovenia,Europe,110-130,90,50,kph
-South Africa,Africa,120,100,60,kph
-South Korea,East Asia,80-120,80,60,kph
-Spain,Europe,120,90,50,kph
-Sri Lanka,South Asia,100,70,50,kph
-St Lucia,Caribbean,n/a,80,50,kph
-St Maarten,Caribbean,80,60,40,kph
-St Vincent and the Grenadines,Caribbean,n/a,Variable,32,kph
-Swaziland,Africa,120,80,60,kph
-Sweden,Europe,110-120,90,50,kph
-Switzerland,Europe,100-120,50,30,kph
-Syria,Middle East,100,100,40,kph
-Taiwan,East Asia,100-110,80,40,kph
-Tanzania,Africa,80,80,60,kph
-Tasmania,Australasia,110,100,50,kph
-Tenerife,Europe,120,100,50,kph
-Thailand,Southeast Asia,120,90,50,kph
-Togo,Africa,110,50,30,kph
-Trinidad and Tobago,Caribbean,110,80,55,kph
-Tunisia,Africa,110,90,50,kph
-Turkey,Rest of Europe,120,90,50,kph
-UAE,Middle East,100-140,120,80,kph
-Uganda,Africa,100,80,50,kph
-UK,Europe,70,60,30,mph
-England,Europe,70,60,30,mph
-Ukraine,Rest of Europe,110-130,90,50,kph
-Uruguay,South America,90-110,90,45,kph
-USA,North America,97-129,variable,variable,mph
-Vanuatu,Oceania,N/A,80,50,km/h
-Venezuela,South America,120,80,60,kph
-Vietnam,Southeast Asia,60-80,40-60,30-40,kph
-Wales,Europe,50-70,60,30,mph
-Yemen,Middle East,100,100,35,kph
-Zambia,Africa,100,100,50-60,kph
-Zimbabwe,Africa,120,120,60,kph
+CountryID,Country,Region,Highway,Rural,Urban,SpeedUnit
+AL,Albania,Rest of Europe,90-110,80,40,kph
+DZ,Algeria,Africa,120,80,50,kph
+AD,Andorra,Rest of Europe,,90,50,kph
+AO,Angola,Africa,120,100,60,kph
+AI,Anguilla,Caribbean,,30,20,MPH
+AG,Antigua,Caribbean,,40,20,mph
+AR,Argentina,South America,120-130,110,40-60,kph
+AW,Aruba,Caribbean,80,60,30,kph
+AU,Australia,Oceania,100-130,100,50,kph
+AT,Austria,Europe,130,100,50,kph
+AZ,Azerbaijan,Rest of Europe,110,90,60,kph
+BS,Bahamas,Caribbean,,80,32,kph
+BH,Bahrain,Middle East,120,60,80-100,kph
+BD,Bangladesh,South Asia,80,30,25,KPH
+BB,Barbados,Caribbean,50,37,20,mph
+BY,Belarus,Rest of Europe,120,90,60,kph
+BE,Belgium,Europe,120,90,20-30,kph
+BZ,Belize,Central America,90,60,40,kph
+BO,Bolivia,South America,80,70,50,kph
+BQ,Bonaire,Caribbean,,60,40,kph
+BA,Bosnia and Herzegovina,Rest of Europe,120,80,60,kph
+BW,Botswana,Africa,120,60-100,30,kph
+BR,Brazil,South America,80-110,60-80,30 - 60,kph
+BG,Bulgaria,Europe,140,90,50,kph
+KH,Cambodia,Southeast Asia,120,80,40,kph
+CM,Cameroon,Africa,100,100,60,kph
+CA,Canada,North America,100-120,80,50,kph
+,Canary Islands,Europe,120,100,50,kph
+KY,Cayman Islands,Caribbean,80,40,25-30,MPH
+CL,Chile,South America,100-120,100,50,kph
+CN,China,East Asia,80-120,100,40,kph
+CO,Colombia,South America,100,80,60,kph
+CG,Congo,Africa,110,110,69,kph
+CR,Costa Rica,Central America,80-100,80,40-60,kph
+HR,Croatia,Europe,110-130,80,50,kph
+CW,Curacao,Caribbean,,80,50,kph
+CY,Cyprus,Europe,100,60-80,50,kph
+CZ,Czech Republic,Europe,130,90,50,kph
+DK,Denmark,Europe,110-130,80,50,kph
+DM,Dominica,Caribbean,80,50,50,kph
+DO,Dominican Republic,Caribbean,120,80,40,kph
+EC,Ecuador,South America,110,90,50,kph
+EG,Egypt,Africa,100,90,50,kph
+SV,El Salvador,Central America,90,90,50,kph
+EE,Estonia,Europe,110,90,50,kph
+FO,Faroe Islands,Europe,,80,50,kph
+FJ,Fiji,Oceania,,80,50,kph
+FI,Finland,Europe,120,80 or 100,50,kph
+FR,France,Europe,110-130,80,50,kph
+GA,Gabon,Africa,110,110,60,kph
+GE,Georgia,Europe,110,80,60,KPH
+DE,Germany,Europe,130,100,50,kph
+GH,Ghana,Africa,100,80,30-50,KPH
+GI,Gibraltar,Europe,,50,50,kph
+GR,Greece,Europe,110-130,110,50,kph
+GL,Greenland,North America,60,60,40,kph
+GD,Grenada,Caribbean,,,,kph
+GP,Guadeloupe,Caribbean,110,80,50,kph
+GU,Guam,Oceania,,35,15-25,mph
+GT,Guatemala,Central America,110,80,50,kph
+GG,Guernsey,Rest of Europe,,35,25,mph
+HT,Haiti,Caribbean,,50,50,kph
+,Holland,Europe,100,80,50,kph
+HN,Honduras,Central America,80,80,40,kph
+HK,Hong Kong,East Asia,80-110,70,50,kph
+HU,Hungary,Europe,110-130,90,50,kph
+,Ibiza,Europe,120,90,50,kph
+IS,Iceland,Europe,90,80,50,kph
+IN,India,South Asia,100-120,80,50,kph
+ID,Indonesia,Southeast Asia,100,80,50,kph
+IE,Ireland,Europe,120,100,50,kph
+IM,Isle Of Man,Rest of Europe,,,,mph
+IL,Israel,Middle East,110,80-90,50,kph
+IT,Italy,Europe,130,90,50,kph
+JM,Jamaica,Caribbean,110,80,50,kph
+JP,Japan,East Asia,100,80,30-50,kph
+JE,Jersey,Rest of Europe,,40,40,mph
+JO,Jordan,Middle East,120,80,60,kph
+KZ,Kazakhstan,Asia,110,90,20-60,kph
+KE,Kenya,Africa,110,110,50,kph
+,Kosovo,Rest of Europe,130,80,50,kph
+KW,Kuwait,Middle East,120,50-80,45,kph
+,Lanzarote,Europe,120,90,50,kph
+LV,Latvia,Europe,90-100,90,50,kph
+LB,Lebanon,Middle East,,100,50,kph
+LS,Lesotho,Africa,100,80,50,kph
+LI,Liechtenstein,Europe,120,80,50,kph
+LT,Lithuania,Europe,110-130,90,50,kph
+LU,Luxembourg,Europe,130,90,50,kph
+MK,Macedonia,Rest of Europe,130,80,50,kph
+MG,Madagascar,Africa,,60-70,50,kph
+MW,Malawi,Africa,120,80,60,kph
+MY,Malaysia,Southeast Asia,110,90,60,kph
+ML,Mali,Africa,100,100,40-60,kph
+,Mallorca,Europe,120,90,50,kph
+MT,Malta,Europe,,60,50,kph
+MQ,Martinique,Caribbean,110,90,50,kph
+MU,Mauritius,Africa,100,80,40,kph
+MX,Mexico,North America,100-120,90,30-70,kph
+MD,Moldova,Rest of Europe,110,80,50,kph
+ME,Montenegro,Rest of Europe,100,80,50,kph
+MA,Morocco,Africa,90-100,100,60,kph
+MZ,Mozambique,Africa,120,80,60,kph
+NA,Namibia,Africa,120,80-120,60,kph
+NL,Netherlands,Europe,100,80,50,kph
+NC,New Caledonia,Oceania,110,50,30,kph
+NZ,New Zealand,Oceania,100-110,100,50,kph
+NI,Nicaragua,Central America,100,60,45,kph
+NG,Nigeria,Africa,120,80,40,kph
+,Northern Ireland,Europe,70,60,30,mph
+NO,Norway,Europe,90-100,80,50,kph
+OM,Oman,Middle East,120,90,40-80,kph
+PK,Pakistan,South Asia,120,50,80-100,kph
+PA,Panama,Central America,,80,50,kph
+PG,Papua New Guinea,Oceania,75,75,60,kph
+PY,Paraguay,South America,110,50,80,kph
+PE,Peru,South America,100,90,50,kph
+PH,Philippines,Southeast Asia,100,50,30,kph
+PL,Poland,Europe,120-140,90,50,kph
+PT,Portugal,Europe,120,90,50,kph
+PR,Puerto Rico,Caribbean,55-65,45,25,mph
+QA,Qatar,Middle East,120,100,60,kph
+RE,Reunion,Caribbean,110,90,50,kph
+RO,Romania,Europe,130,90,50,kph
+RU,Russia,Rest of Europe,110,90-110,60,kph
+LC,Saint Lucia,Caribbean,,80,50,kph
+WS,Samoa,Oceania,55,55,40,kph
+SA,Saudi Arabia,Middle East,120-125,80,45,kph
+,Scotland,Europe,70,60,30,mph
+SN,Senegal,Africa,,90,50,kph
+RS,Serbia,Rest of Europe,100-120,80,50,kph
+SC,Seychelles,Africa,80,65,40,kph
+,Sicily,Europe,110-130,90,50,kph
+SG,Singapore,Southeast Asia,90,70,50,kph
+SK,Slovakia,Europe,90-130,90,50,kph
+SI,Slovenia,Europe,110-130,90,50,kph
+ZA,South Africa,Africa,120,100,60,kph
+KR,South Korea,East Asia,80-120,80,60,kph
+ES,Spain,Europe,120,90,50,kph
+LK,Sri Lanka,South Asia,100,70,50,kph
+SX,St Maarten,Caribbean,80,60,40,kph
+VC,St Vincent and the Grenadines,Caribbean,,Variable,32,kph
+SZ,Swaziland,Africa,120,80,60,kph
+SE,Sweden,Europe,110-120,90,50,kph
+CH,Switzerland,Europe,100-120,50,30,kph
+SY,Syria,Middle East,100,100,40,kph
+TW,Taiwan,East Asia,100-110,80,40,kph
+TZ,Tanzania,Africa,80,80,60,kph
+,Tasmania,Australasia,110,100,50,kph
+,Tenerife,Europe,120,100,50,kph
+TH,Thailand,Southeast Asia,120,90,50,kph
+TG,Togo,Africa,110,50,30,kph
+TT,Trinidad and Tobago,Caribbean,110,80,55,kph
+TN,Tunisia,Africa,110,90,50,kph
+TR,Turkey,Rest of Europe,120,90,50,kph
+AE,UAE,Middle East,100-140,120,80,kph
+UG,Uganda,Africa,100,80,50,kph
+GB,UK,Europe,70,60,30,mph
+,England,Europe,70,60,30,mph
+UA,Ukraine,Rest of Europe,110-130,90,50,kph
+UY,Uruguay,South America,90-110,90,45,kph
+US,USA,North America,97-129,variable,variable,mph
+VU,Vanuatu,Oceania,,80,50,km/h
+VE,Venezuela,South America,120,80,60,kph
+VN,Vietnam,Southeast Asia,60-80,40-60,30-40,kph
+,Wales,Europe,50-70,60,30,mph
+YE,Yemen,Middle East,100,100,35,kph
+ZM,Zambia,Africa,100,100,50-60,kph
+ZW,Zimbabwe,Africa,120,120,60,kph

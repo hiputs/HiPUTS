@@ -33,7 +33,7 @@ public class SpeedLimitsRepositoryImpl implements SpeedLimitsRepository{
 
       // 3. Reformatting to map format: country -> speed limits
       mapOfCountriesWithSpeedLimits = speedLimits.stream()
-          .collect(Collectors.toMap(SpeedLimitRecord::getCountry, Function.identity()));
+          .collect(Collectors.toMap(SpeedLimitRecord::getCountryId, Function.identity()));
     } catch (IOException e) {
       e.printStackTrace();
     }

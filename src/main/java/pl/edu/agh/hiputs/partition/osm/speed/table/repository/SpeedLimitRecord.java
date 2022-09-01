@@ -7,6 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SpeedLimitRecord {
+  @CsvBindByName(column = "CountryID")
+  private String countryId;
   @CsvBindByName(column = "Country")
   private String country;
   @CsvBindByName(column = "Highway")
