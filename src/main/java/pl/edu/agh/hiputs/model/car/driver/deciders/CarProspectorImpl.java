@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
@@ -16,13 +18,16 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneSubordination;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Service
 public class CarProspectorImpl implements CarProspector {
 
   //private ConfigurationService configurationService;
+  int viewRange = 300;//#TODO load it from spring ConfigurationService
 
   private int getViewRange(){
-    return 300;//#TODO load it from spring
+    return viewRange;
     //return configurationService.getConfiguration().getCarViewRange();
   }
 
@@ -60,7 +65,11 @@ public class CarProspectorImpl implements CarProspector {
       distance += precedingCar.map(car -> car.getPositionOnLane() - car.getLength()).orElse(currentLane.getLength())
           - currentCar.getPositionOnLane();
     }
-    if (nextJunctionId.isCrossroad() && distance <= getViewRange() && roadStructureReader.getJunctionReadable(nextJunctionId) != null) {
+    double crossroadDistance = distance;
+    if(precedingCar.isPresent() && nextJunctionId.isCrossroad()){
+      crossroadDistance += currentLane.getLength() - precedingCar.get().getPositionOnLane();
+    }
+    if (nextJunctionId.isCrossroad() && crossroadDistance <= getViewRange() && roadStructureReader.getJunctionReadable(nextJunctionId) != null) {
       nextCrossroadId = Optional.of(nextJunctionId);
     } else {
       nextCrossroadId = Optional.empty();
