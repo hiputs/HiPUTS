@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.partition.osm.speed.rule.engine;
 
 import de.topobyte.osm4j.core.model.iface.OsmNode;
 import de.topobyte.osm4j.core.model.iface.OsmWay;
+import de.topobyte.osm4j.core.model.util.OsmModelUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,19 +32,23 @@ public class RuleEngineImpl implements RuleEngine{
     Map<Long, OsmNode> nodesAsMap = nodesOnWays.stream()
         .collect(Collectors.toMap(OsmNode::getId, Function.identity()));
 
+    List<OsmWay> waysToRemove = new ArrayList<>();
     List<OsmWay> transformedWays = new ArrayList<>();
 
     ways.forEach(way -> {
-      SpeedResultHandler handler = new SpeedResultHandler();
-      handler.setMapOfOsmNodes(nodesAsMap);
-      handler.setOsmWay(way);
+      if (!OsmModelUtil.getTagsAsMap(way).containsKey("maxspeed")) {
+        SpeedResultHandler handler = new SpeedResultHandler();
+        handler.setMapOfOsmNodes(nodesAsMap);
+        handler.setOsmWay(way);
 
-      deciders.forEach(decider -> decider.decideAboutValue(handler));
+        deciders.forEach(decider -> decider.decideAboutValue(handler));
 
-      transformedWays.add(speedTagTransformer.replaceValue(way, handler.getResultSpeed()));
+        waysToRemove.add(way);
+        transformedWays.add(speedTagTransformer.replaceValue(way, handler.getResultSpeed()));
+      }
     });
 
-    ways.clear();
+    ways.removeAll(waysToRemove);
     ways.addAll(transformedWays);
   }
 }
