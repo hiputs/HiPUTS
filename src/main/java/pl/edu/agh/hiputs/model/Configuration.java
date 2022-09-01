@@ -73,6 +73,11 @@ public class Configuration {
    */
   private int initialNumberOfCarsPerLane;
 
+  /**
+   * View range of car - objects which are further will be not be visible for car
+   */
+  private int carViewRange;
+
   public static Configuration getDefault() {
     return Configuration.builder()
         .testMode(true)
@@ -84,6 +89,7 @@ public class Configuration {
         .serverAddress("localhost")
         .serverPort(8081)
         .initialNumberOfCarsPerLane(1)
+        .carViewRange(300)
         .build();
   }
 }

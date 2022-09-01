@@ -19,6 +19,13 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneSubordination;
 @Service
 public class CarProspectorImpl implements CarProspector {
 
+  //private ConfigurationService configurationService;
+
+  private int getViewRange(){
+    return 300;//#TODO load it from spring
+    //return configurationService.getConfiguration().getCarViewRange();
+  }
+
   public CarEnvironment getPrecedingCarOrCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader) {
     LaneReadable currentLane = roadStructureReader.getLaneReadable(currentCar.getLaneId());
     JunctionId nextJunctionId = currentLane.getOutgoingJunctionId();
@@ -34,7 +41,7 @@ public class CarProspectorImpl implements CarProspector {
       int offset = 0;
       LaneId nextLaneId;
       LaneReadable nextLane;
-      while (precedingCar.isEmpty() && !nextJunctionId.isCrossroad()) {
+      while (precedingCar.isEmpty() && !nextJunctionId.isCrossroad() && distance < getViewRange()) {
         Optional<LaneId> nextLaneIdOptional = currentCar.getRouteOffsetLaneId(++offset);
         if (nextLaneIdOptional.isEmpty()) {
           break;
@@ -53,7 +60,7 @@ public class CarProspectorImpl implements CarProspector {
       distance += precedingCar.map(car -> car.getPositionOnLane() - car.getLength()).orElse(currentLane.getLength())
           - currentCar.getPositionOnLane();
     }
-    if (nextJunctionId.isCrossroad()) {
+    if (nextJunctionId.isCrossroad() && distance <= getViewRange() && roadStructureReader.getJunctionReadable(nextJunctionId) != null) {
       nextCrossroadId = Optional.of(nextJunctionId);
     } else {
       nextCrossroadId = Optional.empty();
@@ -116,20 +123,21 @@ public class CarProspectorImpl implements CarProspector {
   public LaneId getNextOutgoingLane(CarReadable car, JunctionId junctionId, RoadStructureReader roadStructureReader){
     LaneId outgoingLaneId = null;
     int offset = 0;
-    LaneId tmpLane;
+    LaneId tmpLaneId;
     do{
       Optional<LaneId> nextLaneIdOptional = car.getRouteOffsetLaneId(offset++);
       if(nextLaneIdOptional.isPresent()) {
-        tmpLane = nextLaneIdOptional.get();
-        if (tmpLane.getReadable(roadStructureReader).getIncomingJunctionId().equals(junctionId)) {
-          outgoingLaneId = tmpLane;
+        tmpLaneId = nextLaneIdOptional.get();
+        LaneReadable tmpLane = tmpLaneId.getReadable(roadStructureReader);
+        if (tmpLane != null && tmpLane.getIncomingJunctionId().equals(junctionId)) {
+          outgoingLaneId = tmpLaneId;
         }
       }
       else{
-        tmpLane = null;
+        tmpLaneId = null;
       }
     }
-    while(outgoingLaneId == null && tmpLane != null);
+    while(outgoingLaneId == null && tmpLaneId != null);
     return outgoingLaneId;
   }
 }
