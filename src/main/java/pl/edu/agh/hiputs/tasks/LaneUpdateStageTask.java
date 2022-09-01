@@ -38,7 +38,8 @@ public class LaneUpdateStageTask implements Runnable {
             .getCarAtExit()
             .map(car -> Objects.isNull(laneId) || !Objects.equals(laneId, car.getDecision().getLaneId()))
             .orElse(false)) {
-      lane.pollCarAtExit();
+      CarEditable car = lane.pollCarAtExit().get();
+      log.debug("Car: " + car.getCarId() + " with destination lane: " + car.getDecision().getLaneId() + " removeLeavingCar from lane: " + laneId);
     }
   }
 
@@ -54,6 +55,7 @@ public class LaneUpdateStageTask implements Runnable {
         .collect(Collectors.toList());
     for (CarEditable car : carsToRemove) {
       lane.removeCar(car);
+      log.trace("Car: " + car.getCarId() + " car remove from lane: " + laneId);
     }
   }
 
@@ -66,8 +68,10 @@ public class LaneUpdateStageTask implements Runnable {
     lane.pollIncomingCars()
         .sorted(Comparator.<CarEditable>comparingDouble(car -> car.getDecision().getPositionOnLane()).reversed())
         .forEach(currentCar -> {
-          if (currentCar.update().isPresent())
+          if (currentCar.update().isPresent()) {
             lane.addCarAtEntry(currentCar);
+            log.trace("Car: " + currentCar.getCarId() + " add at entry of lane: " + laneId);
+          }
         });
   }
 }
