@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.partition.osm.speed.rule.transform;
 
+import static pl.edu.agh.hiputs.partition.osm.speed.CommonConstants.maxSpeedKeyInTags;
+
 import de.topobyte.osm4j.core.model.iface.OsmTag;
 import de.topobyte.osm4j.core.model.iface.OsmWay;
 import de.topobyte.osm4j.core.model.impl.Tag;
@@ -11,8 +13,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class SpeedTagTransformer implements TagTransformer{
-  private static final String maxSpeedKeyInTags = "maxspeed";
-
   @Override
   public OsmWay replaceValue(OsmWay way, String value) {
     List<OsmTag> tagsList = OsmModelUtil.getTagsAsList(way).stream()

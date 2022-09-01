@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.partition.osm.speed.rule.engine;
 
+import static pl.edu.agh.hiputs.partition.osm.speed.CommonConstants.maxSpeedKeyInTags;
+
 import de.topobyte.osm4j.core.model.iface.OsmNode;
 import de.topobyte.osm4j.core.model.iface.OsmWay;
 import de.topobyte.osm4j.core.model.util.OsmModelUtil;
@@ -36,7 +38,7 @@ public class RuleEngineImpl implements RuleEngine{
     List<OsmWay> transformedWays = new ArrayList<>();
 
     ways.forEach(way -> {
-      if (!OsmModelUtil.getTagsAsMap(way).containsKey("maxspeed")) {
+      if (!OsmModelUtil.getTagsAsMap(way).containsKey(maxSpeedKeyInTags)) {
         SpeedResultHandler handler = new SpeedResultHandler();
         handler.setMapOfOsmNodes(nodesAsMap);
         handler.setOsmWay(way);
