@@ -23,7 +23,7 @@ public class ResultDecider implements Decider{
       speedDataHandler.setResultSpeed(record.getHighway());
     } else if (speedDataHandler.getTypeOfRoad() == TypeOfRoad.Urban) {
       speedDataHandler.setResultSpeed(record.getUrban());
-    } else {
+    } else if (speedDataHandler.getTypeOfRoad() == TypeOfRoad.Rural){
       speedDataHandler.setResultSpeed(record.getRural());
     }
   }

@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.osm.speed.rule.decider.Decider;
 import pl.edu.agh.hiputs.partition.osm.speed.rule.handler.SpeedResultHandler;
+import pl.edu.agh.hiputs.partition.osm.speed.rule.handler.TypeOfRoad;
 import pl.edu.agh.hiputs.partition.osm.speed.rule.resolver.Resolver;
 import pl.edu.agh.hiputs.partition.osm.speed.rule.transform.TagTransformer;
 
@@ -46,7 +47,9 @@ public class RuleEngineImpl implements RuleEngine{
         deciders.forEach(decider -> decider.decideAboutValue(handler));
 
         waysToRemove.add(way);
-        transformedWays.add(speedTagTransformer.replaceValue(way, handler.getResultSpeed()));
+        if (handler.getTypeOfRoad() != TypeOfRoad.NotClassified) {
+          transformedWays.add(speedTagTransformer.replaceValue(way, handler.getResultSpeed()));
+        }
       }
     });
 
