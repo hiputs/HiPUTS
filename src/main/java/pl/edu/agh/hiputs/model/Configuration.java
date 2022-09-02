@@ -37,7 +37,7 @@ public class Configuration {
   /**
    * How long simulation should work
    */
-  private long simulationStep;
+  private int simulationStep;
 
   /**
    * Flag decided to read parsed map or parse map from osm file
@@ -90,7 +90,7 @@ public class Configuration {
         .workerCount(1)
         .enableGUI(true)
         .statisticModeActive(false)
-        .simulationStep(1000L)
+        .simulationStep(1000)
         .pauseAfterStep(1000)
         .mapPath("")
         .serverAddress("localhost")

@@ -37,7 +37,7 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
 
   @Override
   public void init(TransferDataHandler transferDataHandler) {
-    iterationInfo = new ArrayList<>((int) configurationService.getConfiguration().getSimulationStep());
+    iterationInfo = new ArrayList<>(configurationService.getConfiguration().getSimulationStep());
     this.transferDataHandler = transferDataHandler;
   }
 

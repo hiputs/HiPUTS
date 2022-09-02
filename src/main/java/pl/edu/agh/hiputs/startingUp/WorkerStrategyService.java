@@ -155,9 +155,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   @Override
   public void run() {
-    long i = 0;
+    int i = 0;
     try {
-      long n = configuration.getSimulationStep();
+      int n = configuration.getSimulationStep();
       monitorLocalService.init(mapFragmentExecutor.getMapFragment());
       for (i = 0; i < n; i++) {
         log.info("Start iteration no. {}/{}", i+1, n);
