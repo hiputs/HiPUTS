@@ -29,7 +29,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
 
   private static final int MAX_AGE_DIFF = 10;
   private static final double ALLOW_LOAD_IMBALANCE = 1.03;
-  private static final double LOW_THRESHOLD =  1.40;
+  private static final double LOW_THRESHOLD =  1.20;
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
   private final SimulationStatisticService simulationStatisticService;
