@@ -13,6 +13,7 @@ public interface LoadBalancingStrategy {
   @Setter
   class LoadBalancingDecision {
     private boolean loadBalancingRecommended;
+    private boolean extremelyLoadBalancing = false;
     private MapFragmentId selectedNeighbour;
     private long carImbalanceRate;
     private int age;

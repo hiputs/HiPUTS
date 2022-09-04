@@ -54,7 +54,7 @@ public class MessageReceiverService {
   }
 
   public void propagateMessage(Message message) {
-    log.info("Worker receive message: " + message.getMessageType());
+    log.debug("Worker receive message: " + message.getMessageType());
     subscriberRepository.get(message.getMessageType()).forEach(subscriber -> subscriber.notify(message));
   }
 

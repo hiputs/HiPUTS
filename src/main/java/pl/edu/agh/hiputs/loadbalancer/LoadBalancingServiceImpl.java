@@ -5,6 +5,7 @@ import static pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil.countCars;
 import static pl.edu.agh.hiputs.loadbalancer.utils.GraphCoherencyUtil.isCoherency;
 import static pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil.*;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -55,16 +56,28 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
     long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
 
-    ImmutablePair<PatchBalancingInfo, Double> patchInfo =
-        findPatchToSend(recipient, transferDataHandler, targetBalanceCars);
-    simulationStatisticService.saveLoadBalancingDecision(true, patchInfo.getLeft().getPatchId().getValue(),
-        recipient.getId(), patchInfo.getRight(), loadBalancingDecision.getAge());
+    if(targetBalanceCars == 0){
+      return;
+    }
 
-    patchTransferService.sendPatch(recipient, patchInfo.getLeft().getPatchId(), transferDataHandler);
+    long transferCars = 0;
+
+    do {
+      ImmutablePair<PatchBalancingInfo, Double> patchInfo =
+          findPatchesToSend(recipient, transferDataHandler, targetBalanceCars);
+
+      simulationStatisticService.saveLoadBalancingDecision(true, patchInfo.getLeft().getPatchId().getValue(),
+          recipient.getId(), patchInfo.getRight(), loadBalancingDecision.getAge());
+
+      patchTransferService.sendPatch(recipient, patchInfo.getLeft().getPatchId(), transferDataHandler);
+
+      transferCars += patchInfo.getLeft().getCountOfVehicle();
+    } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9);
   }
 
-  private ImmutablePair<PatchBalancingInfo, Double> findPatchToSend(MapFragmentId recipient,
-      TransferDataHandler transferDataHandler, long carBalanceTarget) {
+  private ImmutablePair<PatchBalancingInfo, Double> findPatchesToSend(MapFragmentId recipient,
+      TransferDataHandler transferDataHandler, final long carBalanceTarget) {
+
     Set<Patch> candidatesToLoadBalancing = transferDataHandler.getBorderPatches().get(recipient);
     List<PatchBalancingInfo> candidatesWithStatistic =
         bindWitchStatistic(candidatesToLoadBalancing, transferDataHandler);
@@ -75,11 +88,12 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
         .sorted(Comparator.comparingDouble(ImmutablePair::getRight))
         .toList();
 
-    ImmutablePair<PatchBalancingInfo, Double> selectedCandidate =
-        findFirstCandidateNotLossGraphCoherence(orderCandidates, transferDataHandler, recipient);
 
-    log.info("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(),
-        selectedCandidate.getRight());
+      ImmutablePair<PatchBalancingInfo, Double> selectedCandidate =
+          findFirstCandidateNotLossGraphCoherence(orderCandidates, transferDataHandler, recipient);
+
+      log.info("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(),
+          selectedCandidate.getRight());
 
     return selectedCandidate;
   }
@@ -119,10 +133,6 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
           .countCarsInRemovedShadowPatches(countCars(removedShadowPatches, transferDataHandler))
           .build();
     }).toList();
-  }
-
-  private boolean shouldBalancingProcess() {
-    return true;
   }
 
   private LoadBalancingStrategy getStrategyByMode() {
