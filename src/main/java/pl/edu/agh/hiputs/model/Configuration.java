@@ -80,6 +80,11 @@ public class Configuration {
   private int initialNumberOfCarsPerLane;
 
   /**
+   * View range of car - objects which are further will be not be visible for car
+   */
+  private int carViewRange;
+
+  /**
    * Pause between every simulation step in ms. When visualise mode is enabled recommended min 100ms
    */
   private int pauseAfterStep;
@@ -97,6 +102,7 @@ public class Configuration {
         .serverPort(8081)
         .initialNumberOfCarsPerLane(1)
         .balancingMode(BalancingMode.NONE)
+        .carViewRange(300)
         .build();
   }
 }
