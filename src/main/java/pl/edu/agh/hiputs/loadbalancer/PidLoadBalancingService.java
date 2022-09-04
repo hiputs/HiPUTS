@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
@@ -22,13 +23,17 @@ import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PidLoadBalancingService implements LoadBalancingStrategy, Subscriber {
 
   private final ConfigurationService configurationService;
   private final SubscriptionService subscriptionService;
+
+  private final SimulationStatisticService simulationStatisticService;
 
   private final LocalLoadStatisticService localLoadStatisticService;
 
@@ -44,7 +49,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
 
   @PostConstruct
   void init() {
-    if (configurationService.getConfiguration().getBalancingMode() == BalancingMode.SIMPLY) {
+    if (configurationService.getConfiguration().getBalancingMode() == BalancingMode.PID) {
       subscriptionService.subscribe(this, LoadInfo);
     }
   }
@@ -53,16 +58,20 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
   public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler) {
     LoadBalancingDecision loadBalancingDecision = new LoadBalancingDecision();
     loadBalancingDecision.setAge(step);
+    LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
 
-    if (step % 10 == 0) {
-      calculateNewTargetAndInitPID();
+    if (step % 10 == 0 || step == 1) {
+      calculateNewTargetAndInitPID(info);
     }
 
-    LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
+    double myCost = MapFragmentCostCalculatorUtil.calculateCost(info);
+    simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, step, info.getWaitingTime());
+
     double carBalanceTarget = carPID.nextValue(info.getCarCost());
     double timeBalanceTarget = timePID.nextValue(info.getTimeCost());
+    log.info("My cost {}, carTarget {}, time target {}", myCost, carBalanceTarget, timeBalanceTarget);
 
-    if (carBalanceTarget > 0 || timeBalanceTarget > 0 || step < INITIALIZATION_STEP + 1) {
+    if (carBalanceTarget < 0 || timeBalanceTarget > 0 || step < INITIALIZATION_STEP + 1) {
       step++;
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
@@ -71,6 +80,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
     step++;
     carBalanceTarget = Math.abs(carBalanceTarget);
     timeBalanceTarget = Math.abs(timeBalanceTarget);
+    log.info("Car imbalance: {}, time imbalance: {}",carBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE, timeBalanceTarget / timePID.getTarget() <= ALLOW_LOAD_IMBALANCE);
 
     if (carBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE
         && timeBalanceTarget / timePID.getTarget() <= ALLOW_LOAD_IMBALANCE) {
@@ -80,12 +90,18 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
 
     loadBalancingDecision.setLoadBalancingRecommended(true);
     ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
+
+    if(candidate == null){
+      loadBalancingDecision.setLoadBalancingRecommended(false);
+      return loadBalancingDecision;
+    }
+
     loadBalancingDecision.setSelectedNeighbour(candidate.getLeft());
     loadBalancingDecision.setCarImbalanceRate((long) carBalanceTarget);
     return loadBalancingDecision;
   }
 
-  private void calculateNewTargetAndInitPID() {
+  private void calculateNewTargetAndInitPID(LoadBalancingHistoryInfo info) {
     double timeAvg = loadRepository.values()
         .stream()
         .filter(i -> i.getAge() + MAX_AGE_DIFF >= step)
@@ -99,6 +115,8 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
         .mapToDouble(LoadBalancingHistoryInfo::getCarCost)
         .average()
         .orElse(0.f);
+
+    log.info("Car target {} time target {}", timeAvg, carAvg);
 
     if(timePID == null || carPID == null){
       timePID = new PID(new ZieglerNicholsAutoTuner(), timeAvg);

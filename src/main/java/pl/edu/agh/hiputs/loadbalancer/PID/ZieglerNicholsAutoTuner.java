@@ -111,13 +111,17 @@ public class ZieglerNicholsAutoTuner implements PidAutoTuner {
   }
 
   // Initialize all variables before loop
-  public void reset(int iteration, double target) {
+  public void reset(int cycles, double target, int iteration) {
     i = 0; // Cycle counter
     output = true; // Current output state
     t1 = t2 = iteration; // Times used for calculating period
     max = -1000000000000d; // Max input
     min = 1000000000000d; // Min input
     pAverage = iAverage = dAverage = 0;
+    kp = 0;
+    ki = 0;
+    kd = 0;
+    this.cycles = cycles;
     this.target = target;
   }
 

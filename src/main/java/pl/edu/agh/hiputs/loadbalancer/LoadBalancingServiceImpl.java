@@ -55,6 +55,10 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
     long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
 
+    if(targetBalanceCars == 0){
+      return;
+    }
+
     ImmutablePair<PatchBalancingInfo, Double> patchInfo =
         findPatchToSend(recipient, transferDataHandler, targetBalanceCars);
     simulationStatisticService.saveLoadBalancingDecision(true, patchInfo.getLeft().getPatchId().getValue(),

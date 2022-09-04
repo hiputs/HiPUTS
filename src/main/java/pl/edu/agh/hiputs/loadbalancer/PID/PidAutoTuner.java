@@ -15,14 +15,14 @@ public interface PidAutoTuner {
 
   void setTarget(double target);
 
-  void reset(int iteration, double target);
+  void reset(int cycles, double target, int iteration);
 
   @Getter
   @AllArgsConstructor
-  static class PIDParameters {
-    private final double kP = 1.0;
-    private final double kI = 1.0;
-    private final double kD = 1.0;
+  class PIDParameters {
+    private final double kP;
+    private final double kI;
+    private final double kD;
   }
 
 }
