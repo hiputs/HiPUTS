@@ -29,6 +29,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
 
   private static final int MAX_AGE_DIFF = 10;
   private static final double ALLOW_LOAD_IMBALANCE = 1.03;
+  private static final double LOW_THRESHOLD =  1.40;
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
   private final SimulationStatisticService simulationStatisticService;
@@ -73,8 +74,10 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
     try {
       ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
       boolean shouldBalancing = myCost > candidate.getRight() * ALLOW_LOAD_IMBALANCE;
+      boolean shouldExtremeBalancing = myCost > candidate.getRight() * LOW_THRESHOLD;
 
       loadBalancingDecision.setLoadBalancingRecommended(shouldBalancing);
+      loadBalancingDecision.setExtremelyLoadBalancing(shouldExtremeBalancing);
 
       if (!shouldBalancing) {
         return loadBalancingDecision;
