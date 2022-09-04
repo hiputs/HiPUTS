@@ -37,6 +37,44 @@ class IdmDeciderTest {
   }
 
   @Test
+  void makeDecision_crashStopped() {
+    double distanceHeadway = 2.0;
+    double timeHeadway = 2.0;
+    double maxAcceleration = 2.0;
+    double maxDeceleration = 3.5;
+    double length = 5.0;
+    double maxSpeed = 20.0;
+    Idm model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+    CarReadable managedCar = createCar(10, 0, length, maxSpeed);
+    CarReadable aheadCar = createCar(10 + length, 0, length, maxSpeed);
+    FunctionalDecider decider = new IdmDecider(model);
+    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+        aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
+    double acceleration = decider.makeDecision(managedCar, environment, null);
+    double res = acceleration;
+    assertTrue(res <= 0.0, "Result was: " + res + ", but should be lower than 0.");
+  }
+
+  @Test
+  void makeDecision_carOnCarStopped() {
+    double distanceHeadway = 2.0;
+    double timeHeadway = 2.0;
+    double maxAcceleration = 2.0;
+    double maxDeceleration = 3.5;
+    double length = 5.0;
+    double maxSpeed = 20.0;
+    Idm model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+    CarReadable managedCar = createCar(10, 0, length, maxSpeed);
+    CarReadable aheadCar = createCar(10 + 0.3, 0, length, maxSpeed);
+    FunctionalDecider decider = new IdmDecider(model);
+    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+        aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
+    double acceleration = decider.makeDecision(managedCar, environment, null);
+    double res = acceleration;
+    assertTrue(res <= 0.0, "Result was: " + res + ", but should be lower than 0.");
+  }
+
+  @Test
   void makeDecision_freeStart() {
     double distanceHeadway = 2.0;
     double timeHeadway = 2.0;

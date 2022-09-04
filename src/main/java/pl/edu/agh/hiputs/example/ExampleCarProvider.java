@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -13,6 +14,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.JunctionId;
@@ -21,6 +23,7 @@ import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @Slf4j
@@ -29,6 +32,7 @@ public class ExampleCarProvider {
   private static final Double DEFAULT_CAR_LENGTH = 4.5;
   private static final Double DEFAULT_MAX_SPEED = 20.0;
   private static final Integer DEFAULT_HOPS = 4;
+  private static final Double DEFAULT_MAX_DECELERATION = 3.5;
   private final MapFragment mapFragment;
   private Function<JunctionId, List<LaneId>> junctionIdToOutgoingLaneIdList;
   private Function<LaneId, JunctionId> laneIdToOutgoingJunctionId;
@@ -82,6 +86,10 @@ public class ExampleCarProvider {
 
   public Car generateCar(int hops) {
     LaneId startLaneId = getRandomStartLaneId();
+    return generateCar(startLaneId, hops);
+  }
+
+  public Car generateCar(LaneId startLaneId, int hops) {
     double position = ThreadLocalRandom.current().nextDouble(0, mapFragment.getLaneReadable(startLaneId).getLength());
     return this.generateCar(position, startLaneId, hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
   }
@@ -146,5 +154,30 @@ public class ExampleCarProvider {
 
   private LaneId getRandomStartLaneId() {
     return this.localLaneIdList.get(ThreadLocalRandom.current().nextInt(this.localLaneIdList.size()));
+  }
+
+  public void limitSpeedPreventCollisionOnStart(Car currentCar, LaneReadable lane){
+    Optional<CarReadable> carAtEntryOptional = lane.getCarAtEntryReadable();
+    double distance;
+    if(carAtEntryOptional.isPresent()) {
+      CarReadable carAtEntry = carAtEntryOptional.get();
+      double brakingDistance = carAtEntry.getSpeed() * carAtEntry.getSpeed() / DEFAULT_MAX_DECELERATION / 2;
+      distance = carAtEntry.getPositionOnLane() - carAtEntry.getLength() + brakingDistance;
+    }
+    else{
+      distance = lane.getLength();
+    }
+    distance -=  currentCar.getPositionOnLane();
+
+    double maxSpeed = Math.sqrt(distance * 2 * DEFAULT_MAX_DECELERATION) * 0.8;
+
+    if(distance < 0){
+      maxSpeed = 0.0;
+    }
+
+    if (currentCar.getSpeed() > maxSpeed){
+      log.debug("Car: " + currentCar.getCarId() + " has reduced its speed before start from: " + currentCar.getSpeed() + " to: " + maxSpeed + ", distance: " + distance);
+      currentCar.setSpeed(maxSpeed);
+    }
   }
 }
