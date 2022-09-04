@@ -84,7 +84,7 @@ public class SerializedCar implements CustomSerializable<Car> {
     try {
       decision = new SerializedDecision(realObject.getDecision());
     } catch (Exception e) {
-      log.error("NLP TMP FIXES !!!!", e);
+      log.error("NLP TMP FIXES !!!!");
     }
   }
 
