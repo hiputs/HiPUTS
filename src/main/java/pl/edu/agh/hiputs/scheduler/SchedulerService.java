@@ -20,7 +20,7 @@ public class SchedulerService implements TaskExecutorService {
 
   @PostConstruct
   public void init() {
-    int cores = 4;//getFreeCores();
+    int cores = getFreeCores();
 
     if (cores <= 0) {
       throw new InsufficientSystemResourcesException("Insufficient number of cores");
