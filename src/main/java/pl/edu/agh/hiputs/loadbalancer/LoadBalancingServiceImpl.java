@@ -52,7 +52,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
       return;
     }
 
-    log.info("Start loadbalancing worker id: {}", transferDataHandler.getMe());
+    log.debug("Start loadbalancing worker id: {}", transferDataHandler.getMe());
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
     long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
 
@@ -92,7 +92,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
       ImmutablePair<PatchBalancingInfo, Double> selectedCandidate =
           findFirstCandidateNotLossGraphCoherence(orderCandidates, transferDataHandler, recipient);
 
-      log.info("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(),
+      log.debug("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(),
           selectedCandidate.getRight());
 
     return selectedCandidate;

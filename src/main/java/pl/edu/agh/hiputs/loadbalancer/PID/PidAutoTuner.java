@@ -7,15 +7,13 @@ public interface PidAutoTuner {
 
   PIDParameters getParameters();
 
-  void nextValue(double signal, int iteration);
-
-  void setCycles(int cycles);
+  double nextValue(double signal, int iteration);
 
   boolean isFinished();
 
   void setTarget(double target);
 
-  void reset(int cycles, double target, int iteration);
+  void reset(double target, int iteration, double min, double max);
 
   @Getter
   @AllArgsConstructor

@@ -42,10 +42,9 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
   private final Map<MapFragmentId, LoadBalancingHistoryInfo> loadRepository = new HashMap<>();
 
   private static final int MAX_AGE_DIFF = 5;
-  private static final double ALLOW_LOAD_IMBALANCE = 0.03;
-  private static final double LOW_THRESHOLD = 0.1;
+  private static final double ALLOW_LOAD_IMBALANCE = 0.01;
 
-  private PID timePID;
+  // private PID timePID;
   private PID carPID;
 
   private int step = 0;
@@ -59,6 +58,12 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
 
   @Override
   public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler) {
+
+    if(step < INITIALIZATION_STEP + 1) { // first step we use  SIMPLY algorithm
+      step++;
+      return simplyLoadBalancingService.makeBalancingDecision(transferDataHandler);
+    }
+
     LoadBalancingDecision loadBalancingDecision = new LoadBalancingDecision();
     loadBalancingDecision.setAge(step);
     LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
@@ -68,38 +73,28 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
     double myCost = MapFragmentCostCalculatorUtil.calculateCost(info);
 
     double carBalanceTarget = carPID.nextValue(info.getCarCost());
-    double timeBalanceTarget = timePID.nextValue(info.getTimeCost());
-    log.info("My cost {}, carTarget {}, time target {}", myCost, carBalanceTarget, timeBalanceTarget);
-
-    if(step < INITIALIZATION_STEP + 1) { // first step we use  SIMPLY algorithm
-      step++;
-      return simplyLoadBalancingService.makeBalancingDecision(transferDataHandler);
-    }
+    // double timeBalanceTarget = timePID.nextValue(info.getTimeCost());
+    log.info("My cost {}, carTarget {}, time target {}", myCost, carBalanceTarget, 0);
 
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, step, info.getWaitingTime());
     step++;
 
-    if (carBalanceTarget < 0 || timeBalanceTarget > 0) {
+    if (carBalanceTarget > 0 ) {
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
     }
 
     carBalanceTarget = Math.abs(carBalanceTarget);
-    timeBalanceTarget = Math.abs(timeBalanceTarget);
-    log.info("Car imbalance: {}, time imbalance: {}",carBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE, timeBalanceTarget / timePID.getTarget() <= ALLOW_LOAD_IMBALANCE);
+    // timeBalanceTarget = Math.abs(timeBalanceTarget);
+    log.info("Car imbalance: {}, time imbalance: {}",carBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE, 0);
 
-    if (carBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE
-        && timeBalanceTarget / timePID.getTarget() <= ALLOW_LOAD_IMBALANCE) {
+    if (carBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE) {
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
     }
 
-    if(carBalanceTarget / carPID.getTarget() > LOW_THRESHOLD
-        && timeBalanceTarget / timePID.getTarget() > LOW_THRESHOLD){
-      loadBalancingDecision.setExtremelyLoadBalancing(true);
-    }
-
     loadBalancingDecision.setLoadBalancingRecommended(true);
+    loadBalancingDecision.setExtremelyLoadBalancing(true);
     ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
 
     loadBalancingDecision.setSelectedNeighbour(candidate.getLeft());
@@ -108,12 +103,12 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
   }
 
   private void calculateNewTargetAndInitPID(LoadBalancingHistoryInfo info) {
-    double timeAvg = loadRepository.values()
-        .stream()
-        .filter(i -> i.getAge() + MAX_AGE_DIFF >= step)
-        .mapToDouble(LoadBalancingHistoryInfo::getTimeCost)
-        .average()
-        .orElse(0.f);
+    // double timeAvg = loadRepository.values()
+    //     .stream()
+    //     .filter(i -> i.getAge() + MAX_AGE_DIFF >= step)
+    //     .mapToDouble(LoadBalancingHistoryInfo::getTimeCost)
+    //     .average()
+    //     .orElse(0.f);
 
     double carAvg = loadRepository.values()
         .stream()
@@ -122,13 +117,13 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
         .average()
         .orElse(0.f);
 
-    log.info("Car target {} time target {}", timeAvg, carAvg);
+    log.info("Car target {} time target {}", carAvg, 0);
 
-    if(timePID == null || carPID == null){
-      timePID = new PID(new ZieglerNicholsAutoTuner(), timeAvg);
-      carPID = new PID(new ZieglerNicholsAutoTuner(), carAvg);
+    if(carPID == null){
+      // timePID = new PID(new ZieglerNicholsAutoTuner(), timeAvg, -10000d, 10000d);
+      carPID = new PID(new ZieglerNicholsAutoTuner(), carAvg, -300d, 300d);
     } else {
-      timePID.setTarget(timeAvg);
+      // timePID.setTarget(timeAvg);
       carPID.setTarget(carAvg);
     }
 
