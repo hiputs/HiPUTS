@@ -209,6 +209,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     shadowPatchesToRemove.forEach(id -> {
       Patch removedPatch = knownPatches.remove(id);
+      mapFragmentIdToShadowPatchIds.values().forEach(set -> set.remove(id));
       localPatchIds.remove(id);
 
       removedPatch.getLaneIds().forEach(laneIdToPatchId::remove);
@@ -268,11 +269,12 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   @Override
   public void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId source, MapFragmentId destination) {
+    if(!knownPatches.containsKey(patchId)){
+      return;
+    }
+
     mapFragmentIdToShadowPatchIds.get(source).remove(patchId);
     mapFragmentIdToShadowPatchIds.get(destination).add(patchId);
-
-    mapFragmentIdToBorderPatchIds.get(source).remove(patchId);
-    mapFragmentIdToBorderPatchIds.get(destination).add(patchId);
 
     Patch migratedPatch = knownPatches.get(patchId);
 
@@ -288,10 +290,8 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     migratedPatch.getNeighboringPatches().forEach(id -> {
       if (patchConnectionCounter.get(id) != null && patchConnectionCounter.get(id) == 1) {
         mapFragmentIdToShadowPatchIds.get(source).remove(id);
-        mapFragmentIdToBorderPatchIds.get(source).remove(id);
       }
       mapFragmentIdToShadowPatchIds.get(destination).add(id);
-      mapFragmentIdToBorderPatchIds.get(destination).add(id);
     });
 
   }

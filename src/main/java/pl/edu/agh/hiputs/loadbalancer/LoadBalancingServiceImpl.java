@@ -66,6 +66,10 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
       ImmutablePair<PatchBalancingInfo, Double> patchInfo =
           findPatchesToSend(recipient, transferDataHandler, targetBalanceCars);
 
+      if(patchInfo == null){
+        return;
+      }
+
       simulationStatisticService.saveLoadBalancingDecision(true, patchInfo.getLeft().getPatchId().getValue(),
           recipient.getId(), patchInfo.getRight(), loadBalancingDecision.getAge());
 
@@ -87,6 +91,10 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
             PatchCostCalculatorUtil.calculateCost(i, carBalanceTarget)))
         .sorted(Comparator.comparingDouble(ImmutablePair::getRight))
         .toList();
+
+    if(orderCandidates.size() == 0){
+      return null;
+    }
 
 
       ImmutablePair<PatchBalancingInfo, Double> selectedCandidate =
