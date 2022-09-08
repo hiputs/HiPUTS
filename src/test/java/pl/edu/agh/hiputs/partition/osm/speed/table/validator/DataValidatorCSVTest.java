@@ -108,7 +108,6 @@ public class DataValidatorCSVTest {
   @Test
   public void determineWhenHighwayRuralNAUrbanSet() {
     // given
-    String higherLimit = "50";
     String lowerLimit = "30";
 
     // when
@@ -126,7 +125,6 @@ public class DataValidatorCSVTest {
   @Test
   public void determineWhenHighwayUrbanNAUrbanSet() {
     // given
-    String higherLimit = "50";
     String lowerLimit = "30";
 
     // when
@@ -145,7 +143,6 @@ public class DataValidatorCSVTest {
   public void determineWhenRuralUrbanNAUrbanSet() {
     // given
     String higherLimit = "50";
-    String lowerLimit = "30";
 
     // when
     record1.setHighway(higherLimit);

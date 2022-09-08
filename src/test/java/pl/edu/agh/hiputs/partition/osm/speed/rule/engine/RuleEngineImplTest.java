@@ -28,7 +28,7 @@ import pl.edu.agh.hiputs.partition.osm.speed.rule.transform.SpeedTagTransformer;
 
 @ExtendWith(MockitoExtension.class)
 public class RuleEngineImplTest {
-  private TypeOfRoadDecider typeOfRoadDecider = Mockito.mock(TypeOfRoadDecider.class);
+  private final TypeOfRoadDecider typeOfRoadDecider = Mockito.mock(TypeOfRoadDecider.class);
   @Spy
   private ArrayList<Decider> deciders;
   @Mock

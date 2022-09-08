@@ -4,7 +4,6 @@ import static pl.edu.agh.hiputs.partition.osm.speed.CommonConstants.maxSpeedKeyI
 
 import com.slimjars.dist.gnu.trove.list.TLongList;
 import de.topobyte.osm4j.core.model.iface.OsmMetadata;
-import de.topobyte.osm4j.core.model.iface.OsmTag;
 import de.topobyte.osm4j.core.model.iface.OsmWay;
 import de.topobyte.osm4j.core.model.impl.Tag;
 import de.topobyte.osm4j.core.model.impl.Way;
