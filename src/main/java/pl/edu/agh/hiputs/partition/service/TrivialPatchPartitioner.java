@@ -1,22 +1,16 @@
 package pl.edu.agh.hiputs.partition.service;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
-import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.partition.service.util.PatchesGraphExtractor;
 
@@ -35,7 +29,7 @@ public class TrivialPatchPartitioner implements PatchPartitioner {
         edge.getTarget().getData().setPatchId(patchId);
       }
 
-      if(edge.getSource().getIncomingEdges().isEmpty()) {
+      if (edge.getSource().getIncomingEdges().isEmpty()) {
         edge.getSource().getData().setPatchId(patchId);
       }
       edge.getData().setPatchId(patchId);

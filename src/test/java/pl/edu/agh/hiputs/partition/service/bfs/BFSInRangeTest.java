@@ -31,7 +31,7 @@ public class BFSInRangeTest {
 
   private final Measure<Edge<JunctionData, WayData>> testMeasure = new TestMeasure();
 
-  private final Path osmFilePath = getResourcePath("testMap2.osm");
+  private final Path osmFilePath = getResourcePath("straightTwoWayRoad.osm");
 
   @BeforeEach
   private void init() {

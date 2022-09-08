@@ -1,15 +1,10 @@
 package pl.edu.agh.hiputs.partition.service.util;
 
-import de.topobyte.osm4j.core.model.impl.Way;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
