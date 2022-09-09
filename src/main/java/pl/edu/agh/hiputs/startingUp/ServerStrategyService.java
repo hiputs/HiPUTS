@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
+import pl.edu.agh.hiputs.communication.model.messages.ShutDownMessage;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 import pl.edu.agh.hiputs.communication.service.server.ConnectionInitializationService;
@@ -70,7 +71,7 @@ public class ServerStrategyService implements Strategy {
   private final WorkerRepository workerRepository;
 
   @Override
-  public void executeStrategy() {
+  public void executeStrategy() throws InterruptedException {
 
     log.info("Running server");
     connectionInitializationService.init();
@@ -113,6 +114,8 @@ public class ServerStrategyService implements Strategy {
       generateReport();
     }
 
+    messageSenderServerService.broadcast(new ShutDownMessage());
+    Thread.sleep(1000);
     shutDown();
   }
 
