@@ -57,5 +57,10 @@ public enum MessagesTypeEnum {
   /**
    * Info adjacent areas about load
    */
-  LoadInfo
+  LoadInfo,
+
+  /**
+   * Info from service to shut down after simulation
+   */
+  ShutDownMessage
 }

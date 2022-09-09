@@ -4,6 +4,7 @@ import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.RunSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ServerInitializationMessage;
+import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ShutDownMessage;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -67,6 +68,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   void init() {
     subscriptionService.subscribe(this, RunSimulationMessage);
     subscriptionService.subscribe(this, ServerInitializationMessage);
+    subscriptionService.subscribe(this, ShutDownMessage);
   }
 
   @Override
@@ -96,8 +98,16 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       case RunSimulationMessage -> runSimulation();
       case ServerInitializationMessage -> handleInitializationMessage(
           (pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage) message);
+      case ShutDownMessage -> shutDown();
       default -> log.warn("Unhandled message " + message.getMessageType());
     }
+  }
+
+  @Autowired
+  private ApplicationContext context;
+  private void shutDown() {
+    int exitCode = SpringApplication.exit(context, (ExitCodeGenerator) () -> 0);
+    System.exit(exitCode);
   }
 
   private void handleInitializationMessage(
@@ -156,9 +166,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   @Override
   public void run() {
-    long i = 0;
+    int i = 0;
     try {
-      long n = configuration.getSimulationStep();
+      int n = configuration.getSimulationStep();
       monitorLocalService.init(mapFragmentExecutor.getMapFragment());
       for (i = 0; i < n; i++) {
         log.info("Start iteration no. {}/{}", i+1, n);
