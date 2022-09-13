@@ -3,10 +3,12 @@ package pl.edu.agh.hiputs.model.car;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
 @Getter
 @Builder
+@ToString
 @EqualsAndHashCode
 public class Decision {
 
