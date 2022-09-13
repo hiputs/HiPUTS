@@ -29,7 +29,7 @@ public class SchedulerService implements TaskExecutorService {
   }
 
   private int getFreeCores() {
-    return 3;//Runtime.getRuntime().availableProcessors() - RESERVED_THREADS_NUMBER;
+    return Runtime.getRuntime().availableProcessors() - RESERVED_THREADS_NUMBER;
   }
 
   @Override
