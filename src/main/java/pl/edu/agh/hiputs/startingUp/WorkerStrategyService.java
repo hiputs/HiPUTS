@@ -37,6 +37,7 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
@@ -63,6 +64,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
 
   private final MonitorLocalService monitorLocalService;
+
+  private final StatisticSummaryService statisticSummaryService;
 
   @PostConstruct
   void init() {
@@ -170,6 +173,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     try {
       int n = configuration.getSimulationStep();
       monitorLocalService.init(mapFragmentExecutor.getMapFragment());
+      statisticSummaryService.startTiming();
       for (i = 0; i < n; i++) {
         log.info("Start iteration no. {}/{}", i+1, n);
         mapFragmentExecutor.run();

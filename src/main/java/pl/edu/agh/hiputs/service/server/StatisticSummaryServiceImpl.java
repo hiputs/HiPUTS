@@ -29,6 +29,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
 
   private static final String DIR = "statistic";
   private static final String WORKER_COSTS_CSV = "workerCost.csv";
+  private static final String CAR_CSV = "car.csv";
   private static final String WORKER_WAITING_TIME_CSV = "workerWaitingTime.csv";
   private static final String WORKER_LOAD_BALANCING_COST_CSV = "workerLoadBalancingTime.csv";
   private static final String PATCH_EXCHANGES_CSV = "patchExchanges.csv";
@@ -52,6 +53,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     createSummary();
     createCSVTotalCostByWorker();
     createCSVWaitingTimeByWorker();
+    carByWorker();
     createCSVLoadBalancingCostByWorker();
     createCSVPatchExchangesRecords();
   }
@@ -111,6 +113,21 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     });
 
     save(lines, WORKER_COSTS_CSV);
+  }
+
+  private void carByWorker() {
+    List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
+
+    repository.forEach(repo -> {
+      final int[] i = {1};
+      repo.getBalancingStatisticRepository().forEach(info -> {
+        lines.get(i[0]).append(info.getCars());
+        lines.get(i[0]).append(SEPARATOR);
+        i[0]++;
+      });
+    });
+
+    save(lines, CAR_CSV);
   }
 
   private void createCSVTotalCostByWorker() {
