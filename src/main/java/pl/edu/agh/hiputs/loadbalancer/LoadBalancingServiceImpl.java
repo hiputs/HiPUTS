@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingStrategy.LoadBalancingDecision;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.PatchBalancingInfo;
@@ -61,6 +62,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
     }
 
     long transferCars = 0;
+    List<SerializedPatchTransfer> serializedPatchTransfers = new ArrayList<>();
 
     do {
       ImmutablePair<PatchBalancingInfo, Double> patchInfo =
@@ -73,10 +75,12 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
       simulationStatisticService.saveLoadBalancingDecision(true, patchInfo.getLeft().getPatchId().getValue(),
           recipient.getId(), patchInfo.getRight(), loadBalancingDecision.getAge());
 
-      patchTransferService.sendPatch(recipient, patchInfo.getLeft().getPatchId(), transferDataHandler);
+      serializedPatchTransfers.add(patchTransferService.prepareSinglePatchItemAndNotifyNeighbour(recipient, patchInfo.getLeft().getPatchId(), transferDataHandler));
 
       transferCars += patchInfo.getLeft().getCountOfVehicle();
     } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9);
+
+    patchTransferService.sendPatchMessage(recipient, serializedPatchTransfers);
   }
 
   private ImmutablePair<PatchBalancingInfo, Double> findPatchesToSend(MapFragmentId recipient,

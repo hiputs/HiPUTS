@@ -12,7 +12,7 @@ import pl.edu.agh.hiputs.communication.Connection;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
+import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
@@ -107,7 +107,7 @@ public class MessageSenderService implements Subscriber {
   }
 
   private void handlePatchTransferMessage(Message message) {
-    PatchTransferMessage workerConnectionMessage = (PatchTransferMessage) message;
+    SerializedPatchTransfer workerConnectionMessage = (SerializedPatchTransfer) message;
     workerConnectionMessage.getNeighbourConnectionMessage()
         .forEach(c -> {
           if(c == null || neighbourRepository.containsKey(new MapFragmentId(c.getId()))){

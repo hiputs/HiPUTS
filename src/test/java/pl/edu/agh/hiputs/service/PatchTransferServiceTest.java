@@ -14,7 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
+import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.model.car.Car;
@@ -54,7 +54,7 @@ public class PatchTransferServiceTest {
     // patchTransferService.sendPatch(new MapFragmentId("NEIGHBOUR"), patch);
 
     //then
-    ArgumentCaptor<PatchTransferMessage> argumentCaptor = ArgumentCaptor.forClass(PatchTransferMessage.class);
+    ArgumentCaptor<SerializedPatchTransfer> argumentCaptor = ArgumentCaptor.forClass(SerializedPatchTransfer.class);
     ArgumentCaptor<PatchTransferNotificationMessage> notificationArgumentCaptor =
         ArgumentCaptor.forClass(PatchTransferNotificationMessage.class);
 

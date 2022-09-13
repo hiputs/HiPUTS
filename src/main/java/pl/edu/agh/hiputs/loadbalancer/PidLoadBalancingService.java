@@ -88,7 +88,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
     // timeBalanceTarget = Math.abs(timeBalanceTarget);
     log.info("Car imbalance: {}, time imbalance: {}",carBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE, 0);
 
-    if (carBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE) {
+    if (carBalanceTarget <= 10) {
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
     }
@@ -121,7 +121,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
 
     if(carPID == null){
       // timePID = new PID(new ZieglerNicholsAutoTuner(), timeAvg, -10000d, 10000d);
-      carPID = new PID(new ZieglerNicholsAutoTuner(), carAvg, -300d, 300d);
+      carPID = new PID(new ZieglerNicholsAutoTuner(), carAvg, -300d, 0);
     } else {
       // timePID.setTarget(timeAvg);
       carPID.setTarget(carAvg);
