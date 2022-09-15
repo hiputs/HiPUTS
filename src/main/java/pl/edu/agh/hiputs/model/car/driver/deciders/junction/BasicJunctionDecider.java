@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.model.car.driver.deciders.junction;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspectorImpl;
@@ -14,6 +15,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 
+@Slf4j
 public class BasicJunctionDecider implements FunctionalDecider {
 
   private final CarProspector prospector = new CarProspectorImpl();
@@ -30,19 +32,29 @@ public class BasicJunctionDecider implements FunctionalDecider {
 
   public double makeDecision(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader) {
     double minArriveTime = getClosestConflictVehicleArriveTime(car, environment, roadStructureReader);
+    CarEnvironment precedingCarInfo = prospector.getPrecedingCar(car, roadStructureReader);
 
     double crossroadOutTime = calculateCrossroadOutTime(new CarBasicDeciderData(car.getSpeed(), environment.getDistance(), car.getLength()));
 
     double maxSpeed = environment.getDistance() < lineHeight * 4 ? crossroadMaxSpeed : car.getMaxSpeed();
 
     if(crossroadOutTime +  securityDelay > minArriveTime){
-      final double acceleration = followingModel.calculateAcceleration(car.getSpeed(), maxSpeed,
+      double acceleration = followingModel.calculateAcceleration(car.getSpeed(), maxSpeed,
           environment.getDistance() - lineHeight, car.getSpeed());
       return acceleration;
     }
 
-    final double acceleration =
-        followingModel.calculateAcceleration(car.getSpeed(), maxSpeed, Double.MAX_VALUE, 0);
+    double acceleration = 0;
+    if(precedingCarInfo.getPrecedingCar().isPresent()){
+      CarReadable precedingCar = precedingCarInfo.getPrecedingCar().get();
+      log.trace("Car: " + car.getCarId() + " found car after crossroad: car: " + precedingCar.getCarId() + " speed: " + precedingCar.getSpeed()
+          + " position: " + precedingCar.getPositionOnLane() + " lane: " + precedingCar.getLaneId());
+      acceleration = followingModel.calculateAcceleration(car.getSpeed(), maxSpeed, precedingCarInfo.getDistance(), car.getSpeed() - precedingCar.getSpeed());
+    }
+    else {
+      log.trace("Car: " + car.getCarId() + " does not found car after crossroad");
+      acceleration = followingModel.calculateAcceleration(car.getSpeed(), maxSpeed, Double.MAX_VALUE, 0);
+    }
     return acceleration;
   }
 

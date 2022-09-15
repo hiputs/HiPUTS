@@ -33,6 +33,8 @@ public class ExampleCarProvider {
   private static final Double DEFAULT_MAX_SPEED = 20.0;
   private static final Integer DEFAULT_HOPS = 4;
   private static final Double DEFAULT_MAX_DECELERATION = 3.5;
+  private static final Double DEFAULT_TIME_STEP = 1.0;
+  private static final Double DEFAULT_MAX_SPEED_SECURITY_FACTOR = 0.8;
   private final MapFragment mapFragment;
   private Function<JunctionId, List<LaneId>> junctionIdToOutgoingLaneIdList;
   private Function<LaneId, JunctionId> laneIdToOutgoingJunctionId;
@@ -169,10 +171,13 @@ public class ExampleCarProvider {
     }
     distance -=  currentCar.getPositionOnLane();
 
-    double maxSpeed = Math.sqrt(distance * 2 * DEFAULT_MAX_DECELERATION) * 0.8;
-
-    if(distance < 0){
-      maxSpeed = 0.0;
+    double maxSpeed = 0.0;
+      //Limit maxSped cause car need to stop in integer number of time steps
+    if(distance > 0){
+      maxSpeed = Math.sqrt(distance * 2 * DEFAULT_MAX_DECELERATION) * DEFAULT_MAX_SPEED_SECURITY_FACTOR;
+      double timeToStop = maxSpeed / DEFAULT_MAX_DECELERATION;
+      timeToStop -= timeToStop % DEFAULT_TIME_STEP;
+      maxSpeed = timeToStop * DEFAULT_MAX_DECELERATION * DEFAULT_MAX_SPEED_SECURITY_FACTOR;
     }
 
     if (currentCar.getSpeed() > maxSpeed){
