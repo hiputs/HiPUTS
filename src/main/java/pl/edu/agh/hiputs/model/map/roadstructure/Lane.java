@@ -120,10 +120,16 @@ public class Lane implements LaneEditable {
 
   @Override
   public void addCarAtEntry(CarEditable car) {
-    if(!cars.isEmpty() && cars.peekFirst().getPositionOnLane() < car.getPositionOnLane()){
-      log.warn("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
-          + car.getCarId() + ", position: " + car.getPositionOnLane() + ", first car: " + cars.peekFirst().getCarId()
-          + ", position: " + cars.peekFirst().getPositionOnLane());
+    if(!cars.isEmpty()){
+      CarReadable firstCarOnLane = cars.peekFirst();
+      if(firstCarOnLane.getPositionOnLane() < car.getPositionOnLane()){
+        log.warn("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
+            + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnLane.getCarId()
+            + ", position: " + firstCarOnLane.getPositionOnLane() + ", speed: " + firstCarOnLane.getSpeed() + ". Collision after crossroad!");
+        //Move back car to be before car he hit after collision
+        car.setPositionOnLaneAndSpeed(firstCarOnLane.getPositionOnLane()
+            - Math.min(0.01, firstCarOnLane.getPositionOnLane() * 0.01), firstCarOnLane.getSpeed());
+      }
     }
     cars.addFirst(car);
   }

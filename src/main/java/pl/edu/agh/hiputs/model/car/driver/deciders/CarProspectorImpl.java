@@ -31,6 +31,39 @@ public class CarProspectorImpl implements CarProspector {
     //return configurationService.getConfiguration().getCarViewRange();
   }
 
+  public CarEnvironment getPrecedingCar(CarReadable currentCar, RoadStructureReader roadStructureReader) {
+    LaneReadable currentLane = roadStructureReader.getLaneReadable(currentCar.getLaneId());
+    Optional<CarReadable> precedingCar = currentLane.getCarInFrontReadable(currentCar);
+    double distance;
+    if (precedingCar.isPresent()) {
+      distance = precedingCar.map(car -> car.getPositionOnLane() - car.getLength()).orElse(currentLane.getLength())
+          - currentCar.getPositionOnLane();
+    } else {
+      distance = 0;
+      int offset = 0;
+      LaneId nextLaneId;
+      LaneReadable nextLane;
+      while (precedingCar.isEmpty() && distance < getViewRange()) {
+        Optional<LaneId> nextLaneIdOptional = currentCar.getRouteOffsetLaneId(++offset);
+        if (nextLaneIdOptional.isEmpty()) {
+          break;
+        }
+        nextLaneId = nextLaneIdOptional.get();
+        distance += currentLane.getLength(); // adds previous lane length
+        nextLane = roadStructureReader.getLaneReadable(nextLaneId);
+        if (nextLane == null) {
+          break;
+        }
+        precedingCar = nextLane.getCarAtEntryReadable();
+        currentLane = nextLane;
+      }
+      distance += precedingCar.map(car -> car.getPositionOnLane() - car.getLength()).orElse(currentLane.getLength())
+          - currentCar.getPositionOnLane();
+    }
+    return new CarEnvironment(distance, precedingCar, Optional.empty(), Optional.empty());
+  }
+
+
   public CarEnvironment getPrecedingCarOrCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader) {
     LaneReadable currentLane = roadStructureReader.getLaneReadable(currentCar.getLaneId());
     JunctionId nextJunctionId = currentLane.getOutgoingJunctionId();

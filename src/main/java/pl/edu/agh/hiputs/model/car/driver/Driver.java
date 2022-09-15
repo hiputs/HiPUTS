@@ -74,7 +74,7 @@ public class Driver implements IDriver {
       currentLaneId = desiredLaneId.get();
       destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
       if(destinationCandidate == null){
-        log.error("Car: " + car.getCarId() + " Destination out of this node, positionRest: " + desiredPosition
+        log.warn("Car: " + car.getCarId() + " Destination out of this node, positionRest: " + desiredPosition
             + ", desiredLaneId: " + currentLaneId);
         currentLaneId = null;
         break;
