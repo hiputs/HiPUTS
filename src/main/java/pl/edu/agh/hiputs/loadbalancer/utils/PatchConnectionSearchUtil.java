@@ -14,6 +14,10 @@ public class PatchConnectionSearchUtil {
     return transferDataHandler.getPatchById(patchId).getNeighboringPatches()
         .stream()
         .filter(transferDataHandler::isLocalPatch)
+        .filter(id -> transferDataHandler.getPatchById(id).getNeighboringPatches()
+            .stream()
+            .anyMatch(id1 ->
+                !transferDataHandler.isLocalPatch(id1)))
         .toList();
   }
 

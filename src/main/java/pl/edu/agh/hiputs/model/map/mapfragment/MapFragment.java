@@ -251,7 +251,10 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     //add shadow patches - patch should be added to shadow patches
 
     List<ImmutablePair<PatchId, MapFragmentId>> shadowPatchesToAdd =
-        neighbourPatchIdsWithMapFragmentId.stream().filter(p -> !p.getRight().equals(mapFragmentId)).toList();
+        neighbourPatchIdsWithMapFragmentId
+            .stream()
+            .filter(p -> !p.getRight().equals(mapFragmentId))
+            .toList();
 
     shadowPatchesToAdd.forEach(p -> {
       Patch addedPatch = mapRepository.getPatch(p.getLeft());
