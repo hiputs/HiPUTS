@@ -104,6 +104,16 @@ public class Car implements CarEditable {
   }
 
   @Override
+  public void setPositionOnLaneAndSpeed(double position, double speed) {
+    if(positionOnLane > position){
+      positionOnLane = position;
+    }
+    if(this.speed > speed){
+      this.speed = speed;
+    }
+  }
+
+  @Override
   public Optional<LaneId> getRouteOffsetLaneId(int offset){
       return this.routeWithLocation.getOffsetLaneId(offset);
   }
