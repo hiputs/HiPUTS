@@ -9,11 +9,18 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.communication.Subscriber;
+import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
+import pl.edu.agh.hiputs.communication.model.messages.LoadSynchronizationMessage;
+import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
+import pl.edu.agh.hiputs.communication.service.server.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingStrategy.LoadBalancingDecision;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.PatchBalancingInfo;
@@ -29,13 +36,24 @@ import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LoadBalancingServiceImpl implements LoadBalancingService {
+public class LoadBalancingServiceImpl implements LoadBalancingService, Subscriber {
 
   private final PatchTransferService patchTransferService;
   private final ConfigurationService configurationService;
   private final SimplyLoadBalancingService simplyLoadBalancingService;
   private final PidLoadBalancingService pidLoadBalancingService;
   private final SimulationStatisticService simulationStatisticService;
+
+  private final SubscriptionService subscriptionService;
+
+  private final MessageSenderService messageSenderService;
+
+  private final List<Message> synchronizationLoadBalancingList = new ArrayList<>();
+
+  @PostConstruct
+  void init(){
+    subscriptionService.subscribe(this, MessagesTypeEnum.LoadSynchronizationMessage);
+  }
 
   @Override
   public void startLoadBalancing(TransferDataHandler transferDataHandler) {
@@ -81,6 +99,22 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
     } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9);
 
     patchTransferService.sendPatchMessage(recipient, serializedPatchTransfers);
+  }
+
+  @Override
+  public void synchronizedWithNeighbour(TransferDataHandler transferDataHandler) {
+    messageSenderService.broadcast(new LoadSynchronizationMessage());
+
+    while(synchronizationLoadBalancingList.size() < transferDataHandler.getNeighbors().size()){
+      try {
+        synchronizationLoadBalancingList.wait();
+      } catch (InterruptedException e) {
+        log.error("error until wait for loadbalancing synchronization");
+      }
+    }
+
+    synchronizationLoadBalancingList.clear();
+
   }
 
   private ImmutablePair<PatchBalancingInfo, Double> findPatchesToSend(MapFragmentId recipient,
@@ -153,5 +187,11 @@ public class LoadBalancingServiceImpl implements LoadBalancingService {
       case PID -> pidLoadBalancingService;
       default -> null;
     };
+  }
+
+  @Override
+  public void notify(Message message) {
+      synchronizationLoadBalancingList.add(message);
+      synchronizationLoadBalancingList.notifyAll();
   }
 }

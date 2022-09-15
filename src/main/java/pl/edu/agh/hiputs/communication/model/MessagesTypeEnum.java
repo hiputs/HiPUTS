@@ -60,6 +60,11 @@ public enum MessagesTypeEnum {
   LoadInfo,
 
   /**
+   * Synchronization message
+   */
+  LoadSynchronizationMessage,
+
+  /**
    * Info from service to shut down after simulation
    */
   ShutDownMessage

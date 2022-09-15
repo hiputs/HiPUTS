@@ -6,4 +6,5 @@ public interface LoadBalancingService {
 
   void startLoadBalancing(TransferDataHandler transferDataHandler);
 
+  void synchronizedWithNeighbour(TransferDataHandler transferDataHandler);
 }
