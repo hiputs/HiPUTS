@@ -136,7 +136,15 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   @Override
   public void acceptIncomingCars(Set<Car> incomingCars) {
-    incomingCars.forEach(car -> car.getDecision().getLaneId().getEditable(this).addIncomingCar(car));
+    incomingCars.forEach(car -> {
+      LaneEditable lane = car.getDecision().getLaneId().getEditable(this);
+      if(lane != null) {
+        lane.addIncomingCar(car);
+      } else {
+        log.warn("Not found lane {}", car.getDecision().getLaneId());
+      }
+
+    });
   }
 
   @Override

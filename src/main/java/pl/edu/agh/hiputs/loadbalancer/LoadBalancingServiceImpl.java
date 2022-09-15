@@ -5,6 +5,7 @@ import static pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil.countCars;
 import static pl.edu.agh.hiputs.loadbalancer.utils.GraphCoherencyUtil.isCoherency;
 import static pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -19,7 +20,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.LoadSynchronizationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
-import pl.edu.agh.hiputs.communication.service.server.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingStrategy.LoadBalancingDecision;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
@@ -102,12 +103,19 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   }
 
   @Override
-  public void synchronizedWithNeighbour(TransferDataHandler transferDataHandler) {
-    messageSenderService.broadcast(new LoadSynchronizationMessage());
+  public synchronized void synchronizedWithNeighbour(TransferDataHandler transferDataHandler) {
+
+    transferDataHandler.getNeighbors().forEach(id -> {
+      try {
+        messageSenderService.send(id, new LoadSynchronizationMessage());
+      } catch (IOException e) {
+        log.error("Error util send synchronization message");
+      }
+    });
 
     while(synchronizationLoadBalancingList.size() < transferDataHandler.getNeighbors().size()){
       try {
-        synchronizationLoadBalancingList.wait();
+        this.wait();
       } catch (InterruptedException e) {
         log.error("error until wait for loadbalancing synchronization");
       }
@@ -190,8 +198,8 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   }
 
   @Override
-  public void notify(Message message) {
+  public synchronized void notify(Message message) {
       synchronizationLoadBalancingList.add(message);
-      synchronizationLoadBalancingList.notifyAll();
+      this.notifyAll();
   }
 }

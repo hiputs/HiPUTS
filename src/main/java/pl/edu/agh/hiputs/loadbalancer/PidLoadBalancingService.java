@@ -74,7 +74,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
 
     double carBalanceTarget = carPID.nextValue(info.getCarCost());
     // double timeBalanceTarget = timePID.nextValue(info.getTimeCost());
-    log.info("My cost {}, carTarget {}, time target {}", myCost, carBalanceTarget, 0);
+    log.debug("My cost {}, carTarget {}, time target {}", myCost, carBalanceTarget, 0);
 
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, step, info.getWaitingTime());
     step++;
@@ -86,7 +86,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
 
     carBalanceTarget = Math.abs(carBalanceTarget);
     // timeBalanceTarget = Math.abs(timeBalanceTarget);
-    log.info("Car imbalance: {}, time imbalance: {}",carBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE, 0);
+    log.debug("Car imbalance: {}, time imbalance: {}",carBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE, 0);
 
     if (carBalanceTarget <= 10) {
       loadBalancingDecision.setLoadBalancingRecommended(false);
@@ -117,7 +117,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
         .average()
         .orElse(0.f);
 
-    log.info("Car target {} time target {}", carAvg, 0);
+    log.debug("Car target {} time target {}", carAvg, 0);
 
     if(carPID == null){
       // timePID = new PID(new ZieglerNicholsAutoTuner(), timeAvg, -10000d, 10000d);

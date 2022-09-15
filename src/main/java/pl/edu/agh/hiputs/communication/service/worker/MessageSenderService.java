@@ -52,7 +52,7 @@ public class MessageSenderService implements Subscriber {
    * @throws IOException <p>Method send message to specific client</p>
    */
   public void send(MapFragmentId mapFragmentId, Message message) throws IOException {
-    log.info("Worker send message to: " + mapFragmentId + " message type: " + message.getMessageType());
+    log.debug("Worker send message to: " + mapFragmentId + " message type: " + message.getMessageType());
     neighbourRepository.get(mapFragmentId).send(message);
   }
 
@@ -60,7 +60,7 @@ public class MessageSenderService implements Subscriber {
     if (serverConnection == null) {
       createServerConnection();
     }
-    log.info("Worker send message to: SERVER message type: " + message.getMessageType());
+    log.debug("Worker send message to: SERVER message type: " + message.getMessageType());
     serverConnection.send(message);
   }
 

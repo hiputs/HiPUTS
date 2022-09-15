@@ -67,12 +67,18 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, age, info.getWaitingTime());
     age++;
 
-    if(age<5){
+    if(transferDataHandler.getNeighbors().isEmpty()){
       loadBalancingDecision.setLoadBalancingRecommended(false);
+      return loadBalancingDecision;
     }
 
     try {
       ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
+
+      if(candidate == null){
+        loadBalancingDecision.setLoadBalancingRecommended(false);
+        return loadBalancingDecision;
+      }
       boolean shouldBalancing = myCost > candidate.getRight() * ALLOW_LOAD_IMBALANCE;
       boolean shouldExtremeBalancing = myCost > candidate.getRight() * LOW_THRESHOLD;
 
