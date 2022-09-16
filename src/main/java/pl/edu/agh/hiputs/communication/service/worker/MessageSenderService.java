@@ -1,8 +1,11 @@
 package pl.edu.agh.hiputs.communication.service.worker;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +16,10 @@ import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
+import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
+import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 import pl.edu.agh.hiputs.model.Configuration;
@@ -47,7 +52,7 @@ public class MessageSenderService implements Subscriber {
    * @throws IOException <p>Method send message to specific client</p>
    */
   public void send(MapFragmentId mapFragmentId, Message message) throws IOException {
-    log.info("Worker send message to: " + mapFragmentId + " message type: " + message.getMessageType());
+    log.debug("Worker send message to: " + mapFragmentId + " message type: " + message.getMessageType());
     neighbourRepository.get(mapFragmentId).send(message);
   }
 
@@ -55,7 +60,7 @@ public class MessageSenderService implements Subscriber {
     if (serverConnection == null) {
       createServerConnection();
     }
-    log.info("Worker send message to: SERVER message type: " + message.getMessageType());
+    log.debug("Worker send message to: SERVER message type: " + message.getMessageType());
     serverConnection.send(message);
   }
 
@@ -107,10 +112,17 @@ public class MessageSenderService implements Subscriber {
   }
 
   private void handlePatchTransferMessage(Message message) {
-    PatchTransferMessage workerConnectionMessage = (PatchTransferMessage) message;
-    workerConnectionMessage.getNeighbourConnectionMessage()
+    PatchTransferMessage patchTransferMessage = (PatchTransferMessage) message;
+    Set<ConnectionDto> workerConnectionMessages = patchTransferMessage
+        .getSerializedPatchTransferList()
+        .stream()
+        .map(SerializedPatchTransfer::getNeighbourConnectionMessage)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toSet());
+
+    workerConnectionMessages
         .forEach(c -> {
-          if(neighbourRepository.containsKey(new MapFragmentId(c.getId()))){
+          if(c == null || neighbourRepository.containsKey(new MapFragmentId(c.getId()))){
             return;
           }
           Connection connection = new Connection(c);

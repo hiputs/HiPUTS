@@ -1,16 +1,17 @@
 package pl.edu.agh.hiputs.communication.model.messages;
 
-import java.util.List;
 import lombok.Value;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 
 @Value
-public class PatchTransferMessage implements Message{
+public class LoadInfoMessage implements Message {
 
-  List<SerializedPatchTransfer> serializedPatchTransferList;
+  long carCost;
+  long time;
+  String mapFragmentId;
 
   @Override
   public MessagesTypeEnum getMessageType() {
-    return MessagesTypeEnum.PatchTransferMessage;
+    return MessagesTypeEnum.LoadInfo;
   }
 }

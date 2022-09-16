@@ -108,6 +108,11 @@ public class Lane implements LaneEditable {
   }
 
   @Override
+  public int numberOfCars() {
+    return cars.size();
+  }
+
+  @Override
   public void addIncomingCar(CarEditable car) {
     incomingCars.add(car);
     //TODO validate if cars is added properly to set (look before this commit version) - future work

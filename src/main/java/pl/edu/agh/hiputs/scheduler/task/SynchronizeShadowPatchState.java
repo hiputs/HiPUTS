@@ -28,6 +28,10 @@ public class SynchronizeShadowPatchState implements Runnable {
     try {
       Patch shadowPatch = (Patch) transferDataHandler.getShadowPatchEditableCopy(new PatchId(patchId));
 
+      if(shadowPatch == null){
+        return;
+      }
+
       Map<String, List<Car>> newCarsOnLanes =
           serializedLanes.stream().collect(Collectors.toMap(SerializedLane::getLaneId, SerializedLane::toRealObject));
 
