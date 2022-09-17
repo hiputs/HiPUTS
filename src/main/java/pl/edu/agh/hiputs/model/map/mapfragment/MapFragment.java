@@ -261,7 +261,6 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       knownPatches.put(addedPatch.getPatchId(), addedPatch);
 
       addedPatch.getLaneIds().forEach(laneId -> laneIdToPatchId.put(laneId, addedPatch.getPatchId()));
-
       addedPatch.getJunctionIds().forEach(junctionId -> junctionIdToPatchId.put(junctionId, addedPatch.getPatchId()));
     });
 

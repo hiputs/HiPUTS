@@ -50,6 +50,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   private final MessageSenderService messageSenderService;
 
   private final List<Message> synchronizationLoadBalancingList = new ArrayList<>();
+  private final NoneLoadBalancingStrategy noneLoadBalancingService;
 
   @PostConstruct
   void init(){
@@ -59,8 +60,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   @Override
   public void startLoadBalancing(TransferDataHandler transferDataHandler) {
 
-    if (configurationService.getConfiguration().getWorkerCount() == 1
-        || configurationService.getConfiguration().getBalancingMode() == BalancingMode.NONE) {
+    if (configurationService.getConfiguration().getWorkerCount() == 1) {
       return;
     }
 
@@ -193,6 +193,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
     return switch (configurationService.getConfiguration().getBalancingMode()) {
       case SIMPLY -> simplyLoadBalancingService;
       case PID -> pidLoadBalancingService;
+      case NONE -> noneLoadBalancingService;
       default -> null;
     };
   }
