@@ -78,6 +78,7 @@ public class ConnectionInitializationService {
 
         ObjectInputStream input = new ObjectInputStream(clientConnectionSocket.getInputStream());
         WorkerConnectionMessage workerConnectionMessage = getWorkerConnectionMessage(input);
+        workerConnectionMessage.setAddress(clientConnectionSocket.getInetAddress().getHostAddress());
 
         WorkerConnection workerConnection =
             new WorkerConnection(input, messagePropagationService, workerConnectionMessage);

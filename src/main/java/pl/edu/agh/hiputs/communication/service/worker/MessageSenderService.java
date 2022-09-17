@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.HiPUTS;
 import pl.edu.agh.hiputs.communication.Connection;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
@@ -66,9 +67,10 @@ public class MessageSenderService implements Subscriber {
 
   private void createServerConnection() {
     Configuration configuration = configurationService.getConfiguration();
+    log.info("Server address {}:{}", HiPUTS.globalInitArgs.get(0), configuration.getServerPort());
     ConnectionDto connectionDto = ConnectionDto.builder()
         .port(configuration.getServerPort())
-        .address(configuration.getServerAddress())
+        .address(HiPUTS.globalInitArgs.get(0))
         .id("SERVER")
         .build();
     serverConnection = new Connection(connectionDto);
