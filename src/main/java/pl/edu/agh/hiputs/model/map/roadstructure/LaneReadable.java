@@ -48,4 +48,9 @@ public interface LaneReadable {
    * Returns a stream of cars, beginning from the one closest to the outgoing junction.
    */
   Stream<CarReadable> streamCarsFromExitReadable();
+
+  /**
+   * Returns number of vehicle in the current lane
+   */
+  int numberOfCars();
 }

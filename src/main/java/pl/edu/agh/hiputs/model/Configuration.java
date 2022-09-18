@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.partition.service.HexagonsPartitioner.BorderEdgesHandlingStrategy;
 
 @Getter
@@ -37,7 +38,7 @@ public class Configuration {
   /**
    * How long simulation should work
    */
-  private long simulationStep;
+  private int simulationStep;
 
   /**
    * Flag decided to read parsed map or parse map from osm file
@@ -65,6 +66,11 @@ public class Configuration {
   private boolean localHostMode;
 
   /**
+   * Run load balancing strategy   NONE | SIMPLY | PID
+   */
+  private BalancingMode balancingMode;
+
+  /**
    * Local variable not use in JSON file. This flag will by true only when this worker has server task
    */
   private transient boolean serverOnThisMachine;
@@ -73,6 +79,16 @@ public class Configuration {
    * Number of cars to be generated on each lane on simulation start
    */
   private int initialNumberOfCarsPerLane;
+
+  /**
+   * Pause between every simulation step in ms. When visualise mode is enabled recommended min 100ms
+   */
+  private int pauseAfterStep;
+
+  /**
+   * View range of car - objects which are further will be not be visible for car
+   */
+  private int carViewRange;
 
   /**
    * Properties related only for patch partitioning process.
@@ -85,11 +101,14 @@ public class Configuration {
         .workerCount(1)
         .enableGUI(true)
         .statisticModeActive(false)
-        .simulationStep(Long.MAX_VALUE)
+        .simulationStep(1000)
+        .pauseAfterStep(1000)
         .mapPath("")
         .serverAddress("localhost")
         .serverPort(8081)
         .initialNumberOfCarsPerLane(1)
+        .carViewRange(300)
+        .balancingMode(BalancingMode.NONE)
         .patchPartitionerConfiguration(PatchPartitionerConfiguration.getDefault())
         .build();
   }

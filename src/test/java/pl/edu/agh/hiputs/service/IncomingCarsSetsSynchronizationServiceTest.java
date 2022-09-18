@@ -31,7 +31,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.SchedulerService;
-import pl.edu.agh.hiputs.service.worker.IncomingCarsSetsSynchronizationServiceImpl;
+import pl.edu.agh.hiputs.service.worker.CarSynchronizationServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 public class IncomingCarsSetsSynchronizationServiceTest {
@@ -55,8 +55,8 @@ public class IncomingCarsSetsSynchronizationServiceTest {
 
     //when
     taskExecutorService.init();
-    IncomingCarsSetsSynchronizationServiceImpl
-        carSynchronizedService = new IncomingCarsSetsSynchronizationServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
+    CarSynchronizationServiceImpl
+        carSynchronizedService = new CarSynchronizationServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
     carSynchronizedService.sendIncomingSetsOfCarsToNeighbours(mapFragment);
 
     //then
@@ -95,8 +95,8 @@ public class IncomingCarsSetsSynchronizationServiceTest {
     when(mapFragment.pollOutgoingCars()).thenReturn(getOutgoingCars2());
     //when
     taskExecutorService.init();
-    IncomingCarsSetsSynchronizationServiceImpl
-        carSynchronizedService = new IncomingCarsSetsSynchronizationServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
+    CarSynchronizationServiceImpl
+        carSynchronizedService = new CarSynchronizationServiceImpl(subscriptionService, taskExecutorService, messageSenderService);
     carSynchronizedService.sendIncomingSetsOfCarsToNeighbours(mapFragment);
 
     //then

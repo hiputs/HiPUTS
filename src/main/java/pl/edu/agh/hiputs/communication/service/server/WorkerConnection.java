@@ -44,7 +44,7 @@ public class WorkerConnection implements Runnable {
             do {
                 message = (Message) inputStream.readObject();
                 messagePropagationService.propagateMessage(message, workerId);
-            } while (message.getMessageType() != MessagesTypeEnum.WorkerDisconnectMessage);
+            } while (message.getMessageType() != MessagesTypeEnum.WorkerDisconnectMessage || message.getMessageType() == MessagesTypeEnum.ShutDownMessage);
         } catch (Exception e){
             log.error("Fail messageHandler for worker id: " + workerId, e);
         }

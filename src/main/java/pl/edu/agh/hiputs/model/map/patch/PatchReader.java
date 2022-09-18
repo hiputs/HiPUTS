@@ -23,4 +23,5 @@ public interface PatchReader {
   JunctionReadable getJunctionReadable(JunctionId junctionId);
 
   Stream<JunctionReadable> streamJunctionsReadable();
+
 }
