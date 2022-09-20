@@ -46,7 +46,7 @@ public class MapFragmentExecutor {
       log.debug("Step 3 start");
       monitorLocalService.startSimulationStep();
       List<Runnable> decisionStageTasks = mapFragment.getLocalLaneIds()
-          .stream()
+          .parallelStream()
           .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId))
           .collect(Collectors.toList());
       taskExecutor.executeBatch(decisionStageTasks);
@@ -64,7 +64,7 @@ public class MapFragmentExecutor {
       // 6. 7. insert incoming cars & update lanes/cars
       log.debug("Step 6,7 start");
       List<Runnable> updateStageTasks = mapFragment.getLocalLaneIds()
-          .stream()
+          .parallelStream()
           .map(laneId -> new LaneUpdateStageTask(mapFragment, laneId))
           .collect(Collectors.toList());
       taskExecutor.executeBatch(updateStageTasks);

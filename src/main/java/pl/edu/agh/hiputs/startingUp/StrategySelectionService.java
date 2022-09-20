@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.HiPUTS;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 
@@ -31,7 +32,7 @@ public class StrategySelectionService {
     try {
       if (configuration.isTestMode()) {
         singleWorkStrategyService.executeStrategy();
-      } else if (!isServerRunning()) {
+      } else if (canWorkAsServer() && !isServerRunning()) {
         serverStrategyService.executeStrategy();
       } else {
         workerStrategyService.executeStrategy();
@@ -40,6 +41,14 @@ public class StrategySelectionService {
     } catch (InterruptedException | IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private boolean canWorkAsServer() {
+    if(HiPUTS.globalInitArgs.size() < 2){
+      return true;
+    }
+
+    return HiPUTS.globalInitArgs.get(1).equals("SERVER");
   }
 
   private boolean isServerRunning() throws IOException {
