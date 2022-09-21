@@ -108,7 +108,7 @@ public class Configuration {
         .initialNumberOfCarsPerLane(1)
         .carViewRange(300)
         .balancingMode(BalancingMode.NONE)
-        .newCars(30)
+        .newCars(15)
         .build();
   }
 }
