@@ -29,6 +29,7 @@ public class Idm implements IFollowingModel {
 
   @Override
   public double calculateAcceleration(double speed, double desiredSpeed, double distance, double deltaSpeed) {
+    distance = Math.max(0.0, distance);
     double minimumDistance = distanceHeadway + speed * timeHeadway + ((speed * deltaSpeed) / (2 * Math.sqrt(
         normalAcceleration * normalDeceleration)));
     return Math.max(-normalDeceleration, normalAcceleration * (1 - Math.pow(speed / desiredSpeed, delta) - Math.pow(minimumDistance / distance, 2)));

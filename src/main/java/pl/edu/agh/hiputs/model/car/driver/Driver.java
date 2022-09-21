@@ -1,6 +1,8 @@
 package pl.edu.agh.hiputs.model.car.driver;
 
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspectorImpl;
@@ -20,6 +22,8 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
  * and provide proper interface of a Car for the driver:
  * accelerate, decelerate, change lane to right, change lane to left
  */
+@Slf4j
+@RequiredArgsConstructor
 public class Driver implements IDriver {
 
   private final CarReadable car;
@@ -41,11 +45,19 @@ public class Driver implements IDriver {
   public Decision makeDecision(RoadStructureReader roadStructureReader) {
     // make local decision based on read only road structure (watch environment) and save it locally
 
+
+    log.debug("Car: " + car.getCarId() + ", lane: " + car.getLaneId() + ", position: " + car.getPositionOnLane()
+              + ", acc: " + car.getAcceleration() + ", speed: " + car.getSpeed()
+              + ", route0: " + car.getRouteOffsetLaneId(0) + ", route1: " + car.getRouteOffsetLaneId(1));
+
+
     //First prepare CarEnvironment
-    //CarEnvironment environment = this.getPrecedingCar(roadStructureReader);
 
     double acceleration;
     CarEnvironment environment = prospector.getPrecedingCarOrCrossroad(car, roadStructureReader);
+
+    log.trace("Car: " + car.getCarId() + ", environment: " + environment);
+
     if(environment.getPrecedingCar().isPresent()){
       acceleration = idmDecider.makeDecision(car, environment, roadStructureReader);
     }
@@ -72,15 +84,25 @@ public class Driver implements IDriver {
       offset++;
       currentLaneId = desiredLaneId.get();
       destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
+      if(destinationCandidate == null){
+        log.warn("Car: " + car.getCarId() + " Destination out of this node, positionRest: " + desiredPosition
+            + ", desiredLaneId: " + currentLaneId);
+        currentLaneId = null;
+        break;
+      }
     }
 
-    return Decision.builder()
+    final Decision decision = Decision.builder()
         .acceleration(acceleration)
         .speed(car.getSpeed() + acceleration * timeStep)
         .laneId(currentLaneId)
         .positionOnLane(desiredPosition)
         .offsetToMoveOnRoute(offset)
         .build();
+
+    log.debug("Car: " + car.getCarId() + ", decision: " + decision);
+
+    return decision;
   }
 
   @Override

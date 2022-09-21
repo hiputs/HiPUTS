@@ -4,6 +4,7 @@ import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.RunSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ServerInitializationMessage;
+import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ShutDownMessage;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -15,6 +16,10 @@ import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ExitCodeGenerator;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.messages.CompletedInitializationMessage;
@@ -25,13 +30,16 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
+import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
+import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
@@ -50,14 +58,20 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final MessageReceiverService messageReceiverService;
   private Configuration configuration;
   private final MapFragmentCreator mapFragmentCreator;
+  private final SimulationStatisticService simulationStatisticService;
 
   private final ExecutorService simulationExecutor = newSingleThreadExecutor();
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
+
+  private final MonitorLocalService monitorLocalService;
+
+  private final StatisticSummaryService statisticSummaryService;
 
   @PostConstruct
   void init() {
     subscriptionService.subscribe(this, RunSimulationMessage);
     subscriptionService.subscribe(this, ServerInitializationMessage);
+    subscriptionService.subscribe(this, ShutDownMessage);
   }
 
   @Override
@@ -78,7 +92,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment());
 
     graphBasedVisualizer.showGui();
-    sleep(1000);
+    sleep(300);
   }
 
   @Override
@@ -87,8 +101,16 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       case RunSimulationMessage -> runSimulation();
       case ServerInitializationMessage -> handleInitializationMessage(
           (pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage) message);
+      case ShutDownMessage -> shutDown();
       default -> log.warn("Unhandled message " + message.getMessageType());
     }
+  }
+
+  @Autowired
+  private ApplicationContext context;
+  private void shutDown() {
+    int exitCode = SpringApplication.exit(context, (ExitCodeGenerator) () -> 0);
+    System.exit(exitCode);
   }
 
   private void handleInitializationMessage(
@@ -125,15 +147,17 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   }
 
   private void createCars() {
-    final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
+    final ExampleCarProvider exampleCarProvider =
+        new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
       List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-          .mapToObj(x -> exampleCarProvider.generateCar(10))
+          .mapToObj(x -> exampleCarProvider.generateCar(laneId, 10))
           .sorted(Comparator.comparing(Car::getPositionOnLane))
           .collect(Collectors.toList());
       Collections.reverse(generatedCars);
       generatedCars.forEach(car -> {
         LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
+        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
         lane.addCarAtEntry(car);
       });
     });
@@ -145,15 +169,18 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   @Override
   public void run() {
-    long i = 0;
+    int i = 0;
     try {
-      long n = configuration.getSimulationStep();
+      int n = configuration.getSimulationStep();
+      monitorLocalService.init(mapFragmentExecutor.getMapFragment());
+      statisticSummaryService.startTiming();
       for (i = 0; i < n; i++) {
+        log.info("Start iteration no. {}/{}", i+1, n);
         mapFragmentExecutor.run();
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
-          sleep(200);
+          sleep(configuration.getPauseAfterStep());
         }
       }
     } catch (Exception e) {
@@ -162,6 +189,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       try {
         log.info("Worker finish simulation");
         messageSenderService.sendServerMessage(new FinishSimulationMessage(mapFragmentId.getId()));
+        simulationStatisticService.sendStatistic(mapFragmentId);
       } catch (IOException e) {
         log.error("Error with send finish simulation message", e);
       }

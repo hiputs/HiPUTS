@@ -11,6 +11,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 
 public interface CarProspector {
+  CarEnvironment getPrecedingCar(CarReadable currentCar, RoadStructureReader roadStructureReader);
 
   CarEnvironment getPrecedingCarOrCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader);
 

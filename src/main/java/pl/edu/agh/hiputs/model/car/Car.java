@@ -5,6 +5,8 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Configurable;
 import pl.edu.agh.hiputs.model.car.driver.Driver;
 import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
@@ -13,6 +15,7 @@ import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
+@Slf4j
 @Configurable
 @Getter
 @Builder
@@ -60,6 +63,7 @@ public class Car implements CarEditable {
   /**
    * Current speed of car.
    */
+  @Setter
   @Builder.Default
   private double speed = 0;
 
@@ -81,15 +85,33 @@ public class Car implements CarEditable {
 
   @Override
   public Optional<CarUpdateResult> update() {
-    if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getLaneId() == null) // remove car from lane
-        return Optional.empty();
+    if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getLaneId() == null) { // remove car from lane
+      log.trace("Car: " + this.getCarId() + " was removed due to finish his route");
+      return Optional.empty();
+    }
     this.speed = decision.getSpeed();
     this.acceleration = decision.getAcceleration();
     CarUpdateResult carUpdateResult =
         new CarUpdateResult(this.laneId, decision.getLaneId(), decision.getPositionOnLane());
     this.laneId = decision.getLaneId();
     this.positionOnLane = decision.getPositionOnLane();
+
+    Optional<LaneId> laneId = this.getRouteOffsetLaneId(0);
+    if(laneId.isPresent() && !this.laneId.equals(laneId.get())){
+      log.warn("Car: " + this.getCarId() + " was removed due to lane offset error");
+      return Optional.empty();
+    }
     return Optional.of(carUpdateResult);
+  }
+
+  @Override
+  public void setPositionOnLaneAndSpeed(double position, double speed) {
+    if(positionOnLane > position){
+      positionOnLane = position;
+    }
+    if(this.speed > speed){
+      this.speed = speed;
+    }
   }
 
   @Override

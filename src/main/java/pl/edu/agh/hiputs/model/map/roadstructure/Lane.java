@@ -12,11 +12,13 @@ import java.util.stream.StreamSupport;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
+@Slf4j
 @Builder
 @AllArgsConstructor
 public class Lane implements LaneEditable {
@@ -106,6 +108,11 @@ public class Lane implements LaneEditable {
   }
 
   @Override
+  public int numberOfCars() {
+    return cars.size();
+  }
+
+  @Override
   public void addIncomingCar(CarEditable car) {
     incomingCars.add(car);
     //TODO validate if cars is added properly to set (look before this commit version) - future work
@@ -113,6 +120,17 @@ public class Lane implements LaneEditable {
 
   @Override
   public void addCarAtEntry(CarEditable car) {
+    if(!cars.isEmpty()){
+      CarReadable firstCarOnLane = cars.peekFirst();
+      if(firstCarOnLane.getPositionOnLane() < car.getPositionOnLane()){
+        log.warn("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
+            + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnLane.getCarId()
+            + ", position: " + firstCarOnLane.getPositionOnLane() + ", speed: " + firstCarOnLane.getSpeed() + ". Collision after crossroad!");
+        //Move back car to be before car he hit after collision
+        car.setPositionOnLaneAndSpeed(firstCarOnLane.getPositionOnLane()
+            - Math.min(0.01, firstCarOnLane.getPositionOnLane() * 0.01), firstCarOnLane.getSpeed());
+      }
+    }
     cars.addFirst(car);
   }
 

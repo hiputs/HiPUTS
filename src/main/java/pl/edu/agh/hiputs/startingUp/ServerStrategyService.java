@@ -11,7 +11,6 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,10 +21,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ExitCodeGenerator;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
+import pl.edu.agh.hiputs.communication.model.messages.ShutDownMessage;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 import pl.edu.agh.hiputs.communication.service.server.ConnectionInitializationService;
@@ -40,6 +44,7 @@ import pl.edu.agh.hiputs.partition.persistance.PatchesGraphWriter;
 import pl.edu.agh.hiputs.partition.service.MapFragmentPartitioner;
 import pl.edu.agh.hiputs.partition.service.MapStructureLoader;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.server.WorkerSynchronisationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
 
@@ -56,6 +61,7 @@ public class ServerStrategyService implements Strategy {
   private final ExecutorService workerPrepareExecutor = newSingleThreadExecutor();
   private final MessageSenderServerService messageSenderServerService;
   private final MapStructureLoader mapStructureLoader;
+  private final StatisticSummaryService statisticSummaryService;
 
   private final MapRepositoryServerHandler mapRepository;
   private final PatchesGraphReader patchesGraphReader;
@@ -65,7 +71,7 @@ public class ServerStrategyService implements Strategy {
   private final WorkerRepository workerRepository;
 
   @Override
-  public void executeStrategy() {
+  public void executeStrategy() throws InterruptedException {
 
     log.info("Running server");
     connectionInitializationService.init();
@@ -104,8 +110,13 @@ public class ServerStrategyService implements Strategy {
 
     if (configurationService.getConfiguration().isStatisticModeActive()) {
       workerSynchronisationService.waitForAllWorkers(FinishSimulationStatisticMessage);
+      log.info("Start generating summary");
       generateReport();
     }
+
+    messageSenderServerService.broadcast(new ShutDownMessage());
+    Thread.sleep(1000);
+    shutDown();
   }
 
   private void calculateAndDistributeConfiguration(Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents) {
@@ -175,6 +186,7 @@ public class ServerStrategyService implements Strategy {
   }
 
   private void generateReport() {
+    statisticSummaryService.generateStatisticCSVs();
   }
 
   private void distributeRunSimulationMessage(Collection<Graph<PatchData, PatchConnectionData>> dividedPatchesIds) {
@@ -211,6 +223,13 @@ public class ServerStrategyService implements Strategy {
     if (!deploymentPackagePath.toFile().mkdir()) {
       throw new RuntimeException(String.format("Directory with path %s cannot be created", deploymentPackagePath));
     }
+  }
+
+  @Autowired
+  private ApplicationContext context;
+  private void shutDown() {
+    int exitCode = SpringApplication.exit(context, (ExitCodeGenerator) () -> 0);
+    System.exit(exitCode);
   }
 
   private class PrepareWorkerTask implements Runnable {
