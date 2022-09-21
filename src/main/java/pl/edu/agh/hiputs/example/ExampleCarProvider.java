@@ -99,6 +99,9 @@ public class ExampleCarProvider {
   public Car generateCar(double position) {
     return this.generateCar(position, DEFAULT_HOPS, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
   }
+  public Car generateCar(double position, LaneId startLane) {
+    return this.generateCar(position, startLane, DEFAULT_HOPS, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
+  }
 
   public Car generateCar(double position, LaneId startLane, int hops) {
     return this.generateCar(position, startLane, hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
