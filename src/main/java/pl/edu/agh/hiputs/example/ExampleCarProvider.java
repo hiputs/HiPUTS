@@ -1,8 +1,10 @@
 package pl.edu.agh.hiputs.example;
 
+import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +62,7 @@ public class ExampleCarProvider {
     Queue<PatchId> notVisitedPatches = mapFragment.getKnownPatchReadable()
         .stream()
         .map(PatchReader::getPatchId)
-        .collect(Collectors.toCollection(LinkedList::new));
+        .collect(Collectors.toCollection(UniqueQueue::new));
     Set<PatchId> visitedPatches = new HashSet<>();
     while (!notVisitedPatches.isEmpty()) {
       PatchId currentPatchId = notVisitedPatches.poll();
@@ -184,5 +186,48 @@ public class ExampleCarProvider {
       log.debug("Car: " + currentCar.getCarId() + " has reduced its speed before start from: " + currentCar.getSpeed() + " to: " + maxSpeed + ", distance: " + distance);
       currentCar.setSpeed(maxSpeed);
     }
+  }
+
+  private static class UniqueQueue<T> extends AbstractQueue<T> {
+    private Queue<T> queue = new LinkedList<>();
+    private Set<T> set = new HashSet<>();
+
+    @Override
+    public Iterator<T> iterator() {
+      return queue.iterator();
+    }
+
+    @Override
+    public int size() {
+      return queue.size();
+    }
+
+    @Override
+    public boolean add(T t) {
+      if(set.add(t)) {
+        return queue.add(t);
+      }
+      return false;
+    }
+
+    @Override
+    public boolean offer(T t) {
+      return add(t);
+    }
+
+    @Override
+    public T poll() {
+      T first = queue.poll();
+      if (first != null) {
+        set.remove(first);
+      }
+      return first;
+    }
+
+    @Override
+    public T peek() {
+      return queue.peek();
+    }
+
   }
 }
