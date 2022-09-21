@@ -16,4 +16,6 @@ public interface PatchEditor extends PatchReader {
 
   Stream<JunctionEditable> streamJunctionsEditable();
 
+  LaneEditable getAnyLane();
+
 }

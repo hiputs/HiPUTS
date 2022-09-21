@@ -135,6 +135,18 @@ public class Lane implements LaneEditable {
   }
 
   @Override
+  public void addNewCar(CarEditable car){
+    if(!cars.isEmpty()){
+      CarReadable lastCarOnLane = cars.peekLast();
+
+      if(car.getPositionOnLane() < lastCarOnLane.getPositionOnLane()){
+        car.setPositionOnLaneAndSpeed(lastCarOnLane.getPositionOnLane() + 1, lastCarOnLane.getSpeed());
+      }
+    }
+    cars.addFirst(car);
+  }
+
+  @Override
   public Optional<CarEditable> pollCarAtExit() {
     return Optional.ofNullable(cars.pollLast());
   }

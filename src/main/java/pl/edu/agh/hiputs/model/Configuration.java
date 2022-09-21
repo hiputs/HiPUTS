@@ -89,6 +89,11 @@ public class Configuration {
    */
   private int carViewRange;
 
+  /**
+   * Max new cars create after every step in every worker
+   */
+  private int newCars;
+
   public static Configuration getDefault() {
     return Configuration.builder()
         .testMode(true)
@@ -103,6 +108,7 @@ public class Configuration {
         .initialNumberOfCarsPerLane(1)
         .carViewRange(300)
         .balancingMode(BalancingMode.NONE)
+        .newCars(30)
         .build();
   }
 }

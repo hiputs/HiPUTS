@@ -158,7 +158,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       generatedCars.forEach(car -> {
         LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
         exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
-        lane.addCarAtEntry(car);
+        lane.addNewCar(car);
       });
     });
   }
