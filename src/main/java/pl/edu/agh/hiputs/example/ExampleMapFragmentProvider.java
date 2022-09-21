@@ -48,6 +48,18 @@ public class ExampleMapFragmentProvider {
     return fromStringRepresentation(mapStructure, laneLengths, withCars ? 2 : 0);
   }
 
+  public static MapFragment getSimpleMap3() {
+    return getSimpleMap3(true);
+  }
+
+  //Map with many cars
+  public static MapFragment getSimpleMap3(boolean withCars) {
+    String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
+    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "3400.0"}, {"2->3", "1200.0"},})
+        .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
+    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 100 : 0);
+  }
+
   /**
    * Simple scenario for overtaking with two lanes, without cars
    * crossable only from lane1: <br />
@@ -153,6 +165,7 @@ public class ExampleMapFragmentProvider {
       for (int i = 0; i < randomCarsPerLane; i++) {
         double carPosition = (randomCarsPerLane - i) * lane.getLength() / (randomCarsPerLane + 1);
         Car car = exampleCarProvider.generateCar(carPosition, lane.getLaneId());
+        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
         lane.addCarAtEntry(car);
       }
     });
