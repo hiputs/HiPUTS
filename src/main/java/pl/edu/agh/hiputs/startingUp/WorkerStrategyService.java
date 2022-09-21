@@ -89,7 +89,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   private void enabledGUI() throws InterruptedException {
     log.info("Starting GUI");
-    graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment());
+    graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment(), mapRepository);
 
     graphBasedVisualizer.showGui();
     sleep(300);

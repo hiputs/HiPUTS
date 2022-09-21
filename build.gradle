@@ -48,6 +48,7 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testCompileOnly 'org.projectlombok:lombok:1.18.22'
+    testCompileOnly 'org.assertj:assertj-core:3.23.1'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
 }
 

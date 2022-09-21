@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="CGImap 0.8.6 (271892 spike-08.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <bounds minlat="0.0000000" minlon="0.0000000" maxlat="0.1000000" maxlon="0.1200000"/>
+ <node id="1000" visible="true" version="3" changeset="13667891" timestamp="2012-10-28T22:08:23Z" user="Any" uid="14159265" lat="0.0000000" lon="0.0000000"/>
+ <node id="1111" visible="true" version="4" changeset="35490221" timestamp="2015-11-21T15:56:24Z" user="Any" uid="14159267" lat="0.0000000" lon="0.0100000"/>
+ <node id="2222" visible="true" version="5" changeset="63935887" timestamp="2018-10-27T19:27:10Z" user="Any" uid="14159268" lat="0.0000000" lon="0.0200000"/>
+ <node id="3333" visible="true" version="5" changeset="63935887" timestamp="2018-10-27T19:27:10Z" user="Any" uid="14159269" lat="0.0000000" lon="0.0300000"/>
+ <node id="4444" visible="true" version="6" changeset="91033819" timestamp="2020-09-17T08:55:04Z" user="Any" uid="14159270" lat="0.0000000" lon="0.0400000"/>
+ <node id="5555" visible="true" version="6" changeset="63472981" timestamp="2018-10-12T21:08:39Z" user="Any" uid="14159270" lat="0.0000000" lon="0.0500000"/>
+ <node id="6666" visible="true" version="5" changeset="68169105" timestamp="2019-03-15T10:18:17Z" user="Any" uid="14159272" lat="0.0000000" lon="0.0600000"/>
+ <node id="7777" visible="true" version="8" changeset="45267797" timestamp="2017-01-18T11:23:41Z" user="Any" uid="14159273" lat="0.0000000" lon="0.0700000"/>
+ <node id="8888" visible="true" version="3" changeset="61815110" timestamp="2018-08-20T08:32:28Z" user="Any" uid="14159274" lat="0.0000000" lon="0.0800000"/>
+ <node id="9999" visible="true" version="3" changeset="24180454" timestamp="2014-07-16T12:27:22Z" user="Any" uid="14159275" lat="0.0000000" lon="0.0900000"/>
+
+ <way id="16313057" visible="true" version="31" changeset="112877392" timestamp="2021-10-23T14:55:05Z" user="Mordechai23" uid="8826419">
+  <nd ref="1000"/>
+  <nd ref="1111"/>
+  <nd ref="2222"/>
+  <nd ref="3333"/>
+  <nd ref="4444"/>
+  <nd ref="5555"/>
+  <nd ref="6666"/>
+  <nd ref="7777"/>
+  <nd ref="8888"/>
+  <nd ref="9999"/>
+  <tag k="highway" v="living_street"/>
+ </way>
+ </osm>

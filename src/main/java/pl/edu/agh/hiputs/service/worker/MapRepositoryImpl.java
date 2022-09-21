@@ -91,6 +91,11 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
   }
 
   @Override
+  public List<Patch> getAllPatches() {
+    return patches.values().stream().toList();
+  }
+
+  @Override
   public synchronized void notify(Message message) {
     if (message.getMessageType() == MessagesTypeEnum.MapReadyToRead) {
       mapPackagePath = Path.of(((MapReadyToReadMessage) message).getMapPackagePath());
