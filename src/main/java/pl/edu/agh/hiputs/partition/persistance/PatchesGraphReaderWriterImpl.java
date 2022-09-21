@@ -30,8 +30,8 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 @Service
 public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, PatchesGraphWriter {
 
-  private static final String COLLECTION_ELEMENT_CSV_DELIMITER = "#";
-  private static final String MAP_KEY_VALUE_PAIR_CSV_DELIMITER = "::";
+  private static final String COLLECTION_ELEMENT_CSV_DELIMITER = ":ELEM:";
+  private static final String MAP_KEY_VALUE_PAIR_CSV_DELIMITER = ":PAIR:";
 
   @Override
   public void saveGraphWithPatches(Graph<PatchData, PatchConnectionData> graph, Path exportPath) {
@@ -181,7 +181,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
       return new HashMap<>();
     }
     return Arrays.stream(csvRepr.split(COLLECTION_ELEMENT_CSV_DELIMITER))
-        .map(e -> Pair.of(e.split(MAP_KEY_VALUE_PAIR_CSV_DELIMITER)[0], e.split(MAP_KEY_VALUE_PAIR_CSV_DELIMITER).length > 1 ? e.split(MAP_KEY_VALUE_PAIR_CSV_DELIMITER)[1]: ""))
+        .map(e -> Pair.of(e.split(MAP_KEY_VALUE_PAIR_CSV_DELIMITER)[0], e.split(MAP_KEY_VALUE_PAIR_CSV_DELIMITER)[1]))
         .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
   }
 
