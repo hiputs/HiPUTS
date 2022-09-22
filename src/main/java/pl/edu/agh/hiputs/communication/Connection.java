@@ -47,5 +47,6 @@ public class Connection {
 
     output.writeObject(message);
     output.flush();
+    output.reset();
   }
 }

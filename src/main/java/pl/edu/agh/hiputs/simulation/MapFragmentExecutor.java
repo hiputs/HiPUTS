@@ -32,10 +32,7 @@ public class MapFragmentExecutor {
   @Setter
   @Getter
   private MapFragment mapFragment;
-  private final MessageReceiverService messageReceiverService;
-  private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutor;
-  private final MessageSenderService messageSenderService;
   private final CarSynchronizationService carSynchronizationService;
   private final CarsOnBorderSynchronizationService carsOnBorderSynchronizationService;
   private final MonitorLocalService monitorLocalService;
