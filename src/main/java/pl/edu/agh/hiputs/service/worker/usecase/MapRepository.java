@@ -13,4 +13,6 @@ public interface MapRepository {
   Patch getPatch(PatchId id);
 
   boolean isReady();
+
+  List<Patch> getAllPatches();
 }

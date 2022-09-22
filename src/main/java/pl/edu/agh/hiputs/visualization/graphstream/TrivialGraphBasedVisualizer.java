@@ -18,6 +18,7 @@ import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
 /**
@@ -47,8 +48,11 @@ public class TrivialGraphBasedVisualizer {
 
   protected boolean drawBasedOnCoordinates;
 
-  public TrivialGraphBasedVisualizer(MapFragment mapFragment) {
+  private MapRepository mapRepository;
+
+  public TrivialGraphBasedVisualizer(MapFragment mapFragment, MapRepository mapRepository) {
     this.mapFragment = mapFragment;
+    this.mapRepository = mapRepository;
 
     this.graph = new SingleGraph("The city");
     this.graph.setStrict(false);
@@ -61,20 +65,30 @@ public class TrivialGraphBasedVisualizer {
   }
 
   protected void buildGraphStructure() {
-    drawBasedOnCoordinates = mapFragment.getLocalJunctionIds().stream().map(mapFragment::getJunctionReadable)
-        .noneMatch(junctionReadable -> junctionReadable.getLongitude() == null || junctionReadable.getLatitude() == null);
+    drawBasedOnCoordinates = mapFragment.getLocalJunctionIds()
+        .stream()
+        .map(mapFragment::getJunctionReadable)
+        .noneMatch(
+            junctionReadable -> junctionReadable.getLongitude() == null || junctionReadable.getLatitude() == null);
 
     mapFragment.getLocalJunctionIds().forEach(this::drawJunction);
 
-    mapFragment.getLocalLaneIds().stream()
+    mapFragment.getShadowPatchesReadable()
+        .stream()
+        .flatMap(patchReader -> patchReader.getJunctionIds().stream())
+        .forEach(this::drawRemoteJunction);
+
+    mapFragment.getLocalLaneIds()
+        .stream()
         .map(laneId -> laneId.getReadable(mapFragment))
         .forEach(laneReadable -> drawLane(laneReadable, getLaneUiClass(laneReadable.getLaneId())));
 
-    mapFragment.getShadowPatchesReadable().stream()
+    mapFragment.getShadowPatchesReadable()
+        .stream()
         .map(PatchReader::getLaneIds)
         .flatMap(Collection::stream)
         .map(laneId -> laneId.getReadable(mapFragment))
-        .forEach(laneReadable -> drawLane(laneReadable, "remote"));
+        .forEach(this::drawRemoteLane);
   }
 
   private void drawLane(LaneReadable laneReadable, String laneType) {
@@ -85,11 +99,40 @@ public class TrivialGraphBasedVisualizer {
     edge.setAttribute("ui.class", laneType);
   }
 
+  private void drawRemoteLane(LaneReadable laneReadable) {
+    LaneId laneId = laneReadable.getLaneId();
+    // mapFragment.getShadowPatchesReadable().stream().map()
+    JunctionId junctionId1 = laneReadable.getIncomingJunctionId();
+    JunctionId junctionId2 = laneReadable.getOutgoingJunctionId();
+    drawRemoteJunction(junctionId1);
+    drawRemoteJunction(junctionId2);
+    Edge edge = this.graph.addEdge(laneId.getValue(), junctionId1.getValue(), junctionId2.getValue(), true);
+    edge.setAttribute("ui.class", "remote");
+  }
+
   private void drawJunction(JunctionId junctionId) {
     Node node = this.graph.addNode(junctionId.getValue());
     node.setAttribute("label", junctionId.getValue().substring(0, 3));
     if (drawBasedOnCoordinates) {
       JunctionReadable junctionReadable = mapFragment.getJunctionReadable(junctionId);
+      node.setAttribute("xy",
+          CoordinatesUtil.longitude2plain(junctionReadable.getLongitude(), junctionReadable.getLatitude()),
+          CoordinatesUtil.latitude2plain(junctionReadable.getLatitude()));
+      node.setAttribute("ui.class", junctionId.isCrossroad() ? "crossroad" : "bend");
+    }
+  }
+
+  private void drawRemoteJunction(JunctionId junctionId) {
+    Node node = this.graph.addNode(junctionId.getValue());
+    node.setAttribute("label", junctionId.getValue().substring(0, 3));
+    if (drawBasedOnCoordinates) {
+      JunctionReadable junctionReadable = mapRepository.getAllPatches()
+          .stream()
+          .filter(patch -> patch.getJunctionEditable(junctionId) != null)
+          .map(patch -> patch.getJunctionEditable(junctionId))
+          .findFirst()
+          .get();
+
       node.setAttribute("xy",
           CoordinatesUtil.longitude2plain(junctionReadable.getLongitude(), junctionReadable.getLatitude()),
           CoordinatesUtil.latitude2plain(junctionReadable.getLatitude()));
@@ -105,7 +148,9 @@ public class TrivialGraphBasedVisualizer {
         .map(Patch::getLaneIds)
         .flatMap(Collection::stream)
         .collect(Collectors.toSet());
-    if (borderLanes.contains(laneId)) return "border";
+    if (borderLanes.contains(laneId)) {
+      return "border";
+    }
     return "local";
   }
 

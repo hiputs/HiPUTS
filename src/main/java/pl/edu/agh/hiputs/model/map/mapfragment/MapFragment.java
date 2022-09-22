@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.model.map.mapfragment;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -115,6 +117,22 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         .map(knownPatches::get)
         .map(patch -> patch.getJunctionEditable(junctionId))
         .orElse(null);
+  }
+
+  @Override
+  public List<LaneEditable> getRandomLanesEditable(int count) {
+    Set<LaneEditable> lanes = new HashSet<>();
+    Object[] array = localPatchIds.toArray();
+
+    do {
+      PatchId patchId = (PatchId) array[ThreadLocalRandom.current().nextInt(0, array.length)];
+      Patch patch = knownPatches.get(patchId);
+      lanes.add(patch.getAnyLane());
+    } while (lanes.size() < count);
+
+    return new ArrayList<>(lanes);
+
+
   }
 
   @Override

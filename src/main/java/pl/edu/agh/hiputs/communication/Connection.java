@@ -22,12 +22,21 @@ public class Connection {
 
   public Connection(ConnectionDto message) {
     id = new MapFragmentId(message.getId());
-    try {
-      Socket socket = new Socket(message.getAddress(), message.getPort());
-      output = new ObjectOutputStream(socket.getOutputStream());
-    } catch (IOException e) {
-      log.error("Error connection with neighbour ", e);
+    for(int i = 0; i < 10; i++){
+      try {
+        Socket socket = new Socket(message.getAddress(), message.getPort());
+        output = new ObjectOutputStream(socket.getOutputStream());
+        return;
+      } catch (IOException e) {
+        log.warn("Error connection with neighbour {}", message.getId());
+        try {
+          Thread.sleep(1000 * (i+1));
+        } catch (InterruptedException ex) {
+          log.error("Thread error");
+        }
+      }
     }
+    log.warn("Error connection with neighbour {}", message.getId());
   }
 
   public void send(Message message) throws IOException {

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -15,10 +16,14 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.partition.osm.OsmGraph;
 import pl.edu.agh.hiputs.partition.model.WayData;
 
+@Slf4j
 @Service
 public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
 
-  private final List<GraphTransformer> graphTransformers = List.of(new GraphMaxSpeedFiller(), new GraphLengthFiller());
+  private final List<GraphTransformer> graphTransformers = List.of(
+      new LargestCCSelector(),
+      new GraphMaxSpeedFiller(),
+      new GraphLengthFiller());
 
   public Graph<JunctionData, WayData> mapToInternalModel(OsmGraph osmGraph) {
     Graph.GraphBuilder<JunctionData, WayData> graphBuilder = new Graph.GraphBuilder<>();
@@ -26,7 +31,12 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
     osmGraph.getWays().stream().flatMap(osmWay -> osmToInternal(osmWay).stream()).forEach(graphBuilder::addEdge);
 
     Graph<JunctionData, WayData> graph = graphBuilder.build();
-    graphTransformers.forEach(t -> t.transform(graph));
+    log.info("Building internal graph from osmGraph finished");
+    log.info("Applying transforms started");
+    for (final GraphTransformer graphTransformer : graphTransformers) {
+      graph = graphTransformer.transform(graph);
+    }
+    log.info("Applying transforms finished");
     return graph;
   }
 

@@ -1,11 +1,13 @@
 package pl.edu.agh.hiputs.partition.mapper;
 
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.WayData;
 
+@Slf4j
 class GraphMaxSpeedFiller implements GraphTransformer {
 
   private static final String MAX_SPEED_TAG = "maxspeed";
@@ -21,7 +23,11 @@ class GraphMaxSpeedFiller implements GraphTransformer {
 
   private int calculateMaxSpeed(Map<String, String> tags) {
     if (tags.containsKey(MAX_SPEED_TAG)) {
-      return Integer.parseInt(tags.get(MAX_SPEED_TAG));
+      try {
+        int res = Integer.parseInt(tags.get(MAX_SPEED_TAG));
+      } catch (NumberFormatException e) {
+        log.warn(e.getMessage());
+      }
     }
 
     if (tags.containsKey("highway")) {
