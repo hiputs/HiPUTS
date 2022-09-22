@@ -44,11 +44,15 @@ public class TrailJunctionDecider implements FunctionalDecider {
     List<ConflictVehicleProperties> conflictVehiclesProperties = getAllConflictVehiclesProperties(managedCar, environment, roadStructureReader)
         .stream().sorted(Comparator.comparingDouble(ConflictVehicleProperties::getTte_a)).toList();
 
+    CarEnvironment precedingCarInfo = prospector.getPrecedingCar(managedCar, roadStructureReader);
+
     if(conflictVehiclesProperties.isEmpty()){
-      return getFreeAccelerationResult(managedCar.getSpeed(), managedCar.getMaxSpeed());
+      return getCrossroadAccelerationResult(managedCar.getSpeed(), managedCar.getMaxSpeed(), precedingCarInfo);
     }
+
     CarTrailDeciderData managedCarTrailDataFreeAccel = new CarTrailDeciderData(managedCar.getSpeed(), environment.getDistance(), managedCar.getLength(), maxAcceleration, managedCar.getMaxSpeed(), Optional.empty());
 
+    //calculate time to passable (cross and merge)
 
     //double currentTte = calculateTimeToEnter(managedCarTrailDataFreeAccel, TimeCalculationOption.FreeAcceleration);
     double currentTtc_cross = calculateTimeToClearCrossing(managedCarTrailDataFreeAccel, conflictAreaLength, TimeCalculationOption.FreeAcceleration);
@@ -66,20 +70,28 @@ public class TrailJunctionDecider implements FunctionalDecider {
             timeDelta));
         double tDeltaV = Math.max((firstConflictVehicle.getCar().getSpeed() - maxDeceleration * currentTtc - managedCar.getSpeed() - freeAcceleration * currentTtc) / maxDeceleration, 0);
         if(timeDelta * (tDeltaV + currentTtc) < firstConflictVehicle.getTte_b()){
-          return getFreeAccelerationResult(managedCar.getSpeed(), managedCar.getMaxSpeed());
+          return getCrossroadAccelerationResult(managedCar.getSpeed(), managedCar.getMaxSpeed(), precedingCarInfo);
         }
       }
       else{
-        return getFreeAccelerationResult(managedCar.getSpeed(), managedCar.getMaxSpeed());
+        return getCrossroadAccelerationResult(managedCar.getSpeed(), managedCar.getMaxSpeed(), precedingCarInfo);
       }
     }
 
     return getStopAccelerationResult(managedCar.getSpeed(), managedCar.getMaxSpeed(), environment.getDistance() - conflictAreaLength / 2);
   }
 
-  private double getFreeAccelerationResult(double speed, double desiredSpeed) {
-    return followingModel.calculateAcceleration(speed, desiredSpeed, Double.MAX_VALUE, 0);
+  private double getCrossroadAccelerationResult(double speed, double desiredSpeed, CarEnvironment precedingCarInfo) {
+    if(precedingCarInfo.getPrecedingCar().isEmpty()) {
+      return followingModel.calculateAcceleration(speed, desiredSpeed, Double.MAX_VALUE, 0);
+    }
+    else{
+      return followingModel.calculateAcceleration(speed, desiredSpeed, precedingCarInfo.getDistance(), speed - precedingCarInfo.getPrecedingCar().get().getSpeed());
+    }
   }
+
+  /*private double getFreeAccelerationResult(double speed, double desiredSpeed) {
+  }*/
 
   private double getStopAccelerationResult(double speed, double desiredSpeed, double distance) {
     return followingModel.calculateAcceleration(speed, desiredSpeed, distance, speed);
