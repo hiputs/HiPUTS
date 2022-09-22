@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.model.map.mapfragment;
 
+import static java.lang.Math.min;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -123,6 +125,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   public List<LaneEditable> getRandomLanesEditable(int count) {
     Set<LaneEditable> lanes = new HashSet<>();
     Object[] array = localPatchIds.toArray();
+    count = min(count, array.length);
 
     do {
       PatchId patchId = (PatchId) array[ThreadLocalRandom.current().nextInt(0, array.length)];
