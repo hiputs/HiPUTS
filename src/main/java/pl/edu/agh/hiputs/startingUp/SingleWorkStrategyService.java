@@ -23,7 +23,7 @@ public class SingleWorkStrategyService implements Strategy {
     log.info("Start work in single mode");
     mapFragmentExecutor.setMapFragment(ExampleMapFragmentProvider.getSimpleMap3());
     monitorLocalService.init(mapFragmentExecutor.getMapFragment());
-    TrivialGraphBasedVisualizer graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment());
+    TrivialGraphBasedVisualizer graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment(), null);
 
     graphBasedVisualizer.showGui();
     sleep(1000);

@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.communication.service.worker;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -11,6 +12,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import pl.edu.agh.hiputs.HiPUTS;
 import pl.edu.agh.hiputs.communication.Connection;
 import pl.edu.agh.hiputs.communication.Subscriber;
@@ -67,10 +69,11 @@ public class MessageSenderService implements Subscriber {
 
   private void createServerConnection() {
     Configuration configuration = configurationService.getConfiguration();
-    log.info("Server address {}:{}", HiPUTS.globalInitArgs.get(0), configuration.getServerPort());
+    String ip = CollectionUtils.isEmpty(HiPUTS.globalInitArgs) ? "127.0.0.1" : HiPUTS.globalInitArgs.get(0);
+    log.info("Server address {}:{}", ip, configuration.getServerPort());
     ConnectionDto connectionDto = ConnectionDto.builder()
         .port(configuration.getServerPort())
-        .address(HiPUTS.globalInitArgs.get(0))
+        .address(ip)
         .id("SERVER")
         .build();
     serverConnection = new Connection(connectionDto);

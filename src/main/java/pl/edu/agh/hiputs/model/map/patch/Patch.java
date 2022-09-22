@@ -95,4 +95,9 @@ public class Patch implements PatchReader, PatchEditor {
   public Stream<JunctionEditable> streamJunctionsEditable() {
     return junctions.values().stream().map(Function.identity());
   }
+
+  @Override
+  public LaneEditable getAnyLane() {
+    return lanes.values().iterator().next();
+  }
 }

@@ -20,6 +20,11 @@ public interface LaneEditable extends LaneReadable {
   void addCarAtEntry(CarEditable car);
 
   /**
+   * Add new car into lane
+   */
+  void addNewCar(CarEditable car);
+
+  /**
    * Removes and returns the car from the lane that is closest to the outgoing junction.
    */
   Optional<CarEditable> pollCarAtExit();

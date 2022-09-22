@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="CGImap 0.8.6 (271892 spike-08.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <bounds minlat="0.0000000" minlon="0.0000000" maxlat="0.1000000" maxlon="0.1200000"/>
+ <node id="314159265" visible="true" version="3" changeset="13667891" timestamp="2012-10-28T22:08:23Z" user="Any" uid="14159265" lat="0.0300000" lon="0.0000000"/>
+ <node id="314159267" visible="true" version="4" changeset="35490221" timestamp="2015-11-21T15:56:24Z" user="Any" uid="14159267" lat="0.0500000" lon="0.0300000"/>
+ <node id="314159268" visible="true" version="5" changeset="63935887" timestamp="2018-10-27T19:27:10Z" user="Any" uid="14159268" lat="0.0800000" lon="0.0600000"/>
+ <node id="314159269" visible="true" version="5" changeset="63935887" timestamp="2018-10-27T19:27:10Z" user="Any" uid="14159269" lat="0.1000000" lon="0.0800000"/>
+ <node id="314159270" visible="true" version="6" changeset="91033819" timestamp="2020-09-17T08:55:04Z" user="Any" uid="14159270" lat="0.0000000" lon="0.0200000"/>
+ <node id="314159271" visible="true" version="6" changeset="63472981" timestamp="2018-10-12T21:08:39Z" user="Any" uid="14159270" lat="0.0300000" lon="0.0500000"/>
+ <node id="314159272" visible="true" version="5" changeset="68169105" timestamp="2019-03-15T10:18:17Z" user="Any" uid="14159272" lat="0.0500000" lon="0.0700000"/>
+ <node id="314159273" visible="true" version="8" changeset="45267797" timestamp="2017-01-18T11:23:41Z" user="Any" uid="14159273" lat="0.0700000" lon="0.0900000"/>
+ <node id="314159274" visible="true" version="3" changeset="61815110" timestamp="2018-08-20T08:32:28Z" user="Any" uid="14159274" lat="0.0200000" lon="0.0800000"/>
+ <node id="314159275" visible="true" version="3" changeset="24180454" timestamp="2014-07-16T12:27:22Z" user="Any" uid="14159275" lat="0.0300000" lon="0.1200000"/>
+
+ <way id="16237791" visible="true" version="26" changeset="94256819" timestamp="2020-11-17T08:38:18Z" user="Any" uid="2455523">
+  <nd ref="314159265"/>
+  <nd ref="314159267"/>
+  <tag k="oneway" v="yes"/>
+  <tag k="highway" v="living_street"/>
+ </way>
+ <way id="16313050" visible="true" version="12" changeset="112166916" timestamp="2021-10-06T12:00:55Z" user="Mordechai23" uid="8826419">
+  <nd ref="314159267"/>
+  <nd ref="314159268"/>
+  <nd ref="314159269"/>
+  <tag k="maxspeed" v="60"/>
+  <tag k="highway" v="living_street"/>
+ </way>
+ <way id="16313051" visible="true" version="21" changeset="69140682" timestamp="2019-04-12T08:12:24Z" user="Mateusz Konieczny" uid="1722488">
+  <nd ref="314159270"/>
+  <nd ref="314159271"/>
+  <nd ref="314159272"/>
+  <nd ref="314159273"/>
+  <tag k="highway" v="living_street"/>
+ </way>
+ <way id="16313057" visible="true" version="31" changeset="112877392" timestamp="2021-10-23T14:55:05Z" user="Mordechai23" uid="8826419">
+  <nd ref="314159273"/>
+  <nd ref="314159275"/>
+  <nd ref="314159274"/>
+  <nd ref="314159272"/>
+  <nd ref="314159268"/>
+  <tag k="highway" v="living_street"/>
+ </way>
+</osm>

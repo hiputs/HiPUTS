@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
+import pl.edu.agh.hiputs.partition.service.HexagonsPartitioner.BorderEdgesHandlingStrategy;
 
 @Getter
 @Setter
@@ -89,6 +90,16 @@ public class Configuration {
    */
   private int carViewRange;
 
+  /**
+   * Properties related only for patch partitioning process.
+   */
+  private PatchPartitionerConfiguration patchPartitionerConfiguration;
+
+  /**
+   * Max new cars create after every step in every worker
+   */
+  private int newCars;
+
   public static Configuration getDefault() {
     return Configuration.builder()
         .testMode(true)
@@ -103,6 +114,40 @@ public class Configuration {
         .initialNumberOfCarsPerLane(1)
         .carViewRange(300)
         .balancingMode(BalancingMode.NONE)
+        .newCars(15)
+        .patchPartitionerConfiguration(PatchPartitionerConfiguration.getDefault())
         .build();
+  }
+
+  @Getter
+  @Setter
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class PatchPartitionerConfiguration {
+
+    /**
+     * Patch partitioner name. Supported partitioners are "trivial", "hexagon", "growing"
+     */
+    private String partitionerType;
+
+    /**
+     * Arbitrary maximum distance in meters at which the car should be able to retrieve all necessary information
+     * required by decision process
+     */
+    private double carViewRange;
+
+    /**
+     * Property related only for "hexagon" patch partitioner.
+     */
+    private BorderEdgesHandlingStrategy borderHandlingStrategy;
+
+    public static PatchPartitionerConfiguration getDefault() {
+      return PatchPartitionerConfiguration.builder()
+          .partitionerType("hexagon")
+          .carViewRange(100.0)
+          .borderHandlingStrategy(BorderEdgesHandlingStrategy.maxLaneLengthBuffer)
+          .build();
+    }
   }
 }
