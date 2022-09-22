@@ -31,7 +31,11 @@ public class BasicJunctionDecider implements FunctionalDecider {
   private final double freeAcceleration = 1;
 
   public double makeDecision(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader) {
-    double minArriveTime = getClosestConflictVehicleArriveTime(car, environment, roadStructureReader);
+    double maxSpeed = environment.getDistance() < lineHeight * 8 ? crossroadMaxSpeed : car.getMaxSpeed();
+    log.trace("Car: " + car.getCarId() + " crossroad workaround remove when repair errors");
+    return followingModel.calculateAcceleration(car.getSpeed(), maxSpeed, Double.MAX_VALUE, 0);
+
+    /*double minArriveTime = getClosestConflictVehicleArriveTime(car, environment, roadStructureReader);
     CarEnvironment precedingCarInfo = prospector.getPrecedingCar(car, roadStructureReader);
 
     double crossroadOutTime = calculateCrossroadOutTime(new CarBasicDeciderData(car.getSpeed(), environment.getDistance(), car.getLength()));
@@ -55,7 +59,7 @@ public class BasicJunctionDecider implements FunctionalDecider {
       log.trace("Car: " + car.getCarId() + " does not found car after crossroad");
       acceleration = followingModel.calculateAcceleration(car.getSpeed(), maxSpeed, Double.MAX_VALUE, 0);
     }
-    return acceleration;
+    return acceleration;*/
   }
 
   private double getClosestConflictVehicleArriveTime(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader){
