@@ -29,7 +29,7 @@ public class CarGeneratorService {
     ExampleCarProvider carProvider = new ExampleCarProvider(mapFragment, mapRepository);
 
     lanesEditable.forEach(lane -> {
-      int hops = ThreadLocalRandom.current().nextInt(5, 20);
+      int hops = ThreadLocalRandom.current().nextInt(5, 40);
       Car car = carProvider.generateCar(lane.getLaneId(), hops);
       carProvider.limitSpeedPreventCollisionOnStart(car, lane);
       lane.addNewCar(car);

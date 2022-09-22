@@ -1,7 +1,9 @@
 package pl.edu.agh.hiputs.partition.mapper;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,14 +36,26 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
   }
 
   private Patch mapPatchToSimulationModel(Node<PatchData, PatchConnectionData> patch) {
+
+    Set<PatchId> neighbouringPatches = new HashSet<>();
+
+    neighbouringPatches.addAll(patch.getOutgoingEdges()
+        .parallelStream()
+        .map(e -> new PatchId(e.getTarget().getId()))
+        .toList());
+
+    neighbouringPatches.addAll(patch.getIncomingEdges()
+        .parallelStream()
+        .map(e -> new PatchId(e.getTarget().getId()))
+        .toList());
+
     return Patch.builder()
         .patchId(new PatchId(patch.getId()))
         .lanes(edgesParallelStream(patch).map(this::mapEdgeToSimulationModel)
             .collect(Collectors.toMap(Lane::getLaneId, Function.identity())))
         .junctions(nodesParallelStream(patch).map(this::mapNodeToSimulationModel)
             .collect(Collectors.toMap(Junction::getJunctionId, Function.identity())))
-        .neighboringPatches(
-            patch.getOutgoingEdges().parallelStream().map(e -> new PatchId(e.getTarget().getId())).collect(Collectors.toSet()))
+        .neighboringPatches(neighbouringPatches)
         .build();
   }
 
