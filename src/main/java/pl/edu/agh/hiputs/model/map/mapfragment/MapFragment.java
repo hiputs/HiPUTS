@@ -251,6 +251,13 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   public void migratePatchToMe(PatchId patchId, MapFragmentId neighbourId, MapRepository mapRepository,
       List<ImmutablePair<PatchId, MapFragmentId>> neighbourPatchIdsWithMapFragmentId) {
     Patch patch = knownPatches.get(patchId);
+
+    if(patch == null){
+      patch = mapRepository.getPatch(patchId);
+      knownPatches.put(patchId, patch);
+      patch.getLaneIds().forEach(laneId -> laneIdToPatchId.put(laneId, patchId));
+      patch.getJunctionIds().forEach(junctionId -> junctionIdToPatchId.put(junctionId, patchId));
+    }
     // add to local patches
     localPatchIds.add(patch.getPatchId());
 
