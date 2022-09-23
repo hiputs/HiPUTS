@@ -20,6 +20,7 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.CarGeneratorService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
@@ -43,6 +44,8 @@ public class MapFragmentExecutor {
   private final ConfigurationService configurationService;
 
   private final CarGeneratorService carGeneratorService;
+
+  private final MapRepository mapRepository;
 
   public void run() {
     try {
@@ -93,7 +96,7 @@ public class MapFragmentExecutor {
 
       // 10. create new car
       log.debug("Step 10 start");
-      int newCars = ThreadLocalRandom.current().nextInt(0, configurationService.getConfiguration().getNewCars());
+      int newCars = ThreadLocalRandom.current().nextInt(0, configurationService.getConfiguration().getNewCars() / configurationService.getConfiguration().getWorkerCount());
       carGeneratorService.generateCars(newCars, mapFragment);
 
 

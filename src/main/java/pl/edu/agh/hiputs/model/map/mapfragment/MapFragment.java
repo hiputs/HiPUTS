@@ -236,13 +236,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         PatchConnectionSearchUtil.findShadowPatchesNeighbouringOnlyWithPatch(patch.getPatchId(), this);
 
     shadowPatchesToRemove.forEach(id -> {
-      Patch removedPatch = knownPatches.remove(id);
-      mapFragmentIdToShadowPatchIds.values().forEach(set -> set.remove(id));
-      localPatchIds.remove(id);
-
-      removedPatch.getLaneIds().forEach(laneIdToPatchId::remove);
-
-      removedPatch.getJunctionIds().forEach(junctionIdToPatchId::remove);
+     removePatch(id);
     });
 
     mapFragmentIdToShadowPatchIds.forEach((key, value) -> shadowPatchesToRemove.forEach(value::remove));
@@ -253,10 +247,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     Patch patch = knownPatches.get(patchId);
 
     if(patch == null){
-      patch = mapRepository.getPatch(patchId);
-      knownPatches.put(patchId, patch);
-      patch.getLaneIds().forEach(laneId -> laneIdToPatchId.put(laneId, patchId));
-      patch.getJunctionIds().forEach(junctionId -> junctionIdToPatchId.put(junctionId, patchId));
+      addPatch(mapRepository, patchId);
     }
     // add to local patches
     localPatchIds.add(patch.getPatchId());
@@ -285,11 +276,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
             .toList();
 
     shadowPatchesToAdd.forEach(p -> {
-      Patch addedPatch = mapRepository.getPatch(p.getLeft());
-      knownPatches.put(addedPatch.getPatchId(), addedPatch);
-
-      addedPatch.getLaneIds().forEach(laneId -> laneIdToPatchId.put(laneId, addedPatch.getPatchId()));
-      addedPatch.getJunctionIds().forEach(junctionId -> junctionIdToPatchId.put(junctionId, addedPatch.getPatchId()));
+      addPatch(mapRepository, p.getLeft());
     });
 
     shadowPatchesToAdd.forEach(pair -> {
@@ -312,25 +299,6 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     mapFragmentIdToShadowPatchIds.get(source).remove(patchId);
     mapFragmentIdToShadowPatchIds.get(destination).add(patchId);
-
-    Patch migratedPatch = knownPatches.get(patchId);
-
-    Map<PatchId, Long> patchConnectionCounter = mapFragmentIdToShadowPatchIds.get(source)
-        .stream()
-        .map(knownPatches::get)
-        .map(Patch::getNeighboringPatches)
-        .flatMap(Collection::stream)
-        .filter(id -> !localPatchIds.contains(id)) // we want only border patches
-        .filter(knownPatches::containsKey) // and only known neighbouring
-        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-    migratedPatch.getNeighboringPatches().forEach(id -> {
-      if (patchConnectionCounter.get(id) != null && patchConnectionCounter.get(id) == 1) {
-        mapFragmentIdToShadowPatchIds.get(source).remove(id);
-      }
-      mapFragmentIdToShadowPatchIds.get(destination).add(id);
-    });
-
   }
 
   @Override
@@ -351,6 +319,28 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     }
 
     throw new RuntimeException("Not found mapFragmentId");
+  }
+
+  private void addPatch(MapRepository mapRepository, PatchId patchId){
+    log.info("Add patch {}", patchId.getValue());
+    Patch addedPatch = mapRepository.getPatch(patchId);
+    knownPatches.put(addedPatch.getPatchId(), addedPatch);
+
+    addedPatch.getLaneIds().forEach(laneId -> laneIdToPatchId.put(laneId, addedPatch.getPatchId()));
+    addedPatch.getJunctionIds().forEach(junctionId -> junctionIdToPatchId.put(junctionId, addedPatch.getPatchId()));
+  }
+
+  private void removePatch(PatchId id){
+
+    //fixMe memoryLake - remove to many patches
+    // log.info("Remove patch {}", id.getValue());
+    // Patch removedPatch = knownPatches.remove(id);
+    // mapFragmentIdToShadowPatchIds.values().forEach(set -> set.remove(id));
+    // localPatchIds.remove(id);
+    //
+    // removedPatch.getLaneIds().forEach(laneIdToPatchId::remove);
+    //
+    // removedPatch.getJunctionIds().forEach(junctionIdToPatchId::remove);
   }
 
   @Override
