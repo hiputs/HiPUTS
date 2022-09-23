@@ -123,7 +123,8 @@ public class Lane implements LaneEditable {
     if(!cars.isEmpty()){
       CarReadable firstCarOnLane = cars.peekFirst();
       if(firstCarOnLane.getPositionOnLane() < car.getPositionOnLane()){
-        log.warn("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
+        //#TODO change log to warning when repair junction decider
+        log.debug("TODO: change to warning finally; " + "Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
             + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnLane.getCarId()
             + ", position: " + firstCarOnLane.getPositionOnLane() + ", speed: " + firstCarOnLane.getSpeed() + ". Collision after crossroad!");
         //Move back car to be before car he hit after collision
