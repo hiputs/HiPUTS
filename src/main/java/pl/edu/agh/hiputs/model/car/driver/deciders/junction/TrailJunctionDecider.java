@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
@@ -16,6 +17,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 
+@Slf4j
 public class TrailJunctionDecider implements FunctionalDecider {
 
   private final CarProspector prospector;
@@ -52,8 +54,6 @@ public class TrailJunctionDecider implements FunctionalDecider {
 
     CarTrailDeciderData managedCarTrailDataFreeAccel = new CarTrailDeciderData(managedCar.getSpeed(), environment.getDistance(), managedCar.getLength(), maxAcceleration, managedCar.getMaxSpeed(), Optional.empty());
 
-    //calculate time to passable (cross and merge)
-
     //double currentTte = calculateTimeToEnter(managedCarTrailDataFreeAccel, TimeCalculationOption.FreeAcceleration);
     double currentTtc_cross = calculateTimeToClearCrossing(managedCarTrailDataFreeAccel, conflictAreaLength, TimeCalculationOption.FreeAcceleration);
     double currentTtc_merge = calculateTimeToClearMerge(managedCarTrailDataFreeAccel, TimeCalculationOption.FreeAcceleration);
@@ -74,7 +74,25 @@ public class TrailJunctionDecider implements FunctionalDecider {
         }
       }
       else{
-        return getCrossroadAccelerationResult(managedCar.getSpeed(), managedCar.getMaxSpeed(), precedingCarInfo);
+        if(precedingCarInfo.getPrecedingCar().isPresent()){
+
+          CarReadable precedingCar = precedingCarInfo.getPrecedingCar().get();
+          // I have got distance of preceding car from current car. I need to subtract distance of current car from crossroad to get preceding car distance from crossroad.
+          double precedingCarDistance = environment.getDistance() - (precedingCarInfo.getDistance() + precedingCar.getLength());
+
+          CarTrailDeciderData precedingCarTrailData = new CarTrailDeciderData(precedingCar.getSpeed(), precedingCarDistance, precedingCar.getLength(), precedingCar.getAcceleration(), precedingCar.getMaxSpeed(), Optional.empty());
+
+          double precedingTtpConstSpeed = calculateTimeToPassableCrossing(managedCar, precedingCarTrailData, conflictAreaLength, TimeCalculationOption.CurrentSpeed);
+          double precedingTtpMaxBreak = calculateTimeToPassableCrossing(managedCar, precedingCarTrailData, conflictAreaLength, TimeCalculationOption.BrakeAcceleration);
+
+          //if(timeDelta * precedingTtpConstSpeed < firstConflictVehicle.getTte_a()
+          //    && timeDelta * precedingTtpMaxBreak < firstConflictVehicle.getTte_b()){
+            return getCrossroadAccelerationResult(managedCar.getSpeed(), managedCar.getMaxSpeed(), precedingCarInfo);
+          //}
+          //else{
+          //  log.info("Car: " + managedCar.getCarId() + " is stopped by new code");
+          //}
+        }
       }
     }
 
