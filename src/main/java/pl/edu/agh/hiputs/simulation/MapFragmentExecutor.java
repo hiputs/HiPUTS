@@ -94,11 +94,12 @@ public class MapFragmentExecutor {
       monitorLocalService.markPointAsFinish(SimulationPoint.WAITING_FOR_SECOND_ITERATION);
       monitorLocalService.endSimulationStep();
 
-      // 10. create new car
-      log.debug("Step 10 start");
-      int newCars = ThreadLocalRandom.current().nextInt(0, configurationService.getConfiguration().getNewCars());
-      carGeneratorService.generateCars(newCars, mapFragment);
-
+      if(!configurationService.getConfiguration().isTestMode()) {
+        // 10. create new car
+        log.debug("Step 10 start");
+        int newCars = ThreadLocalRandom.current().nextInt(0, configurationService.getConfiguration().getNewCars());
+        carGeneratorService.generateCars(newCars, mapFragment);
+      }
 
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);
