@@ -30,7 +30,7 @@ public class CarGeneratorService implements Subscriber {
   private final ConfigurationService configurationService;
   private boolean bigWorker = false;
   private int step = 0;
-  private int totalPatch;
+  private int totalPatch = -1;
 
   @PostConstruct
   void init(){
@@ -39,6 +39,10 @@ public class CarGeneratorService implements Subscriber {
 
   public void generateCars(MapFragment mapFragment) {
     Configuration configuration = configurationService.getConfiguration();
+
+    if(totalPatch == -1){
+      totalPatch = mapRepository.getAllPatches().size();
+    }
     int targetCarMax = (int)(configuration.getNewCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
     int targetCarMin = (int)(configuration.getMinCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
     int count = ThreadLocalRandom.current().nextInt(targetCarMin, targetCarMax);
@@ -70,6 +74,5 @@ public class CarGeneratorService implements Subscriber {
   @Override
   public void notify(Message message) {
     bigWorker = ((ServerInitializationMessage) message).isBigWorker();
-    totalPatch = mapRepository.getAllPatches().size();
   }
 }
