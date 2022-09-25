@@ -82,6 +82,8 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
       boolean shouldBalancing = myCost > candidate.getRight() * ALLOW_LOAD_IMBALANCE;
       boolean shouldExtremeBalancing = myCost > candidate.getRight() * LOW_THRESHOLD;
 
+      log.info("should {}, mycost {} candidate cost {}", shouldBalancing, myCost, candidate.getRight());
+
       loadBalancingDecision.setLoadBalancingRecommended(shouldBalancing);
       loadBalancingDecision.setExtremelyLoadBalancing(shouldExtremeBalancing);
 
@@ -90,7 +92,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
       }
 
       loadBalancingDecision.setSelectedNeighbour(candidate.getLeft());
-      loadBalancingDecision.setCarImbalanceRate(info.getCarCost() - loadRepository.get(candidate.getLeft()).getCarCost());
+      loadBalancingDecision.setCarImbalanceRate((info.getCarCost() - loadRepository.get(candidate.getLeft()).getCarCost()) /2);
     }catch(Exception e){
       log.error("Could not make decision", e);
       loadBalancingDecision.setLoadBalancingRecommended(false);

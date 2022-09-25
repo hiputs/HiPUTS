@@ -80,4 +80,6 @@ public interface TransferDataHandler {
   boolean isLocalPatch(PatchId patchId);
 
   PatchId getPatchIdByLaneId(LaneId laneId);
+
+  void printStaistic();
 }

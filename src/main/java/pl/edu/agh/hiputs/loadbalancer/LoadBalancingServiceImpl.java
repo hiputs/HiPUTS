@@ -82,13 +82,14 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
     long transferCars = 0;
     List<SerializedPatchTransfer> serializedPatchTransfers = new ArrayList<>();
+    transferDataHandler.printStaistic();
 
     do {
       ImmutablePair<PatchBalancingInfo, Double> patchInfo =
           findPatchesToSend(recipient, transferDataHandler, targetBalanceCars);
 
       if(patchInfo == null){
-        return;
+        break;
       }
 
       simulationStatisticService.saveLoadBalancingDecision(true, patchInfo.getLeft().getPatchId().getValue(),

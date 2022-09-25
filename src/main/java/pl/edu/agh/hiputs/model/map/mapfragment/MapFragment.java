@@ -219,7 +219,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
-  public void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId) {
+  public void migratePatchToNeighbour(Patch patch, MapFragmentId neighbourId) {
     // remove from local patches
     localPatchIds.remove(patch.getPatchId());
 
@@ -229,10 +229,10 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     // add new patches into border patches
     List<PatchId> newBorderPatchesAfterTransfer =
         PatchConnectionSearchUtil.findNeighbouringPatches(patch.getPatchId(), this);
-    mapFragmentIdToBorderPatchIds.get(mapFragmentId).addAll(newBorderPatchesAfterTransfer);
+    mapFragmentIdToBorderPatchIds.get(neighbourId).addAll(newBorderPatchesAfterTransfer);
 
     //add removed patch into shadow patches
-    mapFragmentIdToShadowPatchIds.get(mapFragmentId).add(patch.getPatchId());
+    mapFragmentIdToShadowPatchIds.get(neighbourId).add(patch.getPatchId());
 
     //remove shadow patches - patch should be removed from shadow patches when no neighbors are adjacent to localPatches
     List<PatchId> shadowPatchesToRemove =
@@ -254,6 +254,10 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     }
     // add to local patches
     localPatchIds.add(patch.getPatchId());
+
+    // add to border patches
+    mapFragmentIdToBorderPatchIds.computeIfAbsent(neighbourId, k -> new HashSet<>());
+    mapFragmentIdToBorderPatchIds.get(neighbourId).add(patchId);
 
     log.info("migrate to local patch {}", patchId.getValue());
 
@@ -327,7 +331,6 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   private Patch addPatch(MapRepository mapRepository, PatchId patchId){
-    log.info("Add patch {}", patchId.getValue());
 
     if(knownPatches.containsKey(patchId)){
       return knownPatches.get(patchId);
@@ -344,6 +347,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   private void removePatch(PatchId id){
 
     //fixMe memoryLake - remove to many patches
+
     // log.info("Remove patch {}", id.getValue());
     // Patch removedPatch = knownPatches.remove(id);
     // mapFragmentIdToShadowPatchIds.values().forEach(set -> set.remove(id));
@@ -367,6 +371,11 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   @Override
   public PatchId getPatchIdByLaneId(LaneId laneId) {
     return laneIdToPatchId.get(laneId);
+  }
+
+  @Override
+  public void printStaistic(){
+    log.info("Local patches {}, borderPatches {} ", localPatchIds.size(), mapFragmentIdToBorderPatchIds.values().stream().map(Set::size).reduce(0, Integer::sum));
   }
 
   public static final class MapFragmentBuilder {
