@@ -139,6 +139,7 @@ public class ServerStrategyService implements Strategy {
 
     //prepare serverInitMessage for each worker
     Map<String, ServerInitializationMessage> workerId2ServerInitializationMessage = new HashMap<>();
+    boolean bigWorkerSelected = false;
 
     while(workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
       String workerId = workerIdsIterator.next();
@@ -176,7 +177,12 @@ public class ServerStrategyService implements Strategy {
       ServerInitializationMessage serverInitializationMessage = ServerInitializationMessage.builder()
           .patchIds(mapFragmentContent.getNodes().keySet().stream().toList())
           .workerInfo(workerDataDtos)
+          .bigWorker(!bigWorkerSelected)
           .build();
+
+      if(!bigWorkerSelected){
+        bigWorkerSelected = true;
+      }
       workerId2ServerInitializationMessage.put(workerId, serverInitializationMessage);
     }
 

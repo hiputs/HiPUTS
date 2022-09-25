@@ -96,9 +96,13 @@ public class Configuration {
   private PatchPartitionerConfiguration patchPartitionerConfiguration;
 
   /**
-   * Max new cars create after every step in every worker
+   * Max new cars create after every step
    */
   private int newCars;
+  /**
+   * Min new cars create after every step
+   */
+  private int minCars;
 
   public static Configuration getDefault() {
     return Configuration.builder()
@@ -115,6 +119,7 @@ public class Configuration {
         .carViewRange(300)
         .balancingMode(BalancingMode.NONE)
         .newCars(15)
+        .minCars(0)
         .patchPartitionerConfiguration(PatchPartitionerConfiguration.getDefault())
         .build();
   }

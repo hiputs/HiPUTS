@@ -67,7 +67,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, age, info.getWaitingTime());
     age++;
 
-    if(transferDataHandler.getNeighbors().isEmpty()){
+    if(transferDataHandler.getNeighbors().isEmpty() || age < 3){
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
     }
@@ -101,7 +101,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   private ImmutablePair<MapFragmentId, Double> selectNeighbourToBalancing(TransferDataHandler transferDataHandler) {
 
     return transferDataHandler.getNeighbors()
-        .stream()
+        .parallelStream()
         .filter(this::hasActualCostInfo)
         .map(id -> new ImmutablePair<MapFragmentId, Double>(id, calculateCost(id)))
         .min(Comparator.comparingDouble(ImmutablePair::getRight))

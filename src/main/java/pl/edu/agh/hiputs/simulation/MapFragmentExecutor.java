@@ -96,8 +96,7 @@ public class MapFragmentExecutor {
 
       // 10. create new car
       log.debug("Step 10 start");
-      int newCars = ThreadLocalRandom.current().nextInt(0, configurationService.getConfiguration().getNewCars() / configurationService.getConfiguration().getWorkerCount());
-      carGeneratorService.generateCars(newCars, mapFragment);
+      carGeneratorService.generateCars(mapFragment);
 
 
     } catch (Exception e) {

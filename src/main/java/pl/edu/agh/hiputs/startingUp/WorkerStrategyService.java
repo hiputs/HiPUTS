@@ -151,7 +151,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
         new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
       List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-          .mapToObj(x -> exampleCarProvider.generateCar(laneId, 10))
+          .mapToObj(x -> exampleCarProvider.generateCar(laneId, 20))
           .sorted(Comparator.comparing(Car::getPositionOnLane))
           .collect(Collectors.toList());
       Collections.reverse(generatedCars);

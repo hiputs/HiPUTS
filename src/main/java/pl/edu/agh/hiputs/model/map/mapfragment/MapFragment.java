@@ -125,12 +125,11 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   public List<LaneEditable> getRandomLanesEditable(int count) {
     Set<LaneEditable> lanes = new HashSet<>();
     Object[] array = localPatchIds.toArray();
-    count = min(count, array.length);
 
     do {
       PatchId patchId = (PatchId) array[ThreadLocalRandom.current().nextInt(0, array.length)];
       Patch patch = knownPatches.get(patchId);
-      lanes.add(patch.getAnyLane());
+      lanes.addAll(patch.getLaneIds().parallelStream().map(patch::getLaneEditable).toList());
     } while (lanes.size() < count);
 
     return new ArrayList<>(lanes);
@@ -215,6 +214,10 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     return knownPatches.get(patchId);
   }
 
+  public int getMyPatchCount(){
+    return localPatchIds.size();
+  }
+
   @Override
   public void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId) {
     // remove from local patches
@@ -247,7 +250,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     Patch patch = knownPatches.get(patchId);
 
     if(patch == null){
-      addPatch(mapRepository, patchId);
+      patch = addPatch(mapRepository, patchId);
     }
     // add to local patches
     localPatchIds.add(patch.getPatchId());
@@ -298,6 +301,8 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     }
 
     mapFragmentIdToShadowPatchIds.get(source).remove(patchId);
+
+    mapFragmentIdToShadowPatchIds.computeIfAbsent(destination, k -> new HashSet<>());
     mapFragmentIdToShadowPatchIds.get(destination).add(patchId);
   }
 
@@ -321,13 +326,19 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     throw new RuntimeException("Not found mapFragmentId");
   }
 
-  private void addPatch(MapRepository mapRepository, PatchId patchId){
+  private Patch addPatch(MapRepository mapRepository, PatchId patchId){
     log.info("Add patch {}", patchId.getValue());
+
+    if(knownPatches.containsKey(patchId)){
+      return knownPatches.get(patchId);
+    }
+
     Patch addedPatch = mapRepository.getPatch(patchId);
     knownPatches.put(addedPatch.getPatchId(), addedPatch);
 
     addedPatch.getLaneIds().forEach(laneId -> laneIdToPatchId.put(laneId, addedPatch.getPatchId()));
     addedPatch.getJunctionIds().forEach(junctionId -> junctionIdToPatchId.put(junctionId, addedPatch.getPatchId()));
+    return addedPatch;
   }
 
   private void removePatch(PatchId id){
