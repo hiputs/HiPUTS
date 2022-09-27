@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import pl.edu.agh.hiputs.model.car.driver.Driver;
 import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.car.driver.IDriver;
+import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionProperties;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
@@ -78,6 +79,12 @@ public class Car implements CarEditable {
    */
   private Decision decision;
 
+  /**
+   * Properties of crossroad decision. Need to giving a way on locked crossroad.
+   */
+  @Builder.Default
+  private Optional<CrossroadDecisionProperties> crossroadDecisionProperties = Optional.empty();
+
   @Override
   public void decide(RoadStructureReader roadStructureReader) {
     decision = this.driver.makeDecision(roadStructureReader);
@@ -87,6 +94,7 @@ public class Car implements CarEditable {
   public Optional<CarUpdateResult> update() {
     if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getLaneId() == null) { // remove car from lane
       log.trace("Car: " + this.getCarId() + " was removed due to finish his route");
+      crossroadDecisionProperties = Optional.empty();
       return Optional.empty();
     }
     this.speed = decision.getSpeed();
@@ -95,6 +103,10 @@ public class Car implements CarEditable {
         new CarUpdateResult(this.laneId, decision.getLaneId(), decision.getPositionOnLane());
     this.laneId = decision.getLaneId();
     this.positionOnLane = decision.getPositionOnLane();
+    if(decision.getCrossroadDecisionProperties().isEmpty() && this.crossroadDecisionProperties.isPresent()){
+      log.trace("Car: " + carId + " reset crossroadDecisionProperties");
+    }
+    this.crossroadDecisionProperties = decision.getCrossroadDecisionProperties();
 
     Optional<LaneId> laneId = this.getRouteOffsetLaneId(0);
     if(laneId.isPresent() && !this.laneId.equals(laneId.get())){
@@ -112,6 +124,11 @@ public class Car implements CarEditable {
     if(this.speed > speed){
       this.speed = speed;
     }
+  }
+
+  @Override
+  public Optional<CrossroadDecisionProperties> getCrossRoadDecisionProperties() {
+    return crossroadDecisionProperties;
   }
 
   @Override

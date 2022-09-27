@@ -14,4 +14,6 @@ public class DriverParameters {
   private final double TrailConflictAreaLength = 5.0;
 
   private final double DriverTimeStep = 0.5;
+  private final int GiveWayWaitTime = 5;
+  private final int MovePermanentWaitTime = 40;
 }

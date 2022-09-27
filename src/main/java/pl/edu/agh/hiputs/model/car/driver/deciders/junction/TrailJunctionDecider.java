@@ -18,7 +18,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 
 @Slf4j
-public class TrailJunctionDecider implements FunctionalDecider {
+public class TrailJunctionDecider implements JunctionDecider {
 
   private final CarProspector prospector;
   private final IFollowingModel followingModel;
@@ -27,6 +27,8 @@ public class TrailJunctionDecider implements FunctionalDecider {
   private final int accelerationDelta;
   private final double maxAcceleration;
   private final double maxDeceleration;
+  private final int giveWayWaitCycles;
+  private final int movePermanentWaitCycles;
 
   public TrailJunctionDecider(CarProspector prospector, IFollowingModel followingModel, DriverParameters parameters){
       this.prospector = prospector;
@@ -36,6 +38,8 @@ public class TrailJunctionDecider implements FunctionalDecider {
       this.maxAcceleration = parameters.getIdmNormalAcceleration();
       this.maxDeceleration = parameters.getIdmNormalDeceleration();
       this.accelerationDelta = parameters.getIdmDelta();
+      this.giveWayWaitCycles = parameters.getGiveWayWaitTime();
+      this.movePermanentWaitCycles = parameters.getMovePermanentWaitTime();
   }
 
   @Override
