@@ -10,15 +10,22 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
-@UtilityClass
+@Component
+@RequiredArgsConstructor
 public class GraphCoherencyUtil {
+
+  private final MapRepository mapRepository;
 
   /**
    * 1. Create GodPatch -> Reduce the graph to the form of a large vertex (all local patches connected with border
@@ -88,5 +95,13 @@ public class GraphCoherencyUtil {
 
     godPatchNeighbours.remove(removedPatchId);
     return Patch.builder().neighboringPatches(godPatchNeighbours).build();
+  }
+
+  public boolean validateEndModel(){
+    Set<PatchId> connectedPatch = new HashSet<>();
+    mapRepository.getAllPatches()
+        .forEach(p -> connectedPatch.addAll(p.getNeighboringPatches()));
+
+    return connectedPatch.size() == mapRepository.getAllPatches().size();
   }
 }
