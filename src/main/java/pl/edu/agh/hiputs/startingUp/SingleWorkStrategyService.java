@@ -29,7 +29,7 @@ public class SingleWorkStrategyService implements Strategy {
     sleep(1000);
 
     while (true) {
-      mapFragmentExecutor.run();
+      mapFragmentExecutor.run(-1);
       graphBasedVisualizer.redrawCars();
       sleep(200);
     }

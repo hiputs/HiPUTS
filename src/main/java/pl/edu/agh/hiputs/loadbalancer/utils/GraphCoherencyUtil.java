@@ -42,38 +42,14 @@ public class GraphCoherencyUtil {
     Patch godPatch = createGodPatch(transferDataHandler, borderParticipant, removedPatchId);
 
     //2.
-    Set<PatchId> visitedPatchId = new HashSet<>();
-    Queue<PatchId> waitingForProcessed = new LinkedList<>(godPatch.getNeighboringPatches().stream().toList());
     Map<PatchId, Patch> neighbouringPatchesRepository = transferDataHandler.getBorderPatches()
         .get(borderParticipant)
         .stream()
         .collect(Collectors.toMap(Patch::getPatchId, Function.identity()));
     neighbouringPatchesRepository.remove(removedPatchId);
+    neighbouringPatchesRepository.put(godPatch.getPatchId(), godPatch);
 
-    while (!waitingForProcessed.isEmpty()) {
-      PatchId patchId = waitingForProcessed.poll();
-
-      if (visitedPatchId.contains(patchId)) {
-        continue;
-      }
-
-     Patch patch = neighbouringPatchesRepository.get(patchId);
-
-      if(patch == null){
-        continue;
-      }
-
-      visitedPatchId.add(patch.getPatchId());
-
-      waitingForProcessed.addAll(patch.getNeighboringPatches()
-          .stream()
-          .filter(p -> !visitedPatchId.contains(p))
-          .filter(neighbouringPatchesRepository::containsKey)
-          .toList());
-    }
-
-    //3.
-    return visitedPatchId.size() == neighbouringPatchesRepository.size();
+    return checkCoherency(neighbouringPatchesRepository, godPatch.getPatchId());
 }
 
   private static Patch createGodPatch(TransferDataHandler transferDataHandler, MapFragmentId borderParticipant,
@@ -97,11 +73,38 @@ public class GraphCoherencyUtil {
     return Patch.builder().neighboringPatches(godPatchNeighbours).build();
   }
 
-  public boolean validateEndModel(){
-    Set<PatchId> connectedPatch = new HashSet<>();
-    mapRepository.getAllPatches()
-        .forEach(p -> connectedPatch.addAll(p.getNeighboringPatches()));
+  private static boolean checkCoherency(Map<PatchId, Patch> vertexRepository, PatchId startVertex){
+    Set<PatchId> visitedPatchId = new HashSet<>();
+    Patch startPatch = vertexRepository.get(startVertex);
+    Queue<PatchId> waitingForProcessed = new LinkedList<>(startPatch.getNeighboringPatches().stream().toList());
 
-    return connectedPatch.size() == mapRepository.getAllPatches().size();
+    while (!waitingForProcessed.isEmpty()) {
+      PatchId patchId = waitingForProcessed.poll();
+
+      if (visitedPatchId.contains(patchId)) {
+        continue;
+      }
+
+      Patch vertex = vertexRepository.get(patchId);
+
+      if(vertex == null){
+        continue;
+      }
+
+      visitedPatchId.add(vertex.getPatchId());
+
+      waitingForProcessed.addAll(vertex.getNeighboringPatches()
+          .stream()
+          .filter(p -> !visitedPatchId.contains(p))
+          .filter(vertexRepository::containsKey)
+          .toList());
+    }
+
+    //3.
+    return visitedPatchId.size() == vertexRepository.size();
+  }
+
+  public boolean validateEndModel(){
+    return checkCoherency(mapRepository.getPatchesMap(), mapRepository.getAllPatches().get(0).getPatchId());
   }
 }

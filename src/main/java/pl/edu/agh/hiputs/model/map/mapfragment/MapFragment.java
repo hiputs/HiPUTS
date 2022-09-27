@@ -3,7 +3,6 @@ package pl.edu.agh.hiputs.model.map.mapfragment;
 import static java.lang.Math.min;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +30,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.MapStatistic;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 /**
@@ -376,6 +376,25 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   @Override
   public void printStaistic(){
     log.info("Local patches {}, borderPatches {} ", localPatchIds.size(), mapFragmentIdToBorderPatchIds.values().stream().map(Set::size).reduce(0, Integer::sum));
+  }
+
+  public MapStatistic getMapStatistic(int step) {
+    return MapStatistic.builder()
+        .localPatches(localPatchIds.size())
+        .borderPatches(getBorderPatches()
+            .values()
+            .stream()
+            .map(Set::size)
+            .reduce(0, Integer::sum))
+        .workerId(mapFragmentId.getId())
+        .shadowPatches(getShadowPatchesReadable().size())
+        .neighbouring(getBorderPatches().entrySet()
+            .stream()
+            .filter(i -> i.getValue().size() > 0)
+            .map(i -> new ImmutablePair<>(i.getKey().getId(), i.getValue().size()))
+            .toList())
+        .step(step)
+        .build();
   }
 
   public static final class MapFragmentBuilder {

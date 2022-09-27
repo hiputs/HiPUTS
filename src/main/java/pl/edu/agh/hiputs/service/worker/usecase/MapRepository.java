@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.service.worker.usecase;
 
 import java.util.List;
+import java.util.Map;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 
@@ -15,4 +16,6 @@ public interface MapRepository {
   boolean isReady();
 
   List<Patch> getAllPatches();
+
+  Map<PatchId, Patch> getPatchesMap();
 }

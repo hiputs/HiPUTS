@@ -176,7 +176,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       statisticSummaryService.startTiming();
       for (i = 0; i < n; i++) {
         log.info("Start iteration no. {}/{}", i+1, n);
-        mapFragmentExecutor.run();
+        mapFragmentExecutor.run(i);
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();

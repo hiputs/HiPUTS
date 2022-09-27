@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Repository;
@@ -94,6 +95,11 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
   @Override
   public List<Patch> getAllPatches() {
     return patches.values().stream().toList();
+  }
+
+  @Override
+  public Map<PatchId, Patch> getPatchesMap() {
+    return patches;
   }
 
   @Override
