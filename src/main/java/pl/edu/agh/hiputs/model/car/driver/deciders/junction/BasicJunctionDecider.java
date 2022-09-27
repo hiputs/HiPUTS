@@ -2,7 +2,6 @@ package pl.edu.agh.hiputs.model.car.driver.deciders.junction;
 
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.CarReadable;
@@ -70,7 +69,8 @@ public class BasicJunctionDecider implements FunctionalDecider {
     LaneId incomingLaneId = environment.getIncomingLaneId().get();
     LaneId outgoingLaneId = prospector.getNextOutgoingLane(car, nextJunctionId, roadStructureReader);
 
-    List<LaneId> conflictLanesId = prospector.getConflictLaneIds(lanesOnJunction, incomingLaneId, outgoingLaneId);
+    List<LaneId> conflictLanesId = prospector.getConflictLaneIds(lanesOnJunction, incomingLaneId, outgoingLaneId,
+        car.getCarId(), roadStructureReader);
 
     List<CarBasicDeciderData> conflictCars = prospector.getFirstCarsFromLanes(conflictLanesId, roadStructureReader);
     return getFirstArriveCarTime(conflictCars);
