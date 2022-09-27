@@ -11,6 +11,7 @@ import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CarBasicDeciderData;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CarTrailDeciderData;
+import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
@@ -112,7 +113,27 @@ public class CarProspectorImpl implements CarProspector {
     return new CarEnvironment(distance, precedingCar, nextCrossroadId, incomingLaneId);
   }
 
-  public List<LaneId> getConflictLaneIds(List<LaneOnJunction> lanesOnJunction, LaneId incomingLaneId, LaneId outgoingLaneId){
+  public List<LaneOnJunction> getRightLanesOnJunction(List<LaneOnJunction> lanesOnJunction, LaneId incomingLaneId, LaneId outgoingLaneId){
+    Optional<LaneOnJunction> incomingLaneOnJunctionOpt = lanesOnJunction.stream().filter(
+        laneOnJunction -> laneOnJunction.getLaneId() == incomingLaneId
+            && laneOnJunction.getDirection().equals(LaneDirection.INCOMING)).findFirst();
+    if(incomingLaneOnJunctionOpt.isEmpty()){
+      return new ArrayList<>();
+    }
+    LaneOnJunction incomingLaneOnJunction = incomingLaneOnJunctionOpt.get();
+    LaneOnJunction outgoingLaneOnJunction = lanesOnJunction.stream().filter(
+        laneOnJunction -> laneOnJunction.getLaneId() == outgoingLaneId
+            && laneOnJunction.getDirection().equals(LaneDirection.OUTGOING)).findFirst().or(()->Optional.of(incomingLaneOnJunction)).get();
+
+    List<LaneOnJunction> rightLanes;
+    rightLanes = lanesOnJunction.stream()
+        .filter(laneOnJunction -> laneOnJunction.getDirection().equals(LaneDirection.INCOMING)
+            && isLaneOnJunctionIndexInRange(laneOnJunction.getLaneIndexOnJunction(), incomingLaneOnJunction.getLaneIndexOnJunction(), outgoingLaneOnJunction.getLaneIndexOnJunction())).toList();
+    return rightLanes;
+  }
+
+  public List<LaneId> getConflictLaneIds(List<LaneOnJunction> lanesOnJunction, LaneId incomingLaneId,
+      LaneId outgoingLaneId, CarId currentCarId, RoadStructureReader roadStructureReader){
     Optional<LaneOnJunction> incomingLaneOnJunctionOpt = lanesOnJunction.stream().filter(
         laneOnJunction -> laneOnJunction.getLaneId() == incomingLaneId
             && laneOnJunction.getDirection().equals(LaneDirection.INCOMING)).findFirst();
@@ -137,7 +158,17 @@ public class CarProspectorImpl implements CarProspector {
           .filter(laneOnJunction -> laneOnJunction.getDirection().equals(LaneDirection.INCOMING)
               && laneOnJunction.getSubordination().equals(LaneSubordination.NOT_SUBORDINATE))).distinct().toList().stream();
     }
-    return conflictLanes.map(LaneOnJunction::getLaneId).toList();
+
+
+    return conflictLanes.map(LaneOnJunction::getLaneId).filter(lane -> filterActiveLane(lane, currentCarId, roadStructureReader)).toList();
+  }
+
+  private boolean filterActiveLane(LaneId laneId, CarId currentCarId, RoadStructureReader roadStructureReader){
+    LaneReadable lane = laneId.getReadable(roadStructureReader);
+    Optional<CarReadable> conflictCarOptional = lane.streamCarsFromExitReadable().findFirst();
+    return conflictCarOptional.isPresent() && (conflictCarOptional.get().getCrossRoadDecisionProperties().isEmpty()
+        || conflictCarOptional.get().getCrossRoadDecisionProperties().get().getGiveWayVehicleId().isEmpty()
+        || !conflictCarOptional.get().getCrossRoadDecisionProperties().get().getGiveWayVehicleId().get().equals(currentCarId));
   }
 
   private boolean isLaneOnJunctionIndexInRange(int index, int incoming, int outgoing){
@@ -163,15 +194,30 @@ public class CarProspectorImpl implements CarProspector {
     return conflictCars;
   }
 
-  public List<CarTrailDeciderData> getAllCarsFromLanes(List<LaneId> conflictLanes, RoadStructureReader roadStructureReader, double conflictAreaLength){
+  public List<CarReadable> getAllFirstCarsFromLanesReadable(List<LaneId> lanes, RoadStructureReader roadStructureReader){
+    List<CarReadable> cars = new ArrayList<>();
+    for (LaneId laneId: lanes) {
+      LaneReadable lane = laneId.getReadable(roadStructureReader);
+      List<CarReadable> carsFromExit = lane.streamCarsFromExitReadable().toList();
+      if(!carsFromExit.isEmpty()) {
+        cars.add(carsFromExit.stream().findFirst().get());
+      }
+    }
+    return cars;
+  }
+  public List<CarTrailDeciderData> getAllConflictCarsFromLanes(List<LaneId> conflictLanes, RoadStructureReader roadStructureReader, double conflictAreaLength){
     List<CarTrailDeciderData> conflictCars = new ArrayList<>();
     for (LaneId laneId: conflictLanes) {
       LaneReadable lane = laneId.getReadable(roadStructureReader);
       double maxSpeed = Double.MAX_VALUE;//lane.getMaxSpeed(); // #TODO Get max speed from lane when it will be available
-      for (CarReadable conflictCar: lane.streamCarsFromExitReadable().toList()){
-        double distance = lane.getLength() - conflictCar.getPositionOnLane() - conflictAreaLength / 2;
-        conflictCars.add(new CarTrailDeciderData(conflictCar.getSpeed(), distance, conflictCar.getLength(),
-                            conflictCar.getAcceleration(), Math.min(maxSpeed, conflictCar.getMaxSpeed()), conflictCar.getRouteOffsetLaneId(1)));
+      List<CarReadable> carsFromExit = lane.streamCarsFromExitReadable().toList();
+      if(!carsFromExit.isEmpty()) {
+        CarId firstCarId = carsFromExit.stream().findFirst().get().getCarId();
+        for (CarReadable conflictCar : carsFromExit) {
+          double distance = lane.getLength() - conflictCar.getPositionOnLane() - conflictAreaLength / 2;
+          conflictCars.add(new CarTrailDeciderData(conflictCar.getSpeed(), distance, conflictCar.getLength(),
+              conflictCar.getAcceleration(), Math.min(maxSpeed, conflictCar.getMaxSpeed()), firstCarId, lane.getLaneId(), conflictCar.getRouteOffsetLaneId(1)));
+        }
       }
     }
     return conflictCars;
