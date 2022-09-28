@@ -16,6 +16,7 @@ import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionPro
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecision;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.TrailJunctionDecider;
+import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
@@ -35,6 +36,7 @@ public class Driver implements IDriver {
   private final JunctionDecider junctionDecider;
   private final double distanceHeadway;
   private final double timeStep;
+  private final double maxDeceleration;
 
   public Driver(CarReadable car, DriverParameters parameters){
     this.car = car;
@@ -44,6 +46,7 @@ public class Driver implements IDriver {
     this.junctionDecider = new TrailJunctionDecider(prospector, idm, new DriverParameters());
     this.timeStep = parameters.getDriverTimeStep();
     this.distanceHeadway = getDistanceHeadway();
+    this.maxDeceleration = parameters.getIdmNormalDeceleration();
   }
   public Decision makeDecision(RoadStructureReader roadStructureReader) {
     // make local decision based on read only road structure (watch environment) and save it locally
@@ -105,10 +108,10 @@ public class Driver implements IDriver {
         CarEnvironment precedingCarInfo = prospector.getPrecedingCar(car, roadStructureReader);
         if(precedingCarInfo.getPrecedingCar().isPresent() && precedingCarInfo.getDistance() < (speed * speed / maxDeceleration / 2)){
           CarReadable precedingCar = precedingCarInfo.getPrecedingCar().get();
-          speed = Math.max(speed, precedingCar.getSpeed() * 0.9);
+          speed = Math.min(speed, Math.max(precedingCar.getSpeed() - maxDeceleration, 0) * 0.8);
           desiredPosition = Math.min(desiredPosition,
               precedingCar.getPositionOnLane() - Math.min(0.1, precedingCar.getPositionOnLane() * 0.1));
-          log.trace("Car: " + car.getCarId() + " finish move permanent and limit speed to car: " + precedingCar.getCarId());
+          log.trace("Car: " + car.getCarId() + " finish move permanent and limit speed to car: " + precedingCar.getCarId() + ", speed: " + precedingCar.getSpeed() + ", position: " + precedingCar.getPositionOnLane());
         }
         else{
           log.trace("Car: " + car.getCarId() + " finish move permanent without preceding car");
@@ -118,7 +121,7 @@ public class Driver implements IDriver {
 
     final Decision decision = Decision.builder()
         .acceleration(acceleration)
-        .speed(car.getSpeed() + acceleration * timeStep)
+        .speed(speed)
         .laneId(currentLaneId)
         .positionOnLane(desiredPosition)
         .offsetToMoveOnRoute(offset)
