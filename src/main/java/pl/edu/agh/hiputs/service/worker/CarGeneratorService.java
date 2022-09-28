@@ -45,6 +45,9 @@ public class CarGeneratorService implements Subscriber {
     }
     int targetCarMax = (int)(configuration.getNewCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
     int targetCarMin = (int)(configuration.getMinCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
+    if(targetCarMax <= targetCarMin){
+      targetCarMax = targetCarMin + 1;
+    }
     int count = ThreadLocalRandom.current().nextInt(targetCarMin, targetCarMax);
 
     if (step++ < START_ADD_CAR) {

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -139,15 +140,15 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   @Override
   public Set<MapFragmentId> getNeighbors() {
-    return mapFragmentIdToShadowPatchIds.keySet();
+    return getBorderPatches().keySet();
   }
 
   @Override
   public Map<MapFragmentId, Set<CarEditable>> pollOutgoingCars() {
     return mapFragmentIdToShadowPatchIds.entrySet()
-        .stream()
+        .parallelStream()
         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
-            .stream()
+            .parallelStream()
             .map(knownPatches::get)
             .flatMap(Patch::streamLanesEditable)
             .flatMap(LaneEditable::pollIncomingCars)
@@ -157,7 +158,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   @Override
   public void acceptIncomingCars(Set<Car> incomingCars) {
     incomingCars.forEach(car -> {
-      LaneEditable lane = car.getDecision().getLaneId().getEditable(this);
+      LaneEditable lane = car.getDecision().getLaneId().getEditable(this);//fixme no parallel code!!!!!
       if(lane != null) {
         lane.addIncomingCar(car);
       } else {
@@ -243,6 +244,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     });
 
     mapFragmentIdToShadowPatchIds.forEach((key, value) -> shadowPatchesToRemove.forEach(value::remove));
+    removeEmptyNeighbours();
   }
 
   public void migratePatchToMe(PatchId patchId, MapFragmentId neighbourId, MapRepository mapRepository,
@@ -296,6 +298,8 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       shadowPatchIds.add(pair.getLeft());
       mapFragmentIdToShadowPatchIds.put(pair.getRight(), shadowPatchIds);
     });
+
+    removeEmptyNeighbours();
   }
 
   @Override
@@ -356,6 +360,19 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     // removedPatch.getLaneIds().forEach(laneIdToPatchId::remove);
     //
     // removedPatch.getJunctionIds().forEach(junctionIdToPatchId::remove);
+  }
+
+  private void removeEmptyNeighbours(){
+    List<MapFragmentId> lostConnectNeighbours = mapFragmentIdToBorderPatchIds.entrySet()
+        .stream()
+        .filter(i -> i.getValue().isEmpty())
+        .map(Entry::getKey)
+        .toList();
+
+    lostConnectNeighbours.forEach(n -> {
+      mapFragmentIdToBorderPatchIds.remove(n);
+      mapFragmentIdToShadowPatchIds.remove(n);
+    });
   }
 
   @Override
