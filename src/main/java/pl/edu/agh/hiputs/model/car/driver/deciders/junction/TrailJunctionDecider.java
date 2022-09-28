@@ -25,6 +25,7 @@ public class TrailJunctionDecider implements JunctionDecider {
   private final CarProspector prospector;
   private final IFollowingModel followingModel;
   private final double timeDelta;
+  private final double idmDelta;
   private final double conflictAreaLength;
   private final int accelerationDelta;
   private final double maxAcceleration;
@@ -36,6 +37,7 @@ public class TrailJunctionDecider implements JunctionDecider {
       this.prospector = prospector;
       this.followingModel = followingModel;
       this.timeDelta = parameters.getTrailTimeDelta();
+      this.idmDelta = parameters.getIdmDelta();
       this.conflictAreaLength = parameters.getTrailConflictAreaLength();
       this.maxAcceleration = parameters.getIdmNormalAcceleration();
       this.maxDeceleration = parameters.getIdmNormalDeceleration();
@@ -65,6 +67,13 @@ public class TrailJunctionDecider implements JunctionDecider {
       return new JunctionDecision(res.getAcceleration());
     }
 
+    if(precedingCarInfo.getPrecedingCar().isPresent()){
+      log.trace("Car: " + managedCar.getCarId() + " found preceding car: " + precedingCarInfo);
+    }
+    else{
+      log.trace("Car: " + managedCar.getCarId() + " found no preceding car after crossroad");
+    }
+
     if(managedCar.getCrossRoadDecisionProperties().isPresent() && managedCar.getCrossRoadDecisionProperties().get().getGiveWayVehicleId().isPresent()){
       return giveWayResult(managedCar, environment, roadStructureReader);
     }
@@ -72,20 +81,16 @@ public class TrailJunctionDecider implements JunctionDecider {
     List<ConflictVehicleProperties> conflictVehiclesProperties = getAllConflictVehiclesProperties(managedCar, environment, roadStructureReader)
         .stream().sorted(Comparator.comparingDouble(ConflictVehicleProperties::getTte_a)).toList();
 
-
     if(conflictVehiclesProperties.isEmpty()){
-      if(environment.getNextCrossroadId().isPresent()){
-        return getMoveOnJunctionDecision(managedCar, environment, roadStructureReader, precedingCarInfo);
-      }
+      log.trace("Car: " + managedCar.getCarId() + " found no conflict vehicles");
+      return getMoveOnJunctionDecision(managedCar, environment, roadStructureReader, precedingCarInfo);
     }
 
     CarTrailDeciderData managedCarTrailDataFreeAccel = new CarTrailDeciderData(managedCar.getSpeed(), environment.getDistance(),
         managedCar.getLength(), maxAcceleration, managedCar.getMaxSpeed(), managedCar.getCarId(), environment.getIncomingLaneId().get(), Optional.empty());
 
-    //double currentTte = calculateTimeToEnter(managedCarTrailDataFreeAccel, TimeCalculationOption.FreeAcceleration);
     double currentTtc_cross = calculateTimeToClearCrossing(managedCarTrailDataFreeAccel, conflictAreaLength, TimeCalculationOption.FreeAcceleration);
     double currentTtc_merge = calculateTimeToClearMerge(managedCarTrailDataFreeAccel, TimeCalculationOption.FreeAcceleration);
-    //double currentTtp = calculateTimeToPassableCrossing(managedCar, managedCarTrailDataFreeAccel, conflictAreaLength, TimeCalculationOption.FreeAcceleration);
 
     double precedingTtpConstSpeed = 0;
     double precedingTtpMaxBreak = 0;
@@ -111,24 +116,26 @@ public class TrailJunctionDecider implements JunctionDecider {
 
       if(!firstConflictVehicle.isCrossConflict()){
         double freeAcceleration = maxAcceleration * (1 - Math.pow(managedCar.getSpeed() / managedCar.getMaxSpeed(),
-            timeDelta));
+            idmDelta));
         double tDeltaV = Math.max((firstConflictVehicle.getCar().getSpeed() - maxDeceleration * currentTtc - managedCar.getSpeed() - freeAcceleration * currentTtc) / maxDeceleration, 0);
         if(timeDelta * (tDeltaV + currentTtc) < firstConflictVehicle.getTte_b()){
+          log.trace("Car: " + managedCar.getCarId() + " accept merge conflict");
           return getMoveOnJunctionDecision(managedCar, environment, roadStructureReader, precedingCarInfo);
         }
       }
       else{
         if(timeDelta * precedingTtpConstSpeed < firstConflictVehicle.getTte_a()
             && timeDelta * precedingTtpMaxBreak < firstConflictVehicle.getTte_b()){
+          log.trace("Car: " + managedCar.getCarId() + " accept cross conflict");
           return getMoveOnJunctionDecision(managedCar, environment, roadStructureReader, precedingCarInfo);
         }
-        else{
+        /*else{
           log.info("Car: " + managedCar.getCarId() + " is stopped by new code");
-        }
+        }*/
       }
     }
 
-
+    log.trace("Car: " + managedCar.getCarId() + " reject conflicts");
     return getLockedJunctionDecision(managedCar, environment, roadStructureReader, precedingCarInfo, precedingTtpMaxBreak < Double.MAX_VALUE,
         firstConflictVehicle.getCar().getFirstCarOnIncomingLaneId());
   }
