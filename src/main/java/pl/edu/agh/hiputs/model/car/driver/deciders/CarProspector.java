@@ -14,6 +14,10 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 public interface CarProspector {
   CarEnvironment getPrecedingCar(CarReadable currentCar, RoadStructureReader roadStructureReader);
 
+  CarEnvironment getPrecedingCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader);
+
+  CarEnvironment getPrecedingCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader, JunctionId skipCrossroadId);
+
   CarEnvironment getPrecedingCarOrCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader);
 
   List<LaneId> getConflictLaneIds(List<LaneOnJunction> lanesOnJunction, LaneId incomingLaneId, LaneId outgoingLaneId,

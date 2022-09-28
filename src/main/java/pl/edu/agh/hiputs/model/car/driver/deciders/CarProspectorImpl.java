@@ -15,6 +15,7 @@ import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneDirection;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
@@ -65,6 +66,57 @@ public class CarProspectorImpl implements CarProspector {
     return new CarEnvironment(distance, precedingCar, Optional.empty(), Optional.empty());
   }
 
+  public CarEnvironment getPrecedingCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader){
+    return getPrecedingCrossroad(currentCar, roadStructureReader, null);
+  }
+
+  public CarEnvironment getPrecedingCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader, JunctionId skipCrossroadId) {
+    LaneReadable currentLane = roadStructureReader.getLaneReadable(currentCar.getLaneId());
+    JunctionId nextJunctionId = currentLane.getOutgoingJunctionId();
+    Optional<JunctionId> nextCrossroadId;
+    Optional<LaneId> incomingLaneId = Optional.of(currentLane.getLaneId());
+    boolean foundPreviousCrossroad = (skipCrossroadId == null);
+    double distance;
+    if (nextJunctionId.isCrossroad() && foundPreviousCrossroad) {
+      distance = currentLane.getLength() - currentCar.getPositionOnLane();
+    } else {
+      distance = 0;
+      int offset = 0;
+      LaneId nextLaneId;
+      LaneReadable nextLane;
+      while (!nextJunctionId.isCrossroad() && distance < getViewRange() && !foundPreviousCrossroad) {
+        if(nextJunctionId.equals(skipCrossroadId)){
+          foundPreviousCrossroad = true;
+        }
+        Optional<LaneId> nextLaneIdOptional = currentCar.getRouteOffsetLaneId(++offset);
+        if (nextLaneIdOptional.isEmpty()) {
+          break;
+        }
+        nextLaneId = nextLaneIdOptional.get();
+        distance += currentLane.getLength(); // adds previous lane length
+        nextLane = roadStructureReader.getLaneReadable(nextLaneId);
+        if (nextLane == null) {
+          break;
+        }
+        nextJunctionId = nextLane.getOutgoingJunctionId();
+        incomingLaneId = Optional.of(nextLaneId);
+        currentLane = nextLane;
+      }
+      distance += currentLane.getLength() - currentCar.getPositionOnLane();
+
+    }
+    double crossroadDistance = distance;
+    if(nextJunctionId.isCrossroad()){
+      crossroadDistance += currentLane.getLength();
+    }
+    if (nextJunctionId.isCrossroad() && foundPreviousCrossroad && crossroadDistance <= getViewRange() && roadStructureReader.getJunctionReadable(nextJunctionId) != null) {
+      nextCrossroadId = Optional.of(nextJunctionId);
+    } else {
+      nextCrossroadId = Optional.empty();
+      incomingLaneId = Optional.empty();
+    }
+    return new CarEnvironment(distance, Optional.empty(), nextCrossroadId, incomingLaneId);
+  }
 
   public CarEnvironment getPrecedingCarOrCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader) {
     LaneReadable currentLane = roadStructureReader.getLaneReadable(currentCar.getLaneId());
@@ -211,14 +263,38 @@ public class CarProspectorImpl implements CarProspector {
       LaneReadable lane = laneId.getReadable(roadStructureReader);
       double maxSpeed = Double.MAX_VALUE;//lane.getMaxSpeed(); // #TODO Get max speed from lane when it will be available
       List<CarReadable> carsFromExit = lane.streamCarsFromExitReadable().toList();
+      CarId firstCarId = null;
       if(!carsFromExit.isEmpty()) {
-        CarId firstCarId = carsFromExit.stream().findFirst().get().getCarId();
+        firstCarId = carsFromExit.stream().findFirst().get().getCarId();
         for (CarReadable conflictCar : carsFromExit) {
           double distance = lane.getLength() - conflictCar.getPositionOnLane() - conflictAreaLength / 2;
           conflictCars.add(new CarTrailDeciderData(conflictCar.getSpeed(), distance, conflictCar.getLength(),
               conflictCar.getAcceleration(), Math.min(maxSpeed, conflictCar.getMaxSpeed()), firstCarId, lane.getLaneId(), conflictCar.getRouteOffsetLaneId(1)));
         }
       }
+
+      /*if(1==0 && lane.getLength() < getViewRange()){
+        double distanceAdd = lane.getLength();
+        JunctionId previousJunctionId = lane.getIncomingJunctionId();
+        JunctionReadable junction = roadStructureReader.getJunctionReadable(previousJunctionId);
+        List<LaneId> lanesBefore = junction.streamLanesOnJunction().filter(l -> l.getDirection().equals(LaneDirection.INCOMING)).map(l->l.getLaneId()).toList();
+        for (LaneId prevLaneId: lanesBefore) {
+          LaneReadable prevLane = prevLaneId.getReadable(roadStructureReader);
+          maxSpeed = Double.MAX_VALUE;//lane.getMaxSpeed(); // #TODO Get max speed from lane when it will be available
+          carsFromExit = prevLane.streamCarsFromExitReadable().toList();
+          if (!carsFromExit.isEmpty()) {
+            if (firstCarId == null) {
+              firstCarId = carsFromExit.stream().findFirst().get().getCarId();
+            }
+            for (CarReadable conflictCar : carsFromExit) {
+              double distance =
+                  distanceAdd + prevLane.getLength() - conflictCar.getPositionOnLane() - conflictAreaLength / 2;
+              conflictCars.add(new CarTrailDeciderData(conflictCar.getSpeed(), distance, conflictCar.getLength(),
+                  conflictCar.getAcceleration(), Math.min(maxSpeed, conflictCar.getMaxSpeed()), firstCarId, lane.getLaneId(), conflictCar.getRouteOffsetLaneId(1)));
+            }
+          }
+        }
+      }*/
     }
     return conflictCars;
   }
