@@ -98,6 +98,24 @@ public class Driver implements IDriver {
       }
     }
 
+    double speed = car.getSpeed() + acceleration * timeStep;
+
+    if(offset > 0 && crossroadDecisionProperties.isPresent()){
+      if(crossroadDecisionProperties.get().getMovePermanentLaneId().isPresent()){
+        CarEnvironment precedingCarInfo = prospector.getPrecedingCar(car, roadStructureReader);
+        if(precedingCarInfo.getPrecedingCar().isPresent() && precedingCarInfo.getDistance() < (speed * speed / maxDeceleration / 2)){
+          CarReadable precedingCar = precedingCarInfo.getPrecedingCar().get();
+          speed = Math.max(speed, precedingCar.getSpeed() * 0.9);
+          desiredPosition = Math.min(desiredPosition,
+              precedingCar.getPositionOnLane() - Math.min(0.1, precedingCar.getPositionOnLane() * 0.1));
+          log.trace("Car: " + car.getCarId() + " finish move permanent and limit speed to car: " + precedingCar.getCarId());
+        }
+        else{
+          log.trace("Car: " + car.getCarId() + " finish move permanent without preceding car");
+        }
+      }
+    }
+
     final Decision decision = Decision.builder()
         .acceleration(acceleration)
         .speed(car.getSpeed() + acceleration * timeStep)

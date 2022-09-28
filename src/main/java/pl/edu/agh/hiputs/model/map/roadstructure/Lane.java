@@ -123,17 +123,13 @@ public class Lane implements LaneEditable {
     if(!cars.isEmpty()){
       CarReadable firstCarOnLane = cars.peekFirst();
       if(firstCarOnLane.getPositionOnLane() < car.getPositionOnLane()){
-        if(!(car.getCrossRoadDecisionProperties().isPresent() && car.getCrossRoadDecisionProperties().get().getMovePermanentLaneId().isPresent())) {
-          log.warn("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
+        log.warn("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
               + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnLane.getCarId()
               + ", position: " + firstCarOnLane.getPositionOnLane() + ", speed: " + firstCarOnLane.getSpeed() + ". Collision after crossroad!");
-        }
+
         //Move back car to be before car he hit after collision
         car.setPositionOnLaneAndSpeed(firstCarOnLane.getPositionOnLane()
             - Math.min(0.1, firstCarOnLane.getPositionOnLane() * 0.1), firstCarOnLane.getSpeed() * 0.9);
-      }
-      else if(car.getCrossRoadDecisionProperties().isPresent() && car.getCrossRoadDecisionProperties().get().getMovePermanentLaneId().isPresent()){
-        car.setPositionOnLaneAndSpeed(car.getPositionOnLane(), Math.min(car.getSpeed(), firstCarOnLane.getSpeed() * 0.9));
       }
     }
     cars.addFirst(car);
