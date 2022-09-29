@@ -265,7 +265,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     // remove patches from border that have become internal after migration
     List<PatchId> incomePatch = patch.getNeighboringPatches()
-        .stream()
+        .parallelStream()
         .filter(localPatchIds::contains)
         .filter(
             candidatePatchId -> localPatchIds.containsAll(knownPatches.get(candidatePatchId).getNeighboringPatches()))
