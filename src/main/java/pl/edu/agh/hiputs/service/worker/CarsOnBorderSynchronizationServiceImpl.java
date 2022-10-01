@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
@@ -47,8 +48,9 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   public void sendCarsOnBorderToNeighbours(TransferDataHandler mapFragment) {
     Map<MapFragmentId, BorderSynchronizationMessage> messages = mapFragment.getBorderPatches()
         .entrySet()
-        .stream()
-        .collect(Collectors.toMap(Entry::getKey, e -> createMessageFrom(e.getValue())));
+        .parallelStream()
+        .map(entry -> new ImmutablePair<>(entry.getKey(), createMessageFrom(entry.getValue())))
+        .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
 
     sendMessages(messages);
   }
@@ -66,7 +68,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     }
 
     List<Runnable> synchronizeShadowPatchesStateTasks = incomingMessages.stream()
-        .flatMap(message -> message.getPatchContent().entrySet().stream())
+        .flatMap(message -> message.getPatchContent().entrySet().parallelStream())
         .map(e -> new SynchronizeShadowPatchState(e.getKey(), e.getValue(), mapFragment))
         .collect(Collectors.toList());
 
