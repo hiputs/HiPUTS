@@ -105,6 +105,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
     return transferDataHandler.getNeighbors()
         .parallelStream()
         .filter(this::hasActualCostInfo)
+        .filter(id -> !transferDataHandler.getBorderPatches().get(id).isEmpty())
         .map(id -> new ImmutablePair<MapFragmentId, Double>(id, calculateCost(id)))
         .min(Comparator.comparingDouble(ImmutablePair::getRight))
         .orElse(null);

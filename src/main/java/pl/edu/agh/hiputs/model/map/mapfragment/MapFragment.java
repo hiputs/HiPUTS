@@ -261,7 +261,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     mapFragmentIdToBorderPatchIds.computeIfAbsent(neighbourId, k -> new HashSet<>());
     mapFragmentIdToBorderPatchIds.get(neighbourId).add(patchId);
 
-    log.info("migrate to local patch {}", patchId.getValue());
+    log.debug("migrate to local patch {}", patchId.getValue());
 
     // remove patches from border that have become internal after migration
     List<PatchId> incomePatch = patch.getNeighboringPatches()
