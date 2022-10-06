@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.visualization.connection.producer;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -10,43 +11,40 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.visualization.connection.topic.TopicConfiguration;
 import proto.model.CarMessage;
+import proto.model.CarsMessage;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class Producer {
 
-  private final KafkaTemplate<String, CarMessage> kafkaCarTemplate;
+  private final KafkaTemplate<String, CarsMessage> kafkaCarTemplate;
 
-  public void sendCar(CarReadable car, LaneReadable lane, String patchId) {
-    double positionOnLane = car.getPositionOnLane() / lane.getLength();
+  public void sendCars(List<CarMessage> cars, MapFragment mapFragment) {
+    log.info("Start sending cars from map fragment:" + mapFragment.getMapFragmentId());
 
-    CarMessage carMessage = CarMessage.newBuilder()
-        .setCarId(car.getCarId().getValue())
-        .setLength(car.getLength())
-        .setAcceleration(car.getAcceleration())
-        .setSpeed(car.getSpeed())
-        .setMaxSpeed(car.getMaxSpeed())
-        .setLaneId(car.getLaneId().getValue())
-        .setPositionOnLane(positionOnLane)
+    CarsMessage carsMessage = CarsMessage.newBuilder()
+        .addAllCarsMessages(cars)
         .build();
 
-    var record = new ProducerRecord<String, CarMessage>(TopicConfiguration.CARS_TOPIC, patchId, carMessage);
-    ListenableFuture<SendResult<String, CarMessage>> future = this.kafkaCarTemplate.send(record);
+    var record = new ProducerRecord<String, CarsMessage>(TopicConfiguration.CARS_TOPIC, mapFragment.getMapFragmentId().toString(), carsMessage);
+    ListenableFuture<SendResult<String, CarsMessage>> future = this.kafkaCarTemplate.send(record);
 
     future.addCallback(new ListenableFutureCallback<>() {
       @Override
-      public void onSuccess(SendResult<String, CarMessage> result) {
-        // log.info("Sent:" + car + " , offset:" + result.getRecordMetadata().offset());
+      public void onSuccess(SendResult<String, CarsMessage> result) {
       }
 
       @Override
       public void onFailure(@NotNull Throwable ex) {
-        log.error("Error while sending car:" + car + " " + ex.getMessage());
+        log.error("Error while sending car:" + cars + " " + ex.getMessage());
       }
     });
+
+    log.info("End sending cars from map fragment:" + mapFragment.getMapFragmentId());
   }
 }

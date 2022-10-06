@@ -13,3 +13,8 @@ message CarMessage {
     string laneId = 6;
     double positionOnLane = 7;
 }
+
+message CarsMessage
+{
+    repeated CarMessage carsMessages = 1;
+}
