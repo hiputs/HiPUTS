@@ -109,17 +109,22 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   }
 
   private String getWeaitingByMessage() {
-    final Set<MapFragmentId> mapFragmentIds = incomingMessages.stream()
-        .map(m -> DebugUtils.getMapFragment().getPatchIdByLaneId(new LaneId(m.getCars().get(0).getLaneId())))
-        .map(patchId -> DebugUtils.getMapFragment().getMapFragmentIdByPatchId(patchId))
-        .collect(Collectors.toSet());
+    try {
+      final Set<MapFragmentId> mapFragmentIds = incomingMessages.stream()
+          .map(m -> DebugUtils.getMapFragment().getPatchIdByLaneId(new LaneId(m.getCars().get(0).getLaneId())))
+          .map(patchId -> DebugUtils.getMapFragment().getMapFragmentIdByPatchId(patchId))
+          .collect(Collectors.toSet());
 
-    return DebugUtils.getMapFragment().getNeighbors()
-        .stream()
-        .filter(mapFragmentId -> !mapFragmentIds.contains(mapFragmentId))
-        .map(mapFragmentId -> mapFragmentId.getId() + "{ " + DebugUtils.getMapFragment().getBorderPatches().get(mapFragmentId).stream().map(p -> p.getPatchId().getValue()).collect(
-            Collectors.joining(", ")) + "}")
-        .collect(Collectors.joining(", "));
+      return DebugUtils.getMapFragment().getNeighbors()
+          .stream()
+          .filter(mapFragmentId -> !mapFragmentIds.contains(mapFragmentId))
+          .map(mapFragmentId -> mapFragmentId.getId() + "{ " + DebugUtils.getMapFragment().getBorderPatches().get(mapFragmentId).stream().map(p -> p.getPatchId().getValue()).collect(
+              Collectors.joining(", ")) + "}")
+          .collect(Collectors.joining(", "));
+    } catch (Exception e){
+
+    }
+    return "---";
   }
 
   @Override

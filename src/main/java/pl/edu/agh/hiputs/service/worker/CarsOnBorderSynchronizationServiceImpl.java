@@ -19,12 +19,15 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
+import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.SynchronizeShadowPatchState;
 import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationService;
+import pl.edu.agh.hiputs.utils.DebugUtils;
 
 @Slf4j
 @Service
@@ -60,7 +63,8 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     int countOfNeighbours = mapFragment.getNeighbors().size();
     while (incomingMessages.size() < countOfNeighbours) {
       try {
-        this.wait();
+        this.wait(1000);
+        log.warn("Waiting for STEP 9: {}", getWeaitingByMessage());
       } catch (InterruptedException e) {
         log.error(e.getMessage());
         throw new RuntimeException(e);
@@ -77,6 +81,25 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     incomingMessages.clear();
     incomingMessages.addAll(futureIncomingMessages);
     futureIncomingMessages.clear();
+  }
+
+  private String getWeaitingByMessage() {
+    try {
+      final Set<MapFragmentId> mapFragmentIds = incomingMessages.stream()
+          .map(m -> m.getPatchContent().keySet().iterator().next())
+          .map(patchId -> DebugUtils.getMapFragment().getMapFragmentIdByPatchId(new PatchId(patchId)))
+          .collect(Collectors.toSet());
+
+      return DebugUtils.getMapFragment().getNeighbors()
+          .stream()
+          .filter(mapFragmentId -> !mapFragmentIds.contains(mapFragmentId))
+          .map(mapFragmentId -> mapFragmentId.getId() + "{ " + DebugUtils.getMapFragment().getBorderPatches().get(mapFragmentId).stream().map(p -> p.getPatchId().getValue()).collect(
+              Collectors.joining(", ")) + "}")
+          .collect(Collectors.joining(", "));
+    } catch (Exception e){
+
+    }
+    return "---";
   }
 
   @Override
