@@ -155,7 +155,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
-  public void acceptIncomingCars(Set<Car> incomingCars, MapRepository mapRepository) {
+  public void acceptIncomingCars(Set<Car> incomingCars) {
     incomingCars
         .parallelStream()
         .peek(car -> {
@@ -164,7 +164,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
               lane.addIncomingCar(car);
             } else {
               log.warn("Not found lane {}, patchId {}", car.getDecision().getLaneId(),
-                  mapRepository.getPatchIdByLaneId(car.getDecision().getLaneId()).getValue());
+                  "noInfo");
             }
 
           })

@@ -39,8 +39,6 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   private final List<CarTransferMessage> incomingMessages = new ArrayList<>();
   private final List<CarTransferMessage> futureIncomingMessages = new ArrayList<>();
 
-  private final MapRepository mapRepository;
-
   @PostConstruct
   void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.CarTransferMessage);
@@ -98,7 +96,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
     }
 
     List<Runnable> injectIncomingCarTasks = incomingMessages.stream()
-        .map(message -> new InjectIncomingCarsTask(message.getCars(), mapFragment, mapRepository))
+        .map(message -> new InjectIncomingCarsTask(message.getCars(), mapFragment))
         .collect(Collectors.toList());
 
     taskExecutorService.executeBatch(injectIncomingCarTasks);

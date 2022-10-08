@@ -129,7 +129,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     transferDataHandler.migratePatchToMe(new PatchId(message.getPatchId()),
         new MapFragmentId(message.getMapFragmentId()), mapRepository, pairs);
 
-    InjectIncomingCarsTask task = new InjectIncomingCarsTask(message.getCars(), transferDataHandler, mapRepository);
+    InjectIncomingCarsTask task = new InjectIncomingCarsTask(message.getCars(), transferDataHandler);
 
     taskExecutorService.executeBatch(List.of(task));
   }

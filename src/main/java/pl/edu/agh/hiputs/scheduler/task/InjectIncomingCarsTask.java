@@ -15,15 +15,13 @@ public class InjectIncomingCarsTask implements Runnable {
   private final List<SerializedCar> serializedCars;
   private final TransferDataHandler transferDataHandler;
 
-  private final MapRepository mapRepository;
-
   @Override
   public void run() {
     try {
       transferDataHandler.acceptIncomingCars(
           serializedCars.parallelStream()
               .map(SerializedCar::toRealObject)
-              .collect(Collectors.toSet()), mapRepository);
+              .collect(Collectors.toSet()));
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);
     }

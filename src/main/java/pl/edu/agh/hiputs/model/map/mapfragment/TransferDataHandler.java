@@ -33,7 +33,7 @@ public interface TransferDataHandler {
    * Accepts Cars incoming to border Lanes.
    * This method may be invoked multiple times for a single iteration.
    */
-  void acceptIncomingCars(Set<Car> incomingCars, MapRepository mapRepository);
+  void acceptIncomingCars(Set<Car> incomingCars);
 
   /**
    * Returns the border Patches to be sent as shadow Patches to neighbors.
