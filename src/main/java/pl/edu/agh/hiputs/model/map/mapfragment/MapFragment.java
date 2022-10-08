@@ -224,7 +224,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   @Override
   public void migratePatchToNeighbour(Patch patch, MapFragmentId neighbourId) {
-    log.info("migrate patch id {}", patch.getPatchId().getValue());
+    log.info("migrate to nieghbours patch  id {}", patch.getPatchId().getValue(), neighbourId.getId());
     // remove from local patches
     localPatchIds.remove(patch.getPatchId());
 
@@ -243,8 +243,8 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     List<PatchId> shadowPatchesToRemove =
         PatchConnectionSearchUtil.findShadowPatchesNeighbouringOnlyWithPatch(patch.getPatchId(), this);
 
-    // log.info("shadow -> deleted patches {} -> {}", shadowPatchesToRemove.size(), shadowPatchesToRemove.stream()
-    // .map(PatchId::getValue).collect( Collectors.joining(", ")));
+    log.info("shadow -> deleted patches {} -> {}", shadowPatchesToRemove.size(), shadowPatchesToRemove.stream()
+    .map(PatchId::getValue).collect( Collectors.joining(", ")));
     shadowPatchesToRemove.forEach(this::removePatch);
 
     mapFragmentIdToShadowPatchIds.forEach((key, value) -> shadowPatchesToRemove.forEach(value::remove));
@@ -265,7 +265,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     mapFragmentIdToBorderPatchIds.computeIfAbsent(neighbourId, k -> new HashSet<>());
     mapFragmentIdToBorderPatchIds.get(neighbourId).add(patchId);
 
-    log.debug("migrate to local patch {}", patchId.getValue());
+    log.debug("migrate to local patch {} from worker {}", patchId.getValue(), neighbourId.getId());
 
     // remove patches from border that have become internal after migration
     List<PatchId> incomePatch = patch.getNeighboringPatches()

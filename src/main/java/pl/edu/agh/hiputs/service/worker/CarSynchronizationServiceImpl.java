@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -17,16 +18,16 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
-import pl.edu.agh.hiputs.scheduler.task.CarMapperTask;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
-import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
+import pl.edu.agh.hiputs.utils.DebugUtils;
 
 @Slf4j
 @Service
@@ -88,7 +89,8 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
     int countOfNeighbours = mapFragment.getNeighbors().size();
     while (incomingMessages.size() < countOfNeighbours) {
       try {
-        this.wait();
+        this.wait(1000);
+        log.warn("Waiting for: {}", getWeaitingByMessage());
       } catch (InterruptedException e) {
         log.error(e.getMessage());
         throw new RuntimeException(e);
@@ -104,6 +106,20 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
     incomingMessages.clear();
     incomingMessages.addAll(futureIncomingMessages);
     futureIncomingMessages.clear();
+  }
+
+  private String getWeaitingByMessage() {
+    final Set<MapFragmentId> mapFragmentIds = incomingMessages.stream()
+        .map(m -> DebugUtils.getMapFragment().getPatchIdByLaneId(new LaneId(m.getCars().get(0).getLaneId())))
+        .map(patchId -> DebugUtils.getMapFragment().getMapFragmentIdByPatchId(patchId))
+        .collect(Collectors.toSet());
+
+    return DebugUtils.getMapFragment().getNeighbors()
+        .stream()
+        .filter(mapFragmentId -> !mapFragmentIds.contains(mapFragmentId))
+        .map(mapFragmentId -> mapFragmentId.getId() + "{ " + DebugUtils.getMapFragment().getBorderPatches().get(mapFragmentId).stream().map(p -> p.getPatchId().getValue()).collect(
+            Collectors.joining(", ")) + "}")
+        .collect(Collectors.joining(", "));
   }
 
   @Override

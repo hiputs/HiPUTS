@@ -41,6 +41,7 @@ import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
+import pl.edu.agh.hiputs.utils.DebugUtils;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 
@@ -66,6 +67,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final MonitorLocalService monitorLocalService;
 
   private final StatisticSummaryService statisticSummaryService;
+
+  private final DebugUtils debugUtils;
 
   @PostConstruct
   void init() {
@@ -118,6 +121,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     waitForMapLoad();
     MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
     mapFragmentExecutor.setMapFragment(mapFragment);
+    debugUtils.setMapFragment(mapFragment);
 
     createCars();
 
