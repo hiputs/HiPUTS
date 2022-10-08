@@ -63,7 +63,6 @@ public class MessageReceiverService {
     @Override
     public void run() {
       try {
-        //toDo create simply server to get port for worker
         Random random = new Random();
         int portSeed = 10000 + Math.abs(random.nextInt() % 40000);
         ServerSocket ss = null;
