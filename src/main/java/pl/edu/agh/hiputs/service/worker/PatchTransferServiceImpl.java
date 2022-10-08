@@ -1,13 +1,16 @@
 package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
@@ -41,8 +44,8 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   private final CarSynchronizationService carSynchronizedService;
   private final TaskExecutorService taskExecutorService;
 
-  private final Queue<PatchTransferMessage> receivedPatch = new LinkedList<>();
-  private final Queue<PatchTransferNotificationMessage> patchMigrationNotification = new LinkedList<>();
+  private final Queue<PatchTransferMessage> receivedPatch = new LinkedBlockingQueue<>();
+  private final Queue<PatchTransferNotificationMessage> patchMigrationNotification = new LinkedBlockingQueue<>();
 
   @PostConstruct
   void init() {
@@ -61,7 +64,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     List<ImmutablePair<String, String>> patchIdWithMapFragmentId = patch.getNeighboringPatches()
         .stream()
         .map(id -> new ImmutablePair<>(id.getValue(),
-            transferDataHandler.getMapFragmentIdByPatchId(patch.getPatchId()).getId()))
+            transferDataHandler.getMapFragmentIdByPatchId(id).getId()))
         .toList();
 
     List<ConnectionDto> neighbourConnectionDtos = patchIdWithMapFragmentId.stream()
@@ -110,10 +113,11 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
 
   @Override
   public void handleReceivedPatch(TransferDataHandler transferDataHandler) {
-    while (!receivedPatch.isEmpty()) {
-      PatchTransferMessage message = receivedPatch.remove();
+    receivedPatch.forEach(message -> {
       message.getSerializedPatchTransferList().forEach(m -> insertPatch(m, transferDataHandler));
-    }
+    });
+
+    receivedPatch.clear();
   }
 
   private void insertPatch(SerializedPatchTransfer message, TransferDataHandler transferDataHandler) {
@@ -125,7 +129,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     transferDataHandler.migratePatchToMe(new PatchId(message.getPatchId()),
         new MapFragmentId(message.getMapFragmentId()), mapRepository, pairs);
 
-    InjectIncomingCarsTask task = new InjectIncomingCarsTask(message.getCars(), transferDataHandler);
+    InjectIncomingCarsTask task = new InjectIncomingCarsTask(message.getCars(), transferDataHandler, mapRepository);
 
     taskExecutorService.executeBatch(List.of(task));
   }

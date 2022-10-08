@@ -26,6 +26,7 @@ import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.CarMapperTask;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @Slf4j
 @Service
@@ -37,6 +38,8 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   private final MessageSenderService messageSenderService;
   private final List<CarTransferMessage> incomingMessages = new ArrayList<>();
   private final List<CarTransferMessage> futureIncomingMessages = new ArrayList<>();
+
+  private final MapRepository mapRepository;
 
   @PostConstruct
   void init() {
@@ -95,7 +98,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
     }
 
     List<Runnable> injectIncomingCarTasks = incomingMessages.stream()
-        .map(message -> new InjectIncomingCarsTask(message.getCars(), mapFragment))
+        .map(message -> new InjectIncomingCarsTask(message.getCars(), mapFragment, mapRepository))
         .collect(Collectors.toList());
 
     taskExecutorService.executeBatch(injectIncomingCarTasks);

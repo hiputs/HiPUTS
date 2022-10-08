@@ -15,6 +15,7 @@ import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.loadbalancer.utils.GraphCoherencyUtil;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.partition.mapper.Internal2SimulationModelMapper;
@@ -100,6 +101,16 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
   @Override
   public Map<PatchId, Patch> getPatchesMap() {
     return patches;
+  }
+
+  @Override
+  public PatchId getPatchIdByLaneId(LaneId laneId) {
+    return patches.values()
+        .parallelStream()
+        .filter(p -> p.getLaneIds().contains(laneId))
+        .findFirst()
+        .get()
+        .getPatchId();
   }
 
   @Override

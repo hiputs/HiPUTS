@@ -49,8 +49,12 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
         .map(e -> new PatchId(e.getTarget().getId()))
         .toList());
 
+    PatchId id = new PatchId(patch.getId());
+    neighbouringPatches.remove(id);
+
+
     return Patch.builder()
-        .patchId(new PatchId(patch.getId()))
+        .patchId(id)
         .lanes(edgesParallelStream(patch).map(this::mapEdgeToSimulationModel)
             .collect(Collectors.toMap(Lane::getLaneId, Function.identity())))
         .junctions(nodesParallelStream(patch).map(this::mapNodeToSimulationModel)

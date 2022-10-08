@@ -93,9 +93,12 @@ public class MapFragmentExecutor {
       monitorLocalService.markPointAsFinish(SimulationPoint.WAITING_FOR_SECOND_ITERATION);
       monitorLocalService.endSimulationStep();
 
-      // 10. create new car
+      // 10. save statistic
       log.info("Step 10 start");
       simulationStatisticService.saveMapStatistic(mapFragment.getMapStatistic(step));
+
+      // 11. gen new car
+      log.info("Step 11 start");
       carGeneratorService.generateCars(mapFragment);
 
 

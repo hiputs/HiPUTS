@@ -66,9 +66,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
     }
 
     List<MapFragmentId> neighboursToNotify = List.copyOf(transferDataHandler.getNeighbors());
-
     balance(transferDataHandler);
-
     synchronizedWithNeighbour(neighboursToNotify);
   }
 
@@ -123,12 +121,12 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
         log.error("Error util send synchronization message");
       }
     });
-    log.info("Received {} / {}", synchronizationLoadBalancingList.size(), neighboursToNotify.size());
+    // log.info("Received {} / {}", synchronizationLoadBalancingList.size(), neighboursToNotify.size());
     while (synchronizationLoadBalancingList.size() < neighboursToNotify.size()) {
       try {
 
         this.wait();
-        log.info("Received {} / {}", synchronizationLoadBalancingList.size(), neighboursToNotify.size());
+        // log.info("Received {} / {}", synchronizationLoadBalancingList.size(), neighboursToNotify.size());
 
       } catch (InterruptedException e) {
         log.error("error until wait for loadbalancing synchronization");

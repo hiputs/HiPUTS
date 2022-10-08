@@ -67,7 +67,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
       }
     }
 
-    List<Runnable> synchronizeShadowPatchesStateTasks = incomingMessages.stream()
+    List<Runnable> synchronizeShadowPatchesStateTasks = incomingMessages.parallelStream()
         .flatMap(message -> message.getPatchContent().entrySet().parallelStream())
         .map(e -> new SynchronizeShadowPatchState(e.getKey(), e.getValue(), mapFragment))
         .collect(Collectors.toList());
