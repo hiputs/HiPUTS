@@ -125,18 +125,21 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   }
 
   private void createCars() {
+    int[] counter = {0};
     final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-      List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-          .mapToObj(x -> exampleCarProvider.generateCar(laneId, 10))
-          .sorted(Comparator.comparing(Car::getPositionOnLane))
-          .collect(Collectors.toList());
-      Collections.reverse(generatedCars);
-      generatedCars.forEach(car -> {
-        LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
-        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
-        lane.addCarAtEntry(car);
-      });
+      if (counter[0]++ < 10) {
+        List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
+            .mapToObj(x -> exampleCarProvider.generateCar(laneId, 1000))
+            .sorted(Comparator.comparing(Car::getPositionOnLane))
+            .collect(Collectors.toList());
+        Collections.reverse(generatedCars);
+        generatedCars.forEach(car -> {
+          LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
+          exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
+          lane.addCarAtEntry(car);
+        });
+      }
     });
   }
 
