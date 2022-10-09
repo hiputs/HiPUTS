@@ -11,7 +11,7 @@ import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SingleWorkStrategyService implements Strategy{
+public class SingleWorkStrategyService implements Strategy {
 
   private final MapFragmentExecutor mapFragmentExecutor;
 

@@ -68,6 +68,11 @@ public class Configuration {
    */
   private transient boolean serverOnThisMachine;
 
+  /**
+   * Number of cars to be generated on each lane on simulation start
+   */
+  private int initialNumberOfCarsPerLane;
+
   public static Configuration getDefault() {
     return Configuration.builder()
         .testMode(true)
@@ -78,6 +83,7 @@ public class Configuration {
         .mapPath("")
         .serverAddress("localhost")
         .serverPort(8081)
+        .initialNumberOfCarsPerLane(1)
         .build();
   }
 }

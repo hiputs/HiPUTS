@@ -40,6 +40,11 @@ public interface LaneReadable {
   Optional<CarReadable> getCarAtExitReadable();
 
   /**
+   * Returns a stream of cars, beginning from the one closest to the incoming junction.
+   */
+  Stream<CarReadable> streamCarsFromEntryReadable();
+
+  /**
    * Returns a stream of cars, beginning from the one closest to the outgoing junction.
    */
   Stream<CarReadable> streamCarsFromExitReadable();

@@ -12,11 +12,13 @@ import java.util.stream.StreamSupport;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
+@Slf4j
 @Builder
 @AllArgsConstructor
 public class Lane implements LaneEditable {
@@ -96,6 +98,11 @@ public class Lane implements LaneEditable {
   }
 
   @Override
+  public Stream<CarReadable> streamCarsFromEntryReadable() {
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.iterator(), 0), false);
+  }
+
+  @Override
   public Stream<CarReadable> streamCarsFromExitReadable() {
     return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false);
   }
@@ -108,6 +115,11 @@ public class Lane implements LaneEditable {
 
   @Override
   public void addCarAtEntry(CarEditable car) {
+    if(!cars.isEmpty() && cars.peekFirst().getPositionOnLane() < car.getPositionOnLane()){
+      log.error("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
+          + car.getCarId() + ", position: " + car.getPositionOnLane() + ", first car: " + cars.peekFirst().getCarId()
+          + ", position: " + cars.peekFirst().getPositionOnLane());
+    }
     cars.addFirst(car);
   }
 
@@ -126,6 +138,11 @@ public class Lane implements LaneEditable {
     Set<CarEditable> oldIncomingCars = incomingCars;
     this.incomingCars = new HashSet<>();
     return oldIncomingCars.stream();
+  }
+
+  @Override
+  public Stream<CarEditable> streamCarsFromEntryEditable() {
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.iterator(), 0), false);
   }
 
   @Override

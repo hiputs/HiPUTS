@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureEditor;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 
+@Slf4j
 @RequiredArgsConstructor
 public class LaneUpdateStageTask implements Runnable {
 
@@ -18,10 +20,14 @@ public class LaneUpdateStageTask implements Runnable {
 
   @Override
   public void run() {
-    LaneEditable lane = mapFragment.getLaneEditable(laneId);
-    this.removeLeavingCars(lane);
-    this.updateCarsOnLane(lane);
-    this.handleIncomingCars(lane);
+    try {
+      LaneEditable lane = mapFragment.getLaneEditable(laneId);
+      this.removeLeavingCars(lane);
+      this.updateCarsOnLane(lane);
+      this.handleIncomingCars(lane);
+    } catch (Exception e) {
+      log.error("Unexpected exception occurred", e);
+    }
   }
 
   /**
@@ -32,7 +38,8 @@ public class LaneUpdateStageTask implements Runnable {
             .getCarAtExit()
             .map(car -> Objects.isNull(laneId) || !Objects.equals(laneId, car.getDecision().getLaneId()))
             .orElse(false)) {
-      lane.pollCarAtExit();
+      CarEditable car = lane.pollCarAtExit().get();
+      log.debug("Car: " + car.getCarId() + " with destination lane: " + car.getDecision().getLaneId() + " removeLeavingCar from lane: " + laneId);
     }
   }
 
@@ -48,6 +55,7 @@ public class LaneUpdateStageTask implements Runnable {
         .collect(Collectors.toList());
     for (CarEditable car : carsToRemove) {
       lane.removeCar(car);
+      log.trace("Car: " + car.getCarId() + " car remove from lane: " + laneId);
     }
   }
 
@@ -60,8 +68,10 @@ public class LaneUpdateStageTask implements Runnable {
     lane.pollIncomingCars()
         .sorted(Comparator.<CarEditable>comparingDouble(car -> car.getDecision().getPositionOnLane()).reversed())
         .forEach(currentCar -> {
-          if (currentCar.update().isPresent())
+          if (currentCar.update().isPresent()) {
             lane.addCarAtEntry(currentCar);
+            log.trace("Car: " + currentCar.getCarId() + " add at entry of lane: " + laneId);
+          }
         });
   }
 }

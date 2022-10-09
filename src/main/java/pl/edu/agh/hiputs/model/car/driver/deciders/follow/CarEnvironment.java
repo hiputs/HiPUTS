@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.model.car.driver.deciders.follow;
 
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.ToString;
 import lombok.Value;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
@@ -18,6 +19,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
  */
 @Value
 @AllArgsConstructor
+@ToString
 public class CarEnvironment {
   double distance;
   Optional<CarReadable> precedingCar;

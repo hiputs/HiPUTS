@@ -84,6 +84,8 @@ public class MessageReceiverService {
 
       } catch (IOException e) {
         e.printStackTrace();
+      } catch (Exception e) {
+        log.error("Unexpected exception occurred", e);
       }
     }
   }
