@@ -2,12 +2,11 @@ package pl.edu.agh.hiputs.visualization.connection;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
-import pl.edu.agh.hiputs.visualization.connection.producer.Producer;
+import pl.edu.agh.hiputs.visualization.connection.producer.CarsProducer;
 import proto.model.CarMessage;
 
 @Slf4j
@@ -15,7 +14,7 @@ import proto.model.CarMessage;
 @RequiredArgsConstructor
 public class VisualizationService {
 
-  private final Producer producer;
+  private final CarsProducer carsProducer;
 
   private static CarMessage createCarMessage(CarReadable car, LaneReadable lane) {
     double positionOnLane = car.getPositionOnLane() / lane.getLength();
@@ -32,7 +31,7 @@ public class VisualizationService {
   public void sendCarsFromMapFragment(MapFragment mapFragment) {
     log.info("Start sending cars from mapFragment:" + mapFragment.getMapFragmentId());
 
-    this.producer.sendCars(
+    this.carsProducer.sendCars(
       mapFragment
         .getKnownPatchReadable()
         .stream()

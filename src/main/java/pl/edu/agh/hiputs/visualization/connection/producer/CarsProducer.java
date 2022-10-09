@@ -10,9 +10,7 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
-import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.visualization.connection.topic.TopicConfiguration;
 import proto.model.CarMessage;
 import proto.model.CarsMessage;
@@ -20,7 +18,7 @@ import proto.model.CarsMessage;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class Producer {
+public class CarsProducer {
 
   private final KafkaTemplate<String, CarsMessage> kafkaCarTemplate;
 

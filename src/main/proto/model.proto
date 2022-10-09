@@ -4,6 +4,13 @@ option java_package = "proto.model";
 option java_outer_classname = "Model";
 option java_multiple_files = true;
 
+enum RUNNING_STATE {
+    STARTED = 0;
+    RESUMED = 1;
+    STOPPED = 2;
+    CLOSED = 3;
+}
+
 message CarMessage {
     string carId = 1;
     double length = 2;
@@ -17,4 +24,12 @@ message CarMessage {
 message CarsMessage
 {
     repeated CarMessage carsMessages = 1;
+}
+
+message SimulationStateChangeMessage {
+    RUNNING_STATE stateChange = 1;
+}
+
+message VisualizationStateChangeMessage {
+    RUNNING_STATE stateChange = 1;
 }
