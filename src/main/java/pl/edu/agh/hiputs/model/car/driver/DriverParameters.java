@@ -15,5 +15,5 @@ public class DriverParameters {
 
   private final double DriverTimeStep = 1;
   private final int GiveWayWaitTime = 5;
-  private final int MovePermanentWaitTime = 40;
+  private final int MovePermanentWaitTime = 50;
 }

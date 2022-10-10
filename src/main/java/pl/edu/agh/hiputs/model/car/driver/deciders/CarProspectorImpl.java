@@ -273,14 +273,14 @@ public class CarProspectorImpl implements CarProspector {
         }
       }
 
-      /*if(1==0 && lane.getLength() < getViewRange()){
+      /*if(lane.getLength() < getViewRange()){ //does not give any improvement
         double distanceAdd = lane.getLength();
         JunctionId previousJunctionId = lane.getIncomingJunctionId();
         JunctionReadable junction = roadStructureReader.getJunctionReadable(previousJunctionId);
         List<LaneId> lanesBefore = junction.streamLanesOnJunction().filter(l -> l.getDirection().equals(LaneDirection.INCOMING)).map(l->l.getLaneId()).toList();
         for (LaneId prevLaneId: lanesBefore) {
           LaneReadable prevLane = prevLaneId.getReadable(roadStructureReader);
-          maxSpeed = Double.MAX_VALUE;//lane.getMaxSpeed(); // #TODO Get max speed from lane when it will be available
+          maxSpeed = Double.MAX_VALUE;//lane.getMaxSpeed();
           carsFromExit = prevLane.streamCarsFromExitReadable().toList();
           if (!carsFromExit.isEmpty()) {
             if (firstCarId == null) {

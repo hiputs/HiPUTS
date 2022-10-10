@@ -73,7 +73,31 @@ public class Driver implements IDriver {
       acceleration = junctionDecision.getAcceleration();
       crossroadDecisionProperties = junctionDecision.getDecisionProperties();
     }
-    //= this.decider.makeDecision(this, roadStructureReader);
+
+    /*if(limitAccelerationPreventReversing(acceleration, car, timeStep) <= acceleration) {
+      CarEnvironment nextCrossroadEnvironment;
+      if (environment.getPrecedingCar().isEmpty() && environment.getNextCrossroadId().isPresent()) {
+        nextCrossroadEnvironment = prospector.getPrecedingCrossroad(car, roadStructureReader, environment.getNextCrossroadId().get());
+      }
+      else{
+        nextCrossroadEnvironment = prospector.getPrecedingCrossroad(car, roadStructureReader);
+      }
+      if(nextCrossroadEnvironment.getNextCrossroadId().isPresent()) {
+        CarReadable stoppedCar = createVirtualStoppedCarForIdmDecider();
+        nextCrossroadEnvironment = new CarEnvironment(Optional.of(stoppedCar), nextCrossroadEnvironment.getNextCrossroadId(),
+            nextCrossroadEnvironment.getDistance() + distanceHeadway);
+        double nextJunctionAcceleration = idmDecider.makeDecision(car, nextCrossroadEnvironment, roadStructureReader);
+        if(nextJunctionAcceleration < acceleration){
+          acceleration = nextJunctionAcceleration;
+          log.info("Car: " + car.getCarId() + " has reduced acceleration cause crossroad: " + nextCrossroadEnvironment.getNextCrossroadId().get());
+        }
+        /*JunctionDecision nextJunctionDecision = junctionDecider.makeDecision(car, nextCrossroadEnvironment, roadStructureReader);
+        if(nextJunctionDecision.getAcceleration() < acceleration){
+          acceleration = nextJunctionDecision.getAcceleration();
+          log.info("Car: " + car.getCarId() + " has reduced acceleration cause crossroad: " + nextCrossroadEnvironment.getNextCrossroadId().get());
+        }*/
+      //}*/
+    //}
 
     acceleration = limitAccelerationPreventReversing(acceleration, car, timeStep);
 
@@ -131,6 +155,61 @@ public class Driver implements IDriver {
     log.debug("Car: " + car.getCarId() + ", decision: " + decision);
 
     return decision;
+  }
+
+  private CarReadable createVirtualStoppedCarForIdmDecider() {
+    CarReadable virtualCar = new CarReadable() {
+      @Override
+      public double getPositionOnLane() {
+        return 0;
+      }
+
+      @Override
+      public LaneId getLaneId() {
+        return null;
+      }
+
+      @Override
+      public double getLength() {
+        return 0;
+      }
+
+      @Override
+      public double getAcceleration() {
+        return 0;
+      }
+
+      @Override
+      public double getSpeed() {
+        return 0;
+      }
+
+      @Override
+      public double getMaxSpeed() {
+        return 0;
+      }
+
+      @Override
+      public CarId getCarId() {
+        return null;
+      }
+
+      @Override
+      public Optional<CrossroadDecisionProperties> getCrossRoadDecisionProperties() {
+        return Optional.empty();
+      }
+
+      @Override
+      public Optional<LaneId> getRouteOffsetLaneId(int offset) {
+        return Optional.empty();
+      }
+
+      @Override
+      public double getDistanceHeadway() {
+        return 0;
+      }
+    };
+    return virtualCar;
   }
 
   @Override

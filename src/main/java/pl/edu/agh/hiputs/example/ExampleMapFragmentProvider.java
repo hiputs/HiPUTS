@@ -60,6 +60,20 @@ public class ExampleMapFragmentProvider {
     return fromStringRepresentation(mapStructure, laneLengths, withCars ? 100 : 0);
   }
 
+  public static MapFragment getSimpleMap4() {
+    return getSimpleMap4(true);
+  }
+
+  //Map with many cars
+  public static MapFragment getSimpleMap4(boolean withCars) {
+    String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
+    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "200.0"}, {"2->3", "200.0"},
+            {"3->4", "200.0"}, {"4->5", "200.0"}, {"5->6", "200.0"}, {"6->7", "200.0"}, {"7->8", "200.0"},
+            {"8->1", "200.0"}, {"1->4", "200.0"}, {"4->1", "200.0"}, {"4->7", "200.0"}, {"7->4", "200.0"}, })
+        .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
+    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 30 : 0);
+  }
+
   /**
    * Simple scenario for overtaking with two lanes, without cars
    * crossable only from lane1: <br />
