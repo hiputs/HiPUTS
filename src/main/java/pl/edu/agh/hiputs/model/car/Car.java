@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Configurable;
+import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.driver.Driver;
 import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.car.driver.IDriver;
@@ -44,7 +45,7 @@ public class Car implements CarEditable {
   /**
    * Driver instance
    */
-  private final IDriver driver = new Driver(this, new DriverParameters());
+  private final IDriver driver;
 
   /**
    * Lane on which car is currently situated.
@@ -87,7 +88,7 @@ public class Car implements CarEditable {
 
   @Override
   public void decide(RoadStructureReader roadStructureReader) {
-    decision = this.driver.makeDecision(roadStructureReader);
+    decision = this.driver.makeDecision(this, roadStructureReader);
   }
 
   @Override

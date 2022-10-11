@@ -36,14 +36,14 @@ public class TrailJunctionDecider implements JunctionDecider {
   public TrailJunctionDecider(CarProspector prospector, IFollowingModel followingModel, DriverParameters parameters){
       this.prospector = prospector;
       this.followingModel = followingModel;
-      this.timeDelta = parameters.getTrailTimeDelta();
+      this.timeDelta = parameters.getJunctionTimeDeltaFactor();
       this.idmDelta = parameters.getIdmDelta();
-      this.conflictAreaLength = parameters.getTrailConflictAreaLength();
+      this.conflictAreaLength = parameters.getJunctionDefaultConflictAreaLength();
       this.maxAcceleration = parameters.getIdmNormalAcceleration();
       this.maxDeceleration = parameters.getIdmNormalDeceleration();
       this.accelerationDelta = parameters.getIdmDelta();
-      this.giveWayWaitCycles = parameters.getGiveWayWaitTime();
-      this.movePermanentWaitCycles = parameters.getMovePermanentWaitTime();
+      this.giveWayWaitCycles = parameters.getGiveWayThreshold();
+      this.movePermanentWaitCycles = parameters.getMovePermanentThreshold();
   }
 
   @Override

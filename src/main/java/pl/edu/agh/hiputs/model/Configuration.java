@@ -91,6 +91,56 @@ public class Configuration {
   private int carViewRange;
 
   /**
+   * Default max speed of car in m/s
+   */
+  private double defaultMaxSpeed;
+
+  /**
+   * Maximum acceleration of car in m^2/s
+   */
+  private double maxAcceleration;
+
+  /**
+   * Maximum deceleration of car in m^2/s
+   */
+  private double maxDeceleration;
+
+  /**
+   * Idm distance headway in meters
+   */
+  private double idmDistanceHeadway;
+
+  /**
+   * Idm time headway in seconds
+   */
+  private double idmTimeHeadway;
+
+  /**
+   * Idm delta parameter
+   */
+  private int idmDelta;
+
+  /**
+   * Junction decider time delta factor parameter
+   */
+  private double junctionSafeTimeDeltaFactor;
+
+  /**
+   * Give way threshold in seconds
+   */
+  private int giveWayThreshold;
+
+  /**
+   * Move permanent threshold in seconds set negative value to turn out move permanent when crossroad is locked
+   */
+  private int movePermanentThreshold;
+
+  /**
+   * Time step of simulation in seconds
+   */
+  private double simulationTimeStep;
+
+  /**
    * Properties related only for patch partitioning process.
    */
   private PatchPartitionerConfiguration patchPartitionerConfiguration;
@@ -113,6 +163,16 @@ public class Configuration {
         .serverPort(8081)
         .initialNumberOfCarsPerLane(1)
         .carViewRange(300)
+        .defaultMaxSpeed(20)
+        .maxAcceleration(2.0)
+        .maxDeceleration(3.5)
+        .idmDistanceHeadway(2)
+        .idmTimeHeadway(2)
+        .idmDelta(4)
+        .junctionSafeTimeDeltaFactor(1.25)
+        .giveWayThreshold(10)
+        .movePermanentThreshold(50)
+        .simulationTimeStep(1.0)
         .balancingMode(BalancingMode.NONE)
         .newCars(15)
         .patchPartitionerConfiguration(PatchPartitionerConfiguration.getDefault())

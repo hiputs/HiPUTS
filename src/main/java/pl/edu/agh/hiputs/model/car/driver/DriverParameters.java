@@ -1,19 +1,53 @@
 package pl.edu.agh.hiputs.model.car.driver;
 
 import lombok.Value;
+import pl.edu.agh.hiputs.model.Configuration;
 
 @Value
 public class DriverParameters {
-  private final double IdmDistanceHeadway = 2.0;
-  private final double IdmTimeHeadway = 2.0;
-  private final double IdmNormalAcceleration = 2.0;
-  private final double IdmNormalDeceleration = 3.5;
-  private final int IdmDelta = 4;
+  double idmDistanceHeadway;
+  double idmTimeHeadway;
+  double idmNormalAcceleration;
+  double idmNormalDeceleration;
+  int idmDelta;
 
-  private final double TrailTimeDelta = 1.25;
-  private final double TrailConflictAreaLength = 5.0;
+  double junctionTimeDeltaFactor;
+  double junctionDefaultConflictAreaLength;
+  double viewRange;
 
-  private final double DriverTimeStep = 1;
-  private final int GiveWayWaitTime = 5;
-  private final int MovePermanentWaitTime = 50;
+  double timeStep;
+  int giveWayThreshold;
+  int movePermanentThreshold;
+
+  public DriverParameters(Configuration configuration) {
+    idmDistanceHeadway = configuration.getIdmDistanceHeadway();
+    idmTimeHeadway = configuration.getIdmTimeHeadway();
+    idmNormalAcceleration = configuration.getMaxAcceleration();
+    idmNormalDeceleration = configuration.getMaxDeceleration();
+    idmDelta = configuration.getIdmDelta();
+    junctionTimeDeltaFactor = configuration.getJunctionSafeTimeDeltaFactor();
+
+    junctionDefaultConflictAreaLength = 5.0;
+
+    viewRange = configuration.getCarViewRange();
+    timeStep = configuration.getSimulationTimeStep();
+    giveWayThreshold = configuration.getGiveWayThreshold();
+    movePermanentThreshold = configuration.getMovePermanentThreshold() >= 0 ? configuration.getMovePermanentThreshold() : Integer.MAX_VALUE;
+  }
+
+  public DriverParameters(){
+    idmDistanceHeadway = 2.0;
+    idmTimeHeadway = 2.0;
+    idmNormalAcceleration = 2.0;
+    idmNormalDeceleration = 3.5;
+    idmDelta = 4;
+
+    junctionTimeDeltaFactor = 1.25;
+    junctionDefaultConflictAreaLength = 5.0;
+    viewRange = 300.0;
+
+    timeStep = 1;
+    giveWayThreshold = 5;
+    movePermanentThreshold = 50;
+  }
 }

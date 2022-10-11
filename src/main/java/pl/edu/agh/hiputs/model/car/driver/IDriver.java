@@ -9,7 +9,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
  and add it to MainDecider you already using in Car
  */
 public interface IDriver {
-  Decision makeDecision(RoadStructureReader roadStructureReader);
+  Decision makeDecision(CarReadable car, RoadStructureReader roadStructureReader);
 
   double getDistanceHeadway();
 }

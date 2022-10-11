@@ -15,10 +15,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
+import pl.edu.agh.hiputs.model.car.driver.Driver;
+import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.PatchId;
@@ -26,21 +29,17 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @Slf4j
 public class ExampleCarProvider {
 
-  private static final Double DEFAULT_CAR_LENGTH = 4.5;
-  private static final Double DEFAULT_MAX_SPEED = 20.0;
-  private static final Integer DEFAULT_HOPS = 4;
-  private static final Double DEFAULT_MAX_DECELERATION = 3.5;
-  private static final Double DEFAULT_TIME_STEP = 1.0;
-  private static final Double DEFAULT_MAX_SPEED_SECURITY_FACTOR = 0.8;
   private final MapFragment mapFragment;
   private Function<JunctionId, List<LaneId>> junctionIdToOutgoingLaneIdList;
   private Function<LaneId, JunctionId> laneIdToOutgoingJunctionId;
   private List<LaneId> localLaneIdList;
+  private Configuration configuration;
 
   public ExampleCarProvider(MapFragment mapFragment) {
     this.mapFragment = mapFragment;
@@ -50,6 +49,31 @@ public class ExampleCarProvider {
         junctionId -> mapFragment.getJunctionReadable(junctionId).streamOutgoingLaneIds().toList();
 
     this.laneIdToOutgoingJunctionId = laneId -> mapFragment.getLaneReadable(laneId).getOutgoingJunctionId();
+    this.configuration = ConfigurationService.getConfiguration();
+  }
+
+  private Double getDefaultCarLength() {
+    return 4.5; //DEFAULT_CAR_LENGTH;
+  }
+
+  private Double getDefaultMaxSpeed() {
+    return configuration.getDefaultMaxSpeed();
+  }
+
+  private Integer getDefaultHops() {
+    return 4; //DEFAULT_HOPS;
+  }
+
+  private Double getMaxDeceleration() {
+    return configuration.getMaxDeceleration();
+  }
+
+  private Double getTimeStep() {
+    return configuration.getSimulationTimeStep();
+  }
+
+  private Double getDefaultMaxSpeedSecurityFactor() {
+    return 0.8; //DEFAULT_MAX_SPEED_SECURITY_FACTOR;
   }
 
   Map<LaneId, PatchId> laneIdToPatchId = new HashMap<>();
@@ -95,22 +119,22 @@ public class ExampleCarProvider {
 
   public Car generateCar(LaneId startLaneId, int hops) {
     double position = ThreadLocalRandom.current().nextDouble(0, mapFragment.getLaneReadable(startLaneId).getLength());
-    return this.generateCar(position, startLaneId, hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
+    return this.generateCar(position, startLaneId, hops, getDefaultCarLength(), getDefaultMaxSpeed());
   }
 
   public Car generateCar(double position) {
-    return this.generateCar(position, DEFAULT_HOPS, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
+    return this.generateCar(position, getDefaultHops(), getDefaultCarLength(), getDefaultMaxSpeed());
   }
   public Car generateCar(double position, LaneId startLane) {
-    return this.generateCar(position, startLane, DEFAULT_HOPS, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
+    return this.generateCar(position, startLane, getDefaultHops(), getDefaultCarLength(), getDefaultMaxSpeed());
   }
 
   public Car generateCar(double position, LaneId startLane, int hops) {
-    return this.generateCar(position, startLane, hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
+    return this.generateCar(position, startLane, hops, getDefaultCarLength(), getDefaultMaxSpeed());
   }
 
   public Car generate(double position, int hops) {
-    return this.generateCar(position, hops, DEFAULT_CAR_LENGTH, DEFAULT_MAX_SPEED);
+    return this.generateCar(position, hops, getDefaultCarLength(), getDefaultMaxSpeed());
   }
 
   public Car generateCar(double position, int hops, double length, double maxSpeed) {
@@ -127,7 +151,8 @@ public class ExampleCarProvider {
         .routeWithLocation(routeWithLocation)
         .laneId(startLaneId)
         .positionOnLane(position)
-        .speed(threadLocalRandom.nextDouble(DEFAULT_MAX_SPEED))
+        .speed(threadLocalRandom.nextDouble(getDefaultMaxSpeed()))
+        .driver(new Driver(new DriverParameters(configuration)))
         .build();
   }
 
@@ -168,7 +193,7 @@ public class ExampleCarProvider {
     double distance;
     if(carAtEntryOptional.isPresent()) {
       CarReadable carAtEntry = carAtEntryOptional.get();
-      double brakingDistance = carAtEntry.getSpeed() * carAtEntry.getSpeed() / DEFAULT_MAX_DECELERATION / 2;
+      double brakingDistance = carAtEntry.getSpeed() * carAtEntry.getSpeed() / getMaxDeceleration() / 2;
       distance = carAtEntry.getPositionOnLane() - carAtEntry.getLength() + brakingDistance;
     }
     else{
@@ -179,10 +204,10 @@ public class ExampleCarProvider {
     double maxSpeed = 0.0;
       //Limit maxSped cause car need to stop in integer number of time steps
     if(distance > 0){
-      maxSpeed = Math.sqrt(distance * 2 * DEFAULT_MAX_DECELERATION) * DEFAULT_MAX_SPEED_SECURITY_FACTOR;
-      double timeToStop = maxSpeed / DEFAULT_MAX_DECELERATION;
-      timeToStop -= timeToStop % DEFAULT_TIME_STEP;
-      maxSpeed = timeToStop * DEFAULT_MAX_DECELERATION * DEFAULT_MAX_SPEED_SECURITY_FACTOR;
+      maxSpeed = Math.sqrt(distance * 2 * getMaxDeceleration()) * getDefaultMaxSpeedSecurityFactor();
+      double timeToStop = maxSpeed / getMaxDeceleration();
+      timeToStop -= timeToStop % getTimeStep();
+      maxSpeed = timeToStop * getMaxDeceleration() * getDefaultMaxSpeedSecurityFactor();
     }
 
     if (currentCar.getSpeed() > maxSpeed){

@@ -30,7 +30,6 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 @RequiredArgsConstructor
 public class Driver implements IDriver {
 
-  private final CarReadable car;
   private final CarProspector prospector;
   private final FunctionalDecider idmDecider;
   private final JunctionDecider junctionDecider;
@@ -38,17 +37,17 @@ public class Driver implements IDriver {
   private final double timeStep;
   private final double maxDeceleration;
 
-  public Driver(CarReadable car, DriverParameters parameters){
-    this.car = car;
-    this.prospector = new CarProspectorImpl();
+  public Driver(DriverParameters parameters){
+    this.prospector = new CarProspectorImpl(parameters.getViewRange());
     IFollowingModel idm = new Idm(parameters);
     this.idmDecider = new IdmDecider(idm);
-    this.junctionDecider = new TrailJunctionDecider(prospector, idm, new DriverParameters());
-    this.timeStep = parameters.getDriverTimeStep();
+    this.junctionDecider = new TrailJunctionDecider(prospector, idm, parameters);
+    this.timeStep = parameters.getTimeStep();
     this.distanceHeadway = getDistanceHeadway();
     this.maxDeceleration = parameters.getIdmNormalDeceleration();
   }
-  public Decision makeDecision(RoadStructureReader roadStructureReader) {
+
+  public Decision makeDecision(CarReadable car, RoadStructureReader roadStructureReader) {
     // make local decision based on read only road structure (watch environment) and save it locally
 
 
@@ -101,10 +100,10 @@ public class Driver implements IDriver {
 
     acceleration = limitAccelerationPreventReversing(acceleration, car, timeStep);
 
-    LaneId currentLaneId = this.car.getLaneId();
+    LaneId currentLaneId = car.getLaneId();
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     int offset = 0;
-    double desiredPosition = this.calculateFuturePosition(acceleration);
+    double desiredPosition = calculateFuturePosition(car, acceleration);
     Optional<LaneId> desiredLaneId;
 
     while (desiredPosition > destinationCandidate.getLength()) {
@@ -157,61 +156,6 @@ public class Driver implements IDriver {
     return decision;
   }
 
-  private CarReadable createVirtualStoppedCarForIdmDecider() {
-    CarReadable virtualCar = new CarReadable() {
-      @Override
-      public double getPositionOnLane() {
-        return 0;
-      }
-
-      @Override
-      public LaneId getLaneId() {
-        return null;
-      }
-
-      @Override
-      public double getLength() {
-        return 0;
-      }
-
-      @Override
-      public double getAcceleration() {
-        return 0;
-      }
-
-      @Override
-      public double getSpeed() {
-        return 0;
-      }
-
-      @Override
-      public double getMaxSpeed() {
-        return 0;
-      }
-
-      @Override
-      public CarId getCarId() {
-        return null;
-      }
-
-      @Override
-      public Optional<CrossroadDecisionProperties> getCrossRoadDecisionProperties() {
-        return Optional.empty();
-      }
-
-      @Override
-      public Optional<LaneId> getRouteOffsetLaneId(int offset) {
-        return Optional.empty();
-      }
-
-      @Override
-      public double getDistanceHeadway() {
-        return 0;
-      }
-    };
-    return virtualCar;
-  }
-
   @Override
   public double getDistanceHeadway() {
     return distanceHeadway;
@@ -231,7 +175,7 @@ public class Driver implements IDriver {
     return Math.max(acceleration, minimalAcceleration);
   }
 
-  private double calculateFuturePosition(double acceleration) {
+  private double calculateFuturePosition(CarReadable car, double acceleration) {
     return car.getPositionOnLane() + car.getSpeed() * timeStep + acceleration * timeStep * timeStep / 2;
   }
 }

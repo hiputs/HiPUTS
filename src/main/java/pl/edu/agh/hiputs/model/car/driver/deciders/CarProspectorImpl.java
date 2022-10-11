@@ -23,13 +23,11 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneSubordination;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Service
 public class CarProspectorImpl implements CarProspector {
 
-  //private ConfigurationService configurationService;
-  int viewRange = 300;//#TODO load it from spring ConfigurationService
+  double viewRange = 300;
 
-  private int getViewRange(){
+  private double getViewRange(){
     return viewRange;
     //return configurationService.getConfiguration().getCarViewRange();
   }
