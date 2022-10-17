@@ -31,7 +31,6 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   private static final double ALLOW_LOAD_IMBALANCE = 1.03;
   private static final double LOW_THRESHOLD =  1.10;
   private final SubscriptionService subscriptionService;
-  private final ConfigurationService configurationService;
   private final SimulationStatisticService simulationStatisticService;
 
   private final LocalLoadStatisticService localLoadStatisticService;
@@ -40,7 +39,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
 
   @PostConstruct
   void init() {
-    if (configurationService.getConfiguration().getBalancingMode() == BalancingMode.SIMPLY) {
+    if (ConfigurationService.getConfiguration().getBalancingMode() == BalancingMode.SIMPLY) {
       subscriptionService.subscribe(this, LoadInfo);
     }
   }
