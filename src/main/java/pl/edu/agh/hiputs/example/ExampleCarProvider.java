@@ -83,6 +83,7 @@ public class ExampleCarProvider {
         .getLaneReadable(laneId)
         .getOutgoingJunctionId();
 
+    this.configuration = ConfigurationService.getConfiguration();
   }
 
   private Double getDefaultCarLength() {
