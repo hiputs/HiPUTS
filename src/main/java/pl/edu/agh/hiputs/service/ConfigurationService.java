@@ -19,7 +19,7 @@ public class ConfigurationService {
   private static final String OSM_EXTENSION = ".osm";
 
   @Getter
-  private Configuration configuration;
+  private static Configuration configuration;
 
   @PostConstruct
   void init() {

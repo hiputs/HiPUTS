@@ -44,7 +44,6 @@ public class MapFragmentExecutor {
 
   private final CarGeneratorService carGeneratorService;
 
-
   private final SimulationStatisticService simulationStatisticService;
 
   public void run(int step) {
@@ -100,7 +99,6 @@ public class MapFragmentExecutor {
       // 11. gen new car
       log.info("Step 11 start");
       carGeneratorService.generateCars(mapFragment);
-
 
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);

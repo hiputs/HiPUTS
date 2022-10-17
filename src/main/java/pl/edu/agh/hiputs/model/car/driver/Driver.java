@@ -9,8 +9,14 @@ import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspectorImpl;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
-import pl.edu.agh.hiputs.model.car.driver.deciders.junction.BasicJunctionDecider;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.Idm;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IdmDecider;
+import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionProperties;
+import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecider;
+import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecision;
+import pl.edu.agh.hiputs.model.car.driver.deciders.junction.TrailJunctionDecider;
+import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
@@ -24,14 +30,24 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 @RequiredArgsConstructor
 public class Driver implements IDriver {
 
-  private final CarReadable car;
-  private final CarProspector prospector = new CarProspectorImpl();
-  private final FunctionalDecider idmDecider = new IdmDecider();
-  private final FunctionalDecider junctionDecider = new BasicJunctionDecider();
+  private final CarProspector prospector;
+  private final FunctionalDecider idmDecider;
+  private final JunctionDecider junctionDecider;
+  private final double distanceHeadway;
+  private final double timeStep;
+  private final double maxDeceleration;
 
-  public Decision makeDecision(RoadStructureReader roadStructureReader) {
-    double timeStep = 1;  //Current only for limitAccelerationPreventReversing() function
+  public Driver(DriverParameters parameters){
+    this.prospector = new CarProspectorImpl(parameters.getViewRange());
+    IFollowingModel idm = new Idm(parameters);
+    this.idmDecider = new IdmDecider(idm);
+    this.junctionDecider = new TrailJunctionDecider(prospector, idm, parameters);
+    this.timeStep = parameters.getTimeStep();
+    this.distanceHeadway = getDistanceHeadway();
+    this.maxDeceleration = parameters.getIdmNormalDeceleration();
+  }
 
+  public Decision makeDecision(CarReadable car, RoadStructureReader roadStructureReader) {
     // make local decision based on read only road structure (watch environment) and save it locally
 
 
@@ -47,20 +63,47 @@ public class Driver implements IDriver {
 
     log.trace("Car: " + car.getCarId() + ", environment: " + environment);
 
+    Optional<CrossroadDecisionProperties> crossroadDecisionProperties = Optional.empty();
     if(environment.getPrecedingCar().isPresent()){
       acceleration = idmDecider.makeDecision(car, environment, roadStructureReader);
     }
     else{
-      acceleration = junctionDecider.makeDecision(car, environment, roadStructureReader);
+      JunctionDecision junctionDecision = junctionDecider.makeDecision(car, environment, roadStructureReader);
+      acceleration = junctionDecision.getAcceleration();
+      crossroadDecisionProperties = junctionDecision.getDecisionProperties();
     }
-    //= this.decider.makeDecision(this, roadStructureReader);
+
+    /*if(limitAccelerationPreventReversing(acceleration, car, timeStep) <= acceleration) {
+      CarEnvironment nextCrossroadEnvironment;
+      if (environment.getPrecedingCar().isEmpty() && environment.getNextCrossroadId().isPresent()) {
+        nextCrossroadEnvironment = prospector.getPrecedingCrossroad(car, roadStructureReader, environment.getNextCrossroadId().get());
+      }
+      else{
+        nextCrossroadEnvironment = prospector.getPrecedingCrossroad(car, roadStructureReader);
+      }
+      if(nextCrossroadEnvironment.getNextCrossroadId().isPresent()) {
+        CarReadable stoppedCar = createVirtualStoppedCarForIdmDecider();
+        nextCrossroadEnvironment = new CarEnvironment(Optional.of(stoppedCar), nextCrossroadEnvironment.getNextCrossroadId(),
+            nextCrossroadEnvironment.getDistance() + distanceHeadway);
+        double nextJunctionAcceleration = idmDecider.makeDecision(car, nextCrossroadEnvironment, roadStructureReader);
+        if(nextJunctionAcceleration < acceleration){
+          acceleration = nextJunctionAcceleration;
+          log.info("Car: " + car.getCarId() + " has reduced acceleration cause crossroad: " + nextCrossroadEnvironment.getNextCrossroadId().get());
+        }
+        /*JunctionDecision nextJunctionDecision = junctionDecider.makeDecision(car, nextCrossroadEnvironment, roadStructureReader);
+        if(nextJunctionDecision.getAcceleration() < acceleration){
+          acceleration = nextJunctionDecision.getAcceleration();
+          log.info("Car: " + car.getCarId() + " has reduced acceleration cause crossroad: " + nextCrossroadEnvironment.getNextCrossroadId().get());
+        }*/
+      //}*/
+    //}
 
     acceleration = limitAccelerationPreventReversing(acceleration, car, timeStep);
 
-    LaneId currentLaneId = this.car.getLaneId();
+    LaneId currentLaneId = car.getLaneId();
     LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
     int offset = 0;
-    double desiredPosition = this.calculateFuturePosition(acceleration);
+    double desiredPosition = calculateFuturePosition(car, acceleration);
     Optional<LaneId> desiredLaneId;
 
     while (desiredPosition > destinationCandidate.getLength()) {
@@ -81,17 +124,41 @@ public class Driver implements IDriver {
       }
     }
 
+    double speed = car.getSpeed() + acceleration * timeStep;
+
+    if(offset > 0 && crossroadDecisionProperties.isPresent()){
+      if(crossroadDecisionProperties.get().getMovePermanentLaneId().isPresent()){
+        CarEnvironment precedingCarInfo = prospector.getPrecedingCar(car, roadStructureReader);
+        if(precedingCarInfo.getPrecedingCar().isPresent() && precedingCarInfo.getDistance() < (speed * speed / maxDeceleration / 2)){
+          CarReadable precedingCar = precedingCarInfo.getPrecedingCar().get();
+          speed = Math.min(speed, Math.max(precedingCar.getSpeed() - maxDeceleration, 0) * 0.8);
+          desiredPosition = Math.min(desiredPosition,
+              precedingCar.getPositionOnLane() - Math.min(0.1, precedingCar.getPositionOnLane() * 0.1));
+          log.trace("Car: " + car.getCarId() + " finish move permanent and limit speed to car: " + precedingCar.getCarId() + ", speed: " + precedingCar.getSpeed() + ", position: " + precedingCar.getPositionOnLane());
+        }
+        else{
+          log.trace("Car: " + car.getCarId() + " finish move permanent without preceding car");
+        }
+      }
+    }
+
     final Decision decision = Decision.builder()
         .acceleration(acceleration)
-        .speed(car.getSpeed() + acceleration)
+        .speed(speed)
         .laneId(currentLaneId)
         .positionOnLane(desiredPosition)
         .offsetToMoveOnRoute(offset)
+        .crossroadDecisionProperties(crossroadDecisionProperties)
         .build();
 
     log.debug("Car: " + car.getCarId() + ", decision: " + decision);
 
     return decision;
+  }
+
+  @Override
+  public double getDistanceHeadway() {
+    return distanceHeadway;
   }
 
   /**
@@ -108,7 +175,7 @@ public class Driver implements IDriver {
     return Math.max(acceleration, minimalAcceleration);
   }
 
-  private double calculateFuturePosition(double acceleration) {
-    return car.getPositionOnLane() + car.getSpeed() + acceleration / 2;
+  private double calculateFuturePosition(CarReadable car, double acceleration) {
+    return car.getPositionOnLane() + car.getSpeed() * timeStep + acceleration * timeStep * timeStep / 2;
   }
 }

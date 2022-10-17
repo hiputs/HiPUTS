@@ -4,10 +4,8 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
-import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspectorImpl;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.Idm;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -18,11 +16,14 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 @Slf4j
 public class BasicJunctionDecider implements FunctionalDecider {
 
-  private final CarProspector prospector = new CarProspectorImpl();
+  private final CarProspector prospector;
 
-  private final IFollowingModel followingModel = new Idm();
+  private final IFollowingModel followingModel;
 
-  public BasicJunctionDecider() {}
+  public BasicJunctionDecider(CarProspector prospector, IFollowingModel followingModel) {
+    this.prospector = prospector;
+    this.followingModel = followingModel;
+  }
 
   private final double lineHeight = 6.0;
   private final double securityDelay = 2;
@@ -72,9 +73,10 @@ public class BasicJunctionDecider implements FunctionalDecider {
     LaneId incomingLaneId = environment.getIncomingLaneId().get();
     LaneId outgoingLaneId = prospector.getNextOutgoingLane(car, nextJunctionId, roadStructureReader);
 
-    List<LaneId> conflictLanesId = prospector.getConflictLaneIds(lanesOnJunction, incomingLaneId, outgoingLaneId);
+    List<LaneId> conflictLanesId = prospector.getConflictLaneIds(lanesOnJunction, incomingLaneId, outgoingLaneId,
+        car.getCarId(), roadStructureReader);
 
-    List<CarBasicDeciderData> conflictCars = prospector.getConflictCars(conflictLanesId, roadStructureReader);
+    List<CarBasicDeciderData> conflictCars = prospector.getFirstCarsFromLanes(conflictLanesId, roadStructureReader);
     return getFirstArriveCarTime(conflictCars);
   }
 
