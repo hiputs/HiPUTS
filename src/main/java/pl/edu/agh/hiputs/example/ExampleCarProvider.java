@@ -52,33 +52,6 @@ public class ExampleCarProvider {
     this.configuration = ConfigurationService.getConfiguration();
   }
 
-  private Double getDefaultCarLength() {
-    return 4.5; //DEFAULT_CAR_LENGTH;
-  }
-
-  private Double getDefaultMaxSpeed() {
-    return configuration.getDefaultMaxSpeed();
-  }
-
-  private Integer getDefaultHops() {
-    return 4; //DEFAULT_HOPS;
-  }
-
-  private Double getMaxDeceleration() {
-    return configuration.getMaxDeceleration();
-  }
-
-  private Double getTimeStep() {
-    return configuration.getSimulationTimeStep();
-  }
-
-  private Double getDefaultMaxSpeedSecurityFactor() {
-    return 0.8; //DEFAULT_MAX_SPEED_SECURITY_FACTOR;
-  }
-
-  Map<LaneId, PatchId> laneIdToPatchId = new HashMap<>();
-  Map<JunctionId, PatchId> junctionIdPatchId = new HashMap<>();
-
   public ExampleCarProvider(MapFragment mapFragment, MapRepository mapRepository) {
     this.mapFragment = mapFragment;
     this.localLaneIdList = mapFragment.getLocalLaneIds().stream().toList();
@@ -107,10 +80,37 @@ public class ExampleCarProvider {
         .toList();
 
     this.laneIdToOutgoingJunctionId = laneId -> mapRepository.getPatch(laneIdToPatchId.get(laneId))
-          .getLaneReadable(laneId)
-          .getOutgoingJunctionId();
+        .getLaneReadable(laneId)
+        .getOutgoingJunctionId();
 
   }
+
+  private Double getDefaultCarLength() {
+    return 4.5; //DEFAULT_CAR_LENGTH;
+  }
+
+  private Double getDefaultMaxSpeed() {
+    return configuration.getDefaultMaxSpeed();
+  }
+
+  private Integer getDefaultHops() {
+    return 4; //DEFAULT_HOPS;
+  }
+
+  private Double getMaxDeceleration() {
+    return configuration.getMaxDeceleration();
+  }
+
+  private Double getTimeStep() {
+    return configuration.getSimulationTimeStep();
+  }
+
+  private Double getDefaultMaxSpeedSecurityFactor() {
+    return 0.8; //DEFAULT_MAX_SPEED_SECURITY_FACTOR;
+  }
+
+  Map<LaneId, PatchId> laneIdToPatchId = new HashMap<>();
+  Map<JunctionId, PatchId> junctionIdPatchId = new HashMap<>();
 
   public Car generateCar(int hops) {
     LaneId startLaneId = getRandomStartLaneId();
