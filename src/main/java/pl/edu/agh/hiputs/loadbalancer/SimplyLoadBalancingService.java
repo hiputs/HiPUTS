@@ -80,7 +80,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
         return loadBalancingDecision;
       }
       boolean shouldBalancing = myCost > candidate.getRight() * ALLOW_LOAD_IMBALANCE;
-      boolean shouldExtremeBalancing = false; //myCost > candidate.getRight() * LOW_THRESHOLD;
+      boolean shouldExtremeBalancing = myCost > candidate.getRight() * LOW_THRESHOLD;
 
       log.info("should {}, mycost {} candidate cost {}", shouldBalancing, myCost, candidate.getRight());
 
