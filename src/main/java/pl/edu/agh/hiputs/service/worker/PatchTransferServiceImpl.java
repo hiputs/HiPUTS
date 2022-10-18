@@ -139,8 +139,8 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     while (!patchMigrationNotification.isEmpty()) {
       PatchTransferNotificationMessage message = patchMigrationNotification.remove();
 
-      if (message.getReceiverId().equals(transferDataHandler.getMe().getId()) || message.getSenderId()
-          .equals(transferDataHandler.getMe().getId())) {
+      if (message.getReceiverId().equals(transferDataHandler.getMe().getId()) ||
+          message.getSenderId().equals(transferDataHandler.getMe().getId())) {
         continue;
       }
 
