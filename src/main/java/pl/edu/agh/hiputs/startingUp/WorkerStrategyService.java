@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -156,6 +157,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
       List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
           .mapToObj(x -> exampleCarProvider.generateCar(laneId, 20))
+          .filter(Objects::nonNull)
           .sorted(Comparator.comparing(Car::getPositionOnLane))
           .collect(Collectors.toList());
       Collections.reverse(generatedCars);

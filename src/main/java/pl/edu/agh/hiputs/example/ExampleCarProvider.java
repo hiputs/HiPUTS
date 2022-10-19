@@ -118,8 +118,13 @@ public class ExampleCarProvider {
   }
 
   public Car generateCar(LaneId startLaneId, int hops) {
-    double position = ThreadLocalRandom.current().nextDouble(0, mapFragment.getLaneReadable(startLaneId).getLength());
-    return this.generateCar(position, startLaneId, hops, getDefaultCarLength(), getDefaultMaxSpeed());
+    try {
+      double position = ThreadLocalRandom.current().nextDouble(0, mapFragment.getLaneReadable(startLaneId).getLength());
+      return this.generateCar(position, startLaneId, hops, getDefaultCarLength(), getDefaultMaxSpeed());
+    } catch (IllegalArgumentException e){
+      log.debug("Error generating car");
+      return null;
+    }
   }
 
   public Car generateCar(double position) {
