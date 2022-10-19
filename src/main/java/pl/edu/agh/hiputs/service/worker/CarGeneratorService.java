@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.service.worker;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -70,10 +71,15 @@ public class CarGeneratorService implements Subscriber {
             hops = 15;
           }
           Car car = carProvider.generateCar(lane.getLaneId(), hops);
+
+          if(car == null){
+            return null;
+          }
           carProvider.limitSpeedPreventCollisionOnStart(car, lane);
           lane.addNewCar(car);
           return car;
         })
+        .filter(Objects::nonNull)
         .toList();
 
   }
