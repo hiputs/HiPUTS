@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.PostConstruct;
@@ -63,8 +64,16 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
 
     List<ImmutablePair<String, String>> patchIdWithMapFragmentId = patch.getNeighboringPatches()
         .stream()
-        .map(id -> new ImmutablePair<>(id.getValue(),
-            transferDataHandler.getMapFragmentIdByPatchId(id).getId()))
+        .map(id -> {
+          try{
+            return new ImmutablePair<>(id.getValue(),
+                transferDataHandler.getMapFragmentIdByPatchId(id).getId());
+          } catch (NullPointerException e){
+            log.error("Not found mapFragmentId for {}", id.getValue());
+            return  new ImmutablePair<>(id.getValue(),
+                transferDataHandler.getMapFragmentIdByPatchId(id).getId());
+          }
+        } )
         .toList();
 
     List<ConnectionDto> neighbourConnectionDtos = patchIdWithMapFragmentId.stream()

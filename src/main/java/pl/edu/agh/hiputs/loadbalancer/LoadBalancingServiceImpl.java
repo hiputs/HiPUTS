@@ -40,6 +40,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 @RequiredArgsConstructor
 public class LoadBalancingServiceImpl implements LoadBalancingService, Subscriber {
 
+  private static final int MAX_PATCH_EXCHANGE = 15;
   private final PatchTransferService patchTransferService;
   private final ConfigurationService configurationService;
   private final SimplyLoadBalancingService simplyLoadBalancingService;
@@ -107,7 +108,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
               transferDataHandler));
 
       transferCars += patchInfo.getLeft().getCountOfVehicle();
-    } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9);
+    } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9 && serializedPatchTransfers.size() < MAX_PATCH_EXCHANGE);
 
     patchTransferService.sendPatchMessage(recipient, serializedPatchTransfers);
   }
@@ -121,13 +122,9 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
         log.error("Error util send synchronization message");
       }
     });
-    // log.info("Received {} / {}", synchronizationLoadBalancingList.size(), neighboursToNotify.size());
     while (synchronizationLoadBalancingList.size() < neighboursToNotify.size()) {
       try {
-
-        this.wait();
-        // log.info("Received {} / {}", synchronizationLoadBalancingList.size(), neighboursToNotify.size());
-
+        this.wait(500);
       } catch (InterruptedException e) {
         log.error("error until wait for loadbalancing synchronization");
       }

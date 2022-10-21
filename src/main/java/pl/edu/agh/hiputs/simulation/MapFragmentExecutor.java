@@ -81,7 +81,9 @@ public class MapFragmentExecutor {
       // 8. load balancing
       log.info("Step 8 start");
       loadBalancingService.startLoadBalancing(mapFragment);
+      log.info("Step 8-1 start");
       patchTransferService.handleReceivedPatch(mapFragment);
+      log.info("Step 8-2 start");
       patchTransferService.handleNotificationPatch(mapFragment);
       monitorLocalService.markPointAsFinish(SimulationPoint.LOAD_BALANCING);
 
