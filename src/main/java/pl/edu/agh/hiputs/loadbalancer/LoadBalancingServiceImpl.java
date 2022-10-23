@@ -90,7 +90,6 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
     long transferCars = 0;
     List<SerializedPatchTransfer> serializedPatchTransfers = new ArrayList<>();
-    transferDataHandler.printStaistic();
 
     do {
       ImmutablePair<PatchBalancingInfo, Double> patchInfo =

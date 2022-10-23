@@ -174,8 +174,8 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   }
 
   private void handlePatchTransferNotificationMessage(PatchTransferNotificationMessage message) {
-    log.info("The patch id: " + message.getTransferPatchId() + " change owner from " + message.getSenderId() + " to "
-        + message.getReceiverId());
+    // log.info("The patch id: " + message.getTransferPatchId() + " change owner from " + message.getSenderId() + " to "
+    //     + message.getReceiverId());
     patchMigrationNotification.add(message);
   }
 }
