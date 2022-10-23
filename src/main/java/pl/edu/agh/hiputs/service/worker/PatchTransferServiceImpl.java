@@ -64,6 +64,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
 
     List<ImmutablePair<String, String>> patchIdWithMapFragmentId = patch.getNeighboringPatches()
         .stream()
+        .filter(id -> !patchId.equals(id))
         .map(id -> {
           try{
             return new ImmutablePair<>(id.getValue(),

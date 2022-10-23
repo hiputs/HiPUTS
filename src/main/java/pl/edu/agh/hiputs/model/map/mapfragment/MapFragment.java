@@ -244,7 +244,11 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         PatchConnectionSearchUtil.findShadowPatchesNeighbouringOnlyWithPatch(patch.getPatchId(), this);
 
     log.info("shadow -> deleted patches {} -> {}", shadowPatchesToRemove.size(),
-        shadowPatchesToRemove.stream().map(PatchId::getValue).collect(Collectors.joining(", ")));
+        shadowPatchesToRemove
+            .stream()
+            .map(PatchId::getValue)
+            .collect(Collectors.joining(", ")));
+
     shadowPatchesToRemove.forEach(this::removePatch);
 
     mapFragmentIdToShadowPatchIds.forEach((key, value) -> shadowPatchesToRemove.forEach(value::remove));
@@ -253,6 +257,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   public void migratePatchToMe(PatchId patchId, MapFragmentId neighbourId, MapRepository mapRepository,
       List<ImmutablePair<PatchId, MapFragmentId>> neighbourPatchIdsWithMapFragmentId) {
+    log.info("I got patchId {}  from {}", patchId.getValue(), neighbourId.getId());
     Patch patch = knownPatches.get(patchId);
 
     if (patch == null) {
@@ -302,6 +307,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         neighbourPatchIdsWithMapFragmentId
             .stream()
             .filter(p -> !p.getRight().equals(mapFragmentId))
+            .filter(p -> !localPatchIds.contains(p.getLeft()))
             .toList();
 
     shadowPatchesToAdd.forEach(p -> {
