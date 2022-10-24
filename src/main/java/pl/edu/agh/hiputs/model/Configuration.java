@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.partition.service.HexagonsPartitioner.BorderEdgesHandlingStrategy;
 
 @Getter
@@ -103,6 +104,11 @@ public class Configuration {
    * Min new cars create after every step
    */
   private int minCars;
+
+  /**
+   * Unique worker id
+   */
+  private MapFragmentId mapFragmentId;
 
   public static Configuration getDefault() {
     return Configuration.builder()

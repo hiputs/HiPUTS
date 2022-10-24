@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import pl.edu.agh.hiputs.loadbalancer.TicketService;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -62,13 +63,13 @@ public interface TransferDataHandler {
    */
   PatchEditor getShadowPatchEditableCopy(PatchId patchId);
 
-  void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId);
+  void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId, TicketService ticketService);
 
-  void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository, List<ImmutablePair<PatchId, MapFragmentId>> patchIdWithMapFragmentId);
+  void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository, List<ImmutablePair<PatchId, MapFragmentId>> patchIdWithMapFragmentId, TicketService ticketService);
 
   MapFragmentId getMapFragmentIdByPatchId(PatchId patchId);
 
-  void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId source, MapFragmentId destination);
+  void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId source, MapFragmentId destination, TicketService ticketService);
 
   Patch getPatchById(PatchId patchId);
 

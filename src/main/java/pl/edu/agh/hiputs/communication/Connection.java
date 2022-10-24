@@ -39,7 +39,7 @@ public class Connection {
     log.warn("Error connection with neighbour {}", message.getId());
   }
 
-  public void send(Message message) throws IOException {
+  public synchronized void send(Message message) throws IOException {
     if (Objects.isNull(output)) {
       log.info("Connection with worker " + id + " not exist");
       return;

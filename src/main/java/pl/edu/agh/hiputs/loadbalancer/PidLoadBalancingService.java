@@ -38,6 +38,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
   private final LocalLoadStatisticService localLoadStatisticService;
 
   private final SimplyLoadBalancingService simplyLoadBalancingService;
+  private final TicketService ticketService;
 
   private final Map<MapFragmentId, LoadBalancingHistoryInfo> loadRepository = new HashMap<>();
 
@@ -130,13 +131,16 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
   }
 
   private ImmutablePair<MapFragmentId, Double> selectNeighbourToBalancing(TransferDataHandler transferDataHandler) {
+    ticketService.setActualStep(step);
+    MapFragmentId candidate = ticketService.getActualTalker();
 
-    return transferDataHandler.getNeighbors()
-        .stream()
-        .filter(this::hasActualCostInfo)
-        .map(id -> new ImmutablePair<MapFragmentId, Double>(id, calculateCost(id)))
-        .min(Comparator.comparingDouble(ImmutablePair::getRight))
-        .orElse(null);
+    if (candidate != null && hasActualCostInfo(candidate) && !transferDataHandler.getBorderPatches()
+        .get(candidate)
+        .isEmpty()) {
+      return new ImmutablePair<MapFragmentId, Double>(candidate, calculateCost(candidate));
+    }
+
+    return null;
   }
 
   private boolean hasActualCostInfo(MapFragmentId mapFragmentId) {

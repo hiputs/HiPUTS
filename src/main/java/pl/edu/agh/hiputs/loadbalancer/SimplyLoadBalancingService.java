@@ -29,10 +29,12 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
 
   private static final int MAX_AGE_DIFF = 10;
   private static final double ALLOW_LOAD_IMBALANCE = 1.03;
-  private static final double LOW_THRESHOLD =  1.10;
+  private static final double LOW_THRESHOLD = 1.10;
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
   private final SimulationStatisticService simulationStatisticService;
+
+  private final TicketService ticketService;
 
   private final LocalLoadStatisticService localLoadStatisticService;
   private final Map<MapFragmentId, LoadBalancingHistoryInfo> loadRepository = new HashMap<>();
@@ -64,10 +66,11 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
     LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
     double myCost = MapFragmentCostCalculatorUtil.calculateCost(info);
 
-    simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, age, info.getWaitingTime());
+    simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, age,
+        info.getWaitingTime());
     age++;
 
-    if(transferDataHandler.getNeighbors().isEmpty() || age < 3){
+    if (transferDataHandler.getNeighbors().isEmpty() || age < 3) {
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
     }
@@ -75,7 +78,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
     try {
       ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
 
-      if(candidate == null){
+      if (candidate == null) {
         loadBalancingDecision.setLoadBalancingRecommended(false);
         return loadBalancingDecision;
       }
@@ -92,8 +95,9 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
       }
 
       loadBalancingDecision.setSelectedNeighbour(candidate.getLeft());
-      loadBalancingDecision.setCarImbalanceRate((info.getCarCost() - loadRepository.get(candidate.getLeft()).getCarCost()) /2);
-    }catch(Exception e){
+      loadBalancingDecision.setCarImbalanceRate(
+          (info.getCarCost() - loadRepository.get(candidate.getLeft()).getCarCost()) / 2);
+    } catch (Exception e) {
       log.error("Could not make decision", e);
       loadBalancingDecision.setLoadBalancingRecommended(false);
     }
@@ -101,14 +105,16 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   }
 
   private ImmutablePair<MapFragmentId, Double> selectNeighbourToBalancing(TransferDataHandler transferDataHandler) {
+    ticketService.setActualStep(age);
+    MapFragmentId candidate = ticketService.getActualTalker();
 
-    return transferDataHandler.getNeighbors()
-        .parallelStream()
-        .filter(this::hasActualCostInfo)
-        .filter(id -> !transferDataHandler.getBorderPatches().get(id).isEmpty())
-        .map(id -> new ImmutablePair<MapFragmentId, Double>(id, calculateCost(id)))
-        .min(Comparator.comparingDouble(ImmutablePair::getRight))
-        .orElse(null);
+    if (candidate != null &&
+        hasActualCostInfo(candidate) &&
+        !transferDataHandler.getBorderPatches().get(candidate).isEmpty()) {
+      return new ImmutablePair<MapFragmentId, Double>(candidate, calculateCost(candidate));
+    }
+
+    return null;
   }
 
   private double calculateCost(MapFragmentId id) {

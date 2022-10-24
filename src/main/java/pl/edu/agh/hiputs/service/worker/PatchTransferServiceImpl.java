@@ -24,6 +24,7 @@ import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.loadbalancer.TicketService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
@@ -44,6 +45,8 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   private final MessageSenderService messageSenderService;
   private final CarSynchronizationService carSynchronizedService;
   private final TaskExecutorService taskExecutorService;
+
+  private final TicketService ticketService;
 
   private final Queue<PatchTransferMessage> receivedPatch = new LinkedBlockingQueue<>();
   private final Queue<PatchTransferNotificationMessage> patchMigrationNotification = new LinkedBlockingQueue<>();
@@ -85,7 +88,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         .map(mapFragmentId -> messageSenderService.getConnectionDtoMap().get(mapFragmentId))
         .toList();
 
-    transferDataHandler.migratePatchToNeighbour(patch, receiver);
+    transferDataHandler.migratePatchToNeighbour(patch, receiver, ticketService);
 
     PatchTransferNotificationMessage patchTransferNotificationMessage = PatchTransferNotificationMessage.builder()
         .transferPatchId(patch.getPatchId().getValue())
@@ -137,7 +140,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         .toList();
 
     transferDataHandler.migratePatchToMe(new PatchId(message.getPatchId()),
-        new MapFragmentId(message.getMapFragmentId()), mapRepository, pairs);
+        new MapFragmentId(message.getMapFragmentId()), mapRepository, pairs, ticketService);
 
     InjectIncomingCarsTask task = new InjectIncomingCarsTask(message.getCars(), transferDataHandler);
 
@@ -155,7 +158,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
       }
 
       transferDataHandler.migratePatchBetweenNeighbour(new PatchId(message.getTransferPatchId()),
-          new MapFragmentId(message.getReceiverId()), new MapFragmentId(message.getSenderId()));
+          new MapFragmentId(message.getReceiverId()), new MapFragmentId(message.getSenderId()), ticketService);
     }
   }
 
