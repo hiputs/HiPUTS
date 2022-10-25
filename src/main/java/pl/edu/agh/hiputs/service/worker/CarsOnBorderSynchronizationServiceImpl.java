@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +40,10 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   private final TaskExecutorService taskExecutorService;
 
   private final MessageSenderService messageSenderService;
-  private final List<BorderSynchronizationMessage> incomingMessages = new LinkedList<>();
-  private final List<BorderSynchronizationMessage> futureIncomingMessages = new LinkedList<>();
+  private final List<BorderSynchronizationMessage> incomingMessages = Collections.synchronizedList(new LinkedList<>());
+  private final List<BorderSynchronizationMessage> futureIncomingMessages = Collections.synchronizedList(new LinkedList<>());
+
+  private int simulationStepNo = 0;
 
   @PostConstruct
   void init() {
@@ -81,6 +84,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
 
     incomingMessages.clear();
     incomingMessages.addAll(futureIncomingMessages);
+    simulationStepNo++;
     futureIncomingMessages.clear();
   }
 
@@ -111,10 +115,10 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
       }
 
       BorderSynchronizationMessage borderSynchronizationMessage = (BorderSynchronizationMessage) message;
-      if (incomingMessages.contains(borderSynchronizationMessage)) {
-        futureIncomingMessages.add(borderSynchronizationMessage);
-      } else {
+      if (borderSynchronizationMessage.getSimulationStepNo() == simulationStepNo) {
         incomingMessages.add(borderSynchronizationMessage);
+      } else {
+        futureIncomingMessages.add(borderSynchronizationMessage);
       }
 
       notifyAll();
@@ -137,7 +141,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     Map<String, Set<SerializedLane>> patchContent = patches.stream()
         .collect(Collectors.toMap(e -> e.getPatchId().getValue(),
             e -> e.streamLanesEditable().map(SerializedLane::new).collect(Collectors.toSet())));
-    return new BorderSynchronizationMessage(patchContent);
+    return new BorderSynchronizationMessage(simulationStepNo, patchContent);
   }
 
 }

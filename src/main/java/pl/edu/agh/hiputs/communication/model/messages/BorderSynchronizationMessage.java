@@ -12,6 +12,11 @@ import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 public class BorderSynchronizationMessage implements Message {
 
   /**
+   * Simulation step identifier
+   */
+  int simulationStepNo;
+
+  /**
    * Serialized lanes grouped by serialized PatchId where these lanes belong to
    */
   Map<String, Set<SerializedLane>> patchContent;
