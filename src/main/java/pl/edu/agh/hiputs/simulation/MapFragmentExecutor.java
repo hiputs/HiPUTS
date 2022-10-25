@@ -1,26 +1,21 @@
 package pl.edu.agh.hiputs.simulation;
 
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
-import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingService;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.CarGeneratorService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
-import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
@@ -80,8 +75,9 @@ public class MapFragmentExecutor {
 
       // 8. load balancing
       log.info("Step 8 start");
-      loadBalancingService.startLoadBalancing(mapFragment);
+      MapFragmentId selectedCandidate = loadBalancingService.startLoadBalancing(mapFragment);
       log.info("Step 8-1 start");
+      patchTransferService.retransmitNotification(selectedCandidate);
       patchTransferService.handleReceivedPatch(mapFragment);
       log.info("Step 8-2 start");
       patchTransferService.handleNotificationPatch(mapFragment);

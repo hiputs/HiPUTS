@@ -1,17 +1,13 @@
 package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
@@ -160,6 +156,21 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
       transferDataHandler.migratePatchBetweenNeighbour(new PatchId(message.getTransferPatchId()),
           new MapFragmentId(message.getReceiverId()), new MapFragmentId(message.getSenderId()), ticketService);
     }
+  }
+
+  @Override
+  public void retransmitNotification(MapFragmentId selectedCandidate) {
+    if(selectedCandidate == null) {
+      return;
+    }
+
+    patchMigrationNotification.forEach(s -> {
+      try {
+        messageSenderService.send(selectedCandidate, s);
+      } catch (IOException e) {
+        log.error("Retransmit error", e);
+      }
+    });
   }
 
   @Override
