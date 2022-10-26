@@ -83,4 +83,6 @@ public interface TransferDataHandler {
   PatchId getPatchIdByLaneId(LaneId laneId);
 
   void printStaistic();
+
+  int getLocalPatchesSize();
 }

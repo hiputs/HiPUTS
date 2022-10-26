@@ -70,7 +70,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
         info.getWaitingTime());
     age++;
 
-    if (transferDataHandler.getNeighbors().isEmpty() || age < 3) {
+    if (transferDataHandler.getNeighbors().isEmpty() || age < 3 || transferDataHandler.getLocalPatchesSize() < 5) {
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
     }

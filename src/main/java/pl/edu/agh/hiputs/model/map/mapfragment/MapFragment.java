@@ -469,6 +469,11 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         mapFragmentIdToBorderPatchIds.values().stream().map(Set::size).reduce(0, Integer::sum));
   }
 
+  @Override
+  public int getLocalPatchesSize() {
+    return localPatchIds.size();
+  }
+
   public void printFullStatistic() {
     String localPatch = localPatchIds.stream()
         .map(PatchId::getValue)
