@@ -47,7 +47,7 @@ public class HexagonsPartitioner implements PatchPartitioner {
   public Graph<PatchData, PatchConnectionData> partition(Graph<JunctionData, WayData> graph) {
     colorGraph(graph);
     Graph<PatchData, PatchConnectionData> patchesGraph = new PatchesGraphExtractor().createFrom(graph);
-    log.info("Partitioning into patches finished");
+    //log.info("Partitioning into patches finished");
     return patchesGraph;
   }
 

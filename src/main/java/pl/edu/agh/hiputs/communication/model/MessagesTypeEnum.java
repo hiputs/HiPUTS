@@ -65,6 +65,16 @@ public enum MessagesTypeEnum {
   LoadSynchronizationMessage,
 
   /**
+   * Free ticket list message
+   */
+  AvailableTicketMessage,
+
+  /**
+   * select ticket message
+   */
+  SelectTicketMessage,
+
+  /**
    * Info from service to shut down after simulation
    */
   ShutDownMessage

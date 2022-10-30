@@ -40,6 +40,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 @RequiredArgsConstructor
 public class LoadBalancingServiceImpl implements LoadBalancingService, Subscriber {
 
+  private static final int MAX_PATCH_EXCHANGE = 40;
   private final PatchTransferService patchTransferService;
   private final ConfigurationService configurationService;
   private final SimplyLoadBalancingService simplyLoadBalancingService;
@@ -53,21 +54,24 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   private final List<Message> synchronizationLoadBalancingList = new ArrayList<>();
   private final NoneLoadBalancingStrategy noneLoadBalancingService;
 
+  private MapFragmentId lastLoadBalancingCandidate = null; //We must repete their neighbourTransferMessage
+
   @PostConstruct
   void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.LoadSynchronizationMessage);
   }
 
   @Override
-  public void startLoadBalancing(TransferDataHandler transferDataHandler) {
+  public MapFragmentId startLoadBalancing(TransferDataHandler transferDataHandler) {
 
     if (configurationService.getConfiguration().getWorkerCount() == 1) {
-      return;
+      return null;
     }
 
     List<MapFragmentId> neighboursToNotify = List.copyOf(transferDataHandler.getNeighbors());
     balance(transferDataHandler);
     synchronizedWithNeighbour(neighboursToNotify);
+    return lastLoadBalancingCandidate;
   }
 
   private void balance(TransferDataHandler transferDataHandler) {
@@ -76,11 +80,13 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
     if (!loadBalancingDecision.isLoadBalancingRecommended()) {
       simulationStatisticService.saveLoadBalancingDecision(false, null, null, 0f, loadBalancingDecision.getAge());
+      lastLoadBalancingCandidate = null;
       return;
     }
 
     log.debug("Start loadbalancing worker id: {}", transferDataHandler.getMe());
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
+    lastLoadBalancingCandidate = recipient;
     long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
 
     if (targetBalanceCars == 0) {
@@ -89,7 +95,6 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
     long transferCars = 0;
     List<SerializedPatchTransfer> serializedPatchTransfers = new ArrayList<>();
-    transferDataHandler.printStaistic();
 
     do {
       ImmutablePair<PatchBalancingInfo, Double> patchInfo =
@@ -107,7 +112,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
               transferDataHandler));
 
       transferCars += patchInfo.getLeft().getCountOfVehicle();
-    } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9);
+    } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9 && serializedPatchTransfers.size() < MAX_PATCH_EXCHANGE);
 
     patchTransferService.sendPatchMessage(recipient, serializedPatchTransfers);
   }
@@ -121,13 +126,9 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
         log.error("Error util send synchronization message");
       }
     });
-    // log.info("Received {} / {}", synchronizationLoadBalancingList.size(), neighboursToNotify.size());
     while (synchronizationLoadBalancingList.size() < neighboursToNotify.size()) {
       try {
-
-        this.wait();
-        // log.info("Received {} / {}", synchronizationLoadBalancingList.size(), neighboursToNotify.size());
-
+        this.wait(500);
       } catch (InterruptedException e) {
         log.error("error until wait for loadbalancing synchronization");
       }

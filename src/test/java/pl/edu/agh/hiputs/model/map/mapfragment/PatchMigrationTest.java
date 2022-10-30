@@ -44,7 +44,7 @@ class PatchMigrationTest {
     MapFragmentId workerB = new MapFragmentId("B");
     MapFragmentId workerC = new MapFragmentId("C");
 
-    mapFragment.migratePatchBetweenNeighbour(new PatchId("P4"), workerC, workerB);
+    // mapFragment.migratePatchBetweenNeighbour(new PatchId("P4"), workerC, workerB);
 
     assertEquals(workerB, mapFragment.getMapFragmentIdByPatchId(new PatchId("P4")));
   }
@@ -56,7 +56,7 @@ class PatchMigrationTest {
     MapFragmentId workerB = new MapFragmentId("B");
     MapFragmentId workerC = new MapFragmentId("C");
 
-    mapFragment.migratePatchBetweenNeighbour(new PatchId("P4"), workerB, workerC);
+    // mapFragment.migratePatchBetweenNeighbour(new PatchId("P4"), workerB, workerC);
 
     assertEquals(workerC, mapFragment.getMapFragmentIdByPatchId(new PatchId("P4")));
   }
@@ -73,7 +73,7 @@ class PatchMigrationTest {
 
     when(mapRepository.getPatch(any())).thenReturn(mapFragment.getPatchById(new PatchId("P2")));
 
-    mapFragment.migratePatchToMe(new PatchId("P4"), new MapFragmentId("B"), mapRepository, migratedPatchNeighbours);
+    // mapFragment.migratePatchToMe(new PatchId("P4"), new MapFragmentId("B"), mapRepository, migratedPatchNeighbours);
 
     verify(mapRepository, times(2)).getPatch(any());
     assertEquals(2, mapFragment.getLocalJunctionIds().size());
@@ -98,7 +98,7 @@ class PatchMigrationTest {
     when(mapRepository.getPatch(any()))
         .thenReturn(patch4);
 
-    mapFragment.migratePatchToMe(new PatchId("P2"), new MapFragmentId("C"), mapRepository, migratedPatchNeighbours);
+    // mapFragment.migratePatchToMe(new PatchId("P2"), new MapFragmentId("C"), mapRepository, migratedPatchNeighbours);
 
     verify(mapRepository, times(1)).getPatch(eq(new PatchId("P4")));
     assertEquals(2, mapFragment.getLocalJunctionIds().size());

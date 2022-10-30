@@ -82,6 +82,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   public void executeStrategy() {
     try {
       configuration = configurationService.getConfiguration();
+      configuration.setMapFragmentId(mapFragmentId);
       messageSenderService.sendServerMessage(
           new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 

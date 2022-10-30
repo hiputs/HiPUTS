@@ -1,11 +1,13 @@
 package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +41,10 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   private final TaskExecutorService taskExecutorService;
 
   private final MessageSenderService messageSenderService;
-  private final List<BorderSynchronizationMessage> incomingMessages = new LinkedList<>();
-  private final List<BorderSynchronizationMessage> futureIncomingMessages = new LinkedList<>();
+  private final List<BorderSynchronizationMessage> incomingMessages = Collections.synchronizedList(new LinkedList<>());
+  private final List<BorderSynchronizationMessage> futureIncomingMessages = Collections.synchronizedList(new LinkedList<>());
+
+  private AtomicInteger simulationStepNo = new AtomicInteger(0);
 
   @PostConstruct
   void init() {
@@ -61,10 +65,11 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   @Override
   public synchronized void synchronizedGetRemoteCars(TransferDataHandler mapFragment) {
     int countOfNeighbours = mapFragment.getNeighbors().size();
+    // log.info("STEP 9 -> {}", mapFragment.getNeighbors().stream().map(MapFragmentId::getId).collect(Collectors.joining(", ")));
     while (incomingMessages.size() < countOfNeighbours) {
       try {
         this.wait(1000);
-        log.warn("Waiting for STEP 9: {}", getWeaitingByMessage());
+        // log.warn("Waiting for STEP 9: {}", getWeaitingByMessage());
       } catch (InterruptedException e) {
         log.error(e.getMessage());
         throw new RuntimeException(e);
@@ -80,6 +85,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
 
     incomingMessages.clear();
     incomingMessages.addAll(futureIncomingMessages);
+    simulationStepNo.incrementAndGet();
     futureIncomingMessages.clear();
   }
 
@@ -110,10 +116,11 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
       }
 
       BorderSynchronizationMessage borderSynchronizationMessage = (BorderSynchronizationMessage) message;
-      if (incomingMessages.contains(borderSynchronizationMessage)) {
-        futureIncomingMessages.add(borderSynchronizationMessage);
-      } else {
+      // log.info("---Receive--- my it {} it {} from {}", simulationStepNo.get(), borderSynchronizationMessage.getSimulationStepNo(), borderSynchronizationMessage.getPatchContent().keySet().iterator().next());
+      if (borderSynchronizationMessage.getSimulationStepNo() == simulationStepNo.get()) {
         incomingMessages.add(borderSynchronizationMessage);
+      } else {
+        futureIncomingMessages.add(borderSynchronizationMessage);
       }
 
       notifyAll();
@@ -136,7 +143,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     Map<String, Set<SerializedLane>> patchContent = patches.stream()
         .collect(Collectors.toMap(e -> e.getPatchId().getValue(),
             e -> e.streamLanesEditable().map(SerializedLane::new).collect(Collectors.toSet())));
-    return new BorderSynchronizationMessage(patchContent);
+    return new BorderSynchronizationMessage(simulationStepNo.get(), patchContent);
   }
 
 }
