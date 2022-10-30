@@ -25,7 +25,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 @RequiredArgsConstructor
 public class CarGeneratorService implements Subscriber {
 
-  private static final int START_ADD_CAR = 30;
+  private static final int START_ADD_CAR = 20;
   private final MapRepository mapRepository;
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;

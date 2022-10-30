@@ -22,7 +22,6 @@ import pl.edu.agh.hiputs.communication.model.messages.AvailableTicketMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.SelectTicketMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
-import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;

@@ -104,6 +104,10 @@ public class Car implements CarEditable {
         new CarUpdateResult(this.laneId, decision.getLaneId(), decision.getPositionOnLane());
     this.laneId = decision.getLaneId();
     this.positionOnLane = decision.getPositionOnLane();
+    if(decision.getCrossroadDecisionProperties() == null ){
+      log.trace("Car: " + this.getCarId() + " was removed due to decision null");
+      return Optional.empty();
+    }
     if(decision.getCrossroadDecisionProperties().isEmpty() && this.crossroadDecisionProperties.isPresent()){
       log.trace("Car: " + carId + " reset crossroadDecisionProperties");
     }
