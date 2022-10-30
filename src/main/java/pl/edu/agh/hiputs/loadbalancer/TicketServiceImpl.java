@@ -137,7 +137,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
     private void startSyncTicketNegotiaton(MapFragmentId neighbour) {
       try {
         MapFragmentId me = configurationService.getConfiguration().getMapFragmentId();
-        log.info("Start negotiation between {} and me {}", neighbour.getId(), me.getId());
+      //  log.info("Start negotiation between {} and me {}", neighbour.getId(), me.getId());
         messageSenderService.send(neighbour, new AvailableTicketMessage(me.getId(), getFreeTicket()));
         final SelectTicketMessage selectTicketMessage = selectTicketQueue.take();
         setTicket(selectTicketMessage.getTicket(), new MapFragmentId(selectTicketMessage.getMapFragmentId()));
@@ -151,7 +151,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
       int selectTicket = getTicket(message);
       MapFragmentId neighbour = new MapFragmentId(message.getMapFragmentId());
       try {
-        log.info("Select ticket {} neighbour {}", selectTicket, neighbour.getId());
+        //log.info("Select ticket {} neighbour {}", selectTicket, neighbour.getId());
         messageSenderService.send(neighbour, new SelectTicketMessage(configurationService.getConfiguration().getMapFragmentId().getId(), selectTicket));
       } catch (IOException e) {
         log.error("Send message error");
@@ -164,7 +164,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
       if (ticketPool[ticket] != null) {
         log.error("Override ticket {}", ticket);
       }
-      log.info("Worker {} get token {}", mapFragmentId, ticket);
+      //log.info("Worker {} get token {}", mapFragmentId, ticket);
       ticketPool[ticket] = mapFragmentId;
     }
   }

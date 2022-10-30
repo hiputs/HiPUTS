@@ -40,7 +40,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 @RequiredArgsConstructor
 public class LoadBalancingServiceImpl implements LoadBalancingService, Subscriber {
 
-  private static final int MAX_PATCH_EXCHANGE = 15;
+  private static final int MAX_PATCH_EXCHANGE = 40;
   private final PatchTransferService patchTransferService;
   private final ConfigurationService configurationService;
   private final SimplyLoadBalancingService simplyLoadBalancingService;

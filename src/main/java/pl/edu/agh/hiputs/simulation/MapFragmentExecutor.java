@@ -76,10 +76,10 @@ public class MapFragmentExecutor {
       // 8. load balancing
       log.info("Step 8 start");
       MapFragmentId selectedCandidate = loadBalancingService.startLoadBalancing(mapFragment);
-      log.info("Step 8-1 start");
+      // log.info("Step 8-1 start");
       patchTransferService.retransmitNotification(selectedCandidate);
       patchTransferService.handleReceivedPatch(mapFragment);
-      log.info("Step 8-2 start");
+      // log.info("Step 8-2 start");
       patchTransferService.handleNotificationPatch(mapFragment);
       monitorLocalService.markPointAsFinish(SimulationPoint.LOAD_BALANCING);
 
@@ -99,7 +99,7 @@ public class MapFragmentExecutor {
       log.info("Step 11 start");
       carGeneratorService.generateCars(mapFragment);
 
-      mapFragment.printFullStatistic();
+      // mapFragment.printFullStatistic();
 
 
     } catch (Exception e) {
