@@ -8,6 +8,7 @@ import static pl.edu.agh.hiputs.example.ExampleMapFragmentProvider.getSimpleMap2
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,6 +26,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.service.worker.ModelValidatorServiceImpl;
 
+@Disabled
 @ExtendWith(MockitoExtension.class)
 public class ModelValidatorServiceTest {
 
