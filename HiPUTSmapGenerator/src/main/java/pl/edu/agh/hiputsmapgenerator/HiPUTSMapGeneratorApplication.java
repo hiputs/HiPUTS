@@ -8,17 +8,30 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 public class HiPUTSMapGeneratorApplication {
 
     private static final int BASE = 1000;
-    private static final int WORKER_COUNT = 1;
 
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        int totalSize = BASE * WORKER_COUNT;
+        genMap(1);
+        genMap(2);
+        genMap(4);
+        genMap(8);
+        genMap(12);
+        genMap(16);
+        genMap(20);
+        genMap(24);
+        genMap(28);
+        genMap(32);
+        genMap(64);
+
+    }
+
+    private static void genMap(int workerCount) throws FileNotFoundException, UnsupportedEncodingException {
+        int totalSize = BASE * workerCount;
         int size = (int) Math.sqrt(totalSize);
         Node[][] map = new Node[size][size];
 
@@ -31,22 +44,21 @@ public class HiPUTSMapGeneratorApplication {
         List<Patch> patches = new LinkedList<>();
         createPatches(map, size, patches);
 
-        new File("square-map" + WORKER_COUNT).mkdir();
-        saveEdges(edges);
-        saveNodes(map);
-        savePatches(patches);
-
+        new File("square-map" + workerCount).mkdir();
+        saveEdges(edges, workerCount);
+        saveNodes(map, workerCount);
+        savePatches(patches, workerCount);
     }
 
-    private static void savePatches(List<Patch> patches) throws FileNotFoundException, UnsupportedEncodingException {
-        PrintWriter writer = new PrintWriter("square-map" + WORKER_COUNT + "/patches.csv", "UTF-8");
+    private static void savePatches(List<Patch> patches, int workerCount) throws FileNotFoundException, UnsupportedEncodingException {
+        PrintWriter writer = new PrintWriter("square-map" + workerCount + "/patches.csv", "UTF-8");
         writer.println("id,neighbouring_patches_ids");
         patches.forEach(p -> writer.println(p.toString()));
         writer.close();
     }
 
-    private static void saveNodes(Node[][] map) throws FileNotFoundException, UnsupportedEncodingException {
-        PrintWriter writer = new PrintWriter("square-map" + WORKER_COUNT + "/nodes.csv", "UTF-8");
+    private static void saveNodes(Node[][] map, int workerCount) throws FileNotFoundException, UnsupportedEncodingException {
+        PrintWriter writer = new PrintWriter("square-map" + workerCount + "/nodes.csv", "UTF-8");
         writer.println("id,longitude,latitude,is_crossroad,patch_id,tags");
 
         for (int i = 0; i < map.length; i++) {
@@ -58,8 +70,8 @@ public class HiPUTSMapGeneratorApplication {
         writer.close();
     }
 
-    private static void saveEdges(List<Lane> edges) throws FileNotFoundException, UnsupportedEncodingException {
-        PrintWriter writer = new PrintWriter("square-map" + WORKER_COUNT + "/edges.csv", "UTF-8");
+    private static void saveEdges(List<Lane> edges, int workerCount) throws FileNotFoundException, UnsupportedEncodingException {
+        PrintWriter writer = new PrintWriter("square-map" + workerCount + "/edges.csv", "UTF-8");
         writer.println("source,target,length,max_speed,is_priority_road,is_one_way,patch_id,tags");
         edges.forEach(e -> writer.println(e.toString()));
         writer.close();
