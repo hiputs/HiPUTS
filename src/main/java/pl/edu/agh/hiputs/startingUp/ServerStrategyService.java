@@ -105,12 +105,12 @@ public class ServerStrategyService implements Strategy {
     log.info("Waiting for all workers be in state CompletedInitialization");
     workerSynchronisationService.waitForAllWorkers(CompletedInitializationMessage);
 
-    if(!graphCoherencyUtil.validateEndModel()){
-      log.error("the graph is not consistent");
-      messageSenderServerService.broadcast(new ShutDownMessage());
-      Thread.sleep(1000);
-      shutDown();
-    }
+    // if(!graphCoherencyUtil.validateEndModel()){
+    //   log.error("the graph is not consistent");
+    //   messageSenderServerService.broadcast(new ShutDownMessage());
+    //   Thread.sleep(1000);
+    //   shutDown();
+    // }
 
     distributeRunSimulationMessage(mapFragmentsContents);
 

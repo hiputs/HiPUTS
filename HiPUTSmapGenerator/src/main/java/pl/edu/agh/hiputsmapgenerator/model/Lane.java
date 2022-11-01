@@ -22,12 +22,12 @@ public class Lane {
 
     @Override
     public String toString() {
-        return source + ", " +
-                target + ", " +
-                length + ", " +
-                max_speed + ", " +
-                is_priority_road + ", " +
-                is_one_way + ", " +
-                patch_id + ", ";
+        return source + "," +
+                target + "," +
+                length + "," +
+                max_speed + "," +
+                is_priority_road + "," +
+                is_one_way + "," +
+                patch_id + ",";
     }
 }

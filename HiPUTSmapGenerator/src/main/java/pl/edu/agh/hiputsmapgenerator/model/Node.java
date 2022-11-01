@@ -27,10 +27,10 @@ public class Node {
     @Override
     public String toString() {
         return
-                id + ", " +
-                        longitude + ", " +
-                        latitude + ", " +
-                        is_crossroad + ", " +
-                        patch_id + ", ";
+                id + "," +
+                        longitude + "," +
+                        latitude + "," +
+                        is_crossroad + "," +
+                        patch_id + ",";
     }
 }

@@ -11,6 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.List;
 
+
 public class HiPUTSMapGeneratorApplication {
 
     private static final int BASE = 1000;
@@ -112,17 +113,25 @@ public class HiPUTSMapGeneratorApplication {
                 map[i * 2 + 1][j * 2].setPatch_id(patch.getId());
                 map[i * 2][j * 2 + 1].setPatch_id(patch.getId());
                 map[i * 2 + 1][j * 2 + 1].setPatch_id(patch.getId());
+
+                List<Lane> allPatchLanes = new LinkedList<>();
+                allPatchLanes.addAll(map[i * 2][j * 2].getLanes());
+                allPatchLanes.addAll(map[i * 2 +1][j * 2].getLanes());
+                allPatchLanes.addAll(map[i * 2][j * 2 +1].getLanes());
+                allPatchLanes.addAll(map[i * 2+1][j * 2+1].getLanes());
+
+                allPatchLanes.forEach(lane -> lane.setPatch_id(patch.getId()));
             }
         }
     }
 
     private static void createLanesVertical(Node[][] map, int size, List<Lane> edges) {
-        for (int i = 0; i < size -1; i++) {
-            for (int j = 0; j < size; j++) {
-                Lane lane1 = new Lane(map[j][i].getId(), map[j][i + 1].getId());
-                Lane lane2 = new Lane(map[j][i + 1].getId(), map[j][i].getId());
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size -1; j++) {
+                Lane lane1 = new Lane(map[j][i].getId(), map[j+1][i].getId());
+                Lane lane2 = new Lane(map[j+1][i].getId(), map[j][i].getId());
                 map[j][i].getLanes().add(lane1);
-                map[j][i + 1].getLanes().add(lane2);
+                map[j+1][i].getLanes().add(lane2);
 
                 edges.add(lane1);
                 edges.add(lane2);

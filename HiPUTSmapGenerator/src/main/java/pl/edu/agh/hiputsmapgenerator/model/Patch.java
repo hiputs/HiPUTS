@@ -15,7 +15,7 @@ public class Patch {
     }
     @Override
     public String toString() {
-        return id + ", " +
+        return id + "," +
                 listToString();
     }
 
