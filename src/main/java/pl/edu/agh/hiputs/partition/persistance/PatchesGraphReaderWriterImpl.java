@@ -30,8 +30,8 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 @Service
 public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, PatchesGraphWriter {
 
-  private static final String COLLECTION_ELEMENT_CSV_DELIMITER = "#";
-  private static final String MAP_KEY_VALUE_PAIR_CSV_DELIMITER = "::";
+  private static final String COLLECTION_ELEMENT_CSV_DELIMITER = ":ELEM:";
+  private static final String MAP_KEY_VALUE_PAIR_CSV_DELIMITER = ":PAIR:";
 
   @Override
   public void saveGraphWithPatches(Graph<PatchData, PatchConnectionData> graph, Path exportPath) {

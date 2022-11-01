@@ -97,10 +97,20 @@ public class Car implements CarEditable {
 
     Optional<LaneId> laneId = this.getRouteOffsetLaneId(0);
     if(laneId.isPresent() && !this.laneId.equals(laneId.get())){
-      log.error("Car: " + this.getCarId() + " was removed due to lane offset error");
+      log.warn("Car: " + this.getCarId() + " was removed due to lane offset error");
       return Optional.empty();
     }
     return Optional.of(carUpdateResult);
+  }
+
+  @Override
+  public void setPositionOnLaneAndSpeed(double position, double speed) {
+    if(positionOnLane > position){
+      positionOnLane = position;
+    }
+    if(this.speed > speed){
+      this.speed = speed;
+    }
   }
 
   @Override

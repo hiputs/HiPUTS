@@ -51,11 +51,16 @@ public class LaneUpdateStageTask implements Runnable {
   private void updateCarsOnLane(LaneEditable lane) {
     List<CarEditable> carsToRemove = lane
         .streamCarsFromExitEditable()
-        .filter(car -> car.update().isEmpty())
+        .filter(car -> !Objects.equals(car.getDecision().getLaneId(), laneId) || car.update().isEmpty())
         .collect(Collectors.toList());
     for (CarEditable car : carsToRemove) {
       lane.removeCar(car);
       log.trace("Car: " + car.getCarId() + " car remove from lane: " + laneId);
+          //If remove instance which stay on old lane draw warning
+      if(!Objects.equals(car.getDecision().getLaneId(), laneId)){
+        //#TODO change log to warning when repair junction decider
+        log.debug("TODO: change to warning finally; " + "Car: " + car.getCarId() + " car remove from lane: " + laneId + " due incorrect laneId in decision: " + car.getDecision().getLaneId());
+      }
     }
   }
 
