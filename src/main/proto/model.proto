@@ -17,8 +17,9 @@ message CarMessage {
     double acceleration = 3;
     double speed = 4;
     double maxSpeed = 5;
-    string laneId = 6;
-    double positionOnLane = 7;
+    string node1Id = 6;
+    string node2Id = 7;
+    double positionOnLane = 8;
 }
 
 message CarsMessage
