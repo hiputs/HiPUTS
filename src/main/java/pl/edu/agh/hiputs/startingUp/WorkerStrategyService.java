@@ -182,8 +182,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
-          sleep(configuration.getPauseAfterStep());
         }
+        sleep(configuration.getPauseAfterStep());
       }
     } catch (Exception e) {
       log.error(String.format("Worker simulation error in %d iteration", i), e);
