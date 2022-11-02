@@ -1,0 +1,21 @@
+package pl.edu.agh.hiputs.visualization.connection.consumer;
+
+import static pl.edu.agh.hiputs.visualization.connection.topic.TopicConfiguration.VISUALIZATION_STATE_CHANGE_TOPIC;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
+import proto.model.VisualizationStateChangeMessage;
+
+@Slf4j
+@Service
+public class VisualizationStateChangeConsumer {
+
+  @KafkaListener(topics = VISUALIZATION_STATE_CHANGE_TOPIC, groupId = VISUALIZATION_STATE_CHANGE_TOPIC,
+      properties = {"specific.protobuf.value.type: proto.model.VisualizationStateChangeMessage"})
+  void stateChangeListener(ConsumerRecord<String, VisualizationStateChangeMessage> record) {
+    VisualizationStateChangeMessage visualizationStateChangeMessage = record.value();
+    log.info("Consumed VisualizationStateChangeMessage:{}", visualizationStateChangeMessage.getStateChange());
+  }
+}

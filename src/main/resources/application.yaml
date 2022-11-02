@@ -10,6 +10,17 @@ spring:
         batch.size: 1_048_576 # 1MiB
         linger.ms: 10 # 10ms
 
+    consumer:
+      group-id: visualization_state_change_group
+      auto-offset-reset: earliest
+      enable-auto-commit: true
+      auto-commit-interval: 5
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
+
     properties:
       schema.registry.url: http://localhost:8085
       auto.register.schemas: true
