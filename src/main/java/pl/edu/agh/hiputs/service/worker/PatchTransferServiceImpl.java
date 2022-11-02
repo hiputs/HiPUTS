@@ -15,6 +15,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
+import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
@@ -50,9 +51,10 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   }
 
   @Override
-  public void sendPatch(MapFragmentId receiver, PatchId patchId, TransferDataHandler transferDataHandler) {
+  public SerializedPatchTransfer prepareSinglePatchItemAndNotifyNeighbour(MapFragmentId receiver, PatchId patchId,
+      TransferDataHandler transferDataHandler) {
 
-    Patch patch = transferDataHandler.getPatch(patchId);
+    Patch patch = transferDataHandler.getPatchById(patchId);
 
     List<SerializedCar> cars = carSynchronizedService.getSerializedCarByPatch(transferDataHandler, patch.getPatchId());
 
@@ -66,38 +68,43 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         .map(Pair::getRight)
         .distinct()
         .map(MapFragmentId::new)
-        .filter(mapFragmentId -> !receiver.equals(mapFragmentId))
+        .filter(mapFragmentId -> !receiver.equals(mapFragmentId) && !transferDataHandler.getMe().equals(mapFragmentId))
         .map(mapFragmentId -> messageSenderService.getConnectionDtoMap().get(mapFragmentId))
         .toList();
 
-    PatchTransferMessage patchTransferMessage = PatchTransferMessage.builder()
+    transferDataHandler.migratePatchToNeighbour(patch, receiver);
+
+    PatchTransferNotificationMessage patchTransferNotificationMessage = PatchTransferNotificationMessage.builder()
+        .transferPatchId(patch.getPatchId().getValue())
+        .receiverId(receiver.getId())
+        .senderId(transferDataHandler.getMe().getId())
+        .connectionDto(messageSenderService.getConnectionDtoMap().get(receiver))
+        .build();
+
+    neighbourConnectionDtos.forEach(connectionDto -> {
+      try {
+        messageSenderService.send(new MapFragmentId(connectionDto.getId()), patchTransferNotificationMessage);
+      } catch (IOException e) {
+        log.error("Worker have not notification about match migration" + connectionDto.getId(), e);
+      }
+    });
+
+    return SerializedPatchTransfer.builder()
         .patchId(patch.getPatchId().getValue())
         .neighbourConnectionMessage(neighbourConnectionDtos)
         .mapFragmentId(transferDataHandler.getMe().getId())
         .patchIdWithMapFragmentId(patchIdWithMapFragmentId)
         .cars(cars)
         .build();
+  }
 
+  @Override
+  public void sendPatchMessage(MapFragmentId receiver, List<SerializedPatchTransfer> serializedPatchTransfers) {
+    PatchTransferMessage patchTransferMessage = new PatchTransferMessage(serializedPatchTransfers);
     try {
-      transferDataHandler.migratePatchToNeighbour(patch, receiver);
       messageSenderService.send(receiver, patchTransferMessage);
-
-      PatchTransferNotificationMessage patchTransferNotificationMessage = PatchTransferNotificationMessage.builder()
-          .transferPatchId(patch.getPatchId().getValue())
-          .receiverId(receiver.getId())
-          .senderId(transferDataHandler.getMe().getId())
-          .connectionDto(messageSenderService.getConnectionDtoMap().get(receiver))
-          .build();
-
-      neighbourConnectionDtos.forEach(connectionDto -> {
-        try {
-          messageSenderService.send(new MapFragmentId(connectionDto.getId()), patchTransferNotificationMessage);
-        } catch (IOException e) {
-          log.error("Worker have not notification about match migration" + connectionDto.getId(), e);
-        }
-      });
     } catch (IOException e) {
-      log.error("Could not send patch to " + receiver.getId());
+      log.error("Fail send patch message");
     }
   }
 
@@ -105,18 +112,22 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   public void handleReceivedPatch(TransferDataHandler transferDataHandler) {
     while (!receivedPatch.isEmpty()) {
       PatchTransferMessage message = receivedPatch.remove();
-      List<ImmutablePair<PatchId, MapFragmentId>> pairs = message.getPatchIdWithMapFragmentId()
-          .stream()
-          .map(pair -> new ImmutablePair<>(new PatchId(pair.getValue()), new MapFragmentId(pair.getKey())))
-          .toList();
-
-      transferDataHandler.migratePatchToMe(new PatchId(message.getPatchId()),
-          new MapFragmentId(message.getMapFragmentId()), mapRepository, pairs);
-
-      InjectIncomingCarsTask task = new InjectIncomingCarsTask(message.getCars(), transferDataHandler);
-
-      taskExecutorService.executeBatch(List.of(task));
+      message.getSerializedPatchTransferList().forEach(m -> insertPatch(m, transferDataHandler));
     }
+  }
+
+  private void insertPatch(SerializedPatchTransfer message, TransferDataHandler transferDataHandler) {
+    List<ImmutablePair<PatchId, MapFragmentId>> pairs = message.getPatchIdWithMapFragmentId()
+        .stream()
+        .map(pair -> new ImmutablePair<>(new PatchId(pair.getLeft()), new MapFragmentId(pair.getRight())))
+        .toList();
+
+    transferDataHandler.migratePatchToMe(new PatchId(message.getPatchId()),
+        new MapFragmentId(message.getMapFragmentId()), mapRepository, pairs);
+
+    InjectIncomingCarsTask task = new InjectIncomingCarsTask(message.getCars(), transferDataHandler);
+
+    taskExecutorService.executeBatch(List.of(task));
   }
 
   @Override
@@ -124,10 +135,13 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     while (!patchMigrationNotification.isEmpty()) {
       PatchTransferNotificationMessage message = patchMigrationNotification.remove();
 
-      transferDataHandler.migratePatchBetweenNeighbour(
-          new PatchId(message.getTransferPatchId()),
-          new MapFragmentId(message.getReceiverId()),
-          new MapFragmentId(message.getSenderId()));
+      if (message.getReceiverId().equals(transferDataHandler.getMe().getId()) || message.getSenderId()
+          .equals(transferDataHandler.getMe().getId())) {
+        continue;
+      }
+
+      transferDataHandler.migratePatchBetweenNeighbour(new PatchId(message.getTransferPatchId()),
+          new MapFragmentId(message.getReceiverId()), new MapFragmentId(message.getSenderId()));
     }
   }
 

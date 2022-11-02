@@ -61,7 +61,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   @Override
   public List<SerializedCar> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
 
-    Patch patch = transferDataHandler.getPatch(patchId);
+    Patch patch = transferDataHandler.getPatchById(patchId);
     List<Runnable> tasks = new ArrayList<>();
     List<SerializedCar> toSendCars = new ArrayList<>();
     tasks.add(new CarMapperTask(patch, toSendCars));

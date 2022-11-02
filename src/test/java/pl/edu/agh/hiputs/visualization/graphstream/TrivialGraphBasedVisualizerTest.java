@@ -12,7 +12,7 @@ class TrivialGraphBasedVisualizerTest {
   void showGui() {
 
     MapFragment mp = ExampleMapFragmentProvider.getSimpleMap2();
-    TrivialGraphBasedVisualizer trivialGraphBasedVisualizer = new TrivialGraphBasedVisualizer(mp);
+    TrivialGraphBasedVisualizer trivialGraphBasedVisualizer = new TrivialGraphBasedVisualizer(mp, null);
 
     trivialGraphBasedVisualizer.showGui();
 

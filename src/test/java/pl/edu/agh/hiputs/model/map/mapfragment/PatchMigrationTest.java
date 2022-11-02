@@ -69,12 +69,14 @@ class PatchMigrationTest {
         new ImmutablePair<>(new PatchId("P3"), new MapFragmentId("C"))
     );
 
+    when(mapRepository.getPatch(any())).thenReturn(mapFragment.getPatchById(new PatchId("P2")));
+
     mapFragment.migratePatchToMe(new PatchId("P4"), new MapFragmentId("B"), mapRepository, migratedPatchNeighbours);
 
-    verify(mapRepository, times(0)).getPatch(any());
+    verify(mapRepository, times(2)).getPatch(any());
     assertEquals(2, mapFragment.getLocalJunctionIds().size());
-    assertEquals(2, mapFragment.getBorderPatches().get(new MapFragmentId("C")).size());
-    assertEquals(2, mapFragment.getBorderPatches().get(new MapFragmentId("B")).size());
+    assertEquals(1, mapFragment.getBorderPatches().get(new MapFragmentId("C")).size());
+    assertEquals(1, mapFragment.getBorderPatches().get(new MapFragmentId("B")).size());
   }
 
   @Test
@@ -100,7 +102,6 @@ class PatchMigrationTest {
     assertEquals(2, mapFragment.getLocalJunctionIds().size());
     assertEquals(2, mapFragment.getNeighbors().size());
     assertEquals(1, mapFragment.getBorderPatches().get(new MapFragmentId("C")).size());
-    assertEquals(1, mapFragment.getBorderPatches().get(new MapFragmentId("B")).size());
     assertEquals(4, mapFragment.getKnownPatchReadable().size());
   }
 

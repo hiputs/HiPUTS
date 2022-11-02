@@ -108,6 +108,11 @@ public class Lane implements LaneEditable {
   }
 
   @Override
+  public int numberOfCars() {
+    return cars.size();
+  }
+
+  @Override
   public void addIncomingCar(CarEditable car) {
     incomingCars.add(car);
     //TODO validate if cars is added properly to set (look before this commit version) - future work
@@ -115,10 +120,44 @@ public class Lane implements LaneEditable {
 
   @Override
   public void addCarAtEntry(CarEditable car) {
-    if(!cars.isEmpty() && cars.peekFirst().getPositionOnLane() < car.getPositionOnLane()){
-      log.error("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
-          + car.getCarId() + ", position: " + car.getPositionOnLane() + ", first car: " + cars.peekFirst().getCarId()
-          + ", position: " + cars.peekFirst().getPositionOnLane());
+    if(!cars.isEmpty()){
+      CarReadable firstCarOnLane = cars.peekFirst();
+      if(firstCarOnLane.getPositionOnLane() < car.getPositionOnLane()){
+        //#TODO change log to warning when repair junction decider
+        log.debug("TODO: change to warning finally; " + "Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
+            + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnLane.getCarId()
+            + ", position: " + firstCarOnLane.getPositionOnLane() + ", speed: " + firstCarOnLane.getSpeed() + ". Collision after crossroad!");
+        //Move back car to be before car he hit after collision
+        car.setPositionOnLaneAndSpeed(firstCarOnLane.getPositionOnLane()
+            - Math.min(0.01, firstCarOnLane.getPositionOnLane() * 0.01), firstCarOnLane.getSpeed());
+      }
+    }
+    cars.addFirst(car);
+  }
+
+  @Override
+  public void addNewCar(CarEditable car){
+    if(!cars.isEmpty()){
+      double position = cars.getFirst().getPositionOnLane() + cars.getFirst().getLength() + 0.3;
+      double speed = cars.getFirst().getSpeed();
+
+      if(position > car.getLength()){
+        car.setPositionOnLaneAndSpeed(0, 10);
+        return;
+      }
+
+      for (final CarEditable c : cars) {
+        double start = c.getPositionOnLane();
+        double end = start + c.getLength();
+
+        if(position >= start && position <= end){
+          position = end + 0.3;
+        } else{
+          break;
+        }
+      }
+
+        car.setPositionOnLaneAndSpeed(position, speed);
     }
     cars.addFirst(car);
   }

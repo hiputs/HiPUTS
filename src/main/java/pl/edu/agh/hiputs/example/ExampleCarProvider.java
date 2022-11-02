@@ -1,8 +1,10 @@
 package pl.edu.agh.hiputs.example;
 
+import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,8 @@ public class ExampleCarProvider {
   private static final Double DEFAULT_MAX_SPEED = 20.0;
   private static final Integer DEFAULT_HOPS = 4;
   private static final Double DEFAULT_MAX_DECELERATION = 3.5;
+  private static final Double DEFAULT_TIME_STEP = 1.0;
+  private static final Double DEFAULT_MAX_SPEED_SECURITY_FACTOR = 0.8;
   private final MapFragment mapFragment;
   private Function<JunctionId, List<LaneId>> junctionIdToOutgoingLaneIdList;
   private Function<LaneId, JunctionId> laneIdToOutgoingJunctionId;
@@ -58,7 +62,7 @@ public class ExampleCarProvider {
     Queue<PatchId> notVisitedPatches = mapFragment.getKnownPatchReadable()
         .stream()
         .map(PatchReader::getPatchId)
-        .collect(Collectors.toCollection(LinkedList::new));
+        .collect(Collectors.toCollection(UniqueQueue::new));
     Set<PatchId> visitedPatches = new HashSet<>();
     while (!notVisitedPatches.isEmpty()) {
       PatchId currentPatchId = notVisitedPatches.poll();
@@ -169,15 +173,61 @@ public class ExampleCarProvider {
     }
     distance -=  currentCar.getPositionOnLane();
 
-    double maxSpeed = Math.sqrt(distance * 2 * DEFAULT_MAX_DECELERATION) * 0.8;
-
-    if(distance < 0){
-      maxSpeed = 0.0;
+    double maxSpeed = 0.0;
+      //Limit maxSped cause car need to stop in integer number of time steps
+    if(distance > 0){
+      maxSpeed = Math.sqrt(distance * 2 * DEFAULT_MAX_DECELERATION) * DEFAULT_MAX_SPEED_SECURITY_FACTOR;
+      double timeToStop = maxSpeed / DEFAULT_MAX_DECELERATION;
+      timeToStop -= timeToStop % DEFAULT_TIME_STEP;
+      maxSpeed = timeToStop * DEFAULT_MAX_DECELERATION * DEFAULT_MAX_SPEED_SECURITY_FACTOR;
     }
 
     if (currentCar.getSpeed() > maxSpeed){
       log.debug("Car: " + currentCar.getCarId() + " has reduced its speed before start from: " + currentCar.getSpeed() + " to: " + maxSpeed + ", distance: " + distance);
       currentCar.setSpeed(maxSpeed);
     }
+  }
+
+  private static class UniqueQueue<T> extends AbstractQueue<T> {
+    private Queue<T> queue = new LinkedList<>();
+    private Set<T> set = new HashSet<>();
+
+    @Override
+    public Iterator<T> iterator() {
+      return queue.iterator();
+    }
+
+    @Override
+    public int size() {
+      return queue.size();
+    }
+
+    @Override
+    public boolean add(T t) {
+      if(set.add(t)) {
+        return queue.add(t);
+      }
+      return false;
+    }
+
+    @Override
+    public boolean offer(T t) {
+      return add(t);
+    }
+
+    @Override
+    public T poll() {
+      T first = queue.poll();
+      if (first != null) {
+        set.remove(first);
+      }
+      return first;
+    }
+
+    @Override
+    public T peek() {
+      return queue.peek();
+    }
+
   }
 }
