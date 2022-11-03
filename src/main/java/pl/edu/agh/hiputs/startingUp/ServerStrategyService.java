@@ -5,6 +5,7 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.CompletedIn
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationStatisticMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.WorkerConnectionMessage;
+import static proto.model.RUNNING_STATE.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,11 +21,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
@@ -47,6 +51,12 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.server.WorkerSynchronisationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
+import pl.edu.agh.hiputs.visualization.connection.producer.SimulationStateChangeProducer;
+import pl.edu.agh.hiputs.visualization.events.ApplicationClosedEvent;
+import pl.edu.agh.hiputs.visualization.events.ApplicationResumedEvent;
+import pl.edu.agh.hiputs.visualization.events.ApplicationStartedEvent;
+import pl.edu.agh.hiputs.visualization.events.ApplicationStoppedEvent;
+import proto.model.RUNNING_STATE;
 
 @Slf4j
 @Service
@@ -70,12 +80,21 @@ public class ServerStrategyService implements Strategy {
 
   private final WorkerRepository workerRepository;
 
+  private final SimulationStateChangeProducer simulationStateChangeProducer;
+
+  private RUNNING_STATE current_state;
+
   @Override
   public void executeStrategy() throws InterruptedException {
 
     log.info("Running server");
     connectionInitializationService.init();
     workerPrepareExecutor.submit(new PrepareWorkerTask());
+
+    log.info("Start waiting for all workers be in state WorkerConnection");
+    workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
+
+    waitForVisualizationStateChangeMessage(STARTED);
 
     Path mapPackagePath = configurationService.getConfiguration().isReadFromOsmDirectly()
         ? generateDeploymentPackageName(Path.of(configurationService.getConfiguration().getMapPath()))
@@ -87,8 +106,6 @@ public class ServerStrategyService implements Strategy {
 
     mapRepository.setPatchesGraph(patchesGraph);
 
-    log.info("Start waiting for all workers be in state WorkerConnection");
-    workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
 
 
     if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
@@ -104,9 +121,13 @@ public class ServerStrategyService implements Strategy {
 
     distributeRunSimulationMessage(mapFragmentsContents);
 
+    sendSimulationStateChangeMessage(STARTED);
+
     log.info("Waiting for end simulation");
     workerSynchronisationService.waitForAllWorkers(FinishSimulationMessage);
     log.info("Simulation finished");
+
+    sendSimulationStateChangeMessage(CLOSED);
 
     if (configurationService.getConfiguration().isStatisticModeActive()) {
       workerSynchronisationService.waitForAllWorkers(FinishSimulationStatisticMessage);
@@ -191,6 +212,32 @@ public class ServerStrategyService implements Strategy {
 
   private void distributeRunSimulationMessage(Collection<Graph<PatchData, PatchConnectionData>> dividedPatchesIds) {
     messageSenderServerService.broadcast(new RunSimulationMessage());
+  }
+
+  private void sendSimulationStateChangeMessage(RUNNING_STATE running_state) {
+    simulationStateChangeProducer.sendStateChangeMessage(running_state);
+  }
+
+  @SneakyThrows
+  private synchronized void waitForVisualizationStateChangeMessage(RUNNING_STATE running_state) {
+    while (!running_state.equals(this.current_state)) {
+      wait();
+    }
+  }
+
+  @EventListener(classes = {ApplicationStartedEvent.class, ApplicationStoppedEvent.class,
+      ApplicationResumedEvent.class, ApplicationClosedEvent.class})
+  public synchronized void listenToVisualizationStateChangeEvents(ApplicationEvent event) {
+    if (event.getClass().getName().equals(ApplicationStartedEvent.class.getName())) {
+      this.current_state = STARTED;
+    } else if (event.getClass().getName().equals(ApplicationStoppedEvent.class.getName())) {
+      this.current_state = STOPPED;
+    } else if (event.getClass().getName().equals(ApplicationResumedEvent.class.getName())) {
+      this.current_state = RESUMED;
+    } else if (event.getClass().getName().equals(ApplicationClosedEvent.class.getName())) {
+      this.current_state = CLOSED;
+    }
+    notify();
   }
 
   private Graph<PatchData, PatchConnectionData> createAndSavePatchesPackage(Path mapPackagePath) {
