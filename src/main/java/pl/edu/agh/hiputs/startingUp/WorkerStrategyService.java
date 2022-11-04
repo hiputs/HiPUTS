@@ -2,19 +2,23 @@ package pl.edu.agh.hiputs.startingUp;
 
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ResumeSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.RunSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ServerInitializationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ShutDownMessage;
+import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.StopSimulationMessage;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ExitCodeGenerator;
@@ -67,11 +71,15 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   private final StatisticSummaryService statisticSummaryService;
 
+  private final AtomicBoolean lock = new AtomicBoolean(false);
+
   @PostConstruct
   void init() {
     subscriptionService.subscribe(this, RunSimulationMessage);
     subscriptionService.subscribe(this, ServerInitializationMessage);
     subscriptionService.subscribe(this, ShutDownMessage);
+    subscriptionService.subscribe(this, StopSimulationMessage);
+    subscriptionService.subscribe(this, ResumeSimulationMessage);
   }
 
   @Override
@@ -102,6 +110,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       case ServerInitializationMessage -> handleInitializationMessage(
           (pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage) message);
       case ShutDownMessage -> shutDown();
+      case StopSimulationMessage -> stopSimulation();
+      case ResumeSimulationMessage -> resumeSimulation();
       default -> log.warn("Unhandled message " + message.getMessageType());
     }
   }
@@ -169,6 +179,17 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     simulationExecutor.submit(this);
   }
 
+  @SneakyThrows
+  private void stopSimulation() {
+    System.out.println("Stop simulation");
+    lock.compareAndSet(false, true);
+  }
+
+  private void resumeSimulation() {
+    System.out.println("Resume simulation");
+    lock.set(false);
+  }
+
   @Override
   public void run() {
     int i = 0;
@@ -176,14 +197,18 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       int n = configuration.getSimulationStep();
       monitorLocalService.init(mapFragmentExecutor.getMapFragment());
       statisticSummaryService.startTiming();
-      for (i = 0; i < n; i++) {
-        log.info("Start iteration no. {}/{}", i+1, n);
+      while (i < n) {
+        if (lock.get()) {
+          continue;
+        }
+        log.info("Start iteration no. {}/{}", i, n);
         mapFragmentExecutor.run();
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
         }
         sleep(configuration.getPauseAfterStep());
+        i++;
       }
     } catch (Exception e) {
       log.error(String.format("Worker simulation error in %d iteration", i), e);
