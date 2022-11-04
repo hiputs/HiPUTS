@@ -112,7 +112,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
               transferDataHandler));
 
       transferCars += patchInfo.getLeft().getCountOfVehicle();
-    } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9 && serializedPatchTransfers.size() < MAX_PATCH_EXCHANGE);
+    } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9 && serializedPatchTransfers.size() < MAX_PATCH_EXCHANGE && transferDataHandler.getLocalPatchesSize() >= 5);
 
     patchTransferService.sendPatchMessage(recipient, serializedPatchTransfers);
   }

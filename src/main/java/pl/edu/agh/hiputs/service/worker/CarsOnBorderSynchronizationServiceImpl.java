@@ -65,11 +65,11 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   @Override
   public synchronized void synchronizedGetRemoteCars(TransferDataHandler mapFragment) {
     int countOfNeighbours = mapFragment.getNeighbors().size();
-    // log.info("STEP 9 -> {}", mapFragment.getNeighbors().stream().map(MapFragmentId::getId).collect(Collectors.joining(", ")));
+    log.info("STEP 9 -> {}", mapFragment.getNeighbors().stream().map(MapFragmentId::getId).collect(Collectors.joining(", ")));
     while (incomingMessages.size() < countOfNeighbours) {
       try {
         this.wait(1000);
-        // log.warn("Waiting for STEP 9: {}", getWeaitingByMessage());
+        log.warn("Waiting for STEP 9: {}", getWeaitingByMessage());
       } catch (InterruptedException e) {
         log.error(e.getMessage());
         throw new RuntimeException(e);

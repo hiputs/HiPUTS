@@ -80,7 +80,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, step, info.getWaitingTime());
     step++;
 
-    if (carBalanceTarget > 0 ) {
+    if (carBalanceTarget > 0 || transferDataHandler.getLocalPatchesSize() < 5 ) {
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
     }
@@ -97,6 +97,11 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
     loadBalancingDecision.setLoadBalancingRecommended(true);
     loadBalancingDecision.setExtremelyLoadBalancing(true);
     ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
+
+    if(candidate == null){
+      loadBalancingDecision.setLoadBalancingRecommended(false);
+      return loadBalancingDecision;
+    }
 
     loadBalancingDecision.setSelectedNeighbour(candidate.getLeft());
     loadBalancingDecision.setCarImbalanceRate((long) carBalanceTarget);
