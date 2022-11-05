@@ -34,6 +34,10 @@ public class HiPUTSMapGeneratorApplication {
     private static void genMap(int workerCount) throws FileNotFoundException, UnsupportedEncodingException {
         int totalSize = BASE * workerCount;
         int size = (int) Math.sqrt(totalSize);
+
+        if(size % 2 == 1){
+            size++;
+        }
         Node[][] map = new Node[size][size];
 
         fillMap(map, size);
