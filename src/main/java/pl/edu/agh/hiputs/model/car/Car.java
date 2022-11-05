@@ -16,6 +16,7 @@ import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionPro
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
+import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Configurable
