@@ -63,7 +63,7 @@ public class CarGeneratorService implements Subscriber {
     ExampleCarProvider carProvider = new ExampleCarProvider(mapFragment, mapRepository);
 
     final List<Car> carsCreated = lanesEditable.parallelStream().map(lane -> {
-      int hops = ThreadLocalRandom.current().nextInt(50, 70);
+      int hops = ThreadLocalRandom.current().nextInt(20, 50);
 
       // if (bigWorker) {
       //   hops = 15;

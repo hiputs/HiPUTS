@@ -33,7 +33,7 @@ public class BasicJunctionDecider implements FunctionalDecider {
 
   public double makeDecision(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader) {
     double maxSpeed = environment.getDistance() < lineHeight * 8 ? crossroadMaxSpeed : car.getMaxSpeed();
-    log.trace("Car: " + car.getCarId() + " crossroad workaround remove when repair errors");
+    log.warn("Car: " + car.getCarId() + " crossroad workaround remove when repair errors");
     return followingModel.calculateAcceleration(car.getSpeed(), maxSpeed, Double.MAX_VALUE, 0);
 
     /*double minArriveTime = getClosestConflictVehicleArriveTime(car, environment, roadStructureReader);

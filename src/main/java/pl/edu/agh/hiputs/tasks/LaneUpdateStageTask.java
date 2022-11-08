@@ -58,10 +58,10 @@ public class LaneUpdateStageTask implements Runnable {
           //If remove instance which stay on old lane draw warning
       if(!Objects.equals(car.getDecision().getLaneId(), laneId)){
         //#TODO change log to warning when repair junction decider
-        log.debug("Car: " + car.getCarId() + " car remove from lane: " + laneId + " due incorrect laneId in decision: " + car.getDecision().getLaneId());
+        log.warn("Car: " + car.getCarId() + " car remove from lane: " + laneId + " due incorrect laneId in decision: " + car.getDecision().getLaneId());
       }
       else{
-        log.trace("Car: " + car.getCarId() + " car remove from lane: " + laneId);
+        log.warn("Car: " + car.getCarId() + " car remove from lane: " + laneId);
       }
     }
   }

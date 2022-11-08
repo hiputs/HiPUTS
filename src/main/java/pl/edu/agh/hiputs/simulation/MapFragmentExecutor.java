@@ -14,6 +14,7 @@ import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingService;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint;
+import pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.service.ConfigurationService;
@@ -98,7 +99,11 @@ public class MapFragmentExecutor {
 
       // 11. gen new car
       log.info("Step 11 start");
+      log.info("CARS 1 -----> {}", CarCounterUtil.countAllCars(mapFragment));
+
       carGeneratorService.generateCars(mapFragment);
+
+      log.info("CARS 2 -----> {}", CarCounterUtil.countAllCars(mapFragment));
 
       // mapFragment.printFullStatistic();
 

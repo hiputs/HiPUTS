@@ -138,12 +138,11 @@ public class Lane implements LaneEditable {
   @Override
   public void addNewCar(CarEditable car){
     if(!cars.isEmpty()){
-      double position = cars.getFirst().getPositionOnLane() + cars.getFirst().getLength() + 0.3;
+      double position = cars.getFirst().getPositionOnLane() - cars.getFirst().getLength() - 0.3;
       double speed = cars.getFirst().getSpeed();
 
-      if(position > car.getLength()){
+      if(position > length){
         car.setPositionOnLaneAndSpeed(0, 10);
-        return;
       }
 
       for (final CarEditable c : cars) {
