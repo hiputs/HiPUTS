@@ -25,7 +25,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 @RequiredArgsConstructor
 public class CarGeneratorService implements Subscriber {
 
-  private static final int START_ADD_CAR = 20;
+  private static final int START_ADD_CAR = 5;
   private final MapRepository mapRepository;
   private final SubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
@@ -62,25 +62,23 @@ public class CarGeneratorService implements Subscriber {
     List<LaneEditable> lanesEditable = mapFragment.getRandomLanesEditable(count);
     ExampleCarProvider carProvider = new ExampleCarProvider(mapFragment, mapRepository);
 
-    lanesEditable
-        .parallelStream()
-        .map(lane -> {
-          int hops = ThreadLocalRandom.current().nextInt(10, 50);
+    final List<Car> carsCreated = lanesEditable.parallelStream().map(lane -> {
+      int hops = ThreadLocalRandom.current().nextInt(50, 70);
 
-          if(bigWorker){
-            hops = 15;
-          }
-          Car car = carProvider.generateCar(lane.getLaneId(), hops);
+      // if (bigWorker) {
+      //   hops = 15;
+      // }
+      Car car = carProvider.generateCar(lane.getLaneId(), hops);
 
-          if(car == null){
-            return null;
-          }
-          carProvider.limitSpeedPreventCollisionOnStart(car, lane);
-          lane.addNewCar(car);
-          return car;
-        })
-        .filter(Objects::nonNull)
-        .toList();
+      if (car == null) {
+        return null;
+      }
+      carProvider.limitSpeedPreventCollisionOnStart(car, lane);
+      lane.addNewCar(car);
+      return car;
+    }).filter(Objects::nonNull).toList();
+
+    log.info("Created cars {} with {}", carsCreated.size(), count);
 
   }
 
