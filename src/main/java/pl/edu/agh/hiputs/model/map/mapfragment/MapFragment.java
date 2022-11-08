@@ -128,6 +128,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   public List<LaneEditable> getRandomLanesEditable(int count) {
     Set<LaneEditable> lanes = new HashSet<>();
     Object[] array = localPatchIds.toArray();
+    count = Math.min(count, array.length);
 
     do {
       PatchId patchId = (PatchId) array[ThreadLocalRandom.current().nextInt(0, array.length)];
