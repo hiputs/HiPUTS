@@ -58,9 +58,9 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
       mapPackagePath = Path.of(configurationService.getConfiguration().getMapPath());
     }
 
-    if (!configurationService.getConfiguration().isServerOnThisMachine()) {
+    // if (!configurationService.getConfiguration().isServerOnThisMachine()) {
       this.patchesGraph = patchesGraphReader.readGraphWithPatches(mapPackagePath);
-    }
+    // }
 
     patches.putAll(internal2SimulationModelMapper.mapToSimulationModel(patchesGraph));
     mapReadyToUse = true;
