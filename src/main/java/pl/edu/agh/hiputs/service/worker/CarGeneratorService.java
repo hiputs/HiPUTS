@@ -44,6 +44,11 @@ public class CarGeneratorService implements Subscriber {
     if(totalPatch == -1){
       totalPatch = mapRepository.getAllPatches().size();
     }
+
+    if(configuration.getNewCars() == 0){
+      return;
+    }
+
     int targetCarMax = (int)(configuration.getNewCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
     int targetCarMin = (int)(configuration.getMinCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
     if(targetCarMax <= targetCarMin){

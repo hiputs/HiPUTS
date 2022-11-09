@@ -307,7 +307,7 @@ public class TrailJunctionDecider implements JunctionDecider {
   private List<CarReadable> getAllFirstVehiclesOnJunction(JunctionId junctionId, RoadStructureReader roadStructureReader){
     JunctionReadable junction = roadStructureReader.getJunctionReadable(junctionId);
     List<LaneOnJunction> lanesOnJunction = junction.streamLanesOnJunction().filter(lane -> lane.getDirection().equals(LaneDirection.INCOMING)).toList();
-    return prospector.getAllFirstCarsFromLanesReadable(lanesOnJunction.stream().map(lane->lane.getLaneId()).toList(), roadStructureReader);
+    return prospector.getAllFirstCarsFromLanesReadable(lanesOnJunction.stream().map(LaneOnJunction::getLaneId).toList(), roadStructureReader);
   }
 
   private List<ConflictVehicleProperties> getAllConflictVehiclesProperties(CarReadable currentCar, CarEnvironment environment, RoadStructureReader roadStructureReader){

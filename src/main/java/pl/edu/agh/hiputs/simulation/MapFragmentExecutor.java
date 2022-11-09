@@ -103,8 +103,6 @@ public class MapFragmentExecutor {
 
       carGeneratorService.generateCars(mapFragment);
 
-      log.info("CARS 2 -----> {}", CarCounterUtil.countAllCars(mapFragment));
-
       // mapFragment.printFullStatistic();
 
     } catch (Exception e) {

@@ -248,6 +248,11 @@ public class CarProspectorImpl implements CarProspector {
     List<CarReadable> cars = new ArrayList<>();
     for (LaneId laneId: lanes) {
       LaneReadable lane = laneId.getReadable(roadStructureReader);
+
+      if(lane == null){
+        continue;
+      }
+
       List<CarReadable> carsFromExit = lane.streamCarsFromExitReadable().toList();
       if(!carsFromExit.isEmpty()) {
         cars.add(carsFromExit.stream().findFirst().get());
