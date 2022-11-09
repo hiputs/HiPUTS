@@ -1,5 +1,8 @@
 package pl.edu.agh.hiputs.model.car.driver;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,13 +67,22 @@ public class Driver implements IDriver {
     log.trace("Car: " + car.getCarId() + ", environment: " + environment);
 
     Optional<CrossroadDecisionProperties> crossroadDecisionProperties = Optional.empty();
-    if(environment.getPrecedingCar().isPresent()){
-      acceleration = idmDecider.makeDecision(car, environment, roadStructureReader);
+    try {
+      if (environment.getPrecedingCar().isPresent()) {
+        acceleration = idmDecider.makeDecision(car, environment, roadStructureReader);
+      } else {
+        JunctionDecision junctionDecision = junctionDecider.makeDecision(car, environment, roadStructureReader);
+        acceleration = junctionDecision.getAcceleration();
+        crossroadDecisionProperties = junctionDecision.getDecisionProperties();
+      }
     }
-    else{
-      JunctionDecision junctionDecision = junctionDecider.makeDecision(car, environment, roadStructureReader);
-      acceleration = junctionDecision.getAcceleration();
-      crossroadDecisionProperties = junctionDecision.getDecisionProperties();
+    catch (Exception e){
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      e.printStackTrace(pw);
+      log.error("Car: " + car.getCarId() + " caught error: \n" + e.getClass() + " : " + e.getMessage() + "\n" + sw.toString());
+      acceleration = 0.1; //set default acceleration to move car to prevent stand here for a long time with error.
+      crossroadDecisionProperties = Optional.empty();
     }
 
     /*if(limitAccelerationPreventReversing(acceleration, car, timeStep) <= acceleration) {
