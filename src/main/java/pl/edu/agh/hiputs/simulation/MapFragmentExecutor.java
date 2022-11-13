@@ -99,7 +99,6 @@ public class MapFragmentExecutor {
 
       // 11. gen new car
       log.info("Step 11 start");
-      log.info("CARS 1 -----> {}", CarCounterUtil.countAllCars(mapFragment));
 
       carGeneratorService.generateCars(mapFragment);
 

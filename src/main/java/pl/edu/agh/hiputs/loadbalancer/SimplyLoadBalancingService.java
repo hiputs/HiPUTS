@@ -2,7 +2,6 @@ package pl.edu.agh.hiputs.loadbalancer;
 
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.LoadInfo;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
@@ -16,6 +15,7 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
+import pl.edu.agh.hiputs.loadbalancer.utils.TimeToCarCostUtil;
 import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
@@ -94,8 +94,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
       }
 
       loadBalancingDecision.setSelectedNeighbour(candidate.getLeft());
-      loadBalancingDecision.setCarImbalanceRate(
-          (info.getCarCost() - loadRepository.get(candidate.getLeft()).getCarCost()) / 2);
+      loadBalancingDecision.setCarImbalanceRate(TimeToCarCostUtil.getCarsToTransfer(info, loadRepository.get(candidate.getLeft())));
     } catch (Exception e) {
       log.error("Could not make decision", e);
       loadBalancingDecision.setLoadBalancingRecommended(false);

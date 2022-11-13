@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.communication.model.serializable;
 
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,6 +53,7 @@ public class SerializedDecision implements CustomSerializable<Decision> {
         .laneId(new LaneId(laneId))
         .positionOnLane(positionOnLane)
         .offsetToMoveOnRoute(offsetToMoveOnRoute)
+        .crossroadDecisionProperties(Optional.empty())
         .build();
   }
 }

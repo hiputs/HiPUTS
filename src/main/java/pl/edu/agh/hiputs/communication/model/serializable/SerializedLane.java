@@ -20,8 +20,17 @@ public class SerializedLane implements CustomSerializable<List<Car>> {
   List<SerializedCar> cars;
 
   public SerializedLane(LaneEditable lane) {
-    cars = lane.streamCarsFromEntryEditable().map(SerializedCar::new).collect(Collectors.toList());
+    cars = getCars(lane);lane.streamCarsFromEntryEditable().map(SerializedCar::new).collect(Collectors.toList());
     laneId = lane.getLaneId().getValue();
+  }
+
+  private List<SerializedCar> getCars(LaneEditable lane) {
+    try {
+      return lane.streamCarsFromEntryEditable().map(SerializedCar::new).collect(Collectors.toList());
+    } catch (Exception e){
+      log.warn("Error get Cars from lane", e);
+      return List.of();
+    }
   }
 
   @Override

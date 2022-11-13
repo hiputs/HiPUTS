@@ -42,7 +42,6 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
   private static final int MAX_PATCH_EXCHANGE = 40;
   private final PatchTransferService patchTransferService;
-  private final ConfigurationService configurationService;
   private final SimplyLoadBalancingService simplyLoadBalancingService;
   private final PidLoadBalancingService pidLoadBalancingService;
   private final SimulationStatisticService simulationStatisticService;
@@ -64,7 +63,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   @Override
   public MapFragmentId startLoadBalancing(TransferDataHandler transferDataHandler) {
 
-    if (configurationService.getConfiguration().getWorkerCount() == 1) {
+    if (ConfigurationService.getConfiguration().getWorkerCount() == 1) {
       return null;
     }
 
@@ -206,11 +205,10 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   }
 
   private LoadBalancingStrategy getStrategyByMode() {
-    return switch (configurationService.getConfiguration().getBalancingMode()) {
+    return switch (ConfigurationService.getConfiguration().getBalancingMode()) {
       case SIMPLY -> simplyLoadBalancingService;
       case PID -> pidLoadBalancingService;
-      case NONE -> noneLoadBalancingService;
-      default -> null;
+      default -> noneLoadBalancingService;
     };
   }
 

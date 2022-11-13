@@ -20,6 +20,7 @@ import pl.edu.agh.hiputs.loadbalancer.PID.ZieglerNicholsAutoTuner;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
+import pl.edu.agh.hiputs.loadbalancer.utils.TimeToCarCostUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.service.ConfigurationService;
@@ -73,23 +74,23 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
 
     double myCost = MapFragmentCostCalculatorUtil.calculateCost(info);
 
-    double carBalanceTarget = carPID.nextValue(info.getCarCost());
+    double timeBalanceTarget = carPID.nextValue(info.getTimeCost());
     // double timeBalanceTarget = timePID.nextValue(info.getTimeCost());
-    log.debug("My cost {}, carTarget {}, time target {}", myCost, carBalanceTarget, 0);
+    log.debug("My cost {}, carTarget {}, time target {}", myCost, timeBalanceTarget, 0);
 
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, step, info.getWaitingTime());
     step++;
 
-    if (carBalanceTarget > 0 || transferDataHandler.getLocalPatchesSize() < 5 ) {
+    if (timeBalanceTarget > 0 || transferDataHandler.getLocalPatchesSize() < 5 ) {
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
     }
 
-    carBalanceTarget = Math.abs(carBalanceTarget);
+    timeBalanceTarget = Math.abs(timeBalanceTarget);
     // timeBalanceTarget = Math.abs(timeBalanceTarget);
-    log.debug("Car imbalance: {}, time imbalance: {}",carBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE, 0);
+    log.debug("Car imbalance: {}, time imbalance: {}",timeBalanceTarget / carPID.getTarget() <= ALLOW_LOAD_IMBALANCE, 0);
 
-    if (carBalanceTarget <= 10) {
+    if (timeBalanceTarget <= 10) {
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
     }
@@ -104,7 +105,8 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
     }
 
     loadBalancingDecision.setSelectedNeighbour(candidate.getLeft());
-    loadBalancingDecision.setCarImbalanceRate((long) carBalanceTarget);
+    loadBalancingDecision.setCarImbalanceRate(TimeToCarCostUtil.getCarsToTransferByDiff(info, loadRepository.get(candidate.getLeft()), timeBalanceTarget));
+    loadBalancingDecision.setCarImbalanceRate((long) timeBalanceTarget);
     return loadBalancingDecision;
   }
 
