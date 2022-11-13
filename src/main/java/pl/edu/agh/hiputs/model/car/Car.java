@@ -106,7 +106,10 @@ public class Car implements CarEditable {
       log.trace("Car: " + this.getCarId() + " was removed due to decision null");
       return Optional.empty();
     }
+
+    Optional<CrossroadDecisionProperties> decisionProperties = decision.getCrossroadDecisionProperties();
     if(decision.getCrossroadDecisionProperties().isEmpty() && this.crossroadDecisionProperties.isPresent()){
+      decisionProperties = Optional.empty();
       log.trace("Car: " + carId + " reset crossroadDecisionProperties");
     }
     this.crossroadDecisionProperties = decisionProperties;
