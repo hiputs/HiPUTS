@@ -10,10 +10,13 @@ import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
+import pl.edu.agh.hiputs.model.car.driver.Driver;
+import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
 import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Getter
@@ -66,6 +69,11 @@ public class SerializedCar implements CustomSerializable<Car> {
    */
   private SerializedDecision decision;
 
+  /**
+   * Serialized crossroadDecisionProperties
+   */
+  private final SerializedCrossroadDecisionProperties crossroadDecisionProperties;
+
   public SerializedCar(CarEditable realObject) {
     carId = realObject.getCarId().getValue();
     speed = realObject.getSpeed();
@@ -86,6 +94,7 @@ public class SerializedCar implements CustomSerializable<Car> {
     } catch (Exception e) {
       log.error("NLP TMP FIXES !!!!");
     }
+    crossroadDecisionProperties = new SerializedCrossroadDecisionProperties(realObject.getCrossRoadDecisionProperties());
   }
 
   @Override
@@ -108,6 +117,8 @@ public class SerializedCar implements CustomSerializable<Car> {
         .laneId(new LaneId(laneId))
         .positionOnLane(positionOnLane)
         .decision(decision.toRealObject())
+        .crossroadDecisionProperties(crossroadDecisionProperties.toRealObject())
+        .driver(new Driver(new DriverParameters(ConfigurationService.getConfiguration())))
         .build();
   }
 }
