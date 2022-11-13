@@ -17,13 +17,15 @@ public class VisualizationStateChangeConsumer {
 
   private final VisualizationSynchronisationService visualizationSynchronisationService;
 
-  @KafkaListener(topics = VISUALIZATION_STATE_CHANGE_TOPIC, groupId = VISUALIZATION_STATE_CHANGE_TOPIC,
+  @KafkaListener(
+      topics = VISUALIZATION_STATE_CHANGE_TOPIC,
+      groupId = VISUALIZATION_STATE_CHANGE_TOPIC,
+      id = VISUALIZATION_STATE_CHANGE_TOPIC,
+      autoStartup = "false",
       properties = {"specific.protobuf.value.type: proto.model.VisualizationStateChangeMessage"})
   void stateChangeListener(ConsumerRecord<String, VisualizationStateChangeMessage> record) {
     VisualizationStateChangeMessage visualizationStateChangeMessage = record.value();
     log.info("Consumed VisualizationStateChangeMessage:{}", visualizationStateChangeMessage.getStateChange());
-
-    visualizationSynchronisationService.updateVisualizationState(visualizationStateChangeMessage.getStateChange());
-
+    visualizationSynchronisationService.changeVisualizationState(visualizationStateChangeMessage.getStateChange());
   }
 }

@@ -71,7 +71,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   private final StatisticSummaryService statisticSummaryService;
 
-  private final AtomicBoolean lock = new AtomicBoolean(false);
+  private volatile boolean isSimulationStopped = false;
 
   @PostConstruct
   void init() {
@@ -181,13 +181,13 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   @SneakyThrows
   private void stopSimulation() {
-    System.out.println("Stop simulation");
-    lock.compareAndSet(false, true);
+    log.info("Worker with mapFragmentId: {} is stopped", mapFragmentId.getId());
+    isSimulationStopped = true;
   }
 
   private void resumeSimulation() {
-    System.out.println("Resume simulation");
-    lock.set(false);
+    log.info("Worker with mapFragmentId: {} is resumed", mapFragmentId.getId());
+    isSimulationStopped = false;
   }
 
   @Override
@@ -198,7 +198,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       monitorLocalService.init(mapFragmentExecutor.getMapFragment());
       statisticSummaryService.startTiming();
       while (i < n) {
-        if (lock.get()) {
+        if (isSimulationStopped) {
           continue;
         }
         log.info("Start iteration no. {}/{}", i, n);
