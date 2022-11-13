@@ -8,9 +8,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Configurable;
-import pl.edu.agh.hiputs.model.Configuration;
-import pl.edu.agh.hiputs.model.car.driver.Driver;
-import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.car.driver.IDriver;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionProperties;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -112,7 +109,7 @@ public class Car implements CarEditable {
     if(decision.getCrossroadDecisionProperties().isEmpty() && this.crossroadDecisionProperties.isPresent()){
       log.trace("Car: " + carId + " reset crossroadDecisionProperties");
     }
-    this.crossroadDecisionProperties = decision.getCrossroadDecisionProperties();
+    this.crossroadDecisionProperties = decisionProperties;
 
     Optional<LaneId> laneId = this.getRouteOffsetLaneId(0);
     if(laneId.isPresent() && !this.laneId.equals(laneId.get())){

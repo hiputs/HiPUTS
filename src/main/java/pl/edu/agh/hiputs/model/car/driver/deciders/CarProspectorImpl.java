@@ -215,7 +215,7 @@ public class CarProspectorImpl implements CarProspector {
 
   private boolean filterActiveLane(LaneId laneId, CarId currentCarId, RoadStructureReader roadStructureReader){
     LaneReadable lane = laneId.getReadable(roadStructureReader);
-    Optional<CarReadable> conflictCarOptional = lane.streamCarsFromExitReadable().findFirst();
+    Optional<CarReadable> conflictCarOptional = (lane != null) ? lane.streamCarsFromExitReadable().findFirst() : Optional.empty();
     return conflictCarOptional.isPresent() && (conflictCarOptional.get().getCrossRoadDecisionProperties().isEmpty()
         || conflictCarOptional.get().getCrossRoadDecisionProperties().get().getGiveWayVehicleId().isEmpty()
         || !conflictCarOptional.get().getCrossRoadDecisionProperties().get().getGiveWayVehicleId().get().equals(currentCarId));
@@ -234,11 +234,13 @@ public class CarProspectorImpl implements CarProspector {
     List<CarBasicDeciderData> conflictCars = new ArrayList<>();
     for (LaneId laneId: conflictLanes) {
       LaneReadable lane = laneId.getReadable(roadStructureReader);
-      Optional<CarReadable> conflictCarOptional = lane.streamCarsFromExitReadable().findFirst();
-      if(conflictCarOptional.isPresent()){
-        CarReadable conflictCar = conflictCarOptional.get();
-        double distance = lane.getLength() - conflictCar.getPositionOnLane();
-        conflictCars.add(new CarBasicDeciderData(conflictCar.getSpeed(), distance, conflictCar.getLength()));
+      if(lane != null) {
+        Optional<CarReadable> conflictCarOptional = lane.streamCarsFromExitReadable().findFirst();
+        if (conflictCarOptional.isPresent()) {
+          CarReadable conflictCar = conflictCarOptional.get();
+          double distance = lane.getLength() - conflictCar.getPositionOnLane();
+          conflictCars.add(new CarBasicDeciderData(conflictCar.getSpeed(), distance, conflictCar.getLength()));
+        }
       }
     }
     return conflictCars;
@@ -249,12 +251,12 @@ public class CarProspectorImpl implements CarProspector {
     for (LaneId laneId: lanes) {
       LaneReadable lane = laneId.getReadable(roadStructureReader);
 
-      if(lane == null){
+      if (lane == null) {
         continue;
       }
 
       List<CarReadable> carsFromExit = lane.streamCarsFromExitReadable().toList();
-      if(!carsFromExit.isEmpty()) {
+      if (!carsFromExit.isEmpty()) {
         cars.add(carsFromExit.stream().findFirst().get());
       }
     }
@@ -264,15 +266,17 @@ public class CarProspectorImpl implements CarProspector {
     List<CarTrailDeciderData> conflictCars = new ArrayList<>();
     for (LaneId laneId: conflictLanes) {
       LaneReadable lane = laneId.getReadable(roadStructureReader);
-      double maxSpeed = Double.MAX_VALUE;//lane.getMaxSpeed(); // #TODO Get max speed from lane when it will be available
-      List<CarReadable> carsFromExit = lane.streamCarsFromExitReadable().toList();
-      CarId firstCarId = null;
-      if(!carsFromExit.isEmpty()) {
-        firstCarId = carsFromExit.stream().findFirst().get().getCarId();
-        for (CarReadable conflictCar : carsFromExit) {
-          double distance = lane.getLength() - conflictCar.getPositionOnLane() - conflictAreaLength / 2;
-          conflictCars.add(new CarTrailDeciderData(conflictCar.getSpeed(), distance, conflictCar.getLength(),
-              conflictCar.getAcceleration(), Math.min(maxSpeed, conflictCar.getMaxSpeed()), firstCarId, lane.getLaneId(), conflictCar.getRouteOffsetLaneId(1)));
+      if(lane != null) {
+        double maxSpeed = Double.MAX_VALUE;//lane.getMaxSpeed(); // #TODO Get max speed from lane when it will be available
+        List<CarReadable> carsFromExit = lane.streamCarsFromExitReadable().toList();
+        CarId firstCarId = null;
+        if (!carsFromExit.isEmpty()) {
+          firstCarId = carsFromExit.stream().findFirst().get().getCarId();
+          for (CarReadable conflictCar : carsFromExit) {
+            double distance = lane.getLength() - conflictCar.getPositionOnLane() - conflictAreaLength / 2;
+            conflictCars.add(new CarTrailDeciderData(conflictCar.getSpeed(), distance, conflictCar.getLength(),
+                conflictCar.getAcceleration(), Math.min(maxSpeed, conflictCar.getMaxSpeed()), firstCarId, lane.getLaneId(), conflictCar.getRouteOffsetLaneId(1)));
+          }
         }
       }
 
