@@ -20,7 +20,7 @@ public class SerializedLane implements CustomSerializable<List<Car>> {
   List<SerializedCar> cars;
 
   public SerializedLane(LaneEditable lane) {
-    cars = getCars(lane);lane.streamCarsFromEntryEditable().map(SerializedCar::new).collect(Collectors.toList());
+    cars = getCars(lane);
     laneId = lane.getLaneId().getValue();
   }
 
