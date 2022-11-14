@@ -104,7 +104,7 @@ public class MapFragmentExecutor {
 
       carGeneratorService.generateCars(mapFragment);
 
-      mapFragment.printFullStatistic();
+      // mapFragment.printFullStatistic();
 
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);

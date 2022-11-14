@@ -16,7 +16,6 @@ import pl.edu.agh.hiputs.scheduler.exception.InsufficientSystemResourcesExceptio
 public class SchedulerService implements TaskExecutorService {
 
   private ForkJoinPool threadPoolExecutor;
-  private static final int RESERVED_THREADS_NUMBER = 1;
 
   @PostConstruct
   public void init() {
@@ -29,7 +28,7 @@ public class SchedulerService implements TaskExecutorService {
   }
 
   private int getFreeCores() {
-    return 2;//Runtime.getRuntime().availableProcessors() - RESERVED_THREADS_NUMBER;
+    return Runtime.getRuntime().availableProcessors();
   }
 
   @Override
