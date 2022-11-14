@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.PostConstruct;
@@ -70,10 +71,10 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
                 transferDataHandler.getMapFragmentIdByPatchId(id).getId());
           } catch (NullPointerException e){
             log.error("Not found mapFragmentId for {}", id.getValue());
-            return  new ImmutablePair<>(id.getValue(),
-                transferDataHandler.getMapFragmentIdByPatchId(id).getId());
+            return  null;
           }
         } )
+        .filter(Objects::nonNull)
         .toList();
 
     List<ConnectionDto> neighbourConnectionDtos = patchIdWithMapFragmentId.stream()

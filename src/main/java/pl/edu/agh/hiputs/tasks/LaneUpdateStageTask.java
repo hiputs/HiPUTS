@@ -49,21 +49,23 @@ public class LaneUpdateStageTask implements Runnable {
    * @param lane
    */
   private void updateCarsOnLane(LaneEditable lane) {
-    List<CarEditable> carsToRemove = lane
-        .streamCarsFromExitEditable()
-        .filter(car -> !Objects.equals(car.getDecision().getLaneId(), laneId) || car.update().isEmpty())
-        .collect(Collectors.toList());
-    for (CarEditable car : carsToRemove) {
-      lane.removeCar(car);
-          //If remove instance which stay on old lane draw warning
-      if(!Objects.equals(car.getDecision().getLaneId(), laneId)){
-        //#TODO change log to warning when repair junction decider
-        // log.trace("Car: " + car.getCarId() + " car remove from lane: " + laneId + " due incorrect laneId in decision: " + car.getDecision().getLaneId());
+    try {
+      List<CarEditable> carsToRemove = lane.streamCarsFromExitEditable()
+          .filter(car -> !Objects.equals(car.getDecision().getLaneId(), laneId) || car.update().isEmpty())
+          .toList();
+      for (CarEditable car : carsToRemove) {
+        lane.removeCar(car);
+        //If remove instance which stay on old lane draw warning
+        if (!Objects.equals(car.getDecision().getLaneId(), laneId)) {
+          //#TODO change log to warning when repair junction decider
+          // log.trace("Car: " + car.getCarId() + " car remove from lane: " + laneId + " due incorrect laneId in decision: " + car.getDecision().getLaneId());
+        } else {
+          log.warn("Car: " + car.getCarId() + " car remove from lane: " + laneId);
+        }
       }
-      else{
-        log.warn("Car: " + car.getCarId() + " car remove from lane: " + laneId);
+    }catch (Exception e) {
+       log.warn("Error uptade lane - incorrect map error");
       }
-    }
   }
 
   /**
