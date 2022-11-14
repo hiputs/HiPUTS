@@ -90,6 +90,7 @@ public class MapFragmentExecutor {
       // 9. send and receive remote patches (border patches)
       log.info("Step 9 start");
       carsOnBorderSynchronizationService.sendCarsOnBorderToNeighbours(mapFragment);
+      log.info("Step 9 - 1 start");
       carsOnBorderSynchronizationService.synchronizedGetRemoteCars(mapFragment);
 
       monitorLocalService.markPointAsFinish(SimulationPoint.WAITING_FOR_SECOND_ITERATION);

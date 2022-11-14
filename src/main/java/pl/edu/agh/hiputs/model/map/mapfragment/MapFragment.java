@@ -163,7 +163,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       if (lane != null) {
         lane.addIncomingCar(car);
       } else {
-        log.warn("Not found lane {}, patchId {}", car.getDecision().getLaneId(), DebugUtils.getMapRepository().getPatchIdByLaneId( car.getDecision().getLaneId()).getValue());
+        // log.warn("Not found lane {}, patchId {}", car.getDecision().getLaneId(), DebugUtils.getMapRepository().getPatchIdByLaneId( car.getDecision().getLaneId()).getValue());
       }
 
     }).toList();

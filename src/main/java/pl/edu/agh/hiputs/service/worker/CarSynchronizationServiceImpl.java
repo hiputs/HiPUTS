@@ -87,25 +87,30 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   @Override
   public synchronized void synchronizedGetIncomingSetsOfCars(TransferDataHandler mapFragment) {
     int countOfNeighbours = mapFragment.getNeighbors().size();
-    while (incomingMessages.size() < countOfNeighbours) {
+    int readedMessage = 0;
+    while (incomingMessages.size() < countOfNeighbours && readedMessage < countOfNeighbours) {
       try {
         this.wait(1000);
-        log.warn("Waiting for: {}", getWeaitingByMessage());
+        readedMessage += applyMessages(mapFragment, readedMessage);
       } catch (InterruptedException e) {
         log.error(e.getMessage());
         throw new RuntimeException(e);
       }
     }
 
-    List<Runnable> injectIncomingCarTasks = incomingMessages.stream()
+    applyMessages(mapFragment, readedMessage);
+    incomingMessages.addAll(futureIncomingMessages);
+    futureIncomingMessages.clear();
+  }
+
+  private int applyMessages(TransferDataHandler mapFragment, int start) {
+    List<Runnable> injectIncomingCarTasks = incomingMessages.subList(start, incomingMessages.size())
+        .stream()
         .map(message -> new InjectIncomingCarsTask(message.getCars(), mapFragment))
         .collect(Collectors.toList());
 
     taskExecutorService.executeBatch(injectIncomingCarTasks);
-
-    incomingMessages.clear();
-    incomingMessages.addAll(futureIncomingMessages);
-    futureIncomingMessages.clear();
+    return injectIncomingCarTasks.size();
   }
 
   private String getWeaitingByMessage() {
