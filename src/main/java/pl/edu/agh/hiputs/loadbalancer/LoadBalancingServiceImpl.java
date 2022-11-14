@@ -69,7 +69,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
     List<MapFragmentId> neighboursToNotify = List.copyOf(transferDataHandler.getNeighbors());
     balance(transferDataHandler);
-    synchronizedWithNeighbour(neighboursToNotify);
+    synchronizedWithNeighbour(neighboursToNotify, lastLoadBalancingCandidate, transferDataHandler);
     return lastLoadBalancingCandidate;
   }
 
@@ -116,7 +116,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
     patchTransferService.sendPatchMessage(recipient, serializedPatchTransfers);
   }
 
-  private synchronized void synchronizedWithNeighbour(List<MapFragmentId> neighboursToNotify) {
+  private synchronized void synchronizedWithNeighbour(List<MapFragmentId> neighboursToNotify, MapFragmentId selectedCandidate, TransferDataHandler mapFragment) {
 
     neighboursToNotify.forEach(id -> {
       try {
@@ -125,9 +125,13 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
         log.error("Error util send synchronization message");
       }
     });
+
     while (synchronizationLoadBalancingList.size() < neighboursToNotify.size()) {
       try {
-        this.wait(500);
+        this.wait(100);
+        patchTransferService.retransmitNotification(selectedCandidate);
+        patchTransferService.handleReceivedPatch(mapFragment);
+        patchTransferService.handleNotificationPatch(mapFragment);
       } catch (InterruptedException e) {
         log.error("error until wait for loadbalancing synchronization");
       }
