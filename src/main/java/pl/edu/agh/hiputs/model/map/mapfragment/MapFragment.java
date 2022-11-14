@@ -222,7 +222,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   @Override
   public void migratePatchToNeighbour(Patch patch, MapFragmentId neighbourId, TicketService ticketService) {
-    //log.info("migrate to nieghbours patch {} id {}", patch.getPatchId().getValue(), neighbourId.getId());
+    log.info("migrate to nieghbours patch {} id {}", patch.getPatchId().getValue(), neighbourId.getId());
     // remove from local patches
     localPatchIds.remove(patch.getPatchId());
 
@@ -258,7 +258,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   public void migratePatchToMe(PatchId patchId, MapFragmentId neighbourId, MapRepository mapRepository,
       List<ImmutablePair<PatchId, MapFragmentId>> neighbourPatchIdsWithMapFragmentId, TicketService ticketService) {
-    // log.info("I got patchId {}  from {}", patchId.getValue(), neighbourId.getId());
+    log.info("I got patchId {}  from {}", patchId.getValue(), neighbourId.getId());
     Patch patch = knownPatches.get(patchId);
 
     if (patch == null) {
@@ -335,7 +335,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   @Override
   public void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId destination, MapFragmentId source, TicketService ticketService) {
-    // log.info("handle migration patch between neighbours {} -> {}, {}", source.getId(), destination.getId(), patchId.getValue());
+    log.info("handle migration patch between neighbours {} -> {}, {}", source.getId(), destination.getId(), patchId.getValue());
     if (!knownPatches.containsKey(patchId)) {
       return;
     }
@@ -493,7 +493,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
             .collect(Collectors.joining(",")))
         .collect(Collectors.joining("\n"));
 
-    String response = "****************************\n"
+    String response = "\n************"+ mapFragmentId.getId()+"****************\n"
         + "local: " + localPatch + "\n" +
         "border: \n"+ borderPatches + "\n" +
         "shadow: \n"+ shadowPatches + "\n" +

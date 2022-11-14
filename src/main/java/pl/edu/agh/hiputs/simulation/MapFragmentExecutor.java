@@ -15,6 +15,7 @@ import pl.edu.agh.hiputs.loadbalancer.LoadBalancingService;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint;
 import pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil;
+import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.service.ConfigurationService;
@@ -80,7 +81,8 @@ public class MapFragmentExecutor {
 
       // 8. load balancing
       log.info("Step 8 start");
-      loadBalancingService.startLoadBalancing(mapFragment);
+      MapFragmentId selectedCandidate = loadBalancingService.startLoadBalancing(mapFragment);
+      patchTransferService.retransmitNotification(selectedCandidate);
       patchTransferService.handleReceivedPatch(mapFragment);
       patchTransferService.handleNotificationPatch(mapFragment);
       monitorLocalService.markPointAsFinish(SimulationPoint.LOAD_BALANCING);
@@ -102,7 +104,7 @@ public class MapFragmentExecutor {
 
       carGeneratorService.generateCars(mapFragment);
 
-      // mapFragment.printFullStatistic();
+      mapFragment.printFullStatistic();
 
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);
