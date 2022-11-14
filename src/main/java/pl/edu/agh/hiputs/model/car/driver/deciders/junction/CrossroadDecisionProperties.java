@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.model.car.driver.deciders.junction;
 
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -9,6 +10,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 
 @AllArgsConstructor
 @Getter
+@Builder
 @ToString
 public class CrossroadDecisionProperties {
   private CarId blockingCarId;

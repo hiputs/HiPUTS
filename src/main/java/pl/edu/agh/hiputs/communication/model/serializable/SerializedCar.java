@@ -69,6 +69,11 @@ public class SerializedCar implements CustomSerializable<Car> {
    */
   private SerializedDecision decision;
 
+  /**
+   * Serialized crossroadDecisionProperties
+   */
+  private final SerializedCrossroadDecisionProperties crossroadDecisionProperties;
+
   public SerializedCar(CarEditable realObject) {
     carId = realObject.getCarId().getValue();
     speed = realObject.getSpeed();
@@ -89,6 +94,7 @@ public class SerializedCar implements CustomSerializable<Car> {
     } catch (Exception e) {
       log.error("NLP TMP FIXES !!!!");
     }
+    crossroadDecisionProperties = new SerializedCrossroadDecisionProperties(realObject.getCrossRoadDecisionProperties());
   }
 
   @Override
@@ -111,6 +117,7 @@ public class SerializedCar implements CustomSerializable<Car> {
         .laneId(new LaneId(laneId))
         .positionOnLane(positionOnLane)
         .decision(decision.toRealObject())
+        .crossroadDecisionProperties(crossroadDecisionProperties.toRealObject())
         .driver(new Driver(new DriverParameters(ConfigurationService.getConfiguration())))
         .build();
   }

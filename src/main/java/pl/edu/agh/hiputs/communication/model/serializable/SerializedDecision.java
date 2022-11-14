@@ -1,6 +1,5 @@
 package pl.edu.agh.hiputs.communication.model.serializable;
 
-import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,12 +36,18 @@ public class SerializedDecision implements CustomSerializable<Decision> {
    */
   private final int offsetToMoveOnRoute;
 
+  /**
+   * Serialized crossroadDecisionProperties
+   */
+  private final SerializedCrossroadDecisionProperties crossroadDecisionProperties;
+
   public SerializedDecision(Decision readObject) {
     this.speed = readObject.getSpeed();
     this.acceleration = readObject.getAcceleration();
     this.laneId = readObject.getLaneId().getValue();
     this.positionOnLane = readObject.getPositionOnLane();
     this.offsetToMoveOnRoute = readObject.getOffsetToMoveOnRoute();
+    this.crossroadDecisionProperties = new SerializedCrossroadDecisionProperties(readObject.getCrossroadDecisionProperties());
   }
 
   @Override
@@ -53,7 +58,7 @@ public class SerializedDecision implements CustomSerializable<Decision> {
         .laneId(new LaneId(laneId))
         .positionOnLane(positionOnLane)
         .offsetToMoveOnRoute(offsetToMoveOnRoute)
-        .crossroadDecisionProperties(Optional.empty())
+        .crossroadDecisionProperties(crossroadDecisionProperties.toRealObject())
         .build();
   }
 }
