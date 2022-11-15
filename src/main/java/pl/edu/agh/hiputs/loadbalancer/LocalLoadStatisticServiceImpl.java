@@ -22,7 +22,7 @@ import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.LoadBalan
 public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService, MonitorLocalService {
 
   private static final Set<SimulationPoint> ACTIVE_TIME =
-      Set.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SECOND_ITERATION);
+      Set.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SECOND_ITERATION, SimulationPoint.SYNCHRONIZATION_AREA);
   private static final Set<SimulationPoint> WAITING_TIME =
       Set.of(SimulationPoint.WAITING_FOR_FIRST_ITERATION, SimulationPoint.WAITING_FOR_SECOND_ITERATION);
   private final ConfigurationService configurationService;

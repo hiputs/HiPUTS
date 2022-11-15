@@ -2,9 +2,9 @@ package pl.edu.agh.hiputs.communication.service.server;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -14,7 +14,9 @@ import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 
@@ -76,7 +78,7 @@ public class ConnectionInitializationService {
         log.info(String.format("New connection from: %s:%s", clientConnectionSocket.getInetAddress().getHostAddress(),
             clientConnectionSocket.getPort()));
 
-        ObjectInputStream input = new ObjectInputStream(clientConnectionSocket.getInputStream());
+        DataInputStream input = new DataInputStream(clientConnectionSocket.getInputStream());
         WorkerConnectionMessage workerConnectionMessage = getWorkerConnectionMessage(input);
         workerConnectionMessage.setAddress(clientConnectionSocket.getInetAddress().getHostAddress());
 
@@ -91,9 +93,11 @@ public class ConnectionInitializationService {
       }
     }
 
-    private WorkerConnectionMessage getWorkerConnectionMessage(ObjectInputStream objectInputStream)
+    private WorkerConnectionMessage getWorkerConnectionMessage(DataInputStream inputStream)
         throws IOException, ClassNotFoundException {
-      return (WorkerConnectionMessage) objectInputStream.readObject();
+      int length = inputStream.readInt();
+      byte[] bytes = inputStream.readNBytes(length);
+      return  (WorkerConnectionMessage) SerializationUtils.deserialize(bytes);
     }
   }
 }

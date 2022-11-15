@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.RouteElement;
@@ -67,12 +68,12 @@ public class SerializedCar implements CustomSerializable<Car> {
   /**
    * Serialized decision
    */
-  private SerializedDecision decision;
+  private byte[] decision;
 
   /**
    * Serialized crossroadDecisionProperties
    */
-  private final SerializedCrossroadDecisionProperties crossroadDecisionProperties;
+  private final byte[] crossroadDecisionProperties;
 
   public SerializedCar(CarEditable realObject) {
     carId = realObject.getCarId().getValue();
@@ -90,11 +91,11 @@ public class SerializedCar implements CustomSerializable<Car> {
             routeElement.getOutgoingLaneId().getValue(), routeElement.getJunctionId().getJunctionType().name()))
         .collect(Collectors.toList());
     try {
-      decision = new SerializedDecision(realObject.getDecision());
+      decision = SerializationUtils.serialize(new SerializedDecision(realObject.getDecision()));
     } catch (Exception e) {
       log.error("NLP TMP FIXES !!!!");
     }
-    crossroadDecisionProperties = new SerializedCrossroadDecisionProperties(realObject.getCrossRoadDecisionProperties());
+    crossroadDecisionProperties = SerializationUtils.serialize(new SerializedCrossroadDecisionProperties(realObject.getCrossRoadDecisionProperties()));
   }
 
   @Override
@@ -116,8 +117,8 @@ public class SerializedCar implements CustomSerializable<Car> {
         .speed(speed)
         .laneId(new LaneId(laneId))
         .positionOnLane(positionOnLane)
-        .decision(decision.toRealObject())
-        .crossroadDecisionProperties(crossroadDecisionProperties.toRealObject())
+        .decision(((SerializedDecision)SerializationUtils.deserialize(decision)).toRealObject())
+        .crossroadDecisionProperties(((SerializedCrossroadDecisionProperties) SerializationUtils.deserialize(crossroadDecisionProperties)).toRealObject())
         .driver(new Driver(new DriverParameters(ConfigurationService.getConfiguration())))
         .build();
   }

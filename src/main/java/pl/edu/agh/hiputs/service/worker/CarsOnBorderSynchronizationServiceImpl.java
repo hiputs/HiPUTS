@@ -52,25 +52,26 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
 
   @Override
   public void sendCarsOnBorderToNeighbours(TransferDataHandler mapFragment) {
+    log.info("Step 9-0-1");
     Set<Patch> distinctBorderPatches = mapFragment.getBorderPatches()
         .values()
         .stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toSet());
-
+    log.info("Step 9-0-2");
     Map<PatchId, Set<SerializedLane>> serializedBorderPatches = distinctBorderPatches
         .parallelStream()
         .map(p -> new ImmutablePair<PatchId, Set<SerializedLane>>(p.getPatchId(), p.parallelStreamLanesEditable()
             .map(SerializedLane::new)
             .collect(Collectors.toSet())) )
         .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
-
+    log.info("Step 9-0-3");
     Map<MapFragmentId, BorderSynchronizationMessage> messages = mapFragment.getBorderPatches()
         .entrySet()
         .parallelStream()
         .map(entry -> new ImmutablePair<>(entry.getKey(), createMessageFrom(entry.getValue(), serializedBorderPatches)))
         .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
-
+    log.info("Step 9-0-4");
     sendMessages(messages);
   }
 

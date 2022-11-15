@@ -71,17 +71,14 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
     actualStep++;
 
-    if(actualStep % 100 > 20){
-      return null;
-    }
+    // if(actualStep % 100 > 20){
+    //   return null;
+    // }
 
     List<MapFragmentId> neighboursToNotify = List.copyOf(transferDataHandler.getNeighbors());
     balance(transferDataHandler);
     synchronizedWithNeighbour(neighboursToNotify);
 
-    patchTransferService.retransmitNotification(lastLoadBalancingCandidate);
-    patchTransferService.handleReceivedPatch(transferDataHandler);
-    patchTransferService.handleNotificationPatch(transferDataHandler);
     return lastLoadBalancingCandidate;
   }
 

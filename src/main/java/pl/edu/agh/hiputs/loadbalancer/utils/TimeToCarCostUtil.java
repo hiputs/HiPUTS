@@ -7,10 +7,10 @@ import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 public class TimeToCarCostUtil {
 
   public static int getCarsToTransfer(LoadBalancingHistoryInfo meInfo, LoadBalancingHistoryInfo candidateInfo) {
-    double mySingleCarTime = meInfo.getTimeCost() / Math.max(meInfo.getCarCost(), 1.0);
-    double candidateSingleCarTime = candidateInfo.getTimeCost() / Math.max(candidateInfo.getCarCost(), 1.0);
+    double mySingleCarTime = (meInfo.getTimeCost() + meInfo.getWaitingTime()) / Math.max(meInfo.getCarCost(), 1.0);
+    double candidateSingleCarTime = (candidateInfo.getTimeCost() + candidateInfo.getWaitingTime()) / Math.max(candidateInfo.getCarCost(), 1.0);
 
-    long timeDiff = Math.abs(candidateInfo.getTimeCost() - meInfo.getTimeCost());
+    long timeDiff = Math.abs((candidateInfo.getTimeCost() + candidateInfo.getWaitingTime()) - (meInfo.getTimeCost() + meInfo.getWaitingTime()));
     double carAvgCost = (mySingleCarTime + candidateSingleCarTime) / 2.0;
 
     return (int) (timeDiff / carAvgCost / 2);

@@ -1,10 +1,13 @@
 package pl.edu.agh.hiputs.communication;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
@@ -17,7 +20,7 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 @Slf4j
 public class Connection {
 
-  private ObjectOutputStream output;
+  private DataOutputStream output;
   private final MapFragmentId id;
 
   public Connection(ConnectionDto message) {
@@ -25,7 +28,7 @@ public class Connection {
     for(int i = 0; i < 10; i++){
       try {
         Socket socket = new Socket(message.getAddress(), message.getPort());
-        output = new ObjectOutputStream(socket.getOutputStream());
+        output = new DataOutputStream(socket.getOutputStream());
         return;
       } catch (IOException e) {
         log.warn("Error connection with neighbour {}", message.getId());
@@ -44,9 +47,12 @@ public class Connection {
       log.info("Connection with worker " + id + " not exist");
       return;
     }
+    byte[] bytes = SerializationUtils.serialize(message);
+    int size = bytes.length;
 
-    output.writeObject(message);
+    output.writeInt(size);
     output.flush();
-    output.reset();
+    output.write(bytes);
+    output.flush();
   }
 }
