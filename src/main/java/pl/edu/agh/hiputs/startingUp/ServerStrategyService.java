@@ -80,8 +80,6 @@ public class ServerStrategyService implements Strategy {
 
   @Override
   public void executeStrategy() throws InterruptedException {
-    kafkaListenerEndpointRegistry.getListenerContainer(VISUALIZATION_STATE_CHANGE_TOPIC).start();
-
     log.info("Running server");
     connectionInitializationService.init();
     workerPrepareExecutor.submit(new PrepareWorkerTask());
@@ -89,6 +87,7 @@ public class ServerStrategyService implements Strategy {
     log.info("Start waiting for all workers be in state WorkerConnection");
     workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
 
+    kafkaListenerEndpointRegistry.getListenerContainer(VISUALIZATION_STATE_CHANGE_TOPIC).start();
     visualizationSynchronisationService.waitForVisualizationStateChangeMessage(STARTED);
 
     Path mapPackagePath = configurationService.getConfiguration().isReadFromOsmDirectly()
