@@ -12,6 +12,8 @@ public class TopicConfiguration {
   public static final String SIMULATION_STATE_CHANGE_TOPIC = "simulation_state_change";
   public static final String VISUALIZATION_STATE_CHANGE_TOPIC = "visualization_state_change";
 
+  public static final String SIMULATION_NOT_OSM_NODES_TOPIC = "simulation_not_osm_nodes_topic";
+
   @Bean
   public NewTopic carsTopic() {
     return TopicBuilder.name(CARS_TOPIC).partitions(1).replicas(1).build();
@@ -25,5 +27,10 @@ public class TopicConfiguration {
   @Bean
   public NewTopic visualizationStateChangeTopic() {
     return TopicBuilder.name(VISUALIZATION_STATE_CHANGE_TOPIC).partitions(1).replicas(1).build();
+  }
+
+  @Bean
+  public NewTopic simulationNotOsmNodesTopic() {
+    return TopicBuilder.name(SIMULATION_NOT_OSM_NODES_TOPIC).partitions(1).replicas(1).build();
   }
 }

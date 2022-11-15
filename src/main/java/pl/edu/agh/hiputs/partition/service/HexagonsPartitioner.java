@@ -252,6 +252,7 @@ public class HexagonsPartitioner implements PatchPartitioner {
             .isCrossroad(false)
             .tags(new HashMap<>())
             .patchId(patchId)
+            .isOsmNode(false)
             .build());
   }
 

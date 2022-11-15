@@ -18,12 +18,20 @@ public class JunctionId {
 
   private final JunctionType junctionType;
 
+  private final boolean isOsmNode;
+
+  public JunctionId(String value, JunctionType junctionType) {
+    this.value = value;
+    this.junctionType = junctionType;
+    this.isOsmNode = true;
+  }
+
   public static JunctionId randomCrossroad() {
-    return new JunctionId(UUID.randomUUID().toString(), JunctionType.CROSSROAD);
+    return new JunctionId(UUID.randomUUID().toString(), JunctionType.CROSSROAD, false);
   }
 
   public static JunctionId randomBend() {
-    return new JunctionId(UUID.randomUUID().toString(), JunctionType.BEND);
+    return new JunctionId(UUID.randomUUID().toString(), JunctionType.BEND, false);
   }
 
   public boolean isCrossroad() {
@@ -40,6 +48,6 @@ public class JunctionId {
 
   @Override
   public String toString() {
-    return "JunctionId{" + value + " type=" + junctionType + '}';
+    return "JunctionId{" + value + " type=" + junctionType + " isOsmNode=" + isOsmNode + '}';
   }
 }
