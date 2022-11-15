@@ -81,10 +81,7 @@ public class MapFragmentExecutor {
 
       // 8. load balancing
       log.info("Step 8 start");
-      MapFragmentId selectedCandidate = loadBalancingService.startLoadBalancing(mapFragment);
-      patchTransferService.retransmitNotification(selectedCandidate);
-      patchTransferService.handleReceivedPatch(mapFragment);
-      patchTransferService.handleNotificationPatch(mapFragment);
+      loadBalancingService.startLoadBalancing(mapFragment);
       monitorLocalService.markPointAsFinish(SimulationPoint.LOAD_BALANCING);
 
       // 9. send and receive remote patches (border patches)

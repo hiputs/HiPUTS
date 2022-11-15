@@ -17,8 +17,9 @@ public class NoneLoadBalancingStrategy implements LoadBalancingStrategy{
 
   int age = 0;
   @Override
-  public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler) {
+  public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler, int actualStep) {
     LoadBalancingDecision loadBalancingDecision = new LoadBalancingDecision();
+    age = actualStep;
     loadBalancingDecision.setAge(age);
     loadBalancingDecision.setLoadBalancingRecommended(false);
 

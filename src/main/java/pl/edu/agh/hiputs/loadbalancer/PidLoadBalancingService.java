@@ -59,11 +59,10 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
   }
 
   @Override
-  public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler) {
-
-    if(step < INITIALIZATION_STEP + 1) { // first step we use  SIMPLY algorithm
-      step++;
-      return simplyLoadBalancingService.makeBalancingDecision(transferDataHandler);
+  public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler, int actualStep) {
+    step = actualStep;
+    if(step < INITIALIZATION_STEP) { // first step we use  SIMPLY algorithm
+      return simplyLoadBalancingService.makeBalancingDecision(transferDataHandler, actualStep);
     }
 
     LoadBalancingDecision loadBalancingDecision = new LoadBalancingDecision();
@@ -79,7 +78,6 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
     log.debug("My cost {}, carTarget {}, time target {}", myCost, timeBalanceTarget, 0);
 
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, step, info.getWaitingTime());
-    step++;
 
     if (timeBalanceTarget > 0 || transferDataHandler.getLocalPatchesSize() < 5 ) {
       loadBalancingDecision.setLoadBalancingRecommended(false);

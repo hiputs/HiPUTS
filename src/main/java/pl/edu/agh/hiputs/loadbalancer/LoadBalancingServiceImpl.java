@@ -55,6 +55,8 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
   private MapFragmentId lastLoadBalancingCandidate = null; //We must repete their neighbourTransferMessage
 
+  private int actualStep = 0;
+
   @PostConstruct
   void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.LoadSynchronizationMessage);
@@ -67,15 +69,25 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
       return null;
     }
 
+    actualStep++;
+
+    if(actualStep % 100 > 20){
+      return null;
+    }
+
     List<MapFragmentId> neighboursToNotify = List.copyOf(transferDataHandler.getNeighbors());
     balance(transferDataHandler);
     synchronizedWithNeighbour(neighboursToNotify);
+
+    patchTransferService.retransmitNotification(lastLoadBalancingCandidate);
+    patchTransferService.handleReceivedPatch(transferDataHandler);
+    patchTransferService.handleNotificationPatch(transferDataHandler);
     return lastLoadBalancingCandidate;
   }
 
   private void balance(TransferDataHandler transferDataHandler) {
     LoadBalancingStrategy strategy = getStrategyByMode();
-    LoadBalancingDecision loadBalancingDecision = strategy.makeBalancingDecision(transferDataHandler);
+    LoadBalancingDecision loadBalancingDecision = strategy.makeBalancingDecision(transferDataHandler, actualStep);
 
     if (!loadBalancingDecision.isLoadBalancingRecommended()) {
       simulationStatisticService.saveLoadBalancingDecision(false, null, null, 0f, loadBalancingDecision.getAge());

@@ -58,8 +58,9 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   }
 
   @Override
-  public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler) {
+  public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler, int actualStep) {
     LoadBalancingDecision loadBalancingDecision = new LoadBalancingDecision();
+    age = actualStep;
     loadBalancingDecision.setAge(age);
 
     LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
