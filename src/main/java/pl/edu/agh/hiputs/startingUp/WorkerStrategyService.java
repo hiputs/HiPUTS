@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
@@ -46,6 +45,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
+import pl.edu.agh.hiputs.visualization.connection.VisualizationService;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 
 @Slf4j
@@ -71,6 +71,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   private final StatisticSummaryService statisticSummaryService;
 
+  private final VisualizationService visualizationService;
+
   private volatile boolean isSimulationStopped = false;
 
   @PostConstruct
@@ -90,6 +92,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 
       mapRepository.readMapAndBuildModel();
+      visualizationService.sendNewNodes(mapRepository.getAllPatches());
     } catch (Exception e) {
       log.error("Worker fail", e);
     }
@@ -202,7 +205,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           continue;
         }
         log.info("Start iteration no. {}/{}", i, n);
-        mapFragmentExecutor.run();
+        mapFragmentExecutor.run(i);
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
