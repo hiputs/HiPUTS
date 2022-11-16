@@ -25,6 +25,7 @@ message CarMessage {
 message CarsMessage
 {
     repeated CarMessage carsMessages = 1;
+    uint64 iterationNumber = 2;
 }
 
 message SimulationStateChangeMessage {

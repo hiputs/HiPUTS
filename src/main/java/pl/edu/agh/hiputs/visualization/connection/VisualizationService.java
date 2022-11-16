@@ -1,13 +1,15 @@
 package pl.edu.agh.hiputs.visualization.connection;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.visualization.connection.producer.CarsProducer;
-import proto.model.CarMessage;
+import pl.edu.agh.hiputs.visualization.connection.producer.SimulationNewNodesProducer;
+import pl.edu.agh.hiputs.visualization.connection.producer.SimulationStateChangeProducer;
+import proto.model.RUNNING_STATE;
 
 @Slf4j
 @Service
@@ -15,39 +17,18 @@ import proto.model.CarMessage;
 public class VisualizationService {
 
   private final CarsProducer carsProducer;
+  private final SimulationNewNodesProducer simulationNewNodesProducer;
+  private final SimulationStateChangeProducer simulationStateChangeProducer;
 
-  private static CarMessage createCarMessage(CarReadable car, MapFragment mapFragment) {
-    LaneReadable carLane = mapFragment.getLaneReadable(car.getLaneId());
-    double positionOnLane = car.getPositionOnLane() / carLane.getLength();
-    return CarMessage.newBuilder()
-        .setCarId(car.getCarId().getValue())
-        .setLength(car.getLength())
-        .setAcceleration(car.getAcceleration())
-        .setSpeed(car.getSpeed())
-        .setMaxSpeed(car.getMaxSpeed())
-        .setNode1Id(carLane.getIncomingJunctionId().getValue())
-        .setNode2Id(carLane.getOutgoingJunctionId().getValue())
-        .setPositionOnLane(positionOnLane)
-        .build();
-  }
-  public void sendCarsFromMapFragment(MapFragment mapFragment) {
-    log.info("Start sending cars from mapFragment:" + mapFragment.getMapFragmentId());
-
-    this.carsProducer.sendCars(
-      mapFragment
-        .getKnownPatchReadable()
-        .stream()
-        .flatMap(patch -> patch
-            .streamLanesReadable()
-            .flatMap(lane -> lane
-              .streamCarsFromExitReadable()
-              .map(car -> createCarMessage(car, mapFragment))
-            )
-        )
-        .toList(),
-      mapFragment
-    );
-    log.info("End sending cars from mapFragment:" + mapFragment.getMapFragmentId());
+  public void sendCarsFromMapFragment(MapFragment mapFragment, int iterationNumber) {
+    this.carsProducer.sendCars(mapFragment, iterationNumber);
   }
 
+  public void sendSimulationStateChangeMessage(RUNNING_STATE runningState) {
+    simulationStateChangeProducer.sendStateChangeMessage(runningState);
+  }
+
+  public void sendNewNodes(List<Patch> patches) {
+    simulationNewNodesProducer.sendSimulationNotOsmNodesTransferMessage(patches);
+  }
 }

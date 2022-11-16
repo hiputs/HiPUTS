@@ -45,7 +45,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
-import pl.edu.agh.hiputs.visualization.connection.producer.SimulationNewNodesProducer;
+import pl.edu.agh.hiputs.visualization.connection.VisualizationService;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 
 @Slf4j
@@ -71,7 +71,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   private final StatisticSummaryService statisticSummaryService;
 
-  private final SimulationNewNodesProducer simulationNotOsmNodesProducer;
+  private final VisualizationService visualizationService;
 
   private volatile boolean isSimulationStopped = false;
 
@@ -92,7 +92,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 
       mapRepository.readMapAndBuildModel();
-      simulationNotOsmNodesProducer.sendSimulationNotOsmNodesTransferMessage(mapRepository.getAllPatches());
+      visualizationService.sendNewNodes(mapRepository.getAllPatches());
     } catch (Exception e) {
       log.error("Worker fail", e);
     }
@@ -205,7 +205,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           continue;
         }
         log.info("Start iteration no. {}/{}", i, n);
-        mapFragmentExecutor.run();
+        mapFragmentExecutor.run(i);
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
