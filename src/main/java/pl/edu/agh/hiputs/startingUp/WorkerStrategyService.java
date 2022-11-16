@@ -45,7 +45,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
-import pl.edu.agh.hiputs.visualization.connection.producer.SimulationNotOsmNodesProducer;
+import pl.edu.agh.hiputs.visualization.connection.producer.SimulationNewNodesProducer;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 
 @Slf4j
@@ -71,7 +71,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   private final StatisticSummaryService statisticSummaryService;
 
-  private final SimulationNotOsmNodesProducer simulationNotOsmNodesProducer;
+  private final SimulationNewNodesProducer simulationNotOsmNodesProducer;
 
   private volatile boolean isSimulationStopped = false;
 

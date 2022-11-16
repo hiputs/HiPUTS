@@ -1,6 +1,6 @@
 package pl.edu.agh.hiputs.visualization.connection.producer;
 
-import static pl.edu.agh.hiputs.visualization.connection.topic.TopicConfiguration.SIMULATION_NOT_OSM_NODES_TOPIC;
+import static pl.edu.agh.hiputs.visualization.connection.topic.TopicConfiguration.SIMULATION_NEW_NODES_TOPIC;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,14 +15,14 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import proto.model.Node;
-import proto.model.SimulationNotOsmNodesTransferMessage;
+import proto.model.SimulationNewNodesTransferMessage;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SimulationNotOsmNodesProducer {
+public class SimulationNewNodesProducer {
 
-  private final KafkaTemplate<String, SimulationNotOsmNodesTransferMessage> kafkaTemplate;
+  private final KafkaTemplate<String, SimulationNewNodesTransferMessage> kafkaTemplate;
 
   private static List<Node> getNotOsmNodesList(List<Patch> patches) {
     return patches.stream()
@@ -39,18 +39,18 @@ public class SimulationNotOsmNodesProducer {
   public void sendSimulationNotOsmNodesTransferMessage(List<Patch> patches) {
     List<Node> notOsmNodesList = getNotOsmNodesList(patches);
 
-    final SimulationNotOsmNodesTransferMessage simulationNotOsmNodesTransferMessage =
-        SimulationNotOsmNodesTransferMessage.newBuilder().addAllNodes(notOsmNodesList).build();
+    final SimulationNewNodesTransferMessage simulationNotOsmNodesTransferMessage =
+        SimulationNewNodesTransferMessage.newBuilder().addAllNodes(notOsmNodesList).build();
 
-    var record = new ProducerRecord<String, SimulationNotOsmNodesTransferMessage>(SIMULATION_NOT_OSM_NODES_TOPIC,
+    var record = new ProducerRecord<String, SimulationNewNodesTransferMessage>(SIMULATION_NEW_NODES_TOPIC,
         simulationNotOsmNodesTransferMessage);
 
-    ListenableFuture<SendResult<String, SimulationNotOsmNodesTransferMessage>> future = kafkaTemplate.send(record);
+    ListenableFuture<SendResult<String, SimulationNewNodesTransferMessage>> future = kafkaTemplate.send(record);
 
     future.addCallback(new ListenableFutureCallback<>() {
       @Override
-      public void onSuccess(SendResult<String, SimulationNotOsmNodesTransferMessage> result) {
-        log.info("SimulationNotOsmNodesTransferMessage send {} new nodes",
+      public void onSuccess(SendResult<String, SimulationNewNodesTransferMessage> result) {
+        log.info("SimulationNewNodesTransferMessage send {} new nodes",
             simulationNotOsmNodesTransferMessage.getNodesCount());
       }
 

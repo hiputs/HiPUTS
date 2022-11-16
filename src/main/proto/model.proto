@@ -41,6 +41,6 @@ message Node {
     double latitude = 3;
 }
 
-message SimulationNotOsmNodesTransferMessage {
+message SimulationNewNodesTransferMessage {
     repeated Node nodes = 1;
 }
