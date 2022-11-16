@@ -28,8 +28,9 @@ public class SingleWorkStrategyService implements Strategy {
     graphBasedVisualizer.showGui();
     sleep(1000);
 
+    int iterationNumber = 0;
     while (true) {
-      mapFragmentExecutor.run();
+      mapFragmentExecutor.run(iterationNumber++);
       graphBasedVisualizer.redrawCars();
       sleep(200);
     }

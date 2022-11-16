@@ -49,7 +49,7 @@ public class MapFragmentExecutor {
 
   private final CarGeneratorService carGeneratorService;
 
-  public void run() {
+  public void run(int iterationNumber) {
     try {
       // 3. decision
       log.debug("Step 3 start");
@@ -59,7 +59,7 @@ public class MapFragmentExecutor {
           .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId))
           .collect(Collectors.toList());
       taskExecutor.executeBatch(decisionStageTasks);
-      visualizationService.sendCarsFromMapFragment(mapFragment);
+      visualizationService.sendCarsFromMapFragment(mapFragment, iterationNumber);
       monitorLocalService.markPointAsFinish(SimulationPoint.FIRST_ITERATION);
 
       // 4. send incoming sets of cars to neighbours
