@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import proto.model.Coordinates;
 import proto.model.Node;
 import proto.model.SimulationNewNodesTransferMessage;
 
@@ -24,15 +26,21 @@ public class SimulationNewNodesProducer {
 
   private final KafkaTemplate<String, SimulationNewNodesTransferMessage> kafkaTemplate;
 
+  private static Node createNodeFromJunction(JunctionReadable junctionReadable) {
+    return Node.newBuilder()
+        .setNodeId(junctionReadable.getJunctionId().getValue())
+        .setCoordinates(Coordinates.newBuilder()
+            .setLongitude(junctionReadable.getLongitude())
+            .setLatitude(junctionReadable.getLatitude())
+            .build())
+        .build();
+  }
+
   private static List<Node> getNotOsmNodesList(List<Patch> patches) {
     return patches.stream()
         .flatMap(Patch::streamJunctionsReadable)
         .filter(junctionReadable -> !junctionReadable.getJunctionId().isOsmNode())
-        .map(junctionReadable -> Node.newBuilder()
-            .setNodeId(junctionReadable.getJunctionId().getValue())
-            .setLongitude(junctionReadable.getLongitude())
-            .setLatitude(junctionReadable.getLatitude())
-            .build())
+        .map(SimulationNewNodesProducer::createNodeFromJunction)
         .collect(Collectors.toList());
   }
 
