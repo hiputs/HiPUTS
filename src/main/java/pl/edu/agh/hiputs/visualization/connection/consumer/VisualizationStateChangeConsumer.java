@@ -25,7 +25,9 @@ public class VisualizationStateChangeConsumer {
       properties = {"specific.protobuf.value.type: proto.model.VisualizationStateChangeMessage"})
   void stateChangeListener(ConsumerRecord<String, VisualizationStateChangeMessage> record) {
     VisualizationStateChangeMessage visualizationStateChangeMessage = record.value();
-    log.info("Consumed VisualizationStateChangeMessage:{}", visualizationStateChangeMessage.getStateChange());
+    log.info("Consumed VisualizationStateChangeMessage: stateChange={}, ROIRegion={}, ZoomLevel={}, VisualizationSpeed={}",
+        visualizationStateChangeMessage.getStateChange(), visualizationStateChangeMessage.getRoiRegion(),
+        visualizationStateChangeMessage.getZoomLevel(), visualizationStateChangeMessage.getVisualizationSpeed());
     visualizationSynchronisationService.changeVisualizationState(visualizationStateChangeMessage.getStateChange());
   }
 }
