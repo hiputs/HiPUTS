@@ -25,6 +25,7 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
       Set.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SECOND_ITERATION, SimulationPoint.SYNCHRONIZATION_AREA);
   private static final Set<SimulationPoint> WAITING_TIME =
       Set.of(SimulationPoint.WAITING_FOR_FIRST_ITERATION, SimulationPoint.WAITING_FOR_SECOND_ITERATION);
+  private static final int MOVING_AVERAGE = 50;
   private final ConfigurationService configurationService;
   private List<IterationInfo> iterationInfo;
 
@@ -45,18 +46,29 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
   public LoadBalancingHistoryInfo getMyLastLoad() {
     IterationInfo info = iterationInfo.get(step);
 
+    double mapCost = iterationInfo.subList(Math.max(0,step - MOVING_AVERAGE), step)
+        .stream()
+        .mapToDouble(i ->  getActiveTime(i) / Math.max(1.0, i.carCountAfterStep))
+        .average()
+        .orElse(1.0);
+
     return LoadBalancingHistoryInfo.builder()
         .age(step)
         .carCost(info.carCountAfterStep)
-        .timeCost(info.iterationInfo.stream()
-            .filter(p -> ACTIVE_TIME.contains(p.getLeft()))
-            .map(ImmutablePair::getRight)
-            .reduce(0L, Long::sum))
+        .timeCost(getActiveTime(info))
         .waitingTime(info.iterationInfo.stream()
             .filter(p -> WAITING_TIME.contains(p.getLeft()))
             .map(ImmutablePair::getRight)
             .reduce(0L, Long::sum))
+        .mapCost(mapCost)
         .build();
+  }
+
+  private long getActiveTime(IterationInfo info) {
+    return info.iterationInfo.stream()
+        .filter(p -> ACTIVE_TIME.contains(p.getLeft()))
+        .map(ImmutablePair::getRight)
+        .reduce(0L, Long::sum);
   }
 
   @Override
@@ -105,7 +117,7 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
   public void notifyAboutMyLoad() {
     LoadBalancingHistoryInfo info = getMyLastLoad();
     messageSenderService.broadcast(
-        new LoadInfoMessage(info.getCarCost(), info.getTimeCost(), transferDataHandler.getMe().getId()));
+        new LoadInfoMessage(info.getCarCost(), info.getTimeCost(), info.getMapCost(), transferDataHandler.getMe().getId()));
   }
 
   static class IterationInfo {

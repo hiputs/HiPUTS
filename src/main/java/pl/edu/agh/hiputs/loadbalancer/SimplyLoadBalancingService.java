@@ -54,7 +54,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
   private void addToLoadBalancing(LoadInfoMessage message) {
     MapFragmentId id = new MapFragmentId(message.getMapFragmentId());
 
-    loadRepository.put(id, new LoadBalancingHistoryInfo(message.getCarCost(), message.getTime(), 0L, age));
+    loadRepository.put(id, new LoadBalancingHistoryInfo(message.getCarCost(), message.getTime(),  0L, message.getMapCost(), age));
   }
 
   @Override

@@ -8,6 +8,7 @@ public class LoadInfoMessage implements Message {
 
   long carCost;
   long time;
+  double mapCost;
   String mapFragmentId;
 
   @Override

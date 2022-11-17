@@ -171,6 +171,6 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
 
   private void addToLoadBalancing(LoadInfoMessage message) {
     MapFragmentId id = new MapFragmentId(message.getMapFragmentId());
-    loadRepository.put(id, new LoadBalancingHistoryInfo(message.getCarCost(), message.getTime(), 0L, step));
+    loadRepository.put(id, new LoadBalancingHistoryInfo(message.getCarCost(), message.getTime(), 0L, message.getMapCost(), step));
   }
 }
