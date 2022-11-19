@@ -156,6 +156,11 @@ public class Configuration {
   private int minCars;
 
   /**
+   * Use ticket mechanism to loadbalancing
+   */
+  private boolean ticketActive;
+
+  /**
    * Unique worker id
    */
   private MapFragmentId mapFragmentId;
@@ -186,6 +191,7 @@ public class Configuration {
         .balancingMode(BalancingMode.NONE)
         .newCars(15)
         .minCars(0)
+        .ticketActive(false)
         .patchPartitionerConfiguration(PatchPartitionerConfiguration.getDefault())
         .build();
   }

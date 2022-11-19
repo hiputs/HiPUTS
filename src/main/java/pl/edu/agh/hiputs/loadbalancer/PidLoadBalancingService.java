@@ -1,47 +1,31 @@
 package pl.edu.agh.hiputs.loadbalancer;
 
-import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.LoadInfo;
 import static pl.edu.agh.hiputs.loadbalancer.PID.PID.INITIALIZATION_STEP;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.communication.Subscriber;
-import pl.edu.agh.hiputs.communication.model.messages.LoadInfoMessage;
-import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
 import pl.edu.agh.hiputs.loadbalancer.PID.PID;
 import pl.edu.agh.hiputs.loadbalancer.PID.ZieglerNicholsAutoTuner;
-import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
 import pl.edu.agh.hiputs.loadbalancer.utils.TimeToCarCostUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PidLoadBalancingService implements LoadBalancingStrategy, Subscriber {
-
-  private final ConfigurationService configurationService;
-  private final SubscriptionService subscriptionService;
-
+public class PidLoadBalancingService implements LoadBalancingStrategy {
   private final SimulationStatisticService simulationStatisticService;
 
   private final LocalLoadStatisticService localLoadStatisticService;
 
   private final SimplyLoadBalancingService simplyLoadBalancingService;
-  private final TicketService ticketService;
 
-  private final Map<MapFragmentId, LoadBalancingHistoryInfo> loadRepository = new HashMap<>();
+  private final SelectNeighbourToBalancingService selectNeighbourToBalancingService;
 
   private static final int MAX_AGE_DIFF = 5;
   private static final double ALLOW_LOAD_IMBALANCE = 0.01;
@@ -50,13 +34,6 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
   private PID carPID;
 
   private int step = 0;
-
-  @PostConstruct
-  void init() {
-    if (configurationService.getConfiguration().getBalancingMode() == BalancingMode.PID) {
-      subscriptionService.subscribe(this, LoadInfo);
-    }
-  }
 
   @Override
   public LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler, int actualStep) {
@@ -95,7 +72,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
 
     loadBalancingDecision.setLoadBalancingRecommended(true);
     loadBalancingDecision.setExtremelyLoadBalancing(true);
-    ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancing(transferDataHandler);
+    ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancingService.selectNeighbourToBalancing(transferDataHandler, step);
 
     if(candidate == null){
       loadBalancingDecision.setLoadBalancingRecommended(false);
@@ -103,7 +80,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
     }
 
     loadBalancingDecision.setSelectedNeighbour(candidate.getLeft());
-    loadBalancingDecision.setCarImbalanceRate(TimeToCarCostUtil.getCarsToTransferByDiff(info, loadRepository.get(candidate.getLeft()), timeBalanceTarget));
+    loadBalancingDecision.setCarImbalanceRate(TimeToCarCostUtil.getCarsToTransferByDiff(info, selectNeighbourToBalancingService.getLoadRepository().get(candidate.getLeft()), timeBalanceTarget));
     loadBalancingDecision.setCarImbalanceRate((long) timeBalanceTarget);
     return loadBalancingDecision;
   }
@@ -116,7 +93,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
     //     .average()
     //     .orElse(0.f);
 
-    double carAvg = loadRepository.values()
+    double carAvg = selectNeighbourToBalancingService.getLoadRepository().values()
         .stream()
         .filter(i -> i.getAge() + MAX_AGE_DIFF >= step)
         .mapToDouble(LoadBalancingHistoryInfo::getCarCost)
@@ -133,44 +110,5 @@ public class PidLoadBalancingService implements LoadBalancingStrategy, Subscribe
       carPID.setTarget(carAvg);
     }
 
-  }
-
-  private ImmutablePair<MapFragmentId, Double> selectNeighbourToBalancing(TransferDataHandler transferDataHandler) {
-    ticketService.setActualStep(step);
-    MapFragmentId candidate = ticketService.getActualTalker();
-
-    if (candidate != null && hasActualCostInfo(candidate) && !transferDataHandler.getBorderPatches()
-        .get(candidate)
-        .isEmpty()) {
-      return new ImmutablePair<MapFragmentId, Double>(candidate, calculateCost(candidate));
-    }
-
-    return null;
-  }
-
-  private boolean hasActualCostInfo(MapFragmentId mapFragmentId) {
-    LoadBalancingHistoryInfo loadBalancingHistoryInfo = loadRepository.get(mapFragmentId);
-
-    return loadBalancingHistoryInfo != null && loadBalancingHistoryInfo.getAge() + MAX_AGE_DIFF >= step;
-  }
-
-  private double calculateCost(MapFragmentId id) {
-    LoadBalancingHistoryInfo info = loadRepository.get(id);
-    return MapFragmentCostCalculatorUtil.calculateCost(info);
-  }
-
-  @Override
-  public void notify(Message message) {
-
-    addToLoadBalancing((LoadInfoMessage) message);
-
-    if(step < INITIALIZATION_STEP + 1) {
-      simplyLoadBalancingService.notify(message);
-    }
-  }
-
-  private void addToLoadBalancing(LoadInfoMessage message) {
-    MapFragmentId id = new MapFragmentId(message.getMapFragmentId());
-    loadRepository.put(id, new LoadBalancingHistoryInfo(message.getCarCost(), message.getTime(), 0L, message.getMapCost(), step));
   }
 }
