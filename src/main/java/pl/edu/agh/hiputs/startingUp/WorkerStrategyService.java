@@ -2,9 +2,11 @@ package pl.edu.agh.hiputs.startingUp;
 
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ResumeSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.RunSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ServerInitializationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ShutDownMessage;
+import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.StopSimulationMessage;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ExitCodeGenerator;
@@ -42,6 +45,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
+import pl.edu.agh.hiputs.visualization.connection.VisualizationService;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 
 @Slf4j
@@ -67,11 +71,17 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   private final StatisticSummaryService statisticSummaryService;
 
+  private final VisualizationService visualizationService;
+
+  private volatile boolean isSimulationStopped = false;
+
   @PostConstruct
   void init() {
     subscriptionService.subscribe(this, RunSimulationMessage);
     subscriptionService.subscribe(this, ServerInitializationMessage);
     subscriptionService.subscribe(this, ShutDownMessage);
+    subscriptionService.subscribe(this, StopSimulationMessage);
+    subscriptionService.subscribe(this, ResumeSimulationMessage);
   }
 
   @Override
@@ -82,6 +92,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 
       mapRepository.readMapAndBuildModel();
+      visualizationService.sendNewNodes(mapRepository.getAllPatches());
     } catch (Exception e) {
       log.error("Worker fail", e);
     }
@@ -102,6 +113,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       case ServerInitializationMessage -> handleInitializationMessage(
           (pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage) message);
       case ShutDownMessage -> shutDown();
+      case StopSimulationMessage -> stopSimulation();
+      case ResumeSimulationMessage -> resumeSimulation();
       default -> log.warn("Unhandled message " + message.getMessageType());
     }
   }
@@ -169,6 +182,17 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     simulationExecutor.submit(this);
   }
 
+  @SneakyThrows
+  private void stopSimulation() {
+    log.info("Worker with mapFragmentId: {} is stopped", mapFragmentId.getId());
+    isSimulationStopped = true;
+  }
+
+  private void resumeSimulation() {
+    log.info("Worker with mapFragmentId: {} is resumed", mapFragmentId.getId());
+    isSimulationStopped = false;
+  }
+
   @Override
   public void run() {
     int i = 0;
@@ -176,14 +200,18 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       int n = configuration.getSimulationStep();
       monitorLocalService.init(mapFragmentExecutor.getMapFragment());
       statisticSummaryService.startTiming();
-      for (i = 0; i < n; i++) {
-        log.info("Start iteration no. {}/{}", i+1, n);
-        mapFragmentExecutor.run();
+      while (i < n) {
+        if (isSimulationStopped) {
+          continue;
+        }
+        log.info("Start iteration no. {}/{}", i, n);
+        mapFragmentExecutor.run(i);
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
         }
         sleep(configuration.getPauseAfterStep());
+        i++;
       }
     } catch (Exception e) {
       log.error(String.format("Worker simulation error in %d iteration", i), e);

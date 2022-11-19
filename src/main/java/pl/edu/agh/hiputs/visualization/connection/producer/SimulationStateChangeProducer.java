@@ -16,7 +16,7 @@ import proto.model.SimulationStateChangeMessage;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SimulationStateProducer {
+public class SimulationStateChangeProducer {
 
   private final KafkaTemplate<String, SimulationStateChangeMessage> kafkaSimulationStateTemplate;
 

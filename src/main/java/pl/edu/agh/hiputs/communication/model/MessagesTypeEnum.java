@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.communication.model;
 
+import pl.edu.agh.hiputs.visualization.communication.messages.StopSimulationMessage;
+
 public enum MessagesTypeEnum {
 
   // server - worker messages
@@ -67,5 +69,15 @@ public enum MessagesTypeEnum {
   /**
    * Info from service to shut down after simulation
    */
-  ShutDownMessage
+  ShutDownMessage,
+
+  /**
+   * Stop simulation
+   */
+  StopSimulationMessage,
+
+  /**
+   * Resume simulation
+   */
+  ResumeSimulationMessage
 }

@@ -5,6 +5,8 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.CompletedIn
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationStatisticMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.WorkerConnectionMessage;
+import static pl.edu.agh.hiputs.visualization.connection.topic.TopicConfiguration.VISUALIZATION_STATE_CHANGE_TOPIC;
+import static proto.model.RUNNING_STATE.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
@@ -47,6 +50,7 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.server.WorkerSynchronisationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
+import pl.edu.agh.hiputs.visualization.connection.VisualizationSynchronisationService;
 
 @Slf4j
 @Service
@@ -70,12 +74,21 @@ public class ServerStrategyService implements Strategy {
 
   private final WorkerRepository workerRepository;
 
+  private final VisualizationSynchronisationService visualizationSynchronisationService;
+
+  private final KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
+
   @Override
   public void executeStrategy() throws InterruptedException {
-
     log.info("Running server");
     connectionInitializationService.init();
     workerPrepareExecutor.submit(new PrepareWorkerTask());
+
+    log.info("Start waiting for all workers be in state WorkerConnection");
+    workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
+
+    kafkaListenerEndpointRegistry.getListenerContainer(VISUALIZATION_STATE_CHANGE_TOPIC).start();
+    visualizationSynchronisationService.waitForVisualizationStateChangeMessage(STARTED);
 
     Path mapPackagePath = configurationService.getConfiguration().isReadFromOsmDirectly()
         ? generateDeploymentPackageName(Path.of(configurationService.getConfiguration().getMapPath()))
@@ -87,8 +100,6 @@ public class ServerStrategyService implements Strategy {
 
     mapRepository.setPatchesGraph(patchesGraph);
 
-    log.info("Start waiting for all workers be in state WorkerConnection");
-    workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
 
 
     if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
@@ -104,9 +115,13 @@ public class ServerStrategyService implements Strategy {
 
     distributeRunSimulationMessage(mapFragmentsContents);
 
+    visualizationSynchronisationService.changeSimulationState(STARTED);
+
     log.info("Waiting for end simulation");
     workerSynchronisationService.waitForAllWorkers(FinishSimulationMessage);
     log.info("Simulation finished");
+
+    visualizationSynchronisationService.changeSimulationState(CLOSED);
 
     if (configurationService.getConfiguration().isStatisticModeActive()) {
       workerSynchronisationService.waitForAllWorkers(FinishSimulationStatisticMessage);
