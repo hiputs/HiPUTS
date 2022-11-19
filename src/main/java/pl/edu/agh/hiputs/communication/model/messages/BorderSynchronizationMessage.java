@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.communication.model.messages;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -19,7 +20,7 @@ public class BorderSynchronizationMessage implements Message {
   /**
    * Serialized lanes grouped by serialized PatchId where these lanes belong to
    */
-  Map<String, Set<SerializedLane>> patchContent;
+  Map<String, List<byte[]>> patchContent;
 
   @Override
   public MessagesTypeEnum getMessageType() {

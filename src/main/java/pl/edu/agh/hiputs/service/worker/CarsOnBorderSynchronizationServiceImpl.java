@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
@@ -59,11 +60,12 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
         .flatMap(Collection::stream)
         .collect(Collectors.toSet());
     log.info("Step 9-0-2");
-    Map<PatchId, Set<SerializedLane>> serializedBorderPatches = distinctBorderPatches
+    Map<PatchId, List<byte[]>> serializedBorderPatches = distinctBorderPatches
         .parallelStream()
-        .map(p -> new ImmutablePair<PatchId, Set<SerializedLane>>(p.getPatchId(), p.parallelStreamLanesEditable()
+        .map(p -> new ImmutablePair<PatchId, List<byte[]>>(p.getPatchId(), p.parallelStreamLanesEditable()
             .map(SerializedLane::new)
-            .collect(Collectors.toSet())) )
+            .map(SerializationUtils::serialize)
+            .toList()))
         .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
     log.info("Step 9-0-3");
     Map<MapFragmentId, BorderSynchronizationMessage> messages = mapFragment.getBorderPatches()
@@ -72,7 +74,9 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
         .map(entry -> new ImmutablePair<>(entry.getKey(), createMessageFrom(entry.getValue(), serializedBorderPatches)))
         .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
     log.info("Step 9-0-4");
+    long start = System.currentTimeMillis();
     sendMessages(messages);
+    log.info("Step 9-0-4 time = {}", System.currentTimeMillis() - start);
   }
 
   @Override
@@ -159,8 +163,8 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   }
 
   private BorderSynchronizationMessage createMessageFrom(Set<Patch> patches,
-      Map<PatchId, Set<SerializedLane>> serializedBorderPatches) {
-    Map<String, Set<SerializedLane>> patchContent = patches
+      Map<PatchId, List<byte[]>> serializedBorderPatches) {
+    Map<String, List<byte[]>> patchContent = patches
         .parallelStream()
         .collect(Collectors.toMap(e -> e.getPatchId().getValue(),
             e -> serializedBorderPatches.get(e.getPatchId())));

@@ -251,7 +251,7 @@ public class CarProspectorImpl implements CarProspector {
     for (LaneId laneId: lanes) {
       LaneReadable lane = laneId.getReadable(roadStructureReader);
 
-      if (lane == null) {
+      if (lane == null || lane.numberOfCars() == 0) {
         continue;
       }
 
