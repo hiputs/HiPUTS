@@ -11,7 +11,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +22,7 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.SelectTicketMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 
@@ -33,7 +32,7 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 public class TicketServiceImpl implements TicketService, Subscriber {
 
   private int TICKET_POOL_SIZE = 10;
-  private final SubscriptionService subscriptionService;
+  private final WorkerSubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
 
   private final ConfigurationService configurationService;

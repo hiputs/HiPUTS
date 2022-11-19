@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.messages.LoadInfoMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.service.server.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
@@ -29,7 +29,7 @@ public class SelectNeighbourToBalancingService implements Subscriber {
 
   @Getter
   private final Map<MapFragmentId, LoadBalancingHistoryInfo> loadRepository = new HashMap<>();
-  private final SubscriptionService subscriptionService;
+  private final WorkerSubscriptionService subscriptionService;
   private final TicketService ticketService;
 
   private int age = 0;

@@ -7,7 +7,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 
 @Service
 @RequiredArgsConstructor
-public class SubscriptionService {
+public class WorkerSubscriptionService {
 
   private final MessageReceiverService receiverService;
 

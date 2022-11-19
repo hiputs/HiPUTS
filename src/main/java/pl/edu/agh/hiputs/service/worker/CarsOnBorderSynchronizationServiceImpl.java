@@ -20,7 +20,7 @@ import pl.edu.agh.hiputs.communication.model.messages.BorderSynchronizationMessa
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
@@ -35,7 +35,7 @@ import pl.edu.agh.hiputs.utils.DebugUtils;
 @RequiredArgsConstructor
 public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynchronizationService, Subscriber {
 
-  private final SubscriptionService subscriptionService;
+  private final WorkerSubscriptionService subscriptionService;
 
   private final TaskExecutorService taskExecutorService;
 

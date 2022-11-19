@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +20,9 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.LoadSynchronizationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingStrategy.LoadBalancingDecision;
-import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.PatchBalancingInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.PatchCostCalculatorUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
@@ -46,7 +44,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   private final PidLoadBalancingService pidLoadBalancingService;
   private final SimulationStatisticService simulationStatisticService;
 
-  private final SubscriptionService subscriptionService;
+  private final WorkerSubscriptionService subscriptionService;
 
   private final MessageSenderService messageSenderService;
 
@@ -64,16 +62,10 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
   @Override
   public MapFragmentId startLoadBalancing(TransferDataHandler transferDataHandler) {
-
     if (ConfigurationService.getConfiguration().getWorkerCount() == 1) {
       return null;
     }
-
     actualStep++;
-
-    // if(actualStep % 100 > 20){
-    //   return null;
-    // }
 
     List<MapFragmentId> neighboursToNotify = List.copyOf(transferDataHandler.getNeighbors());
     balance(transferDataHandler);
@@ -92,7 +84,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
       return;
     }
 
-    log.debug("Start loadbalancing worker id: {}", transferDataHandler.getMe());
+    log.info("Start loadbalancing worker id: {} with {}", transferDataHandler.getMe(), loadBalancingDecision.getSelectedNeighbour().getId());
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
     lastLoadBalancingCandidate = recipient;
     long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();

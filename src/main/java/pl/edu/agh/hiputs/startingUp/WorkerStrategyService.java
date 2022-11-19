@@ -29,7 +29,7 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.model.Configuration;
@@ -51,7 +51,7 @@ import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 @RequiredArgsConstructor
 public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
-  private final SubscriptionService subscriptionService;
+  private final WorkerSubscriptionService subscriptionService;
   private final MapRepository mapRepository;
   private final MapFragmentExecutor mapFragmentExecutor;
   private final ConfigurationService configurationService;

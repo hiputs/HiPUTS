@@ -20,7 +20,7 @@ import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.loadbalancer.TicketService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
@@ -38,7 +38,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 public class PatchTransferServiceImpl implements Subscriber, PatchTransferService {
 
   private final MapRepository mapRepository;
-  private final SubscriptionService subscriptionService;
+  private final WorkerSubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
   private final CarSynchronizationService carSynchronizedService;
   private final TaskExecutorService taskExecutorService;
