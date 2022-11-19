@@ -28,8 +28,8 @@ import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscriber {
 
   private static final int MAX_AGE_DIFF = 10;
-  private static final double ALLOW_LOAD_IMBALANCE = 1.03;
-  private static final double LOW_THRESHOLD = 1.10;
+  private static final double ALLOW_LOAD_IMBALANCE = 1.05;
+  private static final double LOW_THRESHOLD = 1.25;
   private final SubscriptionService subscriptionService;
   private final SimulationStatisticService simulationStatisticService;
 
@@ -82,8 +82,8 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy, Subscr
         loadBalancingDecision.setLoadBalancingRecommended(false);
         return loadBalancingDecision;
       }
-      boolean shouldBalancing = myCost > candidate.getRight() * ALLOW_LOAD_IMBALANCE;
-      boolean shouldExtremeBalancing = myCost > candidate.getRight() * LOW_THRESHOLD;
+      boolean shouldBalancing = myCost / candidate.getRight() > ALLOW_LOAD_IMBALANCE;
+      boolean shouldExtremeBalancing = myCost / candidate.getRight() >  LOW_THRESHOLD;
 
       log.info("should {}, mycost {} candidate cost {}", shouldBalancing, myCost, candidate.getRight());
 
