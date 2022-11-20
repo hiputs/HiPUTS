@@ -61,18 +61,18 @@ public class CarGeneratorService implements Subscriber {
     }
 
     if(bigWorker){
-      count = (int) (count * 2);
+      count = (int) (count * 10);
     }
     
     List<LaneEditable> lanesEditable = mapFragment.getRandomLanesEditable(count);
     ExampleCarProvider carProvider = new ExampleCarProvider(mapFragment, mapRepository);
 
     final List<Car> carsCreated = lanesEditable.parallelStream().map(lane -> {
-      int hops = ThreadLocalRandom.current().nextInt(20, 50);
+      int hops = ThreadLocalRandom.current().nextInt(20, 40);
 
-      // if (bigWorker) {
-      //   hops = 15;
-      // }
+      if (bigWorker) {
+        hops = 20;
+      }
       Car car = carProvider.generateCar(lane.getLaneId(), hops);
 
       if (car == null) {
