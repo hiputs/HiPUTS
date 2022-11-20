@@ -8,6 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
@@ -77,7 +78,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         .filter(Objects::nonNull)
         .toList();
 
-    List<ConnectionDto> neighbourConnectionDtos = patchIdWithMapFragmentId.stream()
+    List<ConnectionDto> neighbourConnectionDtos = patchIdWithMapFragmentId.parallelStream()
         .map(Pair::getRight)
         .distinct()
         .map(MapFragmentId::new)
@@ -102,12 +103,17 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
       }
     });
 
+    List<byte[]> serializedCars = cars
+        .parallelStream()
+        .map(SerializationUtils::serialize)
+        .toList();
+
     return SerializedPatchTransfer.builder()
         .patchId(patch.getPatchId().getValue())
         .neighbourConnectionMessage(neighbourConnectionDtos)
         .mapFragmentId(transferDataHandler.getMe().getId())
         .patchIdWithMapFragmentId(patchIdWithMapFragmentId)
-        .cars(cars)
+        .cars(serializedCars)
         .build();
   }
 
@@ -139,7 +145,12 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     transferDataHandler.migratePatchToMe(new PatchId(message.getPatchId()),
         new MapFragmentId(message.getMapFragmentId()), mapRepository, pairs, ticketService);
 
-    InjectIncomingCarsTask task = new InjectIncomingCarsTask(message.getCars(), transferDataHandler);
+    List<SerializedCar> cars = message.getCars()
+        .parallelStream()
+        .map(c -> (SerializedCar) SerializationUtils.deserialize(c))
+        .toList();
+
+    InjectIncomingCarsTask task = new InjectIncomingCarsTask(cars, transferDataHandler);
 
     taskExecutorService.executeBatch(List.of(task));
   }
