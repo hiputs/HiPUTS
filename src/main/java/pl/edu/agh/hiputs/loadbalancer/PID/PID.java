@@ -9,9 +9,9 @@ import pl.edu.agh.hiputs.loadbalancer.PID.PidAutoTuner.PIDParameters;
 @NoArgsConstructor
 public class PID {
 
-  private double kP = 0.85;
-  private double kI = 3;
-  private double kD = 0.75;
+  private double kP = 0.5;
+  private double kI = 0.05;
+  private double kD = 0.15;
   private double lastError = 0;
   private double integralError = 0;
 
@@ -21,7 +21,7 @@ public class PID {
 
   private PidAutoTuner tuner;
 
-  public static final int INITIALIZATION_STEP = 5;
+  public static final int INITIALIZATION_STEP = 10;
 
   public PID(double target) {
     this.target = target;

@@ -56,9 +56,7 @@ public class SelectNeighbourToBalancingService implements Subscriber {
 
   @PostConstruct
   void init() {
-    if (ConfigurationService.getConfiguration().getBalancingMode() == BalancingMode.SIMPLY) {
       subscriptionService.subscribe(this, LoadInfo);
-    }
   }
 
   private ImmutablePair<MapFragmentId, Double> getLowesCost(TransferDataHandler transferDataHandler){
