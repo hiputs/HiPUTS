@@ -23,7 +23,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
-import pl.edu.agh.hiputs.visualization.connection.VisualizationService;
+import pl.edu.agh.hiputs.visualization.connection.producer.CarsProducer;
 
 @Slf4j
 @Service
@@ -37,7 +37,7 @@ public class MapFragmentExecutor {
   private final SubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutor;
   private final MessageSenderService messageSenderService;
-  private final VisualizationService visualizationService;
+  private final CarsProducer carsProducer;
   private final CarSynchronizationService carSynchronizationService;
   private final CarsOnBorderSynchronizationService carsOnBorderSynchronizationService;
   private final MonitorLocalService monitorLocalService;
@@ -59,7 +59,7 @@ public class MapFragmentExecutor {
           .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId))
           .collect(Collectors.toList());
       taskExecutor.executeBatch(decisionStageTasks);
-      visualizationService.sendCarsFromMapFragment(mapFragment, iterationNumber);
+      carsProducer.sendCars(mapFragment, iterationNumber);
       monitorLocalService.markPointAsFinish(SimulationPoint.FIRST_ITERATION);
 
       // 4. send incoming sets of cars to neighbours

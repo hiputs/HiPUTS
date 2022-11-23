@@ -14,6 +14,7 @@ import pl.edu.agh.hiputs.communication.model.messages.ShutDownMessage;
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
 import pl.edu.agh.hiputs.visualization.communication.messages.ResumeSimulationMessage;
 import pl.edu.agh.hiputs.visualization.communication.messages.StopSimulationMessage;
+import pl.edu.agh.hiputs.visualization.connection.producer.SimulationStateChangeProducer;
 import proto.model.RUNNING_STATE;
 
 @Slf4j
@@ -21,7 +22,7 @@ import proto.model.RUNNING_STATE;
 @RequiredArgsConstructor
 public class VisualizationSynchronisationService {
 
-  private final VisualizationService visualizationService;
+  private final SimulationStateChangeProducer simulationStateChangeProducer;
   private final MessageSenderServerService messageSenderServerService;
   private RUNNING_STATE currentSimulationState;
   private RUNNING_STATE currentVisualizationState;
@@ -32,7 +33,7 @@ public class VisualizationSynchronisationService {
   }
 
   private void sendCurrentSimulationStateMessage() {
-    visualizationService.sendSimulationStateChangeMessage(currentSimulationState);
+    simulationStateChangeProducer.sendStateChangeMessage(currentSimulationState);
   }
 
   @SneakyThrows

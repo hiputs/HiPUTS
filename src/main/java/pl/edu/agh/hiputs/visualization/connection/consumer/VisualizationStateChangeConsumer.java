@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.visualization.connection.consumer;
 
 import static pl.edu.agh.hiputs.visualization.connection.topic.TopicConfiguration.VISUALIZATION_STATE_CHANGE_TOPIC;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -17,6 +18,9 @@ public class VisualizationStateChangeConsumer {
 
   private final VisualizationSynchronisationService visualizationSynchronisationService;
 
+  @Getter
+  private VisualizationStateChangeMessage currentVisualizationStateChangeMessage;
+
   @KafkaListener(
       topics = VISUALIZATION_STATE_CHANGE_TOPIC,
       groupId = VISUALIZATION_STATE_CHANGE_TOPIC,
@@ -24,10 +28,10 @@ public class VisualizationStateChangeConsumer {
       autoStartup = "false",
       properties = {"specific.protobuf.value.type: proto.model.VisualizationStateChangeMessage"})
   void stateChangeListener(ConsumerRecord<String, VisualizationStateChangeMessage> record) {
-    VisualizationStateChangeMessage visualizationStateChangeMessage = record.value();
+    currentVisualizationStateChangeMessage = record.value();
     log.info("Consumed VisualizationStateChangeMessage: stateChange={}, ROIRegion={}, ZoomLevel={}, VisualizationSpeed={}",
-        visualizationStateChangeMessage.getStateChange(), visualizationStateChangeMessage.getRoiRegion(),
-        visualizationStateChangeMessage.getZoomLevel(), visualizationStateChangeMessage.getVisualizationSpeed());
-    visualizationSynchronisationService.changeVisualizationState(visualizationStateChangeMessage.getStateChange());
+        currentVisualizationStateChangeMessage.getStateChange(), currentVisualizationStateChangeMessage.getRoiRegion(),
+        currentVisualizationStateChangeMessage.getZoomLevel(), currentVisualizationStateChangeMessage.getVisualizationSpeed());
+    visualizationSynchronisationService.changeVisualizationState(currentVisualizationStateChangeMessage.getStateChange());
   }
 }
