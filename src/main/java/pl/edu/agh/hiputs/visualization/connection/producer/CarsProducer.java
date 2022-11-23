@@ -20,8 +20,10 @@ import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 import pl.edu.agh.hiputs.visualization.connection.consumer.VisualizationStateChangeConsumer;
+import pl.edu.agh.hiputs.visualization.utils.CoordinatesUtils;
 import proto.model.CarMessage;
 import proto.model.CarsMessage;
+import proto.model.VisualizationStateChangeMessage;
 import proto.model.VisualizationStateChangeMessage.ROIRegion;
 
 @Slf4j
@@ -52,7 +54,7 @@ public class CarsProducer {
   private static List<CarMessage> createCarsMessagesList(MapFragment mapFragment, ROIRegion roiRegion) {
     return mapFragment.getKnownPatchReadable().stream()
         .flatMap(PatchReader::streamLanesReadable)
-        .filter(laneReadable -> checkIsLaneIntersectingRegion(laneReadable, mapFragment, roiRegion))
+        .filter(laneReadable -> CoordinatesUtils.isRegionEmpty(roiRegion) || checkIsLaneIntersectingRegion(laneReadable, mapFragment, roiRegion))
         .flatMap(LaneReadable::streamCarsFromExitReadable)
         .map(carReadable -> createCarMessage(carReadable, mapFragment))
         .toList();
@@ -76,7 +78,13 @@ public class CarsProducer {
   public void sendCars(MapFragment mapFragment, int iterationNumber) {
     log.info("[{}] Start sending cars from map fragment: {}", iterationNumber, mapFragment.getMapFragmentId().getId());
 
-    ROIRegion roiRegion = visualizationStateChangeConsumer.getCurrentVisualizationStateChangeMessage().getRoiRegion();
+    VisualizationStateChangeMessage visualizationStateChangeMessage = visualizationStateChangeConsumer.getCurrentVisualizationStateChangeMessage();
+    if (null == visualizationStateChangeMessage) {
+      log.info("[{}] Visualization not started yet", iterationNumber);
+      return;
+    }
+    ROIRegion roiRegion = visualizationStateChangeMessage.getRoiRegion();
+
     CarsMessage carsMessage = CarsMessage.newBuilder()
         .setIterationNumber(iterationNumber)
         .addAllCarsMessages(createCarsMessagesList(mapFragment, roiRegion))
