@@ -13,11 +13,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.utils.CoordinatesUtil;
+import pl.edu.agh.hiputs.visualization.connection.consumer.VisualizationStateChangeConsumer;
+import pl.edu.agh.hiputs.visualization.utils.CoordinatesUtils;
 import proto.model.CarMessage;
 import proto.model.CarsMessage;
+import proto.model.VisualizationStateChangeMessage;
+import proto.model.VisualizationStateChangeMessage.ROIRegion;
 
 @Slf4j
 @Service
@@ -25,10 +32,29 @@ import proto.model.CarsMessage;
 public class CarsProducer {
 
   private final KafkaTemplate<String, CarsMessage> kafkaCarTemplate;
+  private final VisualizationStateChangeConsumer visualizationStateChangeConsumer;
 
-  private static List<CarMessage> createCarsMessagesList(MapFragment mapFragment) {
+  private static boolean checkIsLaneIntersectingRegion(LaneReadable laneReadable, MapFragment mapFragment, ROIRegion roiRegion) {
+    return checkIsJunctionInsideRegion(laneReadable.getIncomingJunctionId(), mapFragment, roiRegion)
+        || checkIsJunctionInsideRegion(laneReadable.getOutgoingJunctionId(), mapFragment, roiRegion);
+  }
+
+  private static boolean checkIsJunctionInsideRegion(JunctionId junctionId, MapFragment mapFragment, ROIRegion roiRegion) {
+    JunctionReadable junctionReadable = mapFragment.getJunctionReadable(junctionId);
+    return CoordinatesUtil.isCoordinatesInsideRegion(
+        junctionReadable.getLongitude(),
+        junctionReadable.getLatitude(),
+        roiRegion.getTopLeftCoordinates().getLongitude(),
+        roiRegion.getTopLeftCoordinates().getLatitude(),
+        roiRegion.getBottomRightCoordinates().getLongitude(),
+        roiRegion.getBottomRightCoordinates().getLatitude()
+    );
+  }
+
+  private static List<CarMessage> createCarsMessagesList(MapFragment mapFragment, ROIRegion roiRegion) {
     return mapFragment.getKnownPatchReadable().stream()
         .flatMap(PatchReader::streamLanesReadable)
+        .filter(laneReadable -> CoordinatesUtils.isRegionEmpty(roiRegion) || checkIsLaneIntersectingRegion(laneReadable, mapFragment, roiRegion))
         .flatMap(LaneReadable::streamCarsFromExitReadable)
         .map(carReadable -> createCarMessage(carReadable, mapFragment))
         .toList();
@@ -50,11 +76,18 @@ public class CarsProducer {
   }
 
   public void sendCars(MapFragment mapFragment, int iterationNumber) {
-    log.info("[{}] Start sending cars from map fragment: {}", iterationNumber, mapFragment.getMapFragmentId());
+    log.info("[{}] Start sending cars from map fragment: {}", iterationNumber, mapFragment.getMapFragmentId().getId());
+
+    VisualizationStateChangeMessage visualizationStateChangeMessage = visualizationStateChangeConsumer.getCurrentVisualizationStateChangeMessage();
+    if (null == visualizationStateChangeMessage) {
+      log.info("[{}] Visualization not started yet", iterationNumber);
+      return;
+    }
+    ROIRegion roiRegion = visualizationStateChangeMessage.getRoiRegion();
 
     CarsMessage carsMessage = CarsMessage.newBuilder()
         .setIterationNumber(iterationNumber)
-        .addAllCarsMessages(createCarsMessagesList(mapFragment))
+        .addAllCarsMessages(createCarsMessagesList(mapFragment, roiRegion))
         .build();
 
     var record = new ProducerRecord<>(CARS_TOPIC, mapFragment.getMapFragmentId().toString(), carsMessage);
@@ -63,6 +96,8 @@ public class CarsProducer {
     future.addCallback(new ListenableFutureCallback<>() {
       @Override
       public void onSuccess(SendResult<String, CarsMessage> result) {
+        log.info("[{}] Send {} cars from mapFragment: {}", iterationNumber, carsMessage.getCarsMessagesCount(),
+            mapFragment.getMapFragmentId().getId());
       }
 
       @Override
@@ -71,6 +106,6 @@ public class CarsProducer {
       }
     });
 
-    log.info("[{}] End sending cars from map fragment: {}", iterationNumber, mapFragment.getMapFragmentId());
+    log.info("[{}] End sending cars from map fragment: {}", iterationNumber, mapFragment.getMapFragmentId().getId());
   }
 }

@@ -79,5 +79,10 @@ public enum MessagesTypeEnum {
   /**
    * Resume simulation
    */
-  ResumeSimulationMessage
+  ResumeSimulationMessage,
+
+  /**
+   * Visualization Region of Interest change message
+   */
+  VisualizationROIChangeMessage
 }
