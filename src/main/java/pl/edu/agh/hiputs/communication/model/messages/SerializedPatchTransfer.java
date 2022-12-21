@@ -37,5 +37,5 @@ public class SerializedPatchTransfer implements Serializable {
   /**
    * Car from patch - we have patch structure in repository, but we haven't knowledge about current cars position
    */
-  private final List<SerializedCar> cars;
+  private final List<byte[]> cars;
 }

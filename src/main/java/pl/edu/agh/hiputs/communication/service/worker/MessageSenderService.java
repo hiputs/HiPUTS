@@ -2,7 +2,6 @@ package pl.edu.agh.hiputs.communication.service.worker;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -22,7 +21,6 @@ import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
-import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 import pl.edu.agh.hiputs.model.Configuration;
@@ -39,7 +37,7 @@ public class MessageSenderService implements Subscriber {
   private final Map<MapFragmentId, ConnectionDto> connectionDtoMap = new HashMap<>();
   private final ConfigurationService configurationService;
   private Connection serverConnection;
-  private final SubscriptionService subscriptionService;
+  private final WorkerSubscriptionService subscriptionService;
 
   @PostConstruct
   void init() {

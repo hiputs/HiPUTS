@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -16,22 +17,24 @@ import pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
-import pl.edu.agh.hiputs.scheduler.task.CarMapperTask;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
+import pl.edu.agh.hiputs.utils.DebugUtils;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CarSynchronizationServiceImpl implements CarSynchronizationService, Subscriber {
 
-  private final SubscriptionService subscriptionService;
+  private final WorkerSubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutorService;
   private final MessageSenderService messageSenderService;
   private final List<CarTransferMessage> incomingMessages = new ArrayList<>();
@@ -60,14 +63,14 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
 
   @Override
   public List<SerializedCar> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
-
     Patch patch = transferDataHandler.getPatchById(patchId);
-    List<Runnable> tasks = new ArrayList<>();
-    List<SerializedCar> toSendCars = new ArrayList<>();
-    tasks.add(new CarMapperTask(patch, toSendCars));
 
-    taskExecutorService.executeBatch(tasks);
-    return toSendCars;
+    return patch.getLaneIds()
+        .parallelStream()
+        .map(patch::getLaneEditable)
+        .flatMap(LaneEditable::pollIncomingCars)
+        .map(SerializedCar::new)
+        .toList();
   }
 
   private void sendMessages(Map<MapFragmentId, List<SerializedCar>> serializedCarMap) {
@@ -84,24 +87,49 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   @Override
   public synchronized void synchronizedGetIncomingSetsOfCars(TransferDataHandler mapFragment) {
     int countOfNeighbours = mapFragment.getNeighbors().size();
-    while (incomingMessages.size() < countOfNeighbours) {
+    int readedMessage = 0;
+    while (incomingMessages.size() < countOfNeighbours && readedMessage < countOfNeighbours) {
       try {
-        this.wait();
+        this.wait(1000);
+        readedMessage += applyMessages(mapFragment, readedMessage);
       } catch (InterruptedException e) {
         log.error(e.getMessage());
         throw new RuntimeException(e);
       }
     }
 
-    List<Runnable> injectIncomingCarTasks = incomingMessages.stream()
+    applyMessages(mapFragment, readedMessage);
+    incomingMessages.addAll(futureIncomingMessages);
+    futureIncomingMessages.clear();
+  }
+
+  private int applyMessages(TransferDataHandler mapFragment, int start) {
+    List<Runnable> injectIncomingCarTasks = incomingMessages.subList(start, incomingMessages.size())
+        .stream()
         .map(message -> new InjectIncomingCarsTask(message.getCars(), mapFragment))
         .collect(Collectors.toList());
 
     taskExecutorService.executeBatch(injectIncomingCarTasks);
+    return injectIncomingCarTasks.size();
+  }
 
-    incomingMessages.clear();
-    incomingMessages.addAll(futureIncomingMessages);
-    futureIncomingMessages.clear();
+  private String getWeaitingByMessage() {
+    try {
+      final Set<MapFragmentId> mapFragmentIds = incomingMessages.stream()
+          .map(m -> DebugUtils.getMapFragment().getPatchIdByLaneId(new LaneId(m.getCars().get(0).getLaneId())))
+          .map(patchId -> DebugUtils.getMapFragment().getMapFragmentIdByPatchId(patchId))
+          .collect(Collectors.toSet());
+
+      return DebugUtils.getMapFragment().getNeighbors()
+          .stream()
+          .filter(mapFragmentId -> !mapFragmentIds.contains(mapFragmentId))
+          .map(mapFragmentId -> mapFragmentId.getId() + "{ " + DebugUtils.getMapFragment().getBorderPatches().get(mapFragmentId).stream().map(p -> p.getPatchId().getValue()).collect(
+              Collectors.joining(", ")) + "}")
+          .collect(Collectors.joining(", "));
+    } catch (Exception e){
+
+    }
+    return "---";
   }
 
   @Override

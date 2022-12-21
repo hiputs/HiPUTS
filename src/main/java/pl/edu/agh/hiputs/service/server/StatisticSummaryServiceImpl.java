@@ -19,13 +19,14 @@ import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationStatisticM
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.server.SubscriptionService;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.MapStatistic;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class StatisticSummaryServiceImpl implements StatisticSummaryService, Subscriber {
 
-  private static final String SEPARATOR = ", ";
+  public static final String SEPARATOR = ", ";
 
   private static final String DIR = "statistic";
   private static final String WORKER_COSTS_CSV = "workerCost.csv";
@@ -33,6 +34,8 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
   private static final String WORKER_WAITING_TIME_CSV = "workerWaitingTime.csv";
   private static final String WORKER_LOAD_BALANCING_COST_CSV = "workerLoadBalancingTime.csv";
   private static final String PATCH_EXCHANGES_CSV = "patchExchanges.csv";
+
+  private static final String MAP_STATUS_CSV = "mapStatus.csv";
 
   private static final String SUMMARY_TXT = "summary.txt";
   private final SubscriptionService subscriptionService;
@@ -56,7 +59,9 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     carByWorker();
     createCSVLoadBalancingCostByWorker();
     createCSVPatchExchangesRecords();
+    createCSVMapStatistic();
   }
+
 
   @Override
   public void startTiming() {
@@ -83,6 +88,21 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
         .collect(Collectors.joining());
 
     save(content, PATCH_EXCHANGES_CSV);
+  }
+
+
+  private void createCSVMapStatistic() {
+    String content = repository
+        .stream()
+        .flatMap(i -> i.getMapStatisticRepository()
+            .stream()
+        )
+        .sorted(Comparator.comparingInt(MapStatistic::getStep))
+        .map(MapStatistic::toString)
+        .collect(Collectors.joining());
+
+    save(content, MAP_STATUS_CSV);
+
   }
 
   private void createCSVLoadBalancingCostByWorker() {

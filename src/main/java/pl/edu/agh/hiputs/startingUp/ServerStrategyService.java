@@ -38,6 +38,7 @@ import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 import pl.edu.agh.hiputs.communication.service.server.ConnectionInitializationService;
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
 import pl.edu.agh.hiputs.communication.service.server.WorkerRepository;
+import pl.edu.agh.hiputs.loadbalancer.utils.GraphCoherencyUtil;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
@@ -77,6 +78,7 @@ public class ServerStrategyService implements Strategy {
   private final VisualizationSynchronisationService visualizationSynchronisationService;
 
   private final KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
+  private final GraphCoherencyUtil graphCoherencyUtil;
 
   @Override
   public void executeStrategy() throws InterruptedException {
@@ -112,6 +114,13 @@ public class ServerStrategyService implements Strategy {
 
     log.info("Waiting for all workers be in state CompletedInitialization");
     workerSynchronisationService.waitForAllWorkers(CompletedInitializationMessage);
+
+    // if(!graphCoherencyUtil.validateEndModel()){
+    //   log.error("the graph is not consistent");
+    //   messageSenderServerService.broadcast(new ShutDownMessage());
+    //   Thread.sleep(1000);
+    //   shutDown();
+    // }
 
     distributeRunSimulationMessage(mapFragmentsContents);
 
@@ -154,6 +163,7 @@ public class ServerStrategyService implements Strategy {
 
     //prepare serverInitMessage for each worker
     Map<String, ServerInitializationMessage> workerId2ServerInitializationMessage = new HashMap<>();
+    boolean bigWorkerSelected = false;
 
     while(workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
       String workerId = workerIdsIterator.next();
@@ -191,7 +201,12 @@ public class ServerStrategyService implements Strategy {
       ServerInitializationMessage serverInitializationMessage = ServerInitializationMessage.builder()
           .patchIds(mapFragmentContent.getNodes().keySet().stream().toList())
           .workerInfo(workerDataDtos)
+          .bigWorker(!bigWorkerSelected)
           .build();
+
+      if(!bigWorkerSelected){
+        bigWorkerSelected = true;
+      }
       workerId2ServerInitializationMessage.put(workerId, serverInitializationMessage);
     }
 

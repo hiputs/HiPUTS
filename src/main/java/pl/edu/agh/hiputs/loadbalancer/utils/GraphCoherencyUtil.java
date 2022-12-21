@@ -10,15 +10,22 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
-@UtilityClass
+@Component
+@RequiredArgsConstructor
 public class GraphCoherencyUtil {
+
+  private final MapRepository mapRepository;
 
   /**
    * 1. Create GodPatch -> Reduce the graph to the form of a large vertex (all local patches connected with border
@@ -35,38 +42,14 @@ public class GraphCoherencyUtil {
     Patch godPatch = createGodPatch(transferDataHandler, borderParticipant, removedPatchId);
 
     //2.
-    Set<PatchId> visitedPatchId = new HashSet<>();
-    Queue<PatchId> waitingForProcessed = new LinkedList<>(godPatch.getNeighboringPatches().stream().toList());
     Map<PatchId, Patch> neighbouringPatchesRepository = transferDataHandler.getBorderPatches()
         .get(borderParticipant)
         .stream()
         .collect(Collectors.toMap(Patch::getPatchId, Function.identity()));
     neighbouringPatchesRepository.remove(removedPatchId);
+    neighbouringPatchesRepository.put(godPatch.getPatchId(), godPatch);
 
-    while (!waitingForProcessed.isEmpty()) {
-      PatchId patchId = waitingForProcessed.poll();
-
-      if (visitedPatchId.contains(patchId)) {
-        continue;
-      }
-
-     Patch patch = neighbouringPatchesRepository.get(patchId);
-
-      if(patch == null){
-        continue;
-      }
-
-      visitedPatchId.add(patch.getPatchId());
-
-      waitingForProcessed.addAll(patch.getNeighboringPatches()
-          .stream()
-          .filter(p -> !visitedPatchId.contains(p))
-          .filter(neighbouringPatchesRepository::containsKey)
-          .toList());
-    }
-
-    //3.
-    return visitedPatchId.size() == neighbouringPatchesRepository.size();
+    return checkCoherency(neighbouringPatchesRepository, godPatch.getPatchId());
 }
 
   private static Patch createGodPatch(TransferDataHandler transferDataHandler, MapFragmentId borderParticipant,
@@ -88,5 +71,40 @@ public class GraphCoherencyUtil {
 
     godPatchNeighbours.remove(removedPatchId);
     return Patch.builder().neighboringPatches(godPatchNeighbours).build();
+  }
+
+  private static boolean checkCoherency(Map<PatchId, Patch> vertexRepository, PatchId startVertex){
+    Set<PatchId> visitedPatchId = new HashSet<>();
+    Patch startPatch = vertexRepository.get(startVertex);
+    Queue<PatchId> waitingForProcessed = new LinkedList<>(startPatch.getNeighboringPatches().stream().toList());
+
+    while (!waitingForProcessed.isEmpty()) {
+      PatchId patchId = waitingForProcessed.poll();
+
+      if (visitedPatchId.contains(patchId)) {
+        continue;
+      }
+
+      Patch vertex = vertexRepository.get(patchId);
+
+      if(vertex == null){
+        continue;
+      }
+
+      visitedPatchId.add(vertex.getPatchId());
+
+      waitingForProcessed.addAll(vertex.getNeighboringPatches()
+          .stream()
+          .filter(p -> !visitedPatchId.contains(p))
+          .filter(vertexRepository::containsKey)
+          .toList());
+    }
+
+    //3.
+    return visitedPatchId.size() == vertexRepository.size();
+  }
+
+  public boolean validateEndModel(){
+    return checkCoherency(mapRepository.getPatchesMap(), mapRepository.getAllPatches().get(0).getPatchId());
   }
 }

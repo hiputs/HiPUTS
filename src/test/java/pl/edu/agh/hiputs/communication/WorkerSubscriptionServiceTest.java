@@ -11,14 +11,14 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.NeighbourConnectionMessage;
 import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 
 @SpringBootTest
 @Disabled("TODO remove visualization during test")
-public class SubscriptionServiceTest {
+public class WorkerSubscriptionServiceTest {
 
   @Autowired
-  private SubscriptionService subscriptionService;
+  private WorkerSubscriptionService subscriptionService;
 
   @Autowired
   private MessageReceiverService messageReceiverService;

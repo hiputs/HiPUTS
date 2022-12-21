@@ -16,11 +16,10 @@ import pl.edu.agh.hiputs.scheduler.exception.InsufficientSystemResourcesExceptio
 public class SchedulerService implements TaskExecutorService {
 
   private ForkJoinPool threadPoolExecutor;
-  private static final int RESERVED_THREADS_NUMBER = 1;
 
   @PostConstruct
   public void init() {
-    int cores = getFreeCores();
+    int cores = 48; //getFreeCores();
 
     if (cores <= 0) {
       throw new InsufficientSystemResourcesException("Insufficient number of cores");
@@ -29,7 +28,7 @@ public class SchedulerService implements TaskExecutorService {
   }
 
   private int getFreeCores() {
-    return Runtime.getRuntime().availableProcessors() - RESERVED_THREADS_NUMBER;
+    return Runtime.getRuntime().availableProcessors();
   }
 
   @Override

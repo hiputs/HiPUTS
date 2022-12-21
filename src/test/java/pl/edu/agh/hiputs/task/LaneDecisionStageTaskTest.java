@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.task;
 import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,6 +19,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
+@Disabled
 @ExtendWith(MockitoExtension.class)
 public class LaneDecisionStageTaskTest {
 

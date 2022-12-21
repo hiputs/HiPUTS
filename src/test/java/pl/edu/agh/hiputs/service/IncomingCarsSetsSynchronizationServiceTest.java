@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.Decision;
@@ -43,7 +43,7 @@ public class IncomingCarsSetsSynchronizationServiceTest {
   private MessageSenderService messageSenderService;
 
   @Mock
-  private SubscriptionService subscriptionService;
+  private WorkerSubscriptionService subscriptionService;
 
   private final SchedulerService taskExecutorService = new SchedulerService();
 

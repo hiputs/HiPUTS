@@ -16,6 +16,6 @@ public class PatchTransferNotificationMessage implements Message {
 
   @Override
   public MessagesTypeEnum getMessageType() {
-    return MessagesTypeEnum.PatchTransferMessage;
+    return MessagesTypeEnum.PatchTransferNotificationMessage;
   }
 }

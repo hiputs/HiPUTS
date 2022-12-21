@@ -7,7 +7,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 
 public interface LoadBalancingStrategy {
 
-  LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler);
+  LoadBalancingDecision makeBalancingDecision(TransferDataHandler transferDataHandler, int actualStep);
 
   @Getter
   @Setter

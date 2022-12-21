@@ -12,7 +12,8 @@ import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.partition.mapper.Internal2SimulationModelMapper;
@@ -31,7 +32,7 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
   private final Map<PatchId, Patch> patches = new HashMap<>();
 
   private final ConfigurationService configurationService;
-  private final SubscriptionService subscriptionService;
+  private final WorkerSubscriptionService subscriptionService;
 
   private final PatchesGraphReader patchesGraphReader;
   private final Internal2SimulationModelMapper internal2SimulationModelMapper;
@@ -55,9 +56,9 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
       mapPackagePath = Path.of(configurationService.getConfiguration().getMapPath());
     }
 
-    if (!configurationService.getConfiguration().isServerOnThisMachine()) {
+    // if (!configurationService.getConfiguration().isServerOnThisMachine()) {
       this.patchesGraph = patchesGraphReader.readGraphWithPatches(mapPackagePath);
-    }
+    // }
 
     patches.putAll(internal2SimulationModelMapper.mapToSimulationModel(patchesGraph));
     mapReadyToUse = true;
@@ -93,6 +94,21 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
   @Override
   public List<Patch> getAllPatches() {
     return patches.values().stream().toList();
+  }
+
+  @Override
+  public Map<PatchId, Patch> getPatchesMap() {
+    return patches;
+  }
+
+  @Override
+  public PatchId getPatchIdByLaneId(LaneId laneId) {
+    return patches.values()
+        .parallelStream()
+        .filter(p -> p.getLaneIds().contains(laneId))
+        .findFirst()
+        .get()
+        .getPatchId();
   }
 
   @Override

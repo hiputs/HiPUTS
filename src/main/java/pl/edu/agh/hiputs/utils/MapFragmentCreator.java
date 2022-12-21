@@ -8,6 +8,7 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment.MapFragmentBuilder;
+import pl.edu.agh.hiputs.service.worker.CarGeneratorService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @Slf4j

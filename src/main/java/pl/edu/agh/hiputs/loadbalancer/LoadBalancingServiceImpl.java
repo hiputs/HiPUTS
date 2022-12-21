@@ -20,10 +20,9 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.LoadSynchronizationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingStrategy.LoadBalancingDecision;
-import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.PatchBalancingInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.PatchCostCalculatorUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
@@ -39,44 +38,58 @@ import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 @RequiredArgsConstructor
 public class LoadBalancingServiceImpl implements LoadBalancingService, Subscriber {
 
+  private static final int MAX_PATCH_EXCHANGE = 40;
   private final PatchTransferService patchTransferService;
-  private final ConfigurationService configurationService;
   private final SimplyLoadBalancingService simplyLoadBalancingService;
   private final PidLoadBalancingService pidLoadBalancingService;
   private final SimulationStatisticService simulationStatisticService;
 
-  private final SubscriptionService subscriptionService;
+  private final WorkerSubscriptionService subscriptionService;
 
   private final MessageSenderService messageSenderService;
 
   private final List<Message> synchronizationLoadBalancingList = new ArrayList<>();
   private final NoneLoadBalancingStrategy noneLoadBalancingService;
 
+  private MapFragmentId lastLoadBalancingCandidate = null; //We must repete their neighbourTransferMessage
+
+  private int actualStep = 0;
+
   @PostConstruct
-  void init(){
+  void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.LoadSynchronizationMessage);
   }
 
   @Override
-  public void startLoadBalancing(TransferDataHandler transferDataHandler) {
-
-    if (configurationService.getConfiguration().getWorkerCount() == 1) {
-      return;
+  public MapFragmentId startLoadBalancing(TransferDataHandler transferDataHandler) {
+    if (ConfigurationService.getConfiguration().getWorkerCount() == 1) {
+      return null;
     }
+    actualStep++;
 
+    List<MapFragmentId> neighboursToNotify = List.copyOf(transferDataHandler.getNeighbors());
+    balance(transferDataHandler);
+    synchronizedWithNeighbour(neighboursToNotify);
+
+    return lastLoadBalancingCandidate;
+  }
+
+  private void balance(TransferDataHandler transferDataHandler) {
     LoadBalancingStrategy strategy = getStrategyByMode();
-    LoadBalancingDecision loadBalancingDecision = strategy.makeBalancingDecision(transferDataHandler);
+    LoadBalancingDecision loadBalancingDecision = strategy.makeBalancingDecision(transferDataHandler, actualStep);
 
     if (!loadBalancingDecision.isLoadBalancingRecommended()) {
       simulationStatisticService.saveLoadBalancingDecision(false, null, null, 0f, loadBalancingDecision.getAge());
+      lastLoadBalancingCandidate = null;
       return;
     }
 
-    log.debug("Start loadbalancing worker id: {}", transferDataHandler.getMe());
+    log.info("Start loadbalancing worker id: {} with {}", transferDataHandler.getMe(), loadBalancingDecision.getSelectedNeighbour().getId());
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
+    lastLoadBalancingCandidate = recipient;
     long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
 
-    if(targetBalanceCars == 0){
+    if (targetBalanceCars == 0) {
       return;
     }
 
@@ -87,35 +100,35 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
       ImmutablePair<PatchBalancingInfo, Double> patchInfo =
           findPatchesToSend(recipient, transferDataHandler, targetBalanceCars);
 
-      if(patchInfo == null){
-        return;
+      if (patchInfo == null) {
+        break;
       }
 
       simulationStatisticService.saveLoadBalancingDecision(true, patchInfo.getLeft().getPatchId().getValue(),
           recipient.getId(), patchInfo.getRight(), loadBalancingDecision.getAge());
 
-      serializedPatchTransfers.add(patchTransferService.prepareSinglePatchItemAndNotifyNeighbour(recipient, patchInfo.getLeft().getPatchId(), transferDataHandler));
+      serializedPatchTransfers.add(
+          patchTransferService.prepareSinglePatchItemAndNotifyNeighbour(recipient, patchInfo.getLeft().getPatchId(),
+              transferDataHandler));
 
       transferCars += patchInfo.getLeft().getCountOfVehicle();
-    } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9);
+    } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9 && serializedPatchTransfers.size() < MAX_PATCH_EXCHANGE && transferDataHandler.getLocalPatchesSize() >= 5);
 
     patchTransferService.sendPatchMessage(recipient, serializedPatchTransfers);
   }
 
-  @Override
-  public synchronized void synchronizedWithNeighbour(TransferDataHandler transferDataHandler) {
+  private synchronized void synchronizedWithNeighbour(List<MapFragmentId> neighboursToNotify) {
 
-    transferDataHandler.getNeighbors().forEach(id -> {
+    neighboursToNotify.forEach(id -> {
       try {
         messageSenderService.send(id, new LoadSynchronizationMessage());
       } catch (IOException e) {
         log.error("Error util send synchronization message");
       }
     });
-
-    while(synchronizationLoadBalancingList.size() < transferDataHandler.getNeighbors().size()){
+    while (synchronizationLoadBalancingList.size() < neighboursToNotify.size()) {
       try {
-        this.wait();
+        this.wait(500);
       } catch (InterruptedException e) {
         log.error("error until wait for loadbalancing synchronization");
       }
@@ -129,6 +142,10 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
       TransferDataHandler transferDataHandler, final long carBalanceTarget) {
 
     Set<Patch> candidatesToLoadBalancing = transferDataHandler.getBorderPatches().get(recipient);
+
+    if (candidatesToLoadBalancing == null) {
+      return null;
+    }
     List<PatchBalancingInfo> candidatesWithStatistic =
         bindWitchStatistic(candidatesToLoadBalancing, transferDataHandler);
 
@@ -138,16 +155,15 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
         .sorted(Comparator.comparingDouble(ImmutablePair::getRight))
         .toList();
 
-    if(orderCandidates.size() == 0){
+    if (orderCandidates.size() == 0) {
       return null;
     }
 
+    ImmutablePair<PatchBalancingInfo, Double> selectedCandidate =
+        findFirstCandidateNotLossGraphCoherence(orderCandidates, transferDataHandler, recipient);
 
-      ImmutablePair<PatchBalancingInfo, Double> selectedCandidate =
-          findFirstCandidateNotLossGraphCoherence(orderCandidates, transferDataHandler, recipient);
-
-      log.debug("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(),
-          selectedCandidate.getRight());
+    log.debug("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(),
+        selectedCandidate.getRight());
 
     return selectedCandidate;
   }
@@ -190,17 +206,16 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   }
 
   private LoadBalancingStrategy getStrategyByMode() {
-    return switch (configurationService.getConfiguration().getBalancingMode()) {
+    return switch (ConfigurationService.getConfiguration().getBalancingMode()) {
       case SIMPLY -> simplyLoadBalancingService;
       case PID -> pidLoadBalancingService;
-      case NONE -> noneLoadBalancingService;
-      default -> null;
+      default -> noneLoadBalancingService;
     };
   }
 
   @Override
   public synchronized void notify(Message message) {
-      synchronizationLoadBalancingList.add(message);
-      this.notifyAll();
+    synchronizationLoadBalancingList.add(message);
+    this.notifyAll();
   }
 }

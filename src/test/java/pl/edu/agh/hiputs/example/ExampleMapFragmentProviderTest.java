@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.example;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
+@Disabled
 public class ExampleMapFragmentProviderTest {
 
     @Test
