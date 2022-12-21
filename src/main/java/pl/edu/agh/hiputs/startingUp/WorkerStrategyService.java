@@ -45,6 +45,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
+import pl.edu.agh.hiputs.visualization.connection.consumer.VisualizationStateChangeConsumer;
 import pl.edu.agh.hiputs.visualization.connection.producer.SimulationNewNodesProducer;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 
@@ -72,6 +73,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final StatisticSummaryService statisticSummaryService;
 
   private final SimulationNewNodesProducer simulationNewNodesProducer;
+  private final VisualizationStateChangeConsumer visualizationStateChangeConsumer;
 
   private volatile boolean isSimulationStopped = false;
 
@@ -163,7 +165,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     int[] counter = {0};
     final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-      if (counter[0]++ < 10) {
+      if (counter[0]++ < 100) {
         List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
             .mapToObj(x -> exampleCarProvider.generateCar(laneId, 1000))
             .sorted(Comparator.comparing(Car::getPositionOnLane))
@@ -193,6 +195,11 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     isSimulationStopped = false;
   }
 
+  private int calculatePauseAfterStep(long stepElapsedTime) {
+    int visualizationSpeed = visualizationStateChangeConsumer.getCurrentVisualizationStateChangeMessage().getVisualizationSpeed();
+    return (int) Math.max(0, visualizationSpeed - stepElapsedTime);
+  }
+
   @Override
   public void run() {
     int i = 0;
@@ -205,12 +212,14 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           continue;
         }
         log.info("Start iteration no. {}/{}", i, n);
+        long startTime = System.currentTimeMillis();
         mapFragmentExecutor.run(i);
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
         }
-        sleep(configuration.getPauseAfterStep());
+        long stepElapsedTime = System.currentTimeMillis() - startTime;
+        sleep(calculatePauseAfterStep(stepElapsedTime));
         i++;
       }
     } catch (Exception e) {
