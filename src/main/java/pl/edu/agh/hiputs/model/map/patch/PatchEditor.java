@@ -12,6 +12,8 @@ public interface PatchEditor extends PatchReader {
 
   Stream<LaneEditable> streamLanesEditable();
 
+  Stream<LaneEditable> parallelStreamLanesEditable();
+
   JunctionEditable getJunctionEditable(JunctionId junctionId);
 
   Stream<JunctionEditable> streamJunctionsEditable();

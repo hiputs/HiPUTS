@@ -1,16 +1,19 @@
 package pl.edu.agh.hiputs.service.worker;
 
 import static pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint.LOAD_BALANCING;
+import static pl.edu.agh.hiputs.service.server.StatisticSummaryServiceImpl.SEPARATOR;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationStatisticMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
@@ -34,6 +37,8 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
 
   private final List<LoadBalancingStatistic> balancingStatisticRepository = new LinkedList<>();
   private final List<DecisionStatistic> decisionRepository = new LinkedList<>();
+
+  private final List<MapStatistic> mapStatisticsRepository = new LinkedList<>();
 
   @PostConstruct
   void init() {
@@ -85,11 +90,20 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
   public void sendStatistic(MapFragmentId mapFragmentId) {
     try {
       messageSenderService.sendServerMessage(
-          new FinishSimulationStatisticMessage(balancingStatisticRepository, decisionRepository, getLoadBalancingCost(),
+          new FinishSimulationStatisticMessage(
+              balancingStatisticRepository,
+              decisionRepository,
+              getLoadBalancingCost(),
+              mapStatisticsRepository,
               mapFragmentId.getId()));
     } catch (IOException e) {
       log.error("Error occured wheen send statistic message", e);
     }
+  }
+
+  @Override
+  public void saveMapStatistic(MapStatistic mapStatistic) {
+    mapStatisticsRepository.add(mapStatistic);
   }
 
   @Builder
@@ -119,5 +133,27 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
 
     int step;
     long cost;
+  }
+
+  @Builder
+  @Value
+  public static class MapStatistic implements Serializable {
+    int step;
+    String workerId;
+    int localPatches;
+    int borderPatches;
+    int shadowPatches;
+    List<ImmutablePair<String, Integer>> neighbouring;
+
+    @Override
+    public String toString(){
+      return step + SEPARATOR + workerId + SEPARATOR + localPatches + SEPARATOR + borderPatches + SEPARATOR + shadowPatches + SEPARATOR + getNeighbourString() + "\n";
+    }
+
+    private String getNeighbourString() {
+      return neighbouring.stream()
+          .map(i -> i.getLeft() + ": " + i.getRight())
+          .collect(Collectors.joining(" ; "));
+    }
   }
 }

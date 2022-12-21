@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
@@ -31,7 +33,7 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
-import pl.edu.agh.hiputs.communication.service.worker.SubscriptionService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.model.Configuration;
@@ -44,6 +46,7 @@ import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
+import pl.edu.agh.hiputs.utils.DebugUtils;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
 import pl.edu.agh.hiputs.visualization.connection.producer.SimulationNewNodesProducer;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
@@ -53,7 +56,7 @@ import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 @RequiredArgsConstructor
 public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
-  private final SubscriptionService subscriptionService;
+  private final WorkerSubscriptionService subscriptionService;
   private final MapRepository mapRepository;
   private final MapFragmentExecutor mapFragmentExecutor;
   private final ConfigurationService configurationService;
@@ -63,17 +66,13 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private Configuration configuration;
   private final MapFragmentCreator mapFragmentCreator;
   private final SimulationStatisticService simulationStatisticService;
-
   private final ExecutorService simulationExecutor = newSingleThreadExecutor();
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
-
   private final MonitorLocalService monitorLocalService;
-
   private final StatisticSummaryService statisticSummaryService;
-
   private final SimulationNewNodesProducer simulationNewNodesProducer;
-
   private volatile boolean isSimulationStopped = false;
+  private final DebugUtils debugUtils;
 
   @PostConstruct
   void init() {
@@ -88,6 +87,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   public void executeStrategy() {
     try {
       configuration = configurationService.getConfiguration();
+      configuration.setMapFragmentId(mapFragmentId);
       messageSenderService.sendServerMessage(
           new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 
@@ -131,6 +131,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     waitForMapLoad();
     MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
     mapFragmentExecutor.setMapFragment(mapFragment);
+    debugUtils.setMapFragment(mapFragment);
 
     createCars();
 
@@ -160,19 +161,20 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   }
 
   private void createCars() {
-    int[] counter = {0};
+    AtomicInteger counter = new AtomicInteger();
     final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-      if (counter[0]++ < 10) {
+      if (counter.getAndIncrement() < 100) {
         List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-            .mapToObj(x -> exampleCarProvider.generateCar(laneId, 1000))
+            .mapToObj(x -> exampleCarProvider.generateCar(laneId, 30))
+            .filter(Objects::nonNull)
             .sorted(Comparator.comparing(Car::getPositionOnLane))
             .collect(Collectors.toList());
         Collections.reverse(generatedCars);
         generatedCars.forEach(car -> {
           LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
           exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
-          lane.addCarAtEntry(car);
+          lane.addNewCar(car);
         });
       }
     });

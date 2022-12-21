@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.model.car.driver.deciders.follow;
 
 import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
@@ -9,10 +10,10 @@ public class IdmDecider implements FunctionalDecider {
   private final IFollowingModel followingModel;
 
   public IdmDecider() {
-    this.followingModel = new Idm();
+    this.followingModel = new Idm(new DriverParameters());
   }
 
-  public IdmDecider(Idm followingModel) {
+  public IdmDecider(IFollowingModel followingModel) {
     this.followingModel = followingModel;
   }
 

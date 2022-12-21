@@ -47,7 +47,7 @@ public class HexagonsPartitioner implements PatchPartitioner {
   public Graph<PatchData, PatchConnectionData> partition(Graph<JunctionData, WayData> graph) {
     colorGraph(graph);
     Graph<PatchData, PatchConnectionData> patchesGraph = new PatchesGraphExtractor().createFrom(graph);
-    log.info("Partitioning into patches finished");
+    //log.info("Partitioning into patches finished");
     return patchesGraph;
   }
 
@@ -261,7 +261,7 @@ public class HexagonsPartitioner implements PatchPartitioner {
       Node<JunctionData, WayData> target,
       Edge<JunctionData, WayData> parentEdge,
       String patchId) {
-    Edge<JunctionData, WayData> newEdge = new Edge<>(UUID.randomUUID().toString(),
+    Edge<JunctionData, WayData> newEdge = new Edge<>(source.getId() + "->" + target.getId(),
         WayData.builder()
             .length(CoordinatesUtil.plainDistanceInMeters(source.getData().getLat(), target.getData().getLat(), source.getData().getLon(), target.getData().getLon()))
             .patchId(patchId)

@@ -6,6 +6,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.DecisionStatistic;
 import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.LoadBalancingCostStatistic;
 import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.LoadBalancingStatistic;
+import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.MapStatistic;
 
 @Value
 public class FinishSimulationStatisticMessage implements Message{
@@ -13,6 +14,7 @@ public class FinishSimulationStatisticMessage implements Message{
   List<LoadBalancingStatistic> balancingStatisticRepository;
   List<DecisionStatistic> decisionRepository;
   List<LoadBalancingCostStatistic> balancingCostRepository;
+  List<MapStatistic> mapStatisticRepository;
   String id;
 
   @Override

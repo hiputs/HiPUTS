@@ -72,6 +72,11 @@ public class Patch implements PatchReader, PatchEditor {
   }
 
   @Override
+  public Stream<LaneEditable> parallelStreamLanesEditable() {
+    return lanes.values().parallelStream().map(Function.identity());
+  }
+
+  @Override
   public Set<JunctionId> getJunctionIds() {
     return junctions.keySet();
   }

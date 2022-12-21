@@ -8,11 +8,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Configurable;
-import pl.edu.agh.hiputs.model.car.driver.Driver;
 import pl.edu.agh.hiputs.model.car.driver.IDriver;
+import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionProperties;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
+import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Configurable
@@ -42,7 +43,7 @@ public class Car implements CarEditable {
   /**
    * Driver instance
    */
-  private final IDriver driver = new Driver(this);
+  private final IDriver driver;
 
   /**
    * Lane on which car is currently situated.
@@ -77,15 +78,22 @@ public class Car implements CarEditable {
    */
   private Decision decision;
 
+  /**
+   * Properties of crossroad decision. Need to giving a way on locked crossroad.
+   */
+  @Builder.Default
+  private Optional<CrossroadDecisionProperties> crossroadDecisionProperties = Optional.empty();
+
   @Override
   public void decide(RoadStructureReader roadStructureReader) {
-    decision = this.driver.makeDecision(roadStructureReader);
+    decision = this.driver.makeDecision(this, roadStructureReader);
   }
 
   @Override
   public Optional<CarUpdateResult> update() {
     if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getLaneId() == null) { // remove car from lane
-      log.trace("Car: " + this.getCarId() + " was removed due to finish his route");
+      log.warn("Car: " + this.getCarId() + " was removed due to finish his route");
+      crossroadDecisionProperties = Optional.empty();
       return Optional.empty();
     }
     this.speed = decision.getSpeed();
@@ -94,6 +102,17 @@ public class Car implements CarEditable {
         new CarUpdateResult(this.laneId, decision.getLaneId(), decision.getPositionOnLane());
     this.laneId = decision.getLaneId();
     this.positionOnLane = decision.getPositionOnLane();
+    if(decision.getCrossroadDecisionProperties() == null ){
+      log.trace("Car: " + this.getCarId() + " was removed due to decision null");
+      return Optional.empty();
+    }
+
+    Optional<CrossroadDecisionProperties> decisionProperties = decision.getCrossroadDecisionProperties();
+    if(decision.getCrossroadDecisionProperties().isEmpty() && this.crossroadDecisionProperties.isPresent()){
+      decisionProperties = Optional.empty();
+      log.trace("Car: " + carId + " reset crossroadDecisionProperties");
+    }
+    this.crossroadDecisionProperties = decisionProperties;
 
     Optional<LaneId> laneId = this.getRouteOffsetLaneId(0);
     if(laneId.isPresent() && !this.laneId.equals(laneId.get())){
@@ -114,8 +133,18 @@ public class Car implements CarEditable {
   }
 
   @Override
+  public Optional<CrossroadDecisionProperties> getCrossRoadDecisionProperties() {
+    return crossroadDecisionProperties;
+  }
+
+  @Override
   public Optional<LaneId> getRouteOffsetLaneId(int offset){
       return this.routeWithLocation.getOffsetLaneId(offset);
+  }
+
+  @Override
+  public double getDistanceHeadway() {
+    return driver.getDistanceHeadway();
   }
 
   @Override

@@ -123,13 +123,13 @@ public class Lane implements LaneEditable {
     if(!cars.isEmpty()){
       CarReadable firstCarOnLane = cars.peekFirst();
       if(firstCarOnLane.getPositionOnLane() < car.getPositionOnLane()){
-        //#TODO change log to warning when repair junction decider
-        log.debug("TODO: change to warning finally; " + "Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
-            + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnLane.getCarId()
-            + ", position: " + firstCarOnLane.getPositionOnLane() + ", speed: " + firstCarOnLane.getSpeed() + ". Collision after crossroad!");
+        log.debug("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
+              + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnLane.getCarId()
+              + ", position: " + firstCarOnLane.getPositionOnLane() + ", speed: " + firstCarOnLane.getSpeed() + ". Collision after crossroad!");
+
         //Move back car to be before car he hit after collision
         car.setPositionOnLaneAndSpeed(firstCarOnLane.getPositionOnLane()
-            - Math.min(0.01, firstCarOnLane.getPositionOnLane() * 0.01), firstCarOnLane.getSpeed());
+            - Math.min(0.1, firstCarOnLane.getPositionOnLane() * 0.1), firstCarOnLane.getSpeed() * 0.9);
       }
     }
     cars.addFirst(car);
@@ -138,12 +138,11 @@ public class Lane implements LaneEditable {
   @Override
   public void addNewCar(CarEditable car){
     if(!cars.isEmpty()){
-      double position = cars.getFirst().getPositionOnLane() + cars.getFirst().getLength() + 0.3;
+      double position = cars.getFirst().getPositionOnLane() - cars.getFirst().getLength() - 0.3;
       double speed = cars.getFirst().getSpeed();
 
-      if(position > car.getLength()){
+      if(position > length){
         car.setPositionOnLaneAndSpeed(0, 10);
-        return;
       }
 
       for (final CarEditable c : cars) {

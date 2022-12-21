@@ -3,11 +3,10 @@ package pl.edu.agh.hiputs.communication.service.worker;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
+import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -21,6 +20,7 @@ import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
@@ -63,7 +63,6 @@ public class MessageReceiverService {
     @Override
     public void run() {
       try {
-        //toDo create simply server to get port for worker
         Random random = new Random();
         int portSeed = 10000 + Math.abs(random.nextInt() % 40000);
         ServerSocket ss = null;
@@ -99,10 +98,10 @@ public class MessageReceiverService {
     @Override
     public void run() {
       try {
-        ObjectInputStream objectInputStream = createObjectInputStreamOrThrowException();
+        DataInputStream dataInputStream = createDataInputStreamOrThrowException();
 
         while (true) {
-          Message message = readMessageOrThrowException(objectInputStream);
+          Message message = readMessageOrThrowException(dataInputStream);
           propagateMessage(message);
         }
       } catch (RuntimeException e) {
@@ -111,19 +110,21 @@ public class MessageReceiverService {
 
     }
 
-    private ObjectInputStream createObjectInputStreamOrThrowException() {
+    private DataInputStream createDataInputStreamOrThrowException() {
       try {
-        return new ObjectInputStream(clientSocket.getInputStream());
+        return new DataInputStream(clientSocket.getInputStream());
       } catch (IOException | NullPointerException e) {
         log.error(e.getMessage());
         throw new RuntimeException(e);
       }
     }
 
-    private Message readMessageOrThrowException(ObjectInputStream objectInputStream) {
+    private Message readMessageOrThrowException(DataInputStream dataInputStream) {
       try {
-        return (Message) objectInputStream.readObject();
-      } catch (IOException | ClassNotFoundException | NullPointerException e) {
+        int length = dataInputStream.readInt();
+        byte[] bytes = dataInputStream.readNBytes(length);
+        return  (Message) SerializationUtils.deserialize(bytes);
+      } catch (IOException | NullPointerException e) {
         log.error(e.getMessage());
         throw new RuntimeException(e);
       }

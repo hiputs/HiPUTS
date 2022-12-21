@@ -19,6 +19,11 @@ public class ServerInitializationMessage implements Message {
    */
   List<WorkerDataDto> workerInfo;
 
+  /**
+   * Worker generated more new car then other
+   */
+  boolean bigWorker;
+
   @Override
   public MessagesTypeEnum getMessageType() {
     return MessagesTypeEnum.ServerInitializationMessage;

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
@@ -20,6 +21,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
+@Disabled
 
 public class GetPrecedingCarTest {
 

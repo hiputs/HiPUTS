@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.config;
+package pl.edu.agh.hiputs.communication.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

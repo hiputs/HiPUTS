@@ -12,5 +12,6 @@ public class LoadBalancingHistoryInfo {
   private long carCost;
   private long timeCost;
   private long waitingTime;
+  private double mapCost;
   private final int age;
 }

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -19,6 +20,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
+@Disabled
 @ExtendWith(MockitoExtension.class)
 public class LaneUpdateStageTaskTest {
 

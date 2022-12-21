@@ -15,4 +15,6 @@ public interface PatchTransferService {
   void handleReceivedPatch(TransferDataHandler transferDataHandler);
 
   void handleNotificationPatch(TransferDataHandler transferDataHandler);
+
+  void retransmitNotification(MapFragmentId selectedCandidate);
 }
