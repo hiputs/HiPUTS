@@ -32,6 +32,6 @@ public class VisualizationStateChangeConsumer {
     log.info("Consumed VisualizationStateChangeMessage: stateChange={}, ROIRegion={}, ZoomLevel={}, VisualizationSpeed={}",
         currentVisualizationStateChangeMessage.getStateChange(), currentVisualizationStateChangeMessage.getRoiRegion(),
         currentVisualizationStateChangeMessage.getZoomLevel(), currentVisualizationStateChangeMessage.getVisualizationSpeed());
-    visualizationSynchronisationService.changeVisualizationState(currentVisualizationStateChangeMessage.getStateChange());
+    visualizationSynchronisationService.applyVisualizationChange(currentVisualizationStateChangeMessage);
   }
 }

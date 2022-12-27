@@ -26,7 +26,7 @@ public class SimulationNewNodesProducer {
 
   private final KafkaTemplate<String, SimulationNewNodesTransferMessage> kafkaTemplate;
 
-  private static Node createNodeFromJunction(JunctionReadable junctionReadable) {
+  private Node createNodeFromJunction(JunctionReadable junctionReadable) {
     return Node.newBuilder()
         .setNodeId(junctionReadable.getJunctionId().getValue())
         .setCoordinates(Coordinates.newBuilder()
@@ -36,25 +36,24 @@ public class SimulationNewNodesProducer {
         .build();
   }
 
-  private static List<Node> getNotOsmNodesList(List<Patch> patches) {
+  private List<Node> getNotOsmNodesList(List<Patch> patches) {
     return patches.stream()
         .flatMap(Patch::streamJunctionsReadable)
         .filter(junctionReadable -> !junctionReadable.getJunctionId().isOsmNode())
-        .map(SimulationNewNodesProducer::createNodeFromJunction)
+        .map(this::createNodeFromJunction)
         .collect(Collectors.toList());
   }
 
   public void sendSimulationNotOsmNodesTransferMessage(List<Patch> patches) {
     List<Node> notOsmNodesList = getNotOsmNodesList(patches);
 
-    final SimulationNewNodesTransferMessage simulationNotOsmNodesTransferMessage =
+    SimulationNewNodesTransferMessage simulationNotOsmNodesTransferMessage =
         SimulationNewNodesTransferMessage.newBuilder().addAllNodes(notOsmNodesList).build();
 
     var record = new ProducerRecord<String, SimulationNewNodesTransferMessage>(SIMULATION_NEW_NODES_TOPIC,
         simulationNotOsmNodesTransferMessage);
 
     ListenableFuture<SendResult<String, SimulationNewNodesTransferMessage>> future = kafkaTemplate.send(record);
-
     future.addCallback(new ListenableFutureCallback<>() {
       @Override
       public void onSuccess(SendResult<String, SimulationNewNodesTransferMessage> result) {

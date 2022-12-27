@@ -4,16 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
-import proto.model.VisualizationStateChangeMessage.ROIRegion;
 
 @Getter
 @AllArgsConstructor
-public class VisualizationROIChangeMessage implements Message {
+public class VisualizationStateChangeMessage implements Message {
 
-  private final ROIRegion roiRegion;
+  private final proto.model.VisualizationStateChangeMessage visualizationStateChangeMessage;
 
   @Override
   public MessagesTypeEnum getMessageType() {
-    return MessagesTypeEnum.VisualizationROIChangeMessage;
+    return MessagesTypeEnum.VisualizationStateChangeMessage;
   }
 }
