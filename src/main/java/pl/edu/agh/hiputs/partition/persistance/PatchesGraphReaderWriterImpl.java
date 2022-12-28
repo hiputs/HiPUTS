@@ -75,6 +75,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
                 n.getData().getLon(),
                 n.getData().getLat(),
                 n.getData().isCrossroad(),
+                n.getData().isOsmNode(),
                 n.getData().getPatchId(),
                 mapToCsv(n.getData().getTags()));
           }
@@ -114,6 +115,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
           .lon(Double.parseDouble(record.get(NodeHeaders.longitude)))
           .lat(Double.parseDouble(record.get(NodeHeaders.latitude)))
           .isCrossroad(Boolean.parseBoolean(record.get(NodeHeaders.is_crossroad)))
+          .isOsmNode(Boolean.parseBoolean(record.get(NodeHeaders.is_osm_node)))
           .patchId(record.get(NodeHeaders.patch_id))
           .tags(csvToMap(record.get(NodeHeaders.tags)))
           .build();

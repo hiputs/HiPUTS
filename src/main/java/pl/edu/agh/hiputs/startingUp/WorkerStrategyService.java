@@ -71,9 +71,10 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
   private final MonitorLocalService monitorLocalService;
   private final StatisticSummaryService statisticSummaryService;
-  private final SimulationNewNodesProducer simulationNewNodesProducer;
+
   private final DebugUtils debugUtils;
   private final CarsProducer carsProducer;
+  private final SimulationNewNodesProducer simulationNewNodesProducer;
   private boolean isSimulationStopped = false;
   private proto.model.VisualizationStateChangeMessage visualizationStateChangeMessage;
 
@@ -96,7 +97,6 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 
       mapRepository.readMapAndBuildModel();
-      simulationNewNodesProducer.sendSimulationNotOsmNodesTransferMessage(mapRepository.getAllPatches());
     } catch (Exception e) {
       log.error("Worker fail", e);
     }
@@ -137,6 +137,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     waitForMapLoad();
     MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
     mapFragmentExecutor.setMapFragment(mapFragment);
+    simulationNewNodesProducer.sendSimulationNotOsmNodesTransferMessage(mapFragment);
     debugUtils.setMapFragment(mapFragment);
 
     createCars();
@@ -171,9 +172,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     // AtomicInteger counter = new AtomicInteger();
     final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-      // if (counter.getAndIncrement() < 10) {
+      // if (counter.getAndIncrement() < 100) {
         List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-            .mapToObj(x -> exampleCarProvider.generateCar(laneId, 30))
+            .mapToObj(x -> exampleCarProvider.generateCar(laneId, 100))
             .filter(Objects::nonNull)
             .sorted(Comparator.comparing(Car::getPositionOnLane))
             .collect(Collectors.toList());
