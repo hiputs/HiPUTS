@@ -12,4 +12,6 @@ public interface IDriver {
   Decision makeDecision(CarReadable car, RoadStructureReader roadStructureReader);
 
   double getDistanceHeadway();
+
+  void setTimeStep(double timeStep);
 }

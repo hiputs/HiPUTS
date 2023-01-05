@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
@@ -38,6 +37,7 @@ import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
@@ -167,12 +167,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     }
   }
 
-  // TODO: Remove counter if not needed
   private void createCars() {
-    // AtomicInteger counter = new AtomicInteger();
     final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-      // if (counter.getAndIncrement() < 100) {
         List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
             .mapToObj(x -> exampleCarProvider.generateCar(laneId, 100))
             .filter(Objects::nonNull)
@@ -184,7 +181,6 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
           lane.addNewCar(car);
         });
-      // }
     });
   }
 
@@ -208,9 +204,14 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     this.visualizationStateChangeMessage = stateChangeMessage.getVisualizationStateChangeMessage();
   }
 
-  private int calculatePauseAfterStep(long stepElapsedTime) {
-    int visualizationSpeed = visualizationStateChangeMessage.getVisualizationSpeed();
-    return (int) Math.max(0, visualizationSpeed - stepElapsedTime);
+  private void updateSimulationTimeStep(MapFragment mapFragment) {
+    double timeMultiplier = visualizationStateChangeMessage.getTimeMultiplier();
+    double simulationTimeStep = configuration.getSimulationTimeStep();
+    mapFragment.getLocalLaneIds().stream()
+        .map(mapFragment::getLaneEditable)
+        .flatMap(LaneEditable::streamCarsFromExitEditable)
+        .map(CarEditable::getDriver)
+        .forEach(carDriver -> carDriver.setTimeStep(simulationTimeStep * timeMultiplier));
   }
 
   @Override
@@ -226,15 +227,14 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           continue;
         }
         log.info("Start iteration no. {}/{}", i, n);
-        long startTime = System.currentTimeMillis();
         mapFragmentExecutor.run(i);
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
         }
         carsProducer.sendCars(mapFragmentExecutor.getMapFragment(), i, visualizationStateChangeMessage);
-        long stepElapsedTime = System.currentTimeMillis() - startTime;
-        sleep(calculatePauseAfterStep(stepElapsedTime));
+        updateSimulationTimeStep(mapFragmentExecutor.getMapFragment());
+        sleep(configuration.getPauseAfterStep());
         i++;
       }
     } catch (Exception e) {
