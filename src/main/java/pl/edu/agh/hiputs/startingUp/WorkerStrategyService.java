@@ -7,6 +7,7 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.RunSimulati
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ServerInitializationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.ShutDownMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.StopSimulationMessage;
+import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.VisualizationStateChangeMessage;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -14,12 +15,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ExitCodeGenerator;
@@ -38,6 +37,7 @@ import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
@@ -48,6 +48,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.utils.DebugUtils;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
+import pl.edu.agh.hiputs.visualization.connection.producer.CarsProducer;
 import pl.edu.agh.hiputs.visualization.connection.producer.SimulationNewNodesProducer;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 
@@ -70,9 +71,12 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
   private final MonitorLocalService monitorLocalService;
   private final StatisticSummaryService statisticSummaryService;
-  private final SimulationNewNodesProducer simulationNewNodesProducer;
-  private volatile boolean isSimulationStopped = false;
+
   private final DebugUtils debugUtils;
+  private final CarsProducer carsProducer;
+  private final SimulationNewNodesProducer simulationNewNodesProducer;
+  private boolean isSimulationStopped = false;
+  private proto.model.VisualizationStateChangeMessage visualizationStateChangeMessage;
 
   @PostConstruct
   void init() {
@@ -81,6 +85,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     subscriptionService.subscribe(this, ShutDownMessage);
     subscriptionService.subscribe(this, StopSimulationMessage);
     subscriptionService.subscribe(this, ResumeSimulationMessage);
+    subscriptionService.subscribe(this, VisualizationStateChangeMessage);
   }
 
   @Override
@@ -92,7 +97,6 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 
       mapRepository.readMapAndBuildModel();
-      simulationNewNodesProducer.sendSimulationNotOsmNodesTransferMessage(mapRepository.getAllPatches());
     } catch (Exception e) {
       log.error("Worker fail", e);
     }
@@ -115,6 +119,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       case ShutDownMessage -> shutDown();
       case StopSimulationMessage -> stopSimulation();
       case ResumeSimulationMessage -> resumeSimulation();
+      case VisualizationStateChangeMessage -> changeVisualizationState(
+          (pl.edu.agh.hiputs.visualization.communication.messages.VisualizationStateChangeMessage) message);
       default -> log.warn("Unhandled message " + message.getMessageType());
     }
   }
@@ -131,6 +137,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     waitForMapLoad();
     MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
     mapFragmentExecutor.setMapFragment(mapFragment);
+    simulationNewNodesProducer.sendSimulationNotOsmNodesTransferMessage(mapFragment);
     debugUtils.setMapFragment(mapFragment);
 
     createCars();
@@ -161,12 +168,10 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   }
 
   private void createCars() {
-    AtomicInteger counter = new AtomicInteger();
     final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-      if (counter.getAndIncrement() < 100) {
         List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-            .mapToObj(x -> exampleCarProvider.generateCar(laneId, 30))
+            .mapToObj(x -> exampleCarProvider.generateCar(laneId, 100))
             .filter(Objects::nonNull)
             .sorted(Comparator.comparing(Car::getPositionOnLane))
             .collect(Collectors.toList());
@@ -176,7 +181,6 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
           lane.addNewCar(car);
         });
-      }
     });
   }
 
@@ -184,7 +188,6 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     simulationExecutor.submit(this);
   }
 
-  @SneakyThrows
   private void stopSimulation() {
     log.info("Worker with mapFragmentId: {} is stopped", mapFragmentId.getId());
     isSimulationStopped = true;
@@ -193,6 +196,22 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private void resumeSimulation() {
     log.info("Worker with mapFragmentId: {} is resumed", mapFragmentId.getId());
     isSimulationStopped = false;
+  }
+
+  private void changeVisualizationState(
+      pl.edu.agh.hiputs.visualization.communication.messages.VisualizationStateChangeMessage stateChangeMessage) {
+    log.info("Visualization state has changed");
+    this.visualizationStateChangeMessage = stateChangeMessage.getVisualizationStateChangeMessage();
+  }
+
+  private void updateSimulationTimeStep(MapFragment mapFragment) {
+    double timeMultiplier = visualizationStateChangeMessage.getTimeMultiplier();
+    double simulationTimeStep = configuration.getSimulationTimeStep();
+    mapFragment.getLocalLaneIds().stream()
+        .map(mapFragment::getLaneEditable)
+        .flatMap(LaneEditable::streamCarsFromExitEditable)
+        .map(CarEditable::getDriver)
+        .forEach(carDriver -> carDriver.setTimeStep(simulationTimeStep * timeMultiplier));
   }
 
   @Override
@@ -204,6 +223,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       statisticSummaryService.startTiming();
       while (i < n) {
         if (isSimulationStopped) {
+          sleep(100);
           continue;
         }
         log.info("Start iteration no. {}/{}", i, n);
@@ -212,6 +232,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
         }
+        carsProducer.sendCars(mapFragmentExecutor.getMapFragment(), i, visualizationStateChangeMessage);
+        updateSimulationTimeStep(mapFragmentExecutor.getMapFragment());
         sleep(configuration.getPauseAfterStep());
         i++;
       }

@@ -16,6 +16,7 @@ import pl.edu.agh.hiputs.visualization.communication.messages.ResumeSimulationMe
 import pl.edu.agh.hiputs.visualization.communication.messages.StopSimulationMessage;
 import pl.edu.agh.hiputs.visualization.connection.producer.SimulationStateChangeProducer;
 import proto.model.RUNNING_STATE;
+import proto.model.VisualizationStateChangeMessage;
 
 @Slf4j
 @Service
@@ -44,7 +45,11 @@ public class VisualizationSynchronisationService {
     }
   }
 
-  private void applyVisualizationChange() {
+  public synchronized void applyVisualizationChange(VisualizationStateChangeMessage visualizationStateChangeMessage) {
+    this.currentVisualizationState = visualizationStateChangeMessage.getStateChange();
+    messageSenderServerService.broadcast(
+        new pl.edu.agh.hiputs.visualization.communication.messages.VisualizationStateChangeMessage(
+            visualizationStateChangeMessage));
     switch (currentVisualizationState) {
       case STARTED -> {
         if (ObjectUtils.isNotEmpty(currentSimulationState)) {
@@ -70,11 +75,6 @@ public class VisualizationSynchronisationService {
         changeSimulationState(CLOSED);
       }
     }
-  }
-
-  public synchronized void changeVisualizationState(RUNNING_STATE currentVisualizationState) {
-    this.currentVisualizationState = currentVisualizationState;
-    applyVisualizationChange();
     notify();
   }
 }
