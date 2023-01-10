@@ -136,7 +136,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     waitForMapLoad();
     MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
     mapFragmentExecutor.setMapFragment(mapFragment);
-    simulationNewNodesProducer.sendSimulationNotOsmNodesTransferMessage(mapFragment);
+    if (configuration.isEnableVisualization()) {
+      simulationNewNodesProducer.sendSimulationNotOsmNodesTransferMessage(mapFragment);
+    }
     debugUtils.setMapFragment(mapFragment);
 
     createCars();
@@ -212,6 +214,8 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   @Override
   public void run() {
     int i = 0;
+    long startTime = 0;
+    long stepElapsedTime;
     try {
       int n = configuration.getSimulationStep();
       monitorLocalService.init(mapFragmentExecutor.getMapFragment());
@@ -222,15 +226,22 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           continue;
         }
         log.info("Start iteration no. {}/{}", i, n);
-        long startTime = System.currentTimeMillis();
+        if (configuration.isEnableVisualization()) {
+          startTime = System.currentTimeMillis();
+        }
+
         mapFragmentExecutor.run(i);
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
         }
-        carsProducer.sendCars(mapFragmentExecutor.getMapFragment(), i, visualizationStateChangeMessage);
-        long stepElapsedTime = System.currentTimeMillis() - startTime;
-        sleep(calculatePauseAfterStep(stepElapsedTime));
+        if(configuration.isEnableVisualization()) {
+          carsProducer.sendCars(mapFragmentExecutor.getMapFragment(), i, visualizationStateChangeMessage);
+          stepElapsedTime = System.currentTimeMillis() - startTime;
+          sleep(calculatePauseAfterStep(stepElapsedTime));
+        } else {
+          sleep(configuration.getPauseAfterStep());
+        }
         i++;
       }
     } catch (Exception e) {

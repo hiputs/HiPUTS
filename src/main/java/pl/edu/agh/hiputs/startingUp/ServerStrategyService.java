@@ -89,8 +89,10 @@ public class ServerStrategyService implements Strategy {
     log.info("Start waiting for all workers be in state WorkerConnection");
     workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
 
-    kafkaListenerEndpointRegistry.getListenerContainer(VISUALIZATION_STATE_CHANGE_TOPIC).start();
-    visualizationSynchronisationService.waitForVisualizationStateChangeMessage(STARTED);
+    if (ConfigurationService.getConfiguration().isEnableVisualization()) {
+      kafkaListenerEndpointRegistry.getListenerContainer(VISUALIZATION_STATE_CHANGE_TOPIC).start();
+      visualizationSynchronisationService.waitForVisualizationStateChangeMessage(STARTED);
+    }
 
     Path mapPackagePath = configurationService.getConfiguration().isReadFromOsmDirectly()
         ? generateDeploymentPackageName(Path.of(configurationService.getConfiguration().getMapPath()))
@@ -124,13 +126,17 @@ public class ServerStrategyService implements Strategy {
 
     distributeRunSimulationMessage(mapFragmentsContents);
 
-    visualizationSynchronisationService.changeSimulationState(STARTED);
+    if (ConfigurationService.getConfiguration().isEnableVisualization()) {
+      visualizationSynchronisationService.changeSimulationState(STARTED);
+    }
 
     log.info("Waiting for end simulation");
     workerSynchronisationService.waitForAllWorkers(FinishSimulationMessage);
     log.info("Simulation finished");
 
-    visualizationSynchronisationService.changeSimulationState(CLOSED);
+    if (ConfigurationService.getConfiguration().isEnableVisualization()) {
+      visualizationSynchronisationService.changeSimulationState(CLOSED);
+    }
 
     if (configurationService.getConfiguration().isStatisticModeActive()) {
       workerSynchronisationService.waitForAllWorkers(FinishSimulationStatisticMessage);
