@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
@@ -167,12 +166,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     }
   }
 
-  // TODO: Remove counter if not needed
   private void createCars() {
-    // AtomicInteger counter = new AtomicInteger();
     final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
     mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-      // if (counter.getAndIncrement() < 100) {
         List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
             .mapToObj(x -> exampleCarProvider.generateCar(laneId, 100))
             .filter(Objects::nonNull)
@@ -184,7 +180,6 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
           lane.addNewCar(car);
         });
-      // }
     });
   }
 
@@ -209,8 +204,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   }
 
   private int calculatePauseAfterStep(long stepElapsedTime) {
-    int visualizationSpeed = visualizationStateChangeMessage.getVisualizationSpeed();
-    return (int) Math.max(0, visualizationSpeed - stepElapsedTime);
+    double timeMultiplier = visualizationStateChangeMessage.getTimeMultiplier();
+    double simulationTimeStep = configuration.getSimulationTimeStep();
+    return (int) Math.max(0, (timeMultiplier * simulationTimeStep * 1000) - stepElapsedTime);
   }
 
   @Override

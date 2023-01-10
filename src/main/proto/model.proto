@@ -36,7 +36,7 @@ message VisualizationStateChangeMessage {
     RUNNING_STATE stateChange = 1;
     ZOOM_LEVEL zoomLevel = 2;
     ROIRegion roiRegion = 3;
-    uint32 visualizationSpeed = 4;
+    double timeMultiplier = 4;
 
 
     message ROIRegion {
