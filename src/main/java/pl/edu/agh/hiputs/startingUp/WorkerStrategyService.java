@@ -37,6 +37,7 @@ import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
