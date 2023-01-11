@@ -8,7 +8,6 @@ import static proto.model.RUNNING_STATE.STOPPED;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.ShutDownMessage;
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
@@ -52,7 +51,7 @@ public class VisualizationSynchronisationService {
             visualizationStateChangeMessage));
     switch (currentVisualizationState) {
       case STARTED -> {
-        if (ObjectUtils.isNotEmpty(currentSimulationState)) {
+        if (currentSimulationState != null) {
           sendCurrentSimulationStateMessage();
         }
       }
@@ -71,8 +70,10 @@ public class VisualizationSynchronisationService {
         }
       }
       case CLOSED -> {
-        messageSenderServerService.broadcast(new ShutDownMessage());
-        changeSimulationState(CLOSED);
+        if (STARTED.equals(currentSimulationState) || STOPPED.equals(currentSimulationState) || RESUMED.equals(currentSimulationState)) {
+          messageSenderServerService.broadcast(new ShutDownMessage());
+          changeSimulationState(CLOSED);
+        }
       }
     }
     notify();
