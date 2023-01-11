@@ -137,7 +137,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     waitForMapLoad();
     MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
     mapFragmentExecutor.setMapFragment(mapFragment);
-    simulationNewNodesProducer.sendSimulationNotOsmNodesTransferMessage(mapFragment);
+    if (configuration.isEnableVisualization()) {
+      simulationNewNodesProducer.sendSimulationNotOsmNodesTransferMessage(mapFragment);
+    }
     debugUtils.setMapFragment(mapFragment);
 
     createCars();
@@ -204,19 +206,17 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     this.visualizationStateChangeMessage = stateChangeMessage.getVisualizationStateChangeMessage();
   }
 
-  private void updateSimulationTimeStep(MapFragment mapFragment) {
+  private int calculatePauseAfterStep(long stepElapsedTime) {
     double timeMultiplier = visualizationStateChangeMessage.getTimeMultiplier();
     double simulationTimeStep = configuration.getSimulationTimeStep();
-    mapFragment.getLocalLaneIds().stream()
-        .map(mapFragment::getLaneEditable)
-        .flatMap(LaneEditable::streamCarsFromExitEditable)
-        .map(CarEditable::getDriver)
-        .forEach(carDriver -> carDriver.setTimeStep(simulationTimeStep * timeMultiplier));
+    return (int) Math.max(0, (timeMultiplier * simulationTimeStep * 1000) - stepElapsedTime);
   }
 
   @Override
   public void run() {
     int i = 0;
+    long startTime = 0;
+    long stepElapsedTime;
     try {
       int n = configuration.getSimulationStep();
       monitorLocalService.init(mapFragmentExecutor.getMapFragment());
@@ -227,14 +227,22 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           continue;
         }
         log.info("Start iteration no. {}/{}", i, n);
+        if (configuration.isEnableVisualization()) {
+          startTime = System.currentTimeMillis();
+        }
+
         mapFragmentExecutor.run(i);
 
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
         }
-        carsProducer.sendCars(mapFragmentExecutor.getMapFragment(), i, visualizationStateChangeMessage);
-        updateSimulationTimeStep(mapFragmentExecutor.getMapFragment());
-        sleep(configuration.getPauseAfterStep());
+        if(configuration.isEnableVisualization()) {
+          carsProducer.sendCars(mapFragmentExecutor.getMapFragment(), i, visualizationStateChangeMessage);
+          stepElapsedTime = System.currentTimeMillis() - startTime;
+          sleep(calculatePauseAfterStep(stepElapsedTime));
+        } else {
+          sleep(configuration.getPauseAfterStep());
+        }
         i++;
       }
     } catch (Exception e) {

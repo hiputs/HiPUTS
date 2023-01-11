@@ -32,6 +32,11 @@ public class Configuration {
   private boolean enableGUI;
 
   /**
+   * Visualization via Apache Kafka
+   */
+  private boolean enableVisualization;
+
+  /**
    * Server create statistic after simulation
    */
   private boolean statisticModeActive;
@@ -170,6 +175,7 @@ public class Configuration {
         .testMode(true)
         .workerCount(1)
         .enableGUI(true)
+        .enableVisualization(false)
         .statisticModeActive(false)
         .simulationStep(1000)
         .pauseAfterStep(1000)
