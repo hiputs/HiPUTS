@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.partition.model;
 
+import java.util.List;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,6 +23,9 @@ public class WayData implements EdgeData {
 
   @Setter(AccessLevel.NONE)
   private Map<String, String> tags;
+
+  @Setter(AccessLevel.NONE)
+  private List<LaneData> lanes;
 
   private String patchId;
 

@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -18,7 +20,10 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
+
+  private final CrossroadFinder crossroadsFinder;
 
   private final List<GraphTransformer> graphTransformers = List.of(
       new LargestCCSelector(),
@@ -27,8 +32,10 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
 
   public Graph<JunctionData, WayData> mapToInternalModel(OsmGraph osmGraph) {
     Graph.GraphBuilder<JunctionData, WayData> graphBuilder = new Graph.GraphBuilder<>();
-    osmGraph.getNodes().stream().map(osmNode -> osmToInternal(osmNode)).forEach(graphBuilder::addNode);
-    osmGraph.getWays().stream().flatMap(osmWay -> osmToInternal(osmWay).stream()).forEach(graphBuilder::addEdge);
+    osmGraph.getNodes().stream().map(this::osmToInternal).forEach(graphBuilder::addNode);
+
+    Set<Long> foundCrossroads = crossroadsFinder.findAll(osmGraph.getWays());
+    osmGraph.getWays().stream().flatMap(osmWay -> osmToInternal(osmWay, foundCrossroads).stream()).forEach(graphBuilder::addEdge);
 
     Graph<JunctionData, WayData> graph = graphBuilder.build();
     log.info("Building internal graph from osmGraph finished");
@@ -49,17 +56,20 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
     return new Node<>(String.valueOf(osmNode.getId()), junctionData);
   }
 
-  private List<Edge<JunctionData, WayData>> osmToInternal(OsmWay osmWay) {
+  private List<Edge<JunctionData, WayData>> osmToInternal(OsmWay osmWay, Set<Long> crossroads) {
     List<Edge<JunctionData, WayData>> edges = new LinkedList<>();
     for (int i = 0; i < osmWay.getNumberOfNodes() - 1; i++) {
       Map<String, String> tags = getTags(osmWay);
       WayData wayData = WayData.builder()
           .tags(tags)
-          .isOneWay(tags.containsKey("oneway") && tags.get("oneway").equals("true"))
+          .isOneWay(tags.containsKey("oneway") && tags.get("oneway").equals("yes")
+              || tags.containsKey("junction") && tags.get("junction").equals("roundabout"))
           .build();
       Edge<JunctionData, WayData> edge = new Edge<>(osmWay.getNodeId(i) + "->" + osmWay.getNodeId(i + 1), wayData);
-      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i)), JunctionData.builder().isCrossroad(i == 0).build()));
-      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), JunctionData.builder().isCrossroad(i == osmWay.getNumberOfNodes() - 2).build()));
+      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i)),
+          JunctionData.builder().isCrossroad(crossroads.contains(osmWay.getNodeId(i))).build()));
+      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)),
+          JunctionData.builder().isCrossroad(crossroads.contains(osmWay.getNodeId(i + 1))).build()));
       edges.add(edge);
 
       if (wayData.isOneWay()) {
@@ -72,8 +82,8 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
           .isOneWay(false)
           .build();
       edge = new Edge<>(osmWay.getNodeId(i + 1) + "->" + osmWay.getNodeId(i), wayData);
-      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), JunctionData.builder().isCrossroad(i == osmWay.getNumberOfNodes() - 2).build()));
-      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i)), JunctionData.builder().isCrossroad(i == 0).build()));
+      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), JunctionData.builder().isCrossroad(crossroads.contains(osmWay.getNodeId(i + 1))).build()));
+      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i)), JunctionData.builder().isCrossroad(crossroads.contains(osmWay.getNodeId(i))).build()));
       edges.add(edge);
     }
     return edges;
