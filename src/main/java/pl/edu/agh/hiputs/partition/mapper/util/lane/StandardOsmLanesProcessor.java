@@ -67,7 +67,7 @@ public class StandardOsmLanesProcessor implements LanesProcessor {
 
   private List<LaneData> createNoLanes(int number) {
     return IntStream.rangeClosed(1, number)
-        .mapToObj(num -> new LaneData())
+        .mapToObj(num -> LaneData.builder().build())
         .toList();
   }
 }
