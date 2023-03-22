@@ -7,9 +7,14 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.partition.mapper.util.lane.LanesProcessor;
+import pl.edu.agh.hiputs.partition.mapper.util.lane.RelativeDirection;
+import pl.edu.agh.hiputs.partition.mapper.util.oneway.OneWayProcessor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
+import pl.edu.agh.hiputs.partition.model.LaneData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
@@ -18,7 +23,10 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
+  private final OneWayProcessor oneWayProcessor;
+  private final LanesProcessor lanesProcessor;
 
   private final List<GraphTransformer> graphTransformers = List.of(
       new LargestCCSelector(),
@@ -51,12 +59,15 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
 
   private List<Edge<JunctionData, WayData>> osmToInternal(OsmWay osmWay) {
     List<Edge<JunctionData, WayData>> edges = new LinkedList<>();
+    Map<String, String> tags = getTags(osmWay);
+    Map<RelativeDirection, List<LaneData>> lanesMap = lanesProcessor.getDataForEachDirectionFromTags(tags);
+    boolean isOneway = oneWayProcessor.checkFromTags(tags);
+
     for (int i = 0; i < osmWay.getNumberOfNodes() - 1; i++) {
-      Map<String, String> tags = getTags(osmWay);
       WayData wayData = WayData.builder()
           .tags(tags)
-          .isOneWay(tags.containsKey("oneway") && tags.get("oneway").equals("yes")
-              || tags.containsKey("junction") && tags.get("junction").equals("roundabout"))
+          .isOneWay(isOneway)
+          .lanes(lanesMap.get(RelativeDirection.SAME))
           .build();
       Edge<JunctionData, WayData> edge = new Edge<>(osmWay.getNodeId(i) + "->" + osmWay.getNodeId(i + 1), wayData);
       edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i)),
@@ -65,7 +76,7 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
           JunctionData.builder().isCrossroad(i == osmWay.getNumberOfNodes() - 2).build()));
       edges.add(edge);
 
-      if (wayData.isOneWay()) {
+      if (isOneway) {
         continue;
       }
 
@@ -73,6 +84,7 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
       wayData = WayData.builder()
           .tags(tags)
           .isOneWay(false)
+          .lanes(lanesMap.get(RelativeDirection.OPPOSITE))
           .build();
       edge = new Edge<>(osmWay.getNodeId(i + 1) + "->" + osmWay.getNodeId(i), wayData);
       edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)),
