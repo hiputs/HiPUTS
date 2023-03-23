@@ -3,7 +3,7 @@ plugins {
     id 'application'
 }
 
-//group 'pl.edu.agh.hiputsmapgenerator'
+group 'pl.edu.agh.hiputsmapgenerator'
 version '1.0-SNAPSHOT'
 
 
