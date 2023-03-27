@@ -165,6 +165,11 @@ public class Configuration {
    */
   private MapFragmentId mapFragmentId;
 
+  /**
+   * FOR SQUARE MAP: Number of cars to be generated on worker's part of map
+   */
+  private int workerInitialNumberOfCars;
+
   public static Configuration getDefault() {
     return Configuration.builder()
         .testMode(true)

@@ -39,7 +39,7 @@ public class ExampleCarProvider {
   private Function<JunctionId, List<LaneId>> junctionIdToOutgoingLaneIdList;
   private Function<LaneId, JunctionId> laneIdToOutgoingJunctionId;
   private List<LaneId> localLaneIdList;
-  private Configuration configuration;
+  protected Configuration configuration;
 
   public ExampleCarProvider(MapFragment mapFragment) {
     this.mapFragment = mapFragment;
@@ -162,6 +162,14 @@ public class ExampleCarProvider {
         .build();
   }
 
+  public List<Car> generateManyCars(int hops) {
+    List<Car> cars = new ArrayList<>();
+    for(int i=0;i< configuration.getInitialNumberOfCarsPerLane();i++) {
+      cars.add(generateCar(getRandomStartLaneId(), hops));
+    }
+    return cars;
+  }
+
   private RouteWithLocation generateRoute(LaneId startLaneId, int hops) {
     List<RouteElement> routeElements = new ArrayList<>();
     JunctionId startJunctionId = mapFragment.getLaneReadable(startLaneId).getIncomingJunctionId();
@@ -221,6 +229,7 @@ public class ExampleCarProvider {
       currentCar.setSpeed(maxSpeed);
     }
   }
+
 
   private static class UniqueQueue<T> extends AbstractQueue<T> {
     private Queue<T> queue = new LinkedList<>();

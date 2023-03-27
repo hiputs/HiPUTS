@@ -31,6 +31,7 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
+import pl.edu.agh.hiputs.example.SquareMapUniformCarProvider;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
@@ -153,21 +154,35 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   }
 
   private void createCars() {
-    final ExampleCarProvider exampleCarProvider =
-        new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
-    mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-      List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-          .mapToObj(x -> exampleCarProvider.generateCar(laneId, 30))
-          .filter(Objects::nonNull)
-          .sorted(Comparator.comparing(Car::getPositionOnLane))
-          .collect(Collectors.toList());
-      Collections.reverse(generatedCars);
+    final ExampleCarProvider carProvider;
+    if(configuration.getWorkerInitialNumberOfCars() >= 0 ){
+      carProvider = new SquareMapUniformCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
+
+      List<Car> generatedCars = carProvider.generateManyCars(30);
       generatedCars.forEach(car -> {
         LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
-        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
+        carProvider.limitSpeedPreventCollisionOnStart(car, lane);
         lane.addNewCar(car);
       });
-    });
+    }
+    else {
+      carProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
+
+      mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
+        List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
+            .mapToObj(x -> carProvider.generateCar(laneId, 30))
+            .filter(Objects::nonNull)
+            .sorted(Comparator.comparing(Car::getPositionOnLane))
+            .collect(Collectors.toList());
+        Collections.reverse(generatedCars);
+
+        generatedCars.forEach(car -> {
+          LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
+          carProvider.limitSpeedPreventCollisionOnStart(car, lane);
+          lane.addNewCar(car);
+        });
+      });
+    }
   }
 
   private void runSimulation() {
