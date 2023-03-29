@@ -20,6 +20,8 @@ public class WayData implements EdgeData {
   private boolean isPriorityRoad;
   @Setter(AccessLevel.NONE)
   private boolean isOneWay;
+  @Setter(AccessLevel.NONE)
+  private boolean tagsInOppositeMeaning;
 
   @Setter(AccessLevel.NONE)
   private Map<String, String> tags;

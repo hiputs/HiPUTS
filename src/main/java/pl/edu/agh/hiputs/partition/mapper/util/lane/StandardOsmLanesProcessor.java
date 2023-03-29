@@ -12,9 +12,9 @@ import pl.edu.agh.hiputs.partition.model.LaneData;
 @RequiredArgsConstructor
 public class StandardOsmLanesProcessor implements LanesProcessor {
   private final static String LANES_TOTAL_KEY = "lanes";
-  private final static String LANES_FORWARD_KEY = "lanes:forward";
-  private final static String LANES_BACKWARD_KEY = "lanes:backward";
-  private final static String LANES_BOTH_WAYS_KEY = "lanes:both_ways";
+  private final static String LANES_FORWARD_KEY = LANES_TOTAL_KEY + ":forward";
+  private final static String LANES_BACKWARD_KEY = LANES_TOTAL_KEY + ":backward";
+  private final static String LANES_BOTH_WAYS_KEY = LANES_TOTAL_KEY + ":both_ways";
 
   private final OneWayProcessor oneWayProcessor;
 

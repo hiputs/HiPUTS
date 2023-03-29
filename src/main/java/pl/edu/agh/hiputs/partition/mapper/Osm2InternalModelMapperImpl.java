@@ -27,11 +27,7 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
   private final OneWayProcessor oneWayProcessor;
   private final LanesProcessor lanesProcessor;
-
-  private final List<GraphTransformer> graphTransformers = List.of(
-      new LargestCCSelector(),
-      new GraphMaxSpeedFiller(),
-      new GraphLengthFiller());
+  private final List<GraphTransformer> graphTransformers;
 
   public Graph<JunctionData, WayData> mapToInternalModel(OsmGraph osmGraph) {
     Graph.GraphBuilder<JunctionData, WayData> graphBuilder = new Graph.GraphBuilder<>();
@@ -66,6 +62,7 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
     for (int i = 0; i < osmWay.getNumberOfNodes() - 1; i++) {
       WayData wayData = WayData.builder()
           .tags(tags)
+          .tagsInOppositeMeaning(false)
           .isOneWay(isOneway)
           .lanes(lanesMap.get(RelativeDirection.SAME))
           .build();
@@ -83,6 +80,7 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
       //add opposite lane
       wayData = WayData.builder()
           .tags(tags)
+          .tagsInOppositeMeaning(true)
           .isOneWay(false)
           .lanes(lanesMap.get(RelativeDirection.OPPOSITE))
           .build();
