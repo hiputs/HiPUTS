@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.partition.service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -10,13 +11,16 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
+import pl.edu.agh.hiputs.partition.model.LaneData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.WayData;
@@ -166,6 +170,8 @@ public class HexagonsPartitioner implements PatchPartitioner {
       Edge<JunctionData, WayData> edge1 = createChildEdge(edge.getSource(), newNode, edge, edge.getSource().getData().getPatchId());
       Edge<JunctionData, WayData> edge2 = createChildEdge(newNode, edge.getTarget(), edge, edge.getTarget().getData().getPatchId());
 
+      rewriteLaneSuccessorsToChildren(edge, edge1, edge2);
+
       graph.addEdge(edge1);
       graph.addEdge(edge2);
     });
@@ -199,11 +205,47 @@ public class HexagonsPartitioner implements PatchPartitioner {
         remainingEdges.add(edge1);
       }
 
+      rewriteLaneSuccessorsToChildren(edge, edge1, edge2);
+
       graph.addEdge(edge1);
       graph.addEdge(edge2);
     });
 
     return remainingEdges;
+  }
+
+  private void rewriteLaneSuccessorsToChildren(
+      Edge<JunctionData, WayData> parent, Edge<JunctionData, WayData> child1, Edge<JunctionData, WayData> child2
+  ) {
+    List<LaneData> lanesToUpdate = parent.getSource().getIncomingEdges().stream()
+        .flatMap(inEdge -> inEdge.getData().getLanes().stream())
+        .toList();
+    assignSuccessorsUsingLanesMapping(lanesToUpdate, createLaneUpdateMapping(parent, child1));
+    assignSuccessorsUsingRecreatedLanes(child1.getData().getLanes(),
+        child2.getData().getLanes().stream()
+            .map(List::of)
+            .toList());
+    assignSuccessorsUsingRecreatedLanes(child2.getData().getLanes(),
+        parent.getData().getLanes().stream()
+            .map(LaneData::getAvailableSuccessors)
+            .toList());
+  }
+
+  private Map<LaneData, LaneData> createLaneUpdateMapping(Edge<JunctionData, WayData> parent, Edge<JunctionData, WayData> child) {
+    return IntStream.range(0, parent.getData().getLanes().size())
+        .mapToObj(index -> Pair.of(parent.getData().getLanes().get(index), child.getData().getLanes().get(index)))
+        .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+  }
+
+  private void assignSuccessorsUsingLanesMapping(List<LaneData> lanesToUpdate, Map<LaneData, LaneData> mapping) {
+    lanesToUpdate.forEach(lane ->
+        lane.getAvailableSuccessors().replaceAll(successor ->
+            mapping.getOrDefault(successor, successor)));
+  }
+
+  private void assignSuccessorsUsingRecreatedLanes(List<LaneData> lanesToUpdate, List<List<LaneData>> newSuccessors) {
+    IntStream.range(0, lanesToUpdate.size())
+        .forEach(index -> lanesToUpdate.get(index).getAvailableSuccessors().addAll(new ArrayList<>(newSuccessors.get(index))));
   }
 
   private Point calculateNewNodePoint(Edge<JunctionData, WayData> e, HexagonGrid hexagonGrid) {
@@ -267,11 +309,18 @@ public class HexagonsPartitioner implements PatchPartitioner {
             .isPriorityRoad(parentEdge.getData().isPriorityRoad())
             .isOneWay(parentEdge.getData().isOneWay())
             .maxSpeed(parentEdge.getData().getMaxSpeed())
+            .lanes(this.recreateLanesUsingParent(parentEdge.getData().getLanes()))
             .tags(parentEdge.getData().getTags())
             .build());
     newEdge.setSource(source);
     newEdge.setTarget(target);
     return newEdge;
+  }
+
+  private List<LaneData> recreateLanesUsingParent(List<LaneData> lanes) {
+    return lanes.stream()
+        .map(lane -> LaneData.builder().build())
+        .toList();
   }
 
 
