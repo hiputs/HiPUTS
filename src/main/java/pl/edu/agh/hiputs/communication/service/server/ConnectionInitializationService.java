@@ -80,6 +80,8 @@ public class ConnectionInitializationService {
 
         DataInputStream input = new DataInputStream(clientConnectionSocket.getInputStream());
         WorkerConnectionMessage workerConnectionMessage = getWorkerConnectionMessage(input);
+        // log.debug(String.format("DEBUG New connection from: %s:%s", clientConnectionSocket.getInetAddress().getHostAddress(),
+        //     clientConnectionSocket.getPort()));
         workerConnectionMessage.setAddress(clientConnectionSocket.getInetAddress().getHostAddress());
 
         WorkerConnection workerConnection =

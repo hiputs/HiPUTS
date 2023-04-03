@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.model.car.driver.deciders.overtaking;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
@@ -11,6 +12,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.HorizontalSign;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
+@Slf4j
 @RequiredArgsConstructor
 public class OvertakingDecider {
 
@@ -202,6 +204,7 @@ public class OvertakingDecider {
     while (!foundAllInformation(nextJunctionId, carBeforeOvertakenCar, oppositeCar)) {
       nextLaneId = currentCar.getRouteWithLocation().getOffsetLaneId(++offset);
       if (nextLaneId.isEmpty()) {
+        log.debug("Car: "+currentCar.getCarId() + "end of generated route;");
         break;
       }
       nextLane = roadStructureReader.getLaneReadable(nextLaneId.get());

@@ -13,4 +13,6 @@ public interface SimulationStatisticService {
 
   void saveMapStatistic(MapStatistic mapStatistic);
 
+  // void saveCarStatistics();
+
 }

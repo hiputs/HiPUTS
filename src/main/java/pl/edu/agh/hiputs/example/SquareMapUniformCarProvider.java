@@ -82,19 +82,24 @@ public class SquareMapUniformCarProvider extends ExampleCarProvider{
 
     LinkedList<Pair<LaneId, Double>> possibleCarCoords = new LinkedList<>();
 
-    for(double i=laneLength/3; i<junctionsLong * laneLength; i+=distanceLong){
-      for(double j=laneLength/3; j<junctionsLat * laneLength; j+=distanceLat){
+    for(double i=laneLength/2; i<junctionsLong * laneLength; i+=distanceLong){
+      for(double j=laneLength/4; j<junctionsLat * laneLength; j+=distanceLat){
         possibleCarCoords.add(coordsToCarPosition(i,j));
       }
     }
     return possibleCarCoords;
   }
 
-  public List<Car> generateManyCars(int hops) {
+  private Integer getDefaultHops() {
+    int hops = (int) (configuration.getDefaultMaxSpeed()*configuration.getSimulationTimeStep()*configuration.getSimulationStep() / laneLength);
+    return hops + 3 + (int) (0.1*hops);
+  }
+
+  public List<Car> generateManyCars() {
     return carPositions
         .subList(0,configuration.getWorkerInitialNumberOfCars())
         .stream()
-        .map(position -> generateCar(position.getRight(), position.getLeft(), hops))
+        .map(position -> generateCar(position.getRight(), position.getLeft(), getDefaultHops()))
         .toList();
   }
 

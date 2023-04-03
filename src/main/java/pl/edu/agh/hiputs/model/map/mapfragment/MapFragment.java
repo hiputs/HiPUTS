@@ -512,6 +512,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
             .filter(i -> i.getValue().size() > 0)
             .map(i -> new ImmutablePair<>(i.getKey().getId(), i.getValue().size()))
             .toList())
+        .localPatchesIds(localPatchIds.stream().map(PatchId::getValue).toList())
         .step(step)
         .build();
   }

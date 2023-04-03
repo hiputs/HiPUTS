@@ -31,10 +31,11 @@
   <!--
   To log any package on another level use <logger> bellow
   -->
-  <!--
-  <logger name="pl.edu.agh.hiputs.example" level="debug" additivity="false">
+
+  <logger name="pl.edu.agh.hiputs" level="debug" additivity="false">
     <appender-ref ref="FILE"/>
+    <appender-ref ref="CONSOLE"/>
   </logger>
-  -->
+
 
 </configuration>

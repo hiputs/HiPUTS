@@ -162,10 +162,10 @@ public class ExampleCarProvider {
         .build();
   }
 
-  public List<Car> generateManyCars(int hops) {
+  public List<Car> generateManyCars() {
     List<Car> cars = new ArrayList<>();
     for(int i=0;i< configuration.getInitialNumberOfCarsPerLane();i++) {
-      cars.add(generateCar(getRandomStartLaneId(), hops));
+      cars.add(generateCar(getRandomStartLaneId(), getDefaultHops()));
     }
     return cars;
   }

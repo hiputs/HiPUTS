@@ -7,11 +7,13 @@ plugins {
 group 'pl.edu.agh.hiputs'
 version 'HiPUTS-0.0.0.1-SNAPSHOT'
 
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
 }
+
 
 repositories {
     maven {
@@ -56,11 +58,4 @@ dependencies {
 test {
     useJUnitPlatform()
 }
-
-//task runWithJavaExec(type: JavaExec) {
-//    group = "Execution"
-//    description = "Run the HiPUTSmapGenerator"
-//    classpath = HiPUTSmapGenerator.src.main.java.pl.edu.agh.hiputsmapgenerator
-//    main = HiPUTSmapGenerator.src.main.java.pl.edu.agh.hiputsmapgenerator.HiPUTSMapGeneratorApplication
-//}
 

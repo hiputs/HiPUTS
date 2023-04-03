@@ -19,7 +19,7 @@ public class HiPUTSMapGeneratorApplication {
 
     private static final String MAP_PATH = "..\\data\\";
 
-    private static final Pair mapDims = new Pair(12,15); // all nodes in map for one worker
+    private static final Pair mapDims = new Pair(21,21); // all nodes in map for one worker
 
     private static Pair patchDims = new Pair(3,3); // nodes in patch
     private static int laneLength = 500; //meters
@@ -38,14 +38,14 @@ public class HiPUTSMapGeneratorApplication {
         // genMap(1);
         // genMap(2);
         genMap(4);
-        // genMap(8);
-        // genMap(12);
-        // genMap(16);
+        genMap(8);
+        genMap(12);
+        genMap(16);
         // genMap(20);
         // genMap(24);
         // genMap(28);
         // genMap(32);
-        // genMap(64);
+        // genMap(48);
 
     }
 
@@ -76,12 +76,14 @@ public class HiPUTSMapGeneratorApplication {
         int square = (int) sqrt(workerCount);
         int multiX = 1;
 
-
         if(workerCount / square == (int) workerCount / square) {
             multiX = square;
         }
         else if(workerCount / (square+1) == (int) workerCount / (square+1)){
             multiX = square+1;
+        }
+        else if(workerCount / (square-1) == (int) workerCount / (square-1)){
+            multiX = square-1;
         }
 
 

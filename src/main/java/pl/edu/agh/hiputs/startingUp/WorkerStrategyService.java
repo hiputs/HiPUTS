@@ -158,7 +158,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     if(configuration.getWorkerInitialNumberOfCars() >= 0 ){
       carProvider = new SquareMapUniformCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
 
-      List<Car> generatedCars = carProvider.generateManyCars(30);
+      List<Car> generatedCars = carProvider.generateManyCars();
       generatedCars.forEach(car -> {
         LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
         carProvider.limitSpeedPreventCollisionOnStart(car, lane);

@@ -53,7 +53,13 @@ public class RouteWithLocation {
     int futurePosition = currentPosition + hops;
     if (futurePosition >= routeElements.size() || futurePosition < 0)
       return false;
+    
     this.currentPosition = futurePosition;
     return true;
+  }
+
+  public String toString(){
+    return "current position: " + currentPosition + ", " + routeElements.stream()
+        .map(el -> " jun: "+ el.getJunctionId() + " lane: " + el.getOutgoingLaneId() + " -> ").toList();
   }
 }
