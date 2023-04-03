@@ -4,7 +4,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TypicalAndRoundaboutAsOneway implements OneWayProcessor{
+public class StandardOsmAndRoundaboutOnewayProcessor implements OneWayProcessor{
 
   private final static String ONEWAY_KEY = "oneway";
   private final static String ONEWAY_TRUE_VALUE = "yes";

@@ -56,10 +56,11 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
   private List<Edge<JunctionData, WayData>> osmToInternal(OsmWay osmWay) {
     List<Edge<JunctionData, WayData>> edges = new LinkedList<>();
     Map<String, String> tags = getTags(osmWay);
-    Map<RelativeDirection, List<LaneData>> lanesMap = lanesProcessor.getDataForEachDirectionFromTags(tags);
     boolean isOneway = oneWayProcessor.checkFromTags(tags);
 
     for (int i = 0; i < osmWay.getNumberOfNodes() - 1; i++) {
+      Map<RelativeDirection, List<LaneData>> lanesMap = lanesProcessor.getDataForEachDirectionFromTags(tags);
+
       WayData wayData = WayData.builder()
           .tags(tags)
           .tagsInOppositeMeaning(false)
@@ -67,10 +68,8 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
           .lanes(lanesMap.get(RelativeDirection.SAME))
           .build();
       Edge<JunctionData, WayData> edge = new Edge<>(osmWay.getNodeId(i) + "->" + osmWay.getNodeId(i + 1), wayData);
-      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i)),
-          JunctionData.builder().isCrossroad(i == 0).build()));
-      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)),
-          JunctionData.builder().isCrossroad(i == osmWay.getNumberOfNodes() - 2).build()));
+      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i)), JunctionData.builder().build()));
+      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), JunctionData.builder().build()));
       edges.add(edge);
 
       if (isOneway) {
@@ -85,10 +84,8 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
           .lanes(lanesMap.get(RelativeDirection.OPPOSITE))
           .build();
       edge = new Edge<>(osmWay.getNodeId(i + 1) + "->" + osmWay.getNodeId(i), wayData);
-      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)),
-          JunctionData.builder().isCrossroad(i == osmWay.getNumberOfNodes() - 2).build()));
-      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i)),
-          JunctionData.builder().isCrossroad(i == 0).build()));
+      edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), JunctionData.builder().build()));
+      edge.setTarget(new Node<>(String.valueOf(osmWay.getNodeId(i)), JunctionData.builder().build()));
       edges.add(edge);
     }
     return edges;

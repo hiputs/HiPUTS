@@ -2,7 +2,6 @@ package pl.edu.agh.hiputs.partition.model.graph;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -16,7 +15,6 @@ public class Node<T extends NodeData, S extends EdgeData> {
 
   @Setter
   private Double distance = null;
-  private Map<String, String> tags;
 
   private List<Edge<T, S>> incomingEdges = new LinkedList<>();
   private List<Edge<T, S>> outgoingEdges = new LinkedList<>();
@@ -41,13 +39,5 @@ public class Node<T extends NodeData, S extends EdgeData> {
     if(!outgoingEdges.contains(edge)) {
       outgoingEdges.add(edge);
     }
-  }
-
-  public String getTag(String name) {
-    return this.tags.get(name);
-  }
-
-  public void setTag(String name, String value) {
-    this.tags.put(name, value);
   }
 }

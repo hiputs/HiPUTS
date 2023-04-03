@@ -15,6 +15,7 @@ public class LaneData {
   @Builder.Default
   private final String id = UUID.randomUUID().toString();
   @Builder.Default
+  @EqualsAndHashCode.Exclude
   private final List<LaneData> availableSuccessors = new ArrayList<>();
 
 }

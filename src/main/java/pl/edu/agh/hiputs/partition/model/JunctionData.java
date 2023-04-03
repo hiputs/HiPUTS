@@ -11,12 +11,14 @@ import pl.edu.agh.hiputs.partition.model.graph.NodeData;
 @Builder
 @EqualsAndHashCode
 public class JunctionData implements NodeData {
-
+  // constants, need to be set during creation
   private Double lon;
   private Double lat;
-  private boolean isCrossroad;
   private Map<String, String> tags;
 
+  // can be processed after graph building
+  @Setter
+  private boolean isCrossroad;
   @Setter
   private String patchId;
 

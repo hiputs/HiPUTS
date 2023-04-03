@@ -55,8 +55,8 @@ public class StandardOsmLanesProcessor implements LanesProcessor {
       else {
         // 5. Only lanes number => assigning it to road if oneWay or equally dividing into two roads if not
         return isOneway ? Map.of(RelativeDirection.SAME, createNoLanes(Integer.parseInt(tags.get(LANES_TOTAL_KEY)))) :
-            Map.of(RelativeDirection.SAME, createNoLanes(Integer.parseInt(tags.get(LANES_TOTAL_KEY)) / 2),
-                RelativeDirection.OPPOSITE, createNoLanes(Integer.parseInt(tags.get(LANES_TOTAL_KEY)) / 2));
+            Map.of(RelativeDirection.SAME, createNoLanes(Math.max(Integer.parseInt(tags.get(LANES_TOTAL_KEY)) / 2, 1)),
+                RelativeDirection.OPPOSITE, createNoLanes(Math.max(Integer.parseInt(tags.get(LANES_TOTAL_KEY)) / 2, 1)));
       }
     } else {
       // 6. Lack of required data => one-lane road.
