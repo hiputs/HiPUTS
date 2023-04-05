@@ -176,16 +176,13 @@ public class ServerStrategyService implements Strategy {
           }
         });
 
-      System.out.println("xd "+ workerId2shadowPatchesIds.toString() + " xd " + shadowPatchesIds.toString() + " xd " +patchId2workerId.toString() );
-
       List<WorkerDataDto> workerDataDtos = workerId2shadowPatchesIds.entrySet()
           .stream()
-          .map(e -> {System.out.println(e.toString()+" "+ e.getKey()+" "+ workerRepository.getAllWorkersIds().toString());
-          return new WorkerDataDto(e.getValue(), ConnectionDto.builder()
+          .map(e -> new WorkerDataDto(e.getValue(), ConnectionDto.builder()
               .id(e.getKey())
               .address(workerRepository.get(e.getKey()).getAddress())
               .port(workerRepository.get(e.getKey()).getPort())
-              .build());})
+              .build()))
           .toList();
 
       ServerInitializationMessage serverInitializationMessage = ServerInitializationMessage.builder()

@@ -36,13 +36,13 @@ public class HiPUTSMapGeneratorApplication {
         mapDims.setY(patchDims.getY() * (int) mapDims.getY() / patchDims.getY());
 
         // genMap(1);
-        // genMap(2);
+        genMap(2);
         genMap(4);
         genMap(8);
         genMap(12);
         genMap(16);
-        // genMap(20);
-        // genMap(24);
+        genMap(20);
+        genMap(24);
         // genMap(28);
         // genMap(32);
         // genMap(48);
@@ -86,7 +86,6 @@ public class HiPUTSMapGeneratorApplication {
             multiX = square-1;
         }
 
-
         return new Pair(multiX, workerCount / multiX);
     }
 
@@ -124,28 +123,28 @@ public class HiPUTSMapGeneratorApplication {
 
         for (int i = 0; i < xPatches; i++) {
             for (int j = 0; j < yPatches; j++) {
-                Patch patch = new Patch(String.format("P%s-%s", i, j));
+                Patch patch = new Patch(String.format("%s-%s", i, j));
 
                 //left
                 if (j > 0) {
-                    patch.getNeighbouring_patches_ids().add(String.format("P%s-%s", i, j - 1));
+                    patch.getNeighbouring_patches_ids().add(String.format("%s-%s", i, j - 1));
                 }
 
                 //right
                 if (j < yPatches - 1) {
-                    patch.getNeighbouring_patches_ids().add(String.format("P%s-%s", i, j + 1));
+                    patch.getNeighbouring_patches_ids().add(String.format("%s-%s", i, j + 1));
                 }
 
 
                 //up
                 if (i > 0) {
-                    patch.getNeighbouring_patches_ids().add(String.format("P%s-%s", i - 1, j));
+                    patch.getNeighbouring_patches_ids().add(String.format("%s-%s", i - 1, j));
                 }
 
 
                 //down
                 if (i < xPatches - 1) {
-                    patch.getNeighbouring_patches_ids().add(String.format("P%s-%s", i + 1, j));
+                    patch.getNeighbouring_patches_ids().add(String.format("%s-%s", i + 1, j));
                 }
 
                 patches.add(patch);

@@ -102,8 +102,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     FileReader patchesReader = new FileReader(exportDescriptor.getPatchesFilePath());
 
     Graph.GraphBuilder<JunctionData, WayData> wholeMapGraph = new GraphBuilder<>();
-    Map<String, Graph.GraphBuilder<JunctionData, WayData>> insideGraphs = new HashMap<>();
-
+    Map<String, Graph.GraphBuilder<JunctionData, WayData>> patchId2graphInsidePatch = new HashMap<>();
     Map<String, Node<JunctionData, WayData>> nodeId2Node = new HashMap<>();
 
     Iterable<CSVRecord> records =
@@ -118,12 +117,12 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
           .tags(csvToMap(record.get(NodeHeaders.tags)))
           .build();
 
-      if (!insideGraphs.containsKey(record.get(NodeHeaders.patch_id))) {
-        insideGraphs.put(record.get(NodeHeaders.patch_id), new GraphBuilder<>());
+      if (!patchId2graphInsidePatch.containsKey(record.get(NodeHeaders.patch_id))) {
+        patchId2graphInsidePatch.put(record.get(NodeHeaders.patch_id), new GraphBuilder<>());
       }
       Node<JunctionData, WayData> newNode = new Node<>(record.get(NodeHeaders.id), junctionData);
       nodeId2Node.put(record.get(NodeHeaders.id), newNode);
-      insideGraphs.get(record.get(NodeHeaders.patch_id)).addNode(newNode);
+      patchId2graphInsidePatch.get(record.get(NodeHeaders.patch_id)).addNode(newNode);
       wholeMapGraph.addNode(newNode);
     }
 
@@ -141,16 +140,16 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
       Edge<JunctionData, WayData> edge = new Edge<>(record.get(EdgeHeader.source) + "->" + record.get(EdgeHeader.target), wayData);
       edge.setSource(nodeId2Node.get(record.get(EdgeHeader.source)));
       edge.setTarget(nodeId2Node.get(record.get(EdgeHeader.target)));
-      if (!insideGraphs.containsKey(record.get(EdgeHeader.patch_id))) {
-        insideGraphs.put(record.get(EdgeHeader.patch_id), new GraphBuilder<>());
+      if (!patchId2graphInsidePatch.containsKey(record.get(EdgeHeader.patch_id))) {
+        patchId2graphInsidePatch.put(record.get(EdgeHeader.patch_id), new GraphBuilder<>());
       }
-      insideGraphs.get(record.get(EdgeHeader.patch_id)).addEdge(edge);
+      patchId2graphInsidePatch.get(record.get(EdgeHeader.patch_id)).addEdge(edge);
       wholeMapGraph.addEdge(edge);
     }
 
     Graph.GraphBuilder<PatchData, PatchConnectionData> resultGraph = new GraphBuilder<>();
-    for (String patchId : insideGraphs.keySet()) {
-      PatchData patchData = PatchData.builder().graphInsidePatch(insideGraphs.get(patchId).build()).build();
+    for (String patchId : patchId2graphInsidePatch.keySet()) {
+      PatchData patchData = PatchData.builder().graphInsidePatch(patchId2graphInsidePatch.get(patchId).build()).build();
       resultGraph.addNode(new Node<>(patchId, patchData));
     }
 

@@ -6,6 +6,10 @@ build/
 !**/src/test/**/build/
 
 data/square*
+data/map*
+statistic/
+.idea/
+
 
 ### STS ###
 .apt_generated

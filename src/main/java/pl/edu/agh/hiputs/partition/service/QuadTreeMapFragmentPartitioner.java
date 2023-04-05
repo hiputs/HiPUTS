@@ -51,12 +51,12 @@ public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
 
     MinMaxAcc widthMinMax = new MinMaxAcc();
     graph.getNodes().values().stream()
-        .map(patchNode -> patchNode.getData().getAvgLat().get())
+        .map(patchNode -> patchNode.getData().getAvgLon().get())
         .forEach(widthMinMax::accept);
 
     MinMaxAcc heightMinMax = new MinMaxAcc();
     graph.getNodes().values().stream()
-        .map(patchNode -> patchNode.getData().getAvgLon().get())
+        .map(patchNode -> patchNode.getData().getAvgLat().get())
         .forEach(heightMinMax::accept);
 
     return widthMinMax.getRange() > heightMinMax.getRange() ?
@@ -64,18 +64,18 @@ public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
   }
 
   private Pair<Graph<PatchData, PatchConnectionData>, Graph<PatchData, PatchConnectionData>> bisectHorizontally(Graph<PatchData, PatchConnectionData> graph, Double middle) {
-    return bisectByPatchDataAttribute(graph, PatchData::getAvgLon, middle);
+    return bisectByPatchDataAttribute(graph, PatchData::getAvgLat, middle);
   }
 
   private Pair<Graph<PatchData, PatchConnectionData>, Graph<PatchData, PatchConnectionData>> bisectVertically(Graph<PatchData, PatchConnectionData> graph, Double middle) {
-    return bisectByPatchDataAttribute(graph, PatchData::getAvgLat, middle);
+    return bisectByPatchDataAttribute(graph, PatchData::getAvgLon, middle);
   }
 
   private Pair<Graph<PatchData, PatchConnectionData>, Graph<PatchData, PatchConnectionData>> bisectByPatchDataAttribute(Graph<PatchData, PatchConnectionData> graph, Function<PatchData, Optional<Double>> getter,  Double middle) {
     List<Node<PatchData, PatchConnectionData>> leftGraphNodes = graph.getNodes()
         .values()
         .stream()
-        .filter(patchNode -> getter.apply(patchNode.getData()).get() < middle)
+        .filter(patchNode -> getter.apply(patchNode.getData()).get() <= middle)
         .toList();
 
     List<Node<PatchData, PatchConnectionData>> rightGraphNodes = graph.getNodes()
@@ -126,12 +126,9 @@ public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
     public void accept(Double val) {
       if (val < min ) {
         min = val;
-        return;
       }
-
-      if(val > max) {
+      else if(val > max) {
         max = val;
-        return;
       }
     }
 
