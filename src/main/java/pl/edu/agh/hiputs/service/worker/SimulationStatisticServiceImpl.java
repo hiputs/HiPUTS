@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.Builder;
@@ -20,7 +19,6 @@ import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationStatisticM
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.loadbalancer.LocalLoadStatisticService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 

@@ -196,6 +196,14 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         .collect(Collectors.toSet());
   }
 
+  public Set<PatchEditor> getLocalPatchesEditable() {
+    return knownPatches.values()
+        .stream()
+        .filter(patch -> localPatchIds.contains(patch.getPatchId()))
+        .map(patch -> (PatchEditor) patch)
+        .collect(Collectors.toSet());
+  }
+
   public Set<LaneId> getLocalLaneIds() {
     return localPatchIds.stream()
         .map(knownPatches::get)

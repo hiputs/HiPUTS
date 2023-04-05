@@ -34,7 +34,6 @@
 
   <logger name="pl.edu.agh.hiputs" level="debug" additivity="false">
     <appender-ref ref="FILE"/>
-    <appender-ref ref="CONSOLE"/>
   </logger>
 
 

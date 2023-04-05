@@ -136,7 +136,7 @@ public class Lane implements LaneEditable {
   }
 
   @Override
-  public void addNewCar(CarEditable car){
+  public void addNewCar(CarEditable car){ // TODO może ich być za dużo?
     if(!cars.isEmpty()){
       double position = cars.getFirst().getPositionOnLane() - cars.getFirst().getLength() - 0.3;
       double speed = cars.getFirst().getSpeed();

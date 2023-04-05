@@ -82,6 +82,11 @@ public class Configuration {
   private int initialNumberOfCarsPerLane;
 
   /**
+   * Number of cars to be generated on each worker's part of map
+   */
+  private int numberOfCarsPerWorker;
+
+  /**
    * Pause between every simulation step in ms. When visualise mode is enabled recommended min 100ms
    */
   private int pauseAfterStep;
@@ -165,10 +170,6 @@ public class Configuration {
    */
   private MapFragmentId mapFragmentId;
 
-  /**
-   * FOR SQUARE MAP: Number of cars to be generated on worker's part of map
-   */
-  private int workerInitialNumberOfCars;
 
   public static Configuration getDefault() {
     return Configuration.builder()
