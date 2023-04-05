@@ -9,6 +9,8 @@ class ExportDescriptor {
 
   private static final String edgesFileName = "edges.csv";
 
+  private static final String lanesFileName = "lanes.csv";
+
   private static final String patchesFileName = "patches.csv";
 
   private String exportDirAbsolutePath;
@@ -19,6 +21,10 @@ class ExportDescriptor {
 
   public String getEdgesFilePath() {
     return exportDirAbsolutePath + "/" + edgesFileName;
+  }
+
+  public String getLanesFilePath() {
+    return exportDirAbsolutePath + "/" + lanesFileName;
   }
 
   public String getPatchesFilePath() {
