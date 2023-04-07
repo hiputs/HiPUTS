@@ -8,8 +8,8 @@
 "serverPort":8081,
 "localHostMode":false,
 "balancingMode":"NONE",
-"initialNumberOfCarsPerLane":0,
-"numberOfCarsPerWorker":500,
+"initialNumberOfCarsPerLane":5,
+"numberOfCarsPerWorker":0,
 "pauseAfterStep":100,
 "carViewRange":300,
 "defaultMaxSpeed":20.0,
@@ -25,6 +25,6 @@
 "patchPartitionerConfiguration":{"partitionerType":"hexagon",
 "carViewRange":100.0,
 "borderHandlingStrategy":"maxLaneLengthBuffer"},
-"newCars":0,
+"newCars":1,
 "minCars":0,
 "ticketActive":false}

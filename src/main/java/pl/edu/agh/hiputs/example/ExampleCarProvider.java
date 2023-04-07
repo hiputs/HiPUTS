@@ -95,7 +95,7 @@ public class ExampleCarProvider {
   }
 
   private Integer getDefaultHops() {
-    return 4; //DEFAULT_HOPS;
+    return 30; //DEFAULT_HOPS;
   }
 
   private Double getMaxDeceleration() {
@@ -122,6 +122,16 @@ public class ExampleCarProvider {
     try {
       double position = ThreadLocalRandom.current().nextDouble(0, mapFragment.getLaneReadable(startLaneId).getLength());
       return this.generateCar(position, startLaneId, hops, getDefaultCarLength(), getDefaultMaxSpeed());
+    } catch (IllegalArgumentException e){
+      log.warn("Error generating car", e);
+      return null;
+    }
+  }
+
+  public Car generateCar(LaneId startLaneId) {
+    try {
+      double position = ThreadLocalRandom.current().nextDouble(0, mapFragment.getLaneReadable(startLaneId).getLength());
+      return this.generateCar(position, startLaneId, getDefaultHops(), getDefaultCarLength(), getDefaultMaxSpeed());
     } catch (IllegalArgumentException e){
       log.warn("Error generating car", e);
       return null;

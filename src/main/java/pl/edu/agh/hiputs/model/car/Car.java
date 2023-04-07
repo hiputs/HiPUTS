@@ -91,8 +91,6 @@ public class Car implements CarEditable {
 
   @Override
   public Optional<CarUpdateResult> update() {
-    log.debug("Car: " + this.getCarId() + " route with location: " + getRouteWithLocation().toString());
-
     if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getLaneId() == null) { // remove car from lane
       log.warn("Car: " + this.getCarId() + " was removed due to finish his route");
       crossroadDecisionProperties = Optional.empty();

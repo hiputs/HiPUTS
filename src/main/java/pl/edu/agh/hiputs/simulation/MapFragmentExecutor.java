@@ -98,7 +98,7 @@ public class MapFragmentExecutor {
       // 11. gen new car
       log.info("Step 11 start");
 
-      carGeneratorService.generateCars(mapFragment);
+      carGeneratorService.generateCarsAfterStep(mapFragment);
 
       // mapFragment.printFullStatistic();
 

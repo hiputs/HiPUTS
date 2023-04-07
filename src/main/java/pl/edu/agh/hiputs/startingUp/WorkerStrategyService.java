@@ -42,6 +42,7 @@ import pl.edu.agh.hiputs.model.map.patch.PatchEditor;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
+import pl.edu.agh.hiputs.service.worker.CarGeneratorService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
@@ -64,6 +65,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private Configuration configuration;
   private final MapFragmentCreator mapFragmentCreator;
   private final SimulationStatisticService simulationStatisticService;
+  private final CarGeneratorService carGeneratorService;
 
   private final ExecutorService simulationExecutor = newSingleThreadExecutor();
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
@@ -127,8 +129,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
     mapFragmentExecutor.setMapFragment(mapFragment);
     debugUtils.setMapFragment(mapFragment);
+    carGeneratorService.setMapFragment(mapFragment);
 
-    createCars();
+    carGeneratorService.generateInitialCars();
 
     if (configuration.isEnableGUI()) {
       try {
@@ -155,47 +158,6 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     }
   }
 
-  private void createCars() {
-    final ExampleCarProvider carProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
-
-    if(configuration.getNumberOfCarsPerWorker() > 0){
-      int idx = 0;
-      Set<PatchEditor> patches = mapFragmentExecutor.getMapFragment().getLocalPatchesEditable();
-
-      for(PatchEditor patch : patches){
-        int carsToGenerate = idx++ < configuration.getNumberOfCarsPerWorker() % mapFragmentExecutor.getMapFragment().getMyPatchCount()
-            ? configuration.getNumberOfCarsPerWorker() / mapFragmentExecutor.getMapFragment().getMyPatchCount() + 1
-            : configuration.getNumberOfCarsPerWorker() / mapFragmentExecutor.getMapFragment().getMyPatchCount();
-
-        LaneId[] lanes = patch.getLaneIds().toArray(new LaneId[0]);
-
-        for(int i=0;i<carsToGenerate;i++){
-          LaneEditable lane = patch.getLaneEditable(lanes[i % lanes.length]);
-
-          Car newCar = carProvider.generateCar(lane.getLaneId(), 30);
-          carProvider.limitSpeedPreventCollisionOnStart(newCar, lane); // TODO move to Lane class?
-          lane.addNewCar(newCar);
-        }
-      }
-    }
-    else {
-
-      mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-        List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-            .mapToObj(x -> carProvider.generateCar(laneId, 30))
-            .filter(Objects::nonNull)
-            .sorted(Comparator.comparing(Car::getPositionOnLane))
-            .collect(Collectors.toList());
-        Collections.reverse(generatedCars);
-
-        generatedCars.forEach(car -> {
-          LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
-          carProvider.limitSpeedPreventCollisionOnStart(car, lane);
-          lane.addNewCar(car);
-        });
-      });
-    }
-  }
 
   private void runSimulation() {
     simulationExecutor.submit(this);
