@@ -217,14 +217,21 @@ public class HexagonsPartitioner implements PatchPartitioner {
   private void rewriteLaneSuccessorsToChildren(
       Edge<JunctionData, WayData> parent, Edge<JunctionData, WayData> child1, Edge<JunctionData, WayData> child2
   ) {
+    // taking all lanes from incoming edges of parent source node, which have parent lanes as successors
     List<LaneData> lanesToUpdate = parent.getSource().getIncomingEdges().stream()
         .flatMap(inEdge -> inEdge.getData().getLanes().stream())
         .toList();
+
+    // reassigning successors of incoming lanes to take new lanes from child edge
     assignSuccessorsUsingLanesMapping(lanesToUpdate, createLaneUpdateMapping(parent, child1));
+
+    // assigning second child's lanes to first child lanes as successors
     assignSuccessorsUsingRecreatedLanes(child1.getData().getLanes(),
         child2.getData().getLanes().stream()
             .map(List::of)
             .toList());
+
+    // assigning parent successors to second child successors
     assignSuccessorsUsingRecreatedLanes(child2.getData().getLanes(),
         parent.getData().getLanes().stream()
             .map(LaneData::getAvailableSuccessors)

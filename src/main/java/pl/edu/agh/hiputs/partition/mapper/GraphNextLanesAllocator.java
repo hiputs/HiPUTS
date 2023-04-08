@@ -15,12 +15,11 @@ import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnProcessor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.LaneData;
 import pl.edu.agh.hiputs.partition.model.WayData;
-import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 @Service
-@Order(6)
+@Order(7)
 @RequiredArgsConstructor
 public class GraphNextLanesAllocator implements GraphTransformer {
   private final TurnProcessor turnProcessor;
@@ -49,10 +48,10 @@ public class GraphNextLanesAllocator implements GraphTransformer {
                 .sorted()
                 .collect(Collectors.toCollection(TreeSet::new));
             if (distinctTurns.size() != crossroad.getOutgoingEdges().size()) {
-
             }
+            // @TODO allocating successors to crossroads with turn directions in tags
           }, () -> {
-
+            // @TODO allocating successors to crossroads without turn directions in tags
           });
     });
   }
@@ -61,10 +60,12 @@ public class GraphNextLanesAllocator implements GraphTransformer {
   // iteracja po incomingach, filtrowanie outgoingów
   private void allocateSuccessorsOnBend(Node<JunctionData, WayData> bend) {
     if (bend.getOutgoingEdges().size() == 1) {
+      // pairing all incoming edges with this one outgoing edge
       bend.getIncomingEdges().forEach(incoming ->
           pairRoadsWithBend(incoming.getData(), bend.getOutgoingEdges().get(0).getData()));
     }
     else if (bend.getOutgoingEdges().size() == 2) {
+      // pairing all incoming edges only with these outgoing, which are not a reverse
       bend.getIncomingEdges().forEach(incoming ->
           bend.getOutgoingEdges().stream()
               .filter(outgoing -> !outgoing.getTarget().equals(incoming.getSource()))
@@ -75,6 +76,7 @@ public class GraphNextLanesAllocator implements GraphTransformer {
   private void pairRoadsWithBend(WayData incoming, WayData outgoing) {
     List<List<TurnDirection>> lanesDirections = turnProcessor.getTurnDirectionsFromTags(incoming);
 
+    // removing merge lanes at incoming edge if they are present in tags
     List<LaneData> incomingLanes = new ArrayList<>(incoming.getLanes());
     incomingLanes.removeAll(
         IntStream.range(0, lanesDirections.size())
@@ -93,16 +95,19 @@ public class GraphNextLanesAllocator implements GraphTransformer {
     int outgoingLowerOffset = outgoingDiff / 2;
     int outgoingUpperOffset = outgoingDiff - outgoingLowerOffset;
 
+    // mapping center incoming lanes to center outgoing lanes
     IntStream.range(0, minNoLanes).forEach(index ->
         incomingLanes.get(index + incomingLowerOffset).getAvailableSuccessors().add(
             outgoing.getLanes().get(index + outgoingLowerOffset))
     );
 
+    // appending border left outgoing lanes (if they exist after bend) to border left incoming lane
     IntStream.range(0, outgoingLowerOffset).forEach(index ->
         incomingLanes.get(incomingLowerOffset).getAvailableSuccessors().add(
             outgoing.getLanes().get(index))
     );
 
+    // appending border right outgoing lanes (if they exist after bend) to border right incoming lane
     IntStream.range(0, outgoingUpperOffset).forEach(index ->
         incomingLanes.get(incomingLowerOffset + minNoLanes - 1).getAvailableSuccessors().add(
             outgoing.getLanes().get(index + outgoingLowerOffset + minNoLanes))

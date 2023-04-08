@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.partition.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
@@ -16,7 +17,8 @@ public class WayData implements EdgeData {
   private boolean isOneWay;
   private boolean tagsInOppositeMeaning;
   private Map<String, String> tags;
-  private List<LaneData> lanes;
+  @Builder.Default
+  private List<LaneData> lanes = new ArrayList<>();
 
   // can be processed after graph building
   @Setter

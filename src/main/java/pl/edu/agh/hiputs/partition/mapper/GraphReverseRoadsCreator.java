@@ -1,10 +1,8 @@
 package pl.edu.agh.hiputs.partition.mapper;
 
-import java.util.List;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
-import pl.edu.agh.hiputs.partition.model.LaneData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
@@ -19,12 +17,14 @@ public class GraphReverseRoadsCreator implements GraphTransformer{
     graph.getNodes().values().forEach(newGraphBuilder::addNode);
     graph.getEdges().values().forEach(newGraphBuilder::addEdge);
 
+    // adding reverse road to dead ends
     graph.getNodes().values().stream()
         .filter(node -> node.getIncomingEdges().size() == 0)
         .flatMap(node -> node.getOutgoingEdges().stream())
         .map(this::createReversedRoad)
         .forEach(newGraphBuilder::addEdge);
 
+    // adding reverse road to non-reachable start nodes
     graph.getNodes().values().stream()
         .filter(node -> node.getOutgoingEdges().size() == 0)
         .flatMap(node -> node.getIncomingEdges().stream())
@@ -39,7 +39,6 @@ public class GraphReverseRoadsCreator implements GraphTransformer{
         .isOneWay(true)
         .tagsInOppositeMeaning(!edge.getData().isTagsInOppositeMeaning())
         .tags(edge.getData().getTags())
-        .lanes(this.generateNewLanesForReverse(edge.getData().getLanes())) // needs to be separately processed
         .length(edge.getData().getLength())
         .maxSpeed(edge.getData().getMaxSpeed())
         .isPriorityRoad(edge.getData().isPriorityRoad())
@@ -53,11 +52,4 @@ public class GraphReverseRoadsCreator implements GraphTransformer{
 
     return reversedEdge;
   }
-
-  private List<LaneData> generateNewLanesForReverse(List<LaneData> lanes) {
-    return lanes.stream()
-        .map(lane -> LaneData.builder().build())
-        .toList();
-  }
-
 }

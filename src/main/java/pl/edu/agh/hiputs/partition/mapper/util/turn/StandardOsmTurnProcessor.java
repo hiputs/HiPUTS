@@ -29,46 +29,57 @@ public class StandardOsmTurnProcessor implements TurnProcessor {
   @Override
   public List<List<TurnDirection>> getTurnDirectionsFromTags(WayData wayData) {
     if (wayData.getTags().containsKey(TURN_KEY)) {
+      // 1. Typical turn key is only for given road, so for opposite returning empty (delegating to default provider).
       return wayData.isTagsInOppositeMeaning() ? Collections.emptyList() :
           convertRoadTagToTurns(wayData.getTags().get(TURN_KEY), wayData.getLanes().size());
     }
     else if (wayData.getTags().containsKey(TURN_BOTH_WAYS_KEY)) {
+      // 2. This key can be used for assuming lanes on both: same and opposite roads.
       return convertRoadTagToTurns(wayData.getTags().get(TURN_KEY), wayData.getLanes().size());
     }
     else if (wayData.getTags().containsKey(TURN_FORWARD_KEY) && wayData.getTags().containsKey(TURN_BACKWARD_KEY)) {
+      // 3. Having these both keys allows returning appropriate lanes number for both directions.
       return wayData.isTagsInOppositeMeaning() ?
           convertRoadTagToTurns(wayData.getTags().get(TURN_BACKWARD_KEY), wayData.getLanes().size()) :
           convertRoadTagToTurns(wayData.getTags().get(TURN_FORWARD_KEY), wayData.getLanes().size());
     }
     else if (wayData.getTags().containsKey(TURN_FORWARD_KEY)) {
+      // 4. When road is in opposite direction, returning empty (delegating to default provider).
       return wayData.isTagsInOppositeMeaning() ? Collections.emptyList() :
           convertRoadTagToTurns(wayData.getTags().get(TURN_FORWARD_KEY), wayData.getLanes().size());
     }
     else if (wayData.getTags().containsKey(TURN_BACKWARD_KEY)) {
+      // 5. When road is in the same direction, returning empty (delegating to default provider).
       return !wayData.isTagsInOppositeMeaning() ? Collections.emptyList() :
           convertRoadTagToTurns(wayData.getTags().get(TURN_BACKWARD_KEY), wayData.getLanes().size());
     }
     else if (wayData.getTags().containsKey(TURN_LANE_KEY)) {
+      // 6. Typical turn lanes key is only for given road, so for opposite returning empty (delegating to default provider).
       return wayData.isTagsInOppositeMeaning() ? Collections.emptyList() :
           convertRoadTagToTurns(wayData.getTags().get(TURN_LANE_KEY));
     }
     else if (wayData.getTags().containsKey(TURN_LANE_BOTH_WAYS_KEY)) {
+      // 7. This lanes key can be used for assuming lanes on both: same and opposite roads.
       return convertRoadTagToTurns(wayData.getTags().get(TURN_LANE_KEY));
     }
     else if (wayData.getTags().containsKey(TURN_LANE_FORWARD_KEY) && wayData.getTags().containsKey(TURN_LANE_BACKWARD_KEY)) {
+      // 8. Having these both lanes keys allows returning appropriate lanes number for both directions.
       return wayData.isTagsInOppositeMeaning() ?
           convertRoadTagToTurns(wayData.getTags().get(TURN_LANE_BACKWARD_KEY)) :
           convertRoadTagToTurns(wayData.getTags().get(TURN_LANE_FORWARD_KEY));
     }
     else if (wayData.getTags().containsKey(TURN_LANE_FORWARD_KEY)) {
+      // 9. When road is in opposite direction, returning empty (delegating to default provider).
       return wayData.isTagsInOppositeMeaning() ? Collections.emptyList() :
           convertRoadTagToTurns(wayData.getTags().get(TURN_LANE_FORWARD_KEY));
     }
     else if (wayData.getTags().containsKey(TURN_LANE_BACKWARD_KEY)) {
+      // 10. When road is in the same direction, returning empty (delegating to default provider).
       return !wayData.isTagsInOppositeMeaning() ? Collections.emptyList() :
           convertRoadTagToTurns(wayData.getTags().get(TURN_LANE_BACKWARD_KEY));
     }
     else {
+      // 11. If no data provided, just returning empty (delegating to default provider)
       return Collections.emptyList();
     }
   }

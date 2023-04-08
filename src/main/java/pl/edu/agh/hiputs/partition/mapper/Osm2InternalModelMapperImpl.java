@@ -10,11 +10,8 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.partition.mapper.util.lane.LanesProcessor;
-import pl.edu.agh.hiputs.partition.mapper.util.lane.RelativeDirection;
 import pl.edu.agh.hiputs.partition.mapper.util.oneway.OneWayProcessor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
-import pl.edu.agh.hiputs.partition.model.LaneData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
@@ -26,7 +23,6 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 @RequiredArgsConstructor
 public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
   private final OneWayProcessor oneWayProcessor;
-  private final LanesProcessor lanesProcessor;
   private final List<GraphTransformer> graphTransformers;
 
   public Graph<JunctionData, WayData> mapToInternalModel(OsmGraph osmGraph) {
@@ -59,13 +55,10 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
     boolean isOneway = oneWayProcessor.checkFromTags(tags);
 
     for (int i = 0; i < osmWay.getNumberOfNodes() - 1; i++) {
-      Map<RelativeDirection, List<LaneData>> lanesMap = lanesProcessor.getDataForEachDirectionFromTags(tags);
-
       WayData wayData = WayData.builder()
           .tags(tags)
           .tagsInOppositeMeaning(false)
           .isOneWay(isOneway)
-          .lanes(lanesMap.get(RelativeDirection.SAME))
           .build();
       Edge<JunctionData, WayData> edge = new Edge<>(osmWay.getNodeId(i) + "->" + osmWay.getNodeId(i + 1), wayData);
       edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i)), JunctionData.builder().build()));
@@ -81,7 +74,6 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
           .tags(tags)
           .tagsInOppositeMeaning(true)
           .isOneWay(false)
-          .lanes(lanesMap.get(RelativeDirection.OPPOSITE))
           .build();
       edge = new Edge<>(osmWay.getNodeId(i + 1) + "->" + osmWay.getNodeId(i), wayData);
       edge.setSource(new Node<>(String.valueOf(osmWay.getNodeId(i + 1)), JunctionData.builder().build()));
