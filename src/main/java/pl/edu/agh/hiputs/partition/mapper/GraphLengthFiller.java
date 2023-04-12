@@ -10,7 +10,7 @@ import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
 @Service
 @Order(3)
-class GraphLengthFiller implements GraphTransformer {
+public class GraphLengthFiller implements GraphTransformer {
 
   @Override
   public Graph<JunctionData, WayData> transform(Graph<JunctionData, WayData> graph) {

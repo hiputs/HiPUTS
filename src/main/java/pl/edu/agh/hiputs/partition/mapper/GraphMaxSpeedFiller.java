@@ -12,7 +12,7 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 @Slf4j
 @Service
 @Order(2)
-class GraphMaxSpeedFiller implements GraphTransformer {
+public class GraphMaxSpeedFiller implements GraphTransformer {
 
   private static final String MAX_SPEED_TAG = "maxspeed";
 

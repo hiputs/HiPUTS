@@ -20,7 +20,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 @Service
 @Order(1)
-class LargestCCSelector implements GraphTransformer {
+public class LargestCCSelector implements GraphTransformer {
 
   private Map<String, String> visitationMap;
 
