@@ -7,8 +7,10 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
@@ -18,6 +20,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
+import pl.edu.agh.hiputs.partition.model.LaneData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.WayData;
@@ -45,8 +48,9 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
   @Override
   public Graph<PatchData, PatchConnectionData> readGraphWithPatches(Path importPath) {
     try {
-      return readGraphWithPatches(
+      Graph<PatchData, PatchConnectionData> graph = readGraphWithPatches(
           ExportDescriptor.builder().exportDirAbsolutePath(importPath.toAbsolutePath().toString()).build());
+      return graph;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -56,12 +60,15 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
       throws IOException {
     FileWriter nodesWriter = new FileWriter(exportDescriptor.getNodesFilePath());
     FileWriter edgesWriter = new FileWriter(exportDescriptor.getEdgesFilePath());
+    FileWriter lanesWriter = new FileWriter(exportDescriptor.getLanesFilePath());
     FileWriter patchesWriter = new FileWriter(exportDescriptor.getPatchesFilePath());
 
     try (CSVPrinter nodesPrinter = new CSVPrinter(nodesWriter,
         CSVFormat.DEFAULT.builder().setHeader(NodeHeaders.class).build());
         CSVPrinter edgesPrinter = new CSVPrinter(edgesWriter,
             CSVFormat.DEFAULT.builder().setHeader(EdgeHeader.class).build());
+        CSVPrinter lanesPrinter = new CSVPrinter(lanesWriter,
+            CSVFormat.DEFAULT.builder().setHeader(LaneHeader.class).build());
         CSVPrinter patchesPrinter = new CSVPrinter(patchesWriter,
             CSVFormat.DEFAULT.builder().setHeader(PatchHeader.class).build())) {
       for (Node<PatchData, PatchConnectionData> p : graph.getNodes().values()) {
@@ -89,7 +96,26 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
               e.getData().isPriorityRoad(),
               e.getData().isOneWay(),
               e.getData().getPatchId(),
+              mapToCsv(e.getData().getLanes().stream()
+                  .map(LaneData::getId)
+                  .toList()),
               mapToCsv(e.getData().getTags()));
+        }
+
+        // taking all lanes without repeats
+        List<LaneData> distinctLanes = p.getData().getGraphInsidePatch().getEdges().values().stream()
+            .flatMap(edge -> edge.getData().getLanes().stream())
+            .distinct()
+            .toList();
+
+        // saving distinct lanes with successors as IDs to one file
+        for (LaneData laneData : distinctLanes) {
+          lanesPrinter.printRecord(
+              laneData.getId(),
+              mapToCsv(laneData.getAvailableSuccessors().stream()
+                  .map(LaneData::getId)
+                  .toList())
+          );
         }
       }
     }
@@ -99,6 +125,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
       throws IOException {
     FileReader nodesReader = new FileReader(exportDescriptor.getNodesFilePath());
     FileReader edgesReader = new FileReader(exportDescriptor.getEdgesFilePath());
+    FileReader lanesReader = new FileReader(exportDescriptor.getLanesFilePath());
     FileReader patchesReader = new FileReader(exportDescriptor.getPatchesFilePath());
 
     Graph.GraphBuilder<JunctionData, WayData> wholeMapGraph = new GraphBuilder<>();
@@ -127,6 +154,29 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
       wholeMapGraph.addNode(newNode);
     }
 
+    // parsing lane info as map ID -> [successors IDs]
+    records =
+        CSVFormat.DEFAULT.builder().setHeader(LaneHeader.class).setSkipHeaderRecord(true).build().parse(lanesReader);
+    Map<String, Collection<String>> lanesAsIds = new HashMap<>();
+    for (CSVRecord record : records) {
+      lanesAsIds.put(
+          record.get(LaneHeader.id),
+          csvToCollection(record.get(LaneHeader.availableSuccessors))
+      );
+    }
+
+    // mapping lane ID to LaneData
+    Map<String, LaneData> laneIdToLaneData = lanesAsIds.keySet().stream()
+        .map(laneId -> LaneData.builder().id(laneId).build())
+        .collect(Collectors.toMap(LaneData::getId, Function.identity()));
+
+    // assigning successors to each LaneData using previously created map of IDs
+    laneIdToLaneData.values().forEach(laneData -> laneData.getAvailableSuccessors().addAll(
+        lanesAsIds.get(laneData.getId()).stream()
+            .map(laneIdToLaneData::get)
+            .toList()
+    ));
+
     records =
         CSVFormat.DEFAULT.builder().setHeader(EdgeHeader.class).setSkipHeaderRecord(true).build().parse(edgesReader);
     for (CSVRecord record : records) {
@@ -136,6 +186,9 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
           .isPriorityRoad(Boolean.parseBoolean(record.get(EdgeHeader.is_priority_road)))
           .isOneWay(Boolean.parseBoolean(record.get(EdgeHeader.is_one_way)))
           .patchId(record.get(EdgeHeader.patch_id))
+          .lanes(csvToCollection(record.get(EdgeHeader.lanes)).stream()
+              .map(laneIdToLaneData::get)
+              .toList())
           .tags(csvToMap(record.get(EdgeHeader.tags)))
           .build();
       Edge<JunctionData, WayData> edge = new Edge<>(record.get(EdgeHeader.source) + "->" + record.get(EdgeHeader.target), wayData);

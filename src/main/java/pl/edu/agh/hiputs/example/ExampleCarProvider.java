@@ -174,7 +174,7 @@ public class ExampleCarProvider {
         break;
       }
       List<LaneId> junctionLaneIds = new LinkedList<>(this.junctionIdToOutgoingLaneIdList.apply(nextJunctionId));
-      if (!nextJunctionId.isCrossroad()) {
+      if (!nextJunctionId.isCrossroad() && junctionLaneIds.size() >= 2) {
         for(LaneId nextCandidateLaneId : new LinkedList<>(junctionLaneIds)) {
           if (this.laneIdToOutgoingJunctionId.apply(nextCandidateLaneId).equals(junctionId)) {
             junctionLaneIds.remove(nextCandidateLaneId);

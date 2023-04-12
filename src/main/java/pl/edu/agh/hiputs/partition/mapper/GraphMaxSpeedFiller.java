@@ -2,13 +2,17 @@ package pl.edu.agh.hiputs.partition.mapper;
 
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.WayData;
 
 @Slf4j
-class GraphMaxSpeedFiller implements GraphTransformer {
+@Service
+@Order(2)
+public class GraphMaxSpeedFiller implements GraphTransformer {
 
   private static final String MAX_SPEED_TAG = "maxspeed";
 

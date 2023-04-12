@@ -6,12 +6,22 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import pl.edu.agh.hiputs.partition.mapper.GraphCrossroadDeterminer;
+import pl.edu.agh.hiputs.partition.mapper.GraphLanesCreator;
+import pl.edu.agh.hiputs.partition.mapper.GraphLengthFiller;
+import pl.edu.agh.hiputs.partition.mapper.GraphMaxSpeedFiller;
+import pl.edu.agh.hiputs.partition.mapper.GraphNextLanesAllocator;
+import pl.edu.agh.hiputs.partition.mapper.GraphReverseRoadsCreator;
+import pl.edu.agh.hiputs.partition.mapper.LargestCCSelector;
 import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapper;
 import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapperImpl;
+import pl.edu.agh.hiputs.partition.mapper.util.oneway.StandardOsmAndRoundaboutOnewayProcessor;
+import pl.edu.agh.hiputs.partition.mapper.util.turn.StandardOsmTurnProcessor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -28,7 +38,18 @@ public class HexagonGridPartitionerTest {
   private double carViewRange;
   private static final double eps = 0.0001;
   private final OsmGraphReader osmGraphReader = new OsmGraphReaderImpl();
-  private final Osm2InternalModelMapper osm2InternalModelMapper = new Osm2InternalModelMapperImpl();
+  private final Osm2InternalModelMapper osm2InternalModelMapper = new Osm2InternalModelMapperImpl(
+      new StandardOsmAndRoundaboutOnewayProcessor(),
+      List.of(
+          new LargestCCSelector(),
+          new GraphMaxSpeedFiller(),
+          new GraphLengthFiller(),
+          new GraphReverseRoadsCreator(),
+          new GraphCrossroadDeterminer(),
+          new GraphLanesCreator(new StandardOsmAndRoundaboutOnewayProcessor()),
+          new GraphNextLanesAllocator(new StandardOsmTurnProcessor())
+      )
+  );
 
 
   @SneakyThrows

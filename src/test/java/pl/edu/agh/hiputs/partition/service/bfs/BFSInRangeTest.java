@@ -5,12 +5,22 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.edu.agh.hiputs.partition.mapper.GraphCrossroadDeterminer;
+import pl.edu.agh.hiputs.partition.mapper.GraphLanesCreator;
+import pl.edu.agh.hiputs.partition.mapper.GraphLengthFiller;
+import pl.edu.agh.hiputs.partition.mapper.GraphMaxSpeedFiller;
+import pl.edu.agh.hiputs.partition.mapper.GraphNextLanesAllocator;
+import pl.edu.agh.hiputs.partition.mapper.GraphReverseRoadsCreator;
+import pl.edu.agh.hiputs.partition.mapper.LargestCCSelector;
 import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapper;
 import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapperImpl;
+import pl.edu.agh.hiputs.partition.mapper.util.oneway.StandardOsmAndRoundaboutOnewayProcessor;
+import pl.edu.agh.hiputs.partition.mapper.util.turn.StandardOsmTurnProcessor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -25,8 +35,18 @@ public class BFSInRangeTest {
 
   private final OsmGraphReader osmGraphReader = new OsmGraphReaderImpl();
 
-  private final Osm2InternalModelMapper osm2InternalModelMapper = new Osm2InternalModelMapperImpl();
-
+  private final Osm2InternalModelMapper osm2InternalModelMapper = new Osm2InternalModelMapperImpl(
+      new StandardOsmAndRoundaboutOnewayProcessor(),
+      List.of(
+          new LargestCCSelector(),
+          new GraphMaxSpeedFiller(),
+          new GraphLengthFiller(),
+          new GraphReverseRoadsCreator(),
+          new GraphCrossroadDeterminer(),
+          new GraphLanesCreator(new StandardOsmAndRoundaboutOnewayProcessor()),
+          new GraphNextLanesAllocator(new StandardOsmTurnProcessor())
+      )
+  );
   private Graph<JunctionData, WayData> testGraph;
 
   private final Measure<Edge<JunctionData, WayData>> testMeasure = new TestMeasure();
