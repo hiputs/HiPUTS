@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.routemodule.generator;
+package pl.edu.agh.hiputs.service.routegenerator.generator;
 
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 

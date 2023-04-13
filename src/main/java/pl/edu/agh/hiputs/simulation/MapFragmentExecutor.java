@@ -13,7 +13,8 @@ import pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
-import pl.edu.agh.hiputs.service.worker.CarGeneratorService;
+import pl.edu.agh.hiputs.service.routegenerator.CarGeneratorService;
+import pl.edu.agh.hiputs.service.routegenerator.RandomCarGeneratorService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
@@ -34,11 +35,8 @@ public class MapFragmentExecutor {
   private final CarsOnBorderSynchronizationService carsOnBorderSynchronizationService;
   private final MonitorLocalService monitorLocalService;
   private final LoadBalancingService loadBalancingService;
-
   private final PatchTransferService patchTransferService;
-
   private final CarGeneratorService carGeneratorService;
-
   private final SimulationStatisticService simulationStatisticService;
 
   public void run(int step) {

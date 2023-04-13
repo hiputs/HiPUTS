@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.service.worker;
+package pl.edu.agh.hiputs.service.routegenerator;
 
 import java.util.List;
 import java.util.Objects;
@@ -15,7 +15,9 @@ import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
@@ -23,7 +25,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CarGeneratorService implements Subscriber {
+public class RandomCarGeneratorService implements Subscriber, CarGeneratorService {
 
   private static final int START_ADD_CAR = 5;
   private final MapRepository mapRepository;
@@ -36,6 +38,12 @@ public class CarGeneratorService implements Subscriber {
   @PostConstruct
   void init(){
     subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
+  }
+
+  @Override
+  public void generateRoutes(Patch patch) {
+    // reimplement old `generateCars` method
+    throw new UnimplementedException();
   }
 
   public void generateCars(MapFragment mapFragment) {
@@ -63,7 +71,7 @@ public class CarGeneratorService implements Subscriber {
     if(bigWorker){
       count = (int) (count * 10);
     }
-    
+
     List<LaneEditable> lanesEditable = mapFragment.getRandomLanesEditable(count);
     ExampleCarProvider carProvider = new ExampleCarProvider(mapFragment, mapRepository);
 
