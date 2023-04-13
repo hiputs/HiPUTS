@@ -62,4 +62,16 @@ public class RouteWithLocation {
     return "current position: " + currentPosition + ", " + routeElements.stream()
         .map(el -> " jun: "+ el.getJunctionId() + " lane: " + el.getOutgoingLaneId() + " -> ").toList();
   }
+
+  public int getRemainingRouteSize(){
+    return routeElements.size() - currentPosition - 1;
+  }
+
+  public RouteElement getLastRouteElement(){
+    return routeElements.get(routeElements.size() - 1);
+  }
+
+  public void addRouteElements(List<RouteElement> extension) {
+    routeElements.addAll(extension);
+  }
 }

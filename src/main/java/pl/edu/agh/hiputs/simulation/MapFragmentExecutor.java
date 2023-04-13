@@ -99,6 +99,7 @@ public class MapFragmentExecutor {
       log.info("Step 11 start");
 
       carGeneratorService.generateCarsAfterStep(mapFragment);
+      carGeneratorService.extendCarsRoutes(step);
 
       // mapFragment.printFullStatistic();
 

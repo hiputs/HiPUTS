@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.model.car;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -130,6 +131,11 @@ public class Car implements CarEditable {
     if(this.speed > speed){
       this.speed = speed;
     }
+  }
+
+  @Override
+  public void extendRouteWithLocation(List<RouteElement> extension) {
+    routeWithLocation.addRouteElements(extension);
   }
 
   @Override

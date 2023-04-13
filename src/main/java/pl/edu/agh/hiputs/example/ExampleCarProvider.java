@@ -95,7 +95,7 @@ public class ExampleCarProvider {
   }
 
   private Integer getDefaultHops() {
-    return 30; //DEFAULT_HOPS;
+    return 5; //DEFAULT_HOPS;
   }
 
   private Double getMaxDeceleration() {
@@ -159,7 +159,7 @@ public class ExampleCarProvider {
   }
 
   public Car generateCar(double position, LaneId startLaneId, int hops, double length, double maxSpeed) {
-    RouteWithLocation routeWithLocation = this.generateRoute(startLaneId, hops);
+    RouteWithLocation routeWithLocation = this.generateRouteWithLocation(startLaneId, hops);
     ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
     return Car.builder()
         .length(length)
@@ -172,7 +172,13 @@ public class ExampleCarProvider {
         .build();
   }
 
-  private RouteWithLocation generateRoute(LaneId startLaneId, int hops) {
+  private RouteWithLocation generateRouteWithLocation(LaneId startLaneId, int hops) {
+    List<RouteElement> routeElements = generateRouteElements(startLaneId, hops);
+
+    return new RouteWithLocation(routeElements, 0);
+  }
+
+  public List<RouteElement> generateRouteElements(LaneId startLaneId, int hops) {
     List<RouteElement> routeElements = new ArrayList<>();
     JunctionId startJunctionId = mapFragment.getLaneReadable(startLaneId).getIncomingJunctionId();
     routeElements.add(new RouteElement(startJunctionId, startLaneId));
@@ -196,8 +202,7 @@ public class ExampleCarProvider {
       laneId = nextLaneId;
       junctionId = nextJunctionId;
     }
-
-    return new RouteWithLocation(routeElements, 0);
+    return routeElements;
   }
 
   private LaneId getRandomStartLaneId() {

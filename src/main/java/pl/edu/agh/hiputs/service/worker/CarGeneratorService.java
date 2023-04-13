@@ -26,6 +26,8 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.PatchEditor;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
+import pl.edu.agh.hiputs.scheduler.task.CarRouteExtendTask;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
@@ -38,6 +40,7 @@ public class CarGeneratorService implements Subscriber {
   private MapFragment mapFragment;
   private ExampleCarProvider carProvider;
   private Configuration configuration;
+  private final TaskExecutorService taskExecutor;
   private final MapRepository mapRepository;
   private final WorkerSubscriptionService subscriptionService;
   private final ConfigurationService configurationService;
@@ -105,6 +108,17 @@ public class CarGeneratorService implements Subscriber {
         })
         .flatMap(Collection::stream)
         .toList();
+  }
+
+  public void extendCarsRoutes(int step){
+    if(configuration.isExtendCarRouteWhenItEnds()){
+
+      List<Runnable> extendRoutes = mapFragment.getLocalLaneIds()
+          .parallelStream()
+          .map(laneId -> new CarRouteExtendTask(carProvider, mapFragment, laneId, configuration.getSimulationStep() - step))
+          .collect(Collectors.toList());
+      taskExecutor.executeBatch(extendRoutes);
+    }
   }
 
   public void generateCarsAfterStep(MapFragment mapFragment) {

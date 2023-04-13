@@ -170,6 +170,10 @@ public class Configuration {
    */
   private MapFragmentId mapFragmentId;
 
+  /**
+   * Extend route of each car to maintain all existing vehicles in simulation (when route ends, vehicle disappears)
+   */
+  private boolean extendCarRouteWhenItEnds;
 
   public static Configuration getDefault() {
     return Configuration.builder()
