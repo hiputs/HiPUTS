@@ -43,16 +43,24 @@ public class RectangleMapFragmentPartitioner extends QuadTreeMapFragmentPartitio
 
       Pair<Integer, Integer> divisors = calc_dims_divisors(partsCount);
 
-      Pair<Function<PatchData, Optional<Double>>, Function<PatchData, Optional<Double>>> fun =
-          widthMinMax.getRange() > heightMinMax.getRange() ? Pair.of(PatchData::getAvgLon, PatchData::getAvgLat)
-              : Pair.of(PatchData::getAvgLat, PatchData::getAvgLon);
+      Function<PatchData, Optional<Double>> fun1, fun2;
+      MinMaxAcc minMax1, minMax2;
+      if (widthMinMax.getRange() > heightMinMax.getRange()) {
+        fun1 = PatchData::getAvgLon;
+        fun2 = PatchData::getAvgLat;
+        minMax1 = widthMinMax;
+        minMax2 = heightMinMax;
+      } else {
+        fun1 = PatchData::getAvgLat;
+        fun2 = PatchData::getAvgLon;
+        minMax1 = heightMinMax;
+        minMax2 = widthMinMax;
+      }
 
-      List<Graph<PatchData, PatchConnectionData>> subParts =
-          divide(graph, divisors.getLeft(), Math.max(heightMinMax.getRange(), widthMinMax.getRange()), fun.getLeft());
+      List<Graph<PatchData, PatchConnectionData>> subParts = divide(graph, divisors.getLeft(), minMax1, fun1);
 
       return subParts.stream()
-          .map(subGraph -> divide(subGraph, divisors.getRight(),
-              Math.min(heightMinMax.getRange(), widthMinMax.getRange()), fun.getRight()))
+          .map(subGraph -> divide(subGraph, divisors.getRight(), minMax2, fun2))
           .flatMap(Collection::stream)
           .collect(Collectors.toList());
     }
@@ -74,18 +82,18 @@ public class RectangleMapFragmentPartitioner extends QuadTreeMapFragmentPartitio
   }
 
   private List<Graph<PatchData, PatchConnectionData>> divide(Graph<PatchData, PatchConnectionData> graph,
-      int partsCount, double range, Function<PatchData, Optional<Double>> getter) {
+      int partsCount, MinMaxAcc minMax, Function<PatchData, Optional<Double>> getter) {
 
     List<Graph<PatchData, PatchConnectionData>> dividedParts = new LinkedList<>();
-    double partition_range = range / partsCount;
+    double partition_range = minMax.getRange() / partsCount;
 
     for (int i = 0; i < partsCount; i++) {
       final int finalI = i;
       List<Node<PatchData, PatchConnectionData>> graphNodes = graph.getNodes()
           .values()
           .stream()
-          .filter(patchNode -> (getter.apply(patchNode.getData()).get() >= partition_range * finalI
-              && getter.apply(patchNode.getData()).get() < partition_range * (finalI + 1)))
+          .filter(patchNode -> (getter.apply(patchNode.getData()).get() >= minMax.getMin() + partition_range * finalI
+              && getter.apply(patchNode.getData()).get() < minMax.getMin() + partition_range * (finalI + 1)))
           .toList();
 
       GraphBuilder<PatchData, PatchConnectionData> graphBuilder = new GraphBuilder<>();
