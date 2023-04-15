@@ -143,7 +143,7 @@ public class Lane implements LaneEditable {
 
       if(position < 0){
         position = 0;
-        speed = 10;
+        speed = 2;
       }
 
       for (final CarEditable c : cars) {

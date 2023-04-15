@@ -54,7 +54,7 @@ public class Configuration {
   /**
    * Good knowledge server ip address
    */
-  private String serverAddress;
+  private String serverAddress; // todo no one use it?
 
   /**
    * Good knowledge server port

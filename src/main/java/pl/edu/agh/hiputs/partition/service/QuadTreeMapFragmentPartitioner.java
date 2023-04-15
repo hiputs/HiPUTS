@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
@@ -17,12 +16,13 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.utils.MinMaxAcc;
 
 @Service
 @RequiredArgsConstructor
 public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
 
-  private final ConfigurationService configurationService;
+  protected final ConfigurationService configurationService;
 
   @Override
   public Collection<Graph<PatchData, PatchConnectionData>> partition(Graph<PatchData, PatchConnectionData> graph) {
@@ -35,32 +35,49 @@ public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
     } else {
       int leftPartsCount = partsCount / 2;
       int rightPartsCount = partsCount - leftPartsCount;
-      Pair<Graph<PatchData, PatchConnectionData>, Graph<PatchData, PatchConnectionData>> bisectionResult = bisect(graph);
-      return Stream.of(partition(bisectionResult.getLeft(), leftPartsCount), partition(bisectionResult.getRight(), rightPartsCount))
+      Pair<Graph<PatchData, PatchConnectionData>, Graph<PatchData, PatchConnectionData>> bisectionResult =
+          bisect(graph);
+      return Stream.of(partition(bisectionResult.getLeft(), leftPartsCount),
+          partition(bisectionResult.getRight(), rightPartsCount))
           .flatMap(Collection::stream)
           .collect(Collectors.toList());
     }
   }
 
-  private Pair<Graph<PatchData, PatchConnectionData>, Graph<PatchData, PatchConnectionData>> bisect(Graph<PatchData, PatchConnectionData> graph) {
+  private Pair<Graph<PatchData, PatchConnectionData>, Graph<PatchData, PatchConnectionData>> bisect(
+      Graph<PatchData, PatchConnectionData> graph) {
     //calculate averages
+    calculateLatLonData(graph);
+
+    MinMaxAcc widthMinMax = getMinMaxAcc(graph, PatchData::getAvgLon);
+    MinMaxAcc heightMinMax = getMinMaxAcc(graph, PatchData::getAvgLat);
+
+    return widthMinMax.getRange() > heightMinMax.getRange() ? bisectVertically(graph, widthMinMax.getMiddle())
+        : bisectHorizontally(graph, heightMinMax.getMiddle());
+  }
+
+  private MinMaxAcc getMinMaxAcc(Graph<PatchData, PatchConnectionData> graph,
+      Function<PatchData, Optional<Double>> getter) {
+    MinMaxAcc minMax = new MinMaxAcc();
+    graph.getNodes()
+        .values()
+        .stream()
+        .map(patchNode -> getter.apply(patchNode.getData()).get())
+        .forEach(minMax::accept);
+    return minMax;
+  }
+
+  protected void calculateLatLonData(Graph<PatchData, PatchConnectionData> graph) {
     graph.getNodes().values().forEach(patchNode -> {
-      patchNode.getData().setAvgLat(calculateAverageForPatchNodeAttribute(patchNode, JunctionData::getLat));
-      patchNode.getData().setAvgLon(calculateAverageForPatchNodeAttribute(patchNode, JunctionData::getLon));
+      Pair<Optional<Double>, MinMaxAcc> latData =
+          calculateAverageForPatchNodeAttribute(patchNode, JunctionData::getLat);
+      Pair<Optional<Double>, MinMaxAcc> lonData =
+          calculateAverageForPatchNodeAttribute(patchNode, JunctionData::getLon);
+      patchNode.getData().setAvgLat(latData.getLeft());
+      patchNode.getData().setMinMaxLat(latData.getRight());
+      patchNode.getData().setAvgLon(lonData.getLeft());
+      patchNode.getData().setMinMaxLon(lonData.getRight());
     });
-
-    MinMaxAcc widthMinMax = new MinMaxAcc();
-    graph.getNodes().values().stream()
-        .map(patchNode -> patchNode.getData().getAvgLon().get())
-        .forEach(widthMinMax::accept);
-
-    MinMaxAcc heightMinMax = new MinMaxAcc();
-    graph.getNodes().values().stream()
-        .map(patchNode -> patchNode.getData().getAvgLat().get())
-        .forEach(heightMinMax::accept);
-
-    return widthMinMax.getRange() > heightMinMax.getRange() ?
-        bisectVertically(graph, widthMinMax.getMiddle()) : bisectHorizontally(graph, heightMinMax.getMiddle());
   }
 
   private Pair<Graph<PatchData, PatchConnectionData>, Graph<PatchData, PatchConnectionData>> bisectHorizontally(Graph<PatchData, PatchConnectionData> graph, Double middle) {
@@ -96,9 +113,9 @@ public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
     return Pair.of(leftGraphBuilder.build(), rightGraphBuilder.build());
   }
 
-  private Optional<Double> calculateAverageForPatchNodeAttribute(Node<PatchData, PatchConnectionData> patchNode, Function<JunctionData, Double> getter) {
-    List<Double>
-        values = patchNode.getData()
+  private Pair<Optional<Double>, MinMaxAcc> calculateAverageForPatchNodeAttribute(
+      Node<PatchData, PatchConnectionData> patchNode, Function<JunctionData, Double> getter) {
+    List<Double> values = patchNode.getData()
         .getGraphInsidePatch()
         .getEdges()
         .values()
@@ -107,37 +124,16 @@ public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
         .map(node -> getter.apply(node.getData()))
         .toList();
     long nodesCount = values.size();
+
     Double res = values.stream()
         .reduce(Double::sum)
-        .map(sum -> sum/nodesCount)
+        .map(sum -> sum / nodesCount)
         .orElseThrow(() -> new RuntimeException("Cannot calculate average value of junction data attribute"));
-    return Optional.of(res);
+
+    MinMaxAcc minMax = new MinMaxAcc();
+    values.forEach(minMax::accept);
+
+    return Pair.of(Optional.of(res), minMax);
   }
 
-  @Getter
-  private static class MinMaxAcc {
-    private Double min = Double.MAX_VALUE;
-    private Double max = Double.MIN_VALUE;
-
-    public MinMaxAcc() {
-
-    }
-
-    public void accept(Double val) {
-      if (val < min ) {
-        min = val;
-      }
-      else if(val > max) {
-        max = val;
-      }
-    }
-
-    public Double getRange() {
-      return max - min;
-    }
-
-    public Double getMiddle() {
-      return min + getRange()/2;
-    }
-  }
 }
