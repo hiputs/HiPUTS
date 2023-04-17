@@ -19,6 +19,7 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.utils.MinMaxAcc;
 
 @Service
+// @Primary
 @RequiredArgsConstructor
 public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
 

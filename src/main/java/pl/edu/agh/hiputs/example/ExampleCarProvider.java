@@ -95,7 +95,7 @@ public class ExampleCarProvider {
   }
 
   private Integer getDefaultHops() {
-    return 5; //DEFAULT_HOPS;
+    return 30; //DEFAULT_HOPS;
   }
 
   private Double getMaxDeceleration() {
@@ -167,7 +167,7 @@ public class ExampleCarProvider {
         .routeWithLocation(routeWithLocation)
         .laneId(startLaneId)
         .positionOnLane(position)
-        .speed(threadLocalRandom.nextDouble(getDefaultMaxSpeed()))
+        .speed(threadLocalRandom.nextDouble(10))
         .driver(new Driver(new DriverParameters(configuration)))
         .build();
   }

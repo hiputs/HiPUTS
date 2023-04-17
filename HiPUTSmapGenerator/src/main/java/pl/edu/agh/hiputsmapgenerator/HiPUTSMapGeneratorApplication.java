@@ -35,7 +35,7 @@ public class HiPUTSMapGeneratorApplication {
         mapDims.setX(patchDims.getX() * (int) mapDims.getX() / patchDims.getX());
         mapDims.setY(patchDims.getY() * (int) mapDims.getY() / patchDims.getY());
 
-        // genMap(1);
+        genMap(1);
         genMap(2);
         genMap(4);
         genMap(8);
@@ -43,9 +43,9 @@ public class HiPUTSMapGeneratorApplication {
         genMap(16);
         genMap(20);
         genMap(24);
-        // genMap(28);
-        // genMap(32);
-        // genMap(48);
+        genMap(28);
+        genMap(32);
+        genMap(48);
 
     }
 
@@ -135,16 +135,33 @@ public class HiPUTSMapGeneratorApplication {
                     patch.getNeighbouring_patches_ids().add(String.format("%s-%s", i, j + 1));
                 }
 
-
                 //up
                 if (i > 0) {
                     patch.getNeighbouring_patches_ids().add(String.format("%s-%s", i - 1, j));
                 }
 
-
                 //down
                 if (i < xPatches - 1) {
                     patch.getNeighbouring_patches_ids().add(String.format("%s-%s", i + 1, j));
+                }
+
+                // torus neighbours:
+
+                // left
+                if (j == 0) {
+                    patch.getNeighbouring_patches_ids().add(String.format("%s-%s", i, yPatches - 1));
+                }
+                // right
+                if (j == yPatches - 1) {
+                    patch.getNeighbouring_patches_ids().add(String.format("%s-%s", i, 0));
+                }
+                //up
+                if (i == 0) {
+                    patch.getNeighbouring_patches_ids().add(String.format("%s-%s", xPatches - 1, j));
+                }
+                //down
+                if (i == xPatches - 1) {
+                    patch.getNeighbouring_patches_ids().add(String.format("%s-%s", 0, j));
                 }
 
                 patches.add(patch);
