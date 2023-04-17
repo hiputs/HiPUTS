@@ -113,7 +113,7 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
   public static class LoadBalancingStatistic implements Serializable {
 
     long timeInMilis;
-    long cars;
+    long cars; // number of cars in this iteration in worker?
     double totalCost;
     long waitingTime;
     int step;

@@ -15,7 +15,6 @@ import pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint;
 import pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.service.ConfigurationService;
-import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.LoadBalancingCostStatistic;
 
 @Service
 @RequiredArgsConstructor
@@ -121,7 +120,6 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
   }
 
   static class IterationInfo {
-
     List<ImmutablePair<SimulationPoint, Long>> iterationInfo = new LinkedList<>();
     long carCountAfterStep;
   }

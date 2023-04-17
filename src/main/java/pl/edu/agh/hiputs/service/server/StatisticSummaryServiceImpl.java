@@ -12,13 +12,14 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationStatisticMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.server.SubscriptionService;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.LoadBalancingCostStatistic;
+import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.LoadBalancingStatistic;
 import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.MapStatistic;
 
 @Slf4j
@@ -79,9 +80,10 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     String content = repository
         .stream()
         .flatMap(i -> i.getDecisionRepository()
-            .stream()
+                .stream()
                 .filter(r -> r.getSelectedPatch() != null)
-            .map(r -> new PatchMigration(r.getStep(), i.getId(), r.getSelectedNeighbourId(), r.getSelectedPatch()))
+                .map(
+                    r -> new PatchMigration(r.getStep(), i.getWorkerId(), r.getSelectedNeighbourId(), r.getSelectedPatch()))
             )
         .sorted(Comparator.comparingInt(r -> r.step))
         .map(PatchMigration::toString)
@@ -109,12 +111,12 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
 
     repository.forEach(repo -> {
-      final int[] i = {1};
-      repo.getBalancingCostRepository().forEach(info -> {
-        lines.get(i[0]).append(info.getCost());
-        lines.get(i[0]).append(SEPARATOR);
-        i[0]++;
-      });
+      int i = 1;
+      for (LoadBalancingCostStatistic info : repo.getBalancingCostRepository()) {
+        lines.get(i).append(info.getCost());
+        lines.get(i).append(SEPARATOR);
+        i++;
+      }
     });
 
     save(lines, WORKER_LOAD_BALANCING_COST_CSV);
@@ -124,12 +126,12 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
 
     repository.forEach(repo -> {
-      final int[] i = {1};
-      repo.getBalancingStatisticRepository().forEach(info -> {
-        lines.get(i[0]).append(info.getTotalCost());
-        lines.get(i[0]).append(SEPARATOR);
-        i[0]++;
-      });
+      int i = 1;
+      for (LoadBalancingStatistic info : repo.getBalancingStatisticRepository()) {
+        lines.get(i).append(info.getTotalCost());
+        lines.get(i).append(SEPARATOR);
+        i++;
+      }
     });
 
     save(lines, WORKER_COSTS_CSV);
@@ -139,12 +141,12 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
 
     repository.forEach(repo -> {
-      final int[] i = {1};
-      repo.getBalancingStatisticRepository().forEach(info -> {
-        lines.get(i[0]).append(info.getCars());
-        lines.get(i[0]).append(SEPARATOR);
-        i[0]++;
-      });
+      int j = 1;
+      for (LoadBalancingStatistic info : repo.getBalancingStatisticRepository()) {
+        lines.get(j).append(info.getCars());
+        lines.get(j).append(SEPARATOR);
+        j++;
+      }
     });
 
     save(lines, CAR_CSV);
@@ -166,16 +168,22 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
   }
 
   private List<StringBuffer> createEmptyStringBufferWithHeaders() {
-    List<StringBuffer> lines = new ArrayList<>((int) configurationService.getConfiguration().getSimulationStep());
+    int cells = configurationService.getConfiguration().getSimulationStep();
+    List<StringBuffer> lines = new ArrayList<>(cells);
 
-    LongStream.range(0, configurationService.getConfiguration().getSimulationStep() + 1)
-        .forEach(i -> lines.add(new StringBuffer()));
-
-    repository.forEach(repo -> {
-      lines.get(0).append(repo.getId());
-      lines.get(0).append(SEPARATOR);
+    LongStream.range(0, cells + 1).forEach(i -> {
+      lines.add(new StringBuffer());
+      lines.get((int) i).append(i - 1).append(SEPARATOR);
     });
 
+    lines.get(0).delete(0, 4);
+    lines.get(0).append("step");
+    lines.get(0).append(SEPARATOR);
+
+    repository.forEach(repo -> {
+      lines.get(0).append(repo.getWorkerId());
+      lines.get(0).append(SEPARATOR);
+    });
     return lines;
   }
 

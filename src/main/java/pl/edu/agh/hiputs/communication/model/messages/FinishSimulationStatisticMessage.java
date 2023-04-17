@@ -15,7 +15,7 @@ public class FinishSimulationStatisticMessage implements Message{
   List<DecisionStatistic> decisionRepository;
   List<LoadBalancingCostStatistic> balancingCostRepository;
   List<MapStatistic> mapStatisticRepository;
-  String id;
+  String workerId;
 
   @Override
   public MessagesTypeEnum getMessageType() {
