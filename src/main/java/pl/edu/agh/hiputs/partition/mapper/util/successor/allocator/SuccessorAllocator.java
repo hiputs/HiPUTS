@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.successor;
+package pl.edu.agh.hiputs.partition.mapper.util.successor.allocator;
 
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;

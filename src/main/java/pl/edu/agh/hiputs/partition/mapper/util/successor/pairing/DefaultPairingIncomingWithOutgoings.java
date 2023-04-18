@@ -1,23 +1,27 @@
-package pl.edu.agh.hiputs.partition.mapper.util.successor;
+package pl.edu.agh.hiputs.partition.mapper.util.successor.pairing;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.LaneData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 
-public class DefaultPairingIncomingWithOutgoings {
+@Service
+public class DefaultPairingIncomingWithOutgoings implements PairingIncomingWithOutgoings{
 
+  @Override
   public void pair(WayData incomingEdge, List<Edge<JunctionData, WayData>> outgoingEdges) {
     if (outgoingEdges.size() >= incomingEdge.getLanes().size()) {
       pairLanesGroupByGroup(
           incomingEdge,
-          new ArrayList<>(generateNoGroups(outgoingEdges.size(), incomingEdge.getLanes().size())),
+          generateNoGroups(outgoingEdges.size(), incomingEdge.getLanes().size()),
           (i) -> outgoingEdges.get(i).getData().getLanes(),
           false
       );
@@ -30,16 +34,16 @@ public class DefaultPairingIncomingWithOutgoings {
       if (outgoingLanes.size() >= incomingEdge.getLanes().size()) {
         pairLanesGroupByGroup(
             incomingEdge,
-            new ArrayList<>(generateNoGroups(outgoingLanes.size(), incomingEdge.getLanes().size())),
-            (i) -> new ArrayList<>(){{add(outgoingLanes.get(i));}},
+            generateNoGroups(outgoingLanes.size(), incomingEdge.getLanes().size()),
+            (i) -> Stream.of(outgoingLanes.get(i)).collect(Collectors.toList()),
             false
         );
       }
       else {
         pairLanesGroupByGroup(
             incomingEdge,
-            new ArrayList<>(generateNoGroups(incomingEdge.getLanes().size(), outgoingLanes.size())),
-            (i) -> new ArrayList<>(){{ add(outgoingLanes.get(i)); }},
+            generateNoGroups(incomingEdge.getLanes().size(), outgoingLanes.size()),
+            (i) -> Stream.of(outgoingLanes.get(i)).collect(Collectors.toList()),
             true
         );
       }
@@ -52,7 +56,7 @@ public class DefaultPairingIncomingWithOutgoings {
     return IntStream.iterate(groupsNo, i -> i - 1)
         .limit(groupsNo)
         .mapToObj(group -> entriesLeft.getAndUpdate(entries -> entries - entries / group) / group)
-        .toList();
+        .collect(Collectors.toList());
   }
 
   private void pairLanesGroupByGroup(
@@ -66,8 +70,9 @@ public class DefaultPairingIncomingWithOutgoings {
 
     // @TODO consider left-hand traffic
     IntStream.range(0, steps.size())
-        .forEach(stepIndex -> IntStream.iterate(startEdgeIndex.getAndUpdate(i -> i + steps.get(stepIndex)), i -> i + 1)
-            .limit(steps.get(stepIndex))
+        .forEach(stepIndex -> IntStream.range(
+                startEdgeIndex.get(),
+                startEdgeIndex.getAndUpdate(i -> i + steps.get(stepIndex)) + steps.get(stepIndex))
             .forEach(edgeIndex ->
                 incoming.getLanes().get(iterOverIncoming ? edgeIndex : stepIndex).getAvailableSuccessors()
                     .addAll(lanesGetter.apply(iterOverIncoming ? stepIndex : edgeIndex))));

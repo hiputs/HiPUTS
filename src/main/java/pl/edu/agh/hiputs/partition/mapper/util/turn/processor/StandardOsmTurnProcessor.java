@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.turn;
+package pl.edu.agh.hiputs.partition.mapper.util.turn.processor;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,6 +8,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnDirection;
 import pl.edu.agh.hiputs.partition.model.WayData;
 
 @Service
@@ -35,7 +36,7 @@ public class StandardOsmTurnProcessor implements TurnProcessor {
     }
     else if (wayData.getTags().containsKey(TURN_BOTH_WAYS_KEY)) {
       // 2. This key can be used for assuming lanes on both: same and opposite roads.
-      return convertRoadTagToTurns(wayData.getTags().get(TURN_KEY), wayData.getLanes().size());
+      return convertRoadTagToTurns(wayData.getTags().get(TURN_BOTH_WAYS_KEY), wayData.getLanes().size());
     }
     else if (wayData.getTags().containsKey(TURN_FORWARD_KEY) && wayData.getTags().containsKey(TURN_BACKWARD_KEY)) {
       // 3. Having these both keys allows returning appropriate lanes number for both directions.
@@ -60,7 +61,7 @@ public class StandardOsmTurnProcessor implements TurnProcessor {
     }
     else if (wayData.getTags().containsKey(TURN_LANE_BOTH_WAYS_KEY)) {
       // 7. This lanes key can be used for assuming lanes on both: same and opposite roads.
-      return convertRoadTagToTurns(wayData.getTags().get(TURN_LANE_KEY));
+      return convertRoadTagToTurns(wayData.getTags().get(TURN_LANE_BOTH_WAYS_KEY));
     }
     else if (wayData.getTags().containsKey(TURN_LANE_FORWARD_KEY) && wayData.getTags().containsKey(TURN_LANE_BACKWARD_KEY)) {
       // 8. Having these both lanes keys allows returning appropriate lanes number for both directions.

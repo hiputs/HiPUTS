@@ -1,10 +1,10 @@
-package pl.edu.agh.hiputs.partition.mapper;
+package pl.edu.agh.hiputs.partition.mapper.util.transformer;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.partition.mapper.util.successor.SuccessorAllocator;
+import pl.edu.agh.hiputs.partition.mapper.util.successor.allocator.SuccessorAllocator;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;

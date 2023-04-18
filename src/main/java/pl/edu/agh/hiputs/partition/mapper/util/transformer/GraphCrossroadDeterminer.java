@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper;
+package pl.edu.agh.hiputs.partition.mapper.util.transformer;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;

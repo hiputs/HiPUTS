@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.turn;
+package pl.edu.agh.hiputs.partition.mapper.util.turn.mapper;
 
 import java.util.List;
 import java.util.Map;
@@ -6,6 +6,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnDirection;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.geom.Point;

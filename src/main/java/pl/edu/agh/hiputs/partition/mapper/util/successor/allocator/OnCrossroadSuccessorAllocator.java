@@ -1,17 +1,18 @@
-package pl.edu.agh.hiputs.partition.mapper.util.successor;
+package pl.edu.agh.hiputs.partition.mapper.util.successor.allocator;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.partition.mapper.util.successor.pairing.PairingIncomingWithOutgoings;
 import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnDirection;
-import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnMapper;
-import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnProcessor;
+import pl.edu.agh.hiputs.partition.mapper.util.turn.mapper.TurnMapper;
+import pl.edu.agh.hiputs.partition.mapper.util.turn.processor.TurnProcessor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.LaneData;
 import pl.edu.agh.hiputs.partition.model.WayData;
@@ -26,7 +27,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 public class OnCrossroadSuccessorAllocator implements SuccessorAllocator{
   // @TODO consider left-hand traffic
   private final ClockwiseSorting<Edge<JunctionData, WayData>> edgeSorter = new ClockwiseSorting<>(false);
-  private final DefaultPairingIncomingWithOutgoings defaultAllocator = new DefaultPairingIncomingWithOutgoings();
+  private final PairingIncomingWithOutgoings defaultAllocator;
   private final TurnProcessor turnProcessor;
   private final TurnMapper turnMapper;
 
@@ -45,6 +46,7 @@ public class OnCrossroadSuccessorAllocator implements SuccessorAllocator{
       Optional.of(availableTurns)
           .filter(turnsList -> !turnsList.isEmpty() && turnsList.size() == incomingEdge.getData().getLanes().size())
           .ifPresentOrElse(turnsList -> {
+            // typical zip for lists of turns and lanes
             List<Pair<LaneData, List<TurnDirection>>> zippedLanesAndTurns = IntStream.range(0, turnsList.size())
                 .mapToObj(index -> Pair.of(incomingEdge.getData().getLanes().get(index), turnsList.get(index)))
                 .toList();
@@ -84,9 +86,9 @@ public class OnCrossroadSuccessorAllocator implements SuccessorAllocator{
       List<Edge<JunctionData, WayData>> outgoings,
       Edge<JunctionData, WayData> incoming
   ) {
-    List<Pair<Point, Edge<JunctionData, WayData>>> dataToSort = new ArrayList<>(outgoings.stream()
+    List<Pair<Point, Edge<JunctionData, WayData>>> dataToSort = outgoings.stream()
         .map(edge -> Pair.of(Point.convertFromCoords(edge.getTarget().getData()), edge))
-        .toList());
+        .collect(Collectors.toList());
 
     edgeSorter.sortByPointsWithRef(
         dataToSort,
@@ -96,6 +98,6 @@ public class OnCrossroadSuccessorAllocator implements SuccessorAllocator{
 
     return dataToSort.stream()
         .map(Pair::getRight)
-        .toList();
+        .collect(Collectors.toList());
   }
 }

@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.successor;
+package pl.edu.agh.hiputs.partition.mapper.util.successor.allocator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnDirection;
-import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnProcessor;
+import pl.edu.agh.hiputs.partition.mapper.util.turn.processor.TurnProcessor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.LaneData;
 import pl.edu.agh.hiputs.partition.model.WayData;
