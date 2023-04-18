@@ -1,6 +1,8 @@
 package pl.edu.agh.hiputs.partition.model.geom;
 
 import java.awt.geom.Point2D;
+import pl.edu.agh.hiputs.partition.model.JunctionData;
+import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
 public class Point {
 
@@ -24,6 +26,13 @@ public class Point {
 
   public double distanceTo(Point other) {
     return point.distance(other.point);
+  }
+
+  public static Point convertFromCoords(JunctionData junctionData) {
+    return new Point(
+        CoordinatesUtil.longitude2plain(junctionData.getLon(), junctionData.getLat()),
+        CoordinatesUtil.latitude2plain(junctionData.getLat())
+    );
   }
 
 }
