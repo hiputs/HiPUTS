@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.loadbalancer;
 
+import static java.lang.Thread.sleep;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -109,6 +111,20 @@ public class TicketServiceImpl implements TicketService, Subscriber {
     public void run() {
       while (true) {
         if (!availableTicketMessageQueue.isEmpty()) {
+          while (availableTicketMessageQueue.peek() != null && !messageSenderService.getConnectionDtoMap()
+              .keySet()
+              .stream()
+              .map(MapFragmentId::getId)
+              .toList()
+              .contains(availableTicketMessageQueue.peek().getMapFragmentId())) {
+            try {
+              sleep(5);
+              log.info("Message receiver not in neighborhood repository");
+            } catch (InterruptedException e) {
+              e.printStackTrace();
+            }
+          }
+
           selectTicket();
           continue;
         }
