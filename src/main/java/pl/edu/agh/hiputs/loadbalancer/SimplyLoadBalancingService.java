@@ -20,7 +20,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy {
   private static final double LOW_THRESHOLD = 1.25;
   private final SimulationStatisticService simulationStatisticService;
 
-  private final LocalLoadStatisticService localLoadStatisticService;
+  private final LocalLoadMonitorService localLoadMonitorService;
   private final SelectNeighbourToBalancingService selectNeighbourToBalancingService;
 
   @Override
@@ -29,7 +29,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy {
     int age = actualStep;
     loadBalancingDecision.setAge(age);
 
-    LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
+    LoadBalancingHistoryInfo info = localLoadMonitorService.getMyLastLoad(actualStep);
     double myCost = MapFragmentCostCalculatorUtil.calculateCost(info);
 
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, age,

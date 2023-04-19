@@ -1,10 +1,11 @@
-package pl.edu.agh.hiputs.service.worker;
+package pl.edu.agh.hiputs.statistics.worker;
 
-import static pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint.LOAD_BALANCING;
-import static pl.edu.agh.hiputs.service.server.StatisticSummaryServiceImpl.SEPARATOR;
+import static pl.edu.agh.hiputs.statistics.SimulationPoint.LOAD_BALANCING;
+import static pl.edu.agh.hiputs.statistics.server.StatisticSummaryServiceImpl.SEPARATOR;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,10 +18,10 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationStatisticMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
-import pl.edu.agh.hiputs.loadbalancer.LocalLoadStatisticService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
+import pl.edu.agh.hiputs.statistics.SimulationPoint;
 
 @Slf4j
 @Service
@@ -28,61 +29,76 @@ import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 public class SimulationStatisticServiceImpl implements SimulationStatisticService {
 
   private final ConfigurationService configurationService;
-
   private final MessageSenderService messageSenderService;
-
-  private final LocalLoadStatisticService loadStatisticService;
-
   private boolean enableLogs = false;
-
   private final List<LoadBalancingStatistic> balancingStatisticRepository = new LinkedList<>();
   private final List<DecisionStatistic> decisionRepository = new LinkedList<>();
-
   private final List<MapStatistic> mapStatisticsRepository = new LinkedList<>();
+  private final HashMap<SimulationPoint, Long> workerTimeStatisticRepository = new HashMap<SimulationPoint, Long>();
+  private final IterationStatisticsServiceImpl iterationStatisticService;
 
   @PostConstruct
   void init() {
-    enableLogs = configurationService.getConfiguration().isStatisticModeActive();
+    enableLogs = ConfigurationService.getConfiguration().isStatisticModeActive();
+  }
+
+  @Override
+  public void startStage(SimulationPoint stage) {
+    workerTimeStatisticRepository.put(stage, System.currentTimeMillis());
+  }
+
+  @Override
+  public void startStage(List<SimulationPoint> stages) {
+    for (SimulationPoint stage : stages) {
+      workerTimeStatisticRepository.put(stage, System.currentTimeMillis());
+    }
+  }
+
+  @Override
+  public void endStage(SimulationPoint stage) {
+    long startTime = workerTimeStatisticRepository.get(stage);
+    workerTimeStatisticRepository.replace(stage, System.currentTimeMillis() - startTime);
+  }
+
+  @Override
+  public void endStage(List<SimulationPoint> stages) {
+    for (SimulationPoint stage : stages) {
+      long startTime = workerTimeStatisticRepository.get(stage);
+      workerTimeStatisticRepository.replace(stage, System.currentTimeMillis() - startTime);
+    }
   }
 
   @Override
   public void saveLoadBalancingStatistic(long timeInMilis, long cars, double totalCost, int age, long waitingTime) {
-    if (!enableLogs) {
-      return;
+    if (enableLogs) {
+      balancingStatisticRepository.add(LoadBalancingStatistic.builder()
+          .step(age)
+          .cars(cars)
+          .timeInMilis(timeInMilis)
+          .totalCost(totalCost)
+          .waitingTime(waitingTime)
+          .build());
     }
-
-    balancingStatisticRepository.add(LoadBalancingStatistic.builder()
-        .step(age)
-        .cars(cars)
-        .timeInMilis(timeInMilis)
-        .totalCost(totalCost)
-        .waitingTime(waitingTime)
-        .build());
   }
 
   @Override
   public void saveLoadBalancingDecision(boolean decision, String selectedPatchId, String selectedNeighbourId,
       double patchCost, int age) {
-    if (!enableLogs) {
-      return;
+    if (enableLogs) {
+      decisionRepository.add(DecisionStatistic.builder()
+          .step(age)
+          .selectedNeighbourId(selectedNeighbourId)
+          .patchCost(patchCost)
+          .selectedPatch(selectedPatchId)
+          .patchCost(patchCost)
+          .build());
     }
-
-    decisionRepository.add(DecisionStatistic.builder()
-        .step(age)
-        .selectedNeighbourId(selectedNeighbourId)
-        .patchCost(patchCost)
-        .selectedPatch(selectedPatchId)
-        .patchCost(patchCost)
-        .build());
   }
 
   private List<LoadBalancingCostStatistic> getLoadBalancingCost() {
-    return loadStatisticService.getAllByType(LOAD_BALANCING)
+    return iterationStatisticService.getAllByType(LOAD_BALANCING)
         .stream()
-        .map(i -> LoadBalancingCostStatistic.builder()
-            .step(i.getLeft())
-            .cost(i.getRight())
-            .build())
+        .map(i -> LoadBalancingCostStatistic.builder().step(i.getLeft()).cost(i.getRight()).build())
         .toList();
   }
 
@@ -90,12 +106,9 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
   public void sendStatistic(MapFragmentId mapFragmentId) {
     try {
       messageSenderService.sendServerMessage(
-          new FinishSimulationStatisticMessage(
-              balancingStatisticRepository,
-              decisionRepository,
-              getLoadBalancingCost(),
-              mapStatisticsRepository,
-              mapFragmentId.getId()));
+          new FinishSimulationStatisticMessage(balancingStatisticRepository, decisionRepository, getLoadBalancingCost(),
+              mapStatisticsRepository, iterationStatisticService.getIterationStatistics(),
+              workerTimeStatisticRepository, mapFragmentId.getId()));
     } catch (IOException e) {
       log.error("Error occured wheen send statistic message", e);
     }
@@ -107,11 +120,9 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
   }
 
 
-
   @Builder
   @Value
   public static class LoadBalancingStatistic implements Serializable {
-
     long timeInMilis;
     long cars; // number of cars in this iteration in worker?
     double totalCost;
@@ -122,7 +133,6 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
   @Builder
   @Value
   public static class DecisionStatistic implements Serializable {
-
     int step;
     String selectedNeighbourId;
     String selectedPatch;
@@ -132,7 +142,6 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
   @Builder
   @Value
   public static class LoadBalancingCostStatistic implements Serializable {
-
     int step;
     long cost;
   }
@@ -155,13 +164,11 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
     }
 
     private String getNeighbourString() {
-      return neighbouring.stream()
-          .map(i -> i.getLeft() + ": " + i.getRight())
-          .collect(Collectors.joining(" ; "));
+      return neighbouring.stream().map(i -> i.getLeft() + ": " + i.getRight()).collect(Collectors.joining(" , "));
     }
 
     private String getLocalPatchesIds(){
-      return String.join(";", localPatchesIds);
+      return String.join(",", localPatchesIds);
     }
   }
 }

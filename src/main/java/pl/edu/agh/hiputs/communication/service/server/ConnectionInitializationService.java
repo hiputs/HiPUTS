@@ -4,19 +4,15 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 
@@ -43,7 +39,7 @@ public class ConnectionInitializationService {
     public void run() {
       try {
         ThreadPoolExecutor connectionExecutor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-        ServerSocket serverSocket = new ServerSocket(configurationService.getConfiguration().getServerPort());
+        ServerSocket serverSocket = new ServerSocket(ConfigurationService.getConfiguration().getServerPort());
         if (serverSocket.isClosed()) {
           log.error("Server fail");
         } else {
@@ -80,8 +76,6 @@ public class ConnectionInitializationService {
 
         DataInputStream input = new DataInputStream(clientConnectionSocket.getInputStream());
         WorkerConnectionMessage workerConnectionMessage = getWorkerConnectionMessage(input);
-        // log.debug(String.format("DEBUG New connection from: %s:%s", clientConnectionSocket.getInetAddress().getHostAddress(),
-        //     clientConnectionSocket.getPort()));
         workerConnectionMessage.setAddress(clientConnectionSocket.getInetAddress().getHostAddress());
 
         WorkerConnection workerConnection =
@@ -99,7 +93,7 @@ public class ConnectionInitializationService {
         throws IOException, ClassNotFoundException {
       int length = inputStream.readInt();
       byte[] bytes = inputStream.readNBytes(length);
-      return  (WorkerConnectionMessage) SerializationUtils.deserialize(bytes);
+      return SerializationUtils.deserialize(bytes);
     }
   }
 }

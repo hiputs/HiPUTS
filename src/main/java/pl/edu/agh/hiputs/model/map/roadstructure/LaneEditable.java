@@ -53,4 +53,9 @@ public interface LaneEditable extends LaneReadable {
    * Remove specific car from list
    */
   boolean removeCar(CarEditable car);
+
+  /**
+   * Remove all cars from list
+   */
+  void removeAllCars();
 }

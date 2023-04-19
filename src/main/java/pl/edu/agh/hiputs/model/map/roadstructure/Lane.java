@@ -122,14 +122,16 @@ public class Lane implements LaneEditable {
   public void addCarAtEntry(CarEditable car) {
     if(!cars.isEmpty()){
       CarReadable firstCarOnLane = cars.peekFirst();
-      if(firstCarOnLane.getPositionOnLane() < car.getPositionOnLane()){
+      if (firstCarOnLane != null && firstCarOnLane.getPositionOnLane() < car.getPositionOnLane()) {
         log.debug("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
-              + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnLane.getCarId()
-              + ", position: " + firstCarOnLane.getPositionOnLane() + ", speed: " + firstCarOnLane.getSpeed() + ". Collision after crossroad!");
+            + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: "
+            + firstCarOnLane.getCarId() + ", position: " + firstCarOnLane.getPositionOnLane() + ", speed: "
+            + firstCarOnLane.getSpeed() + ". Collision after crossroad!");
 
         //Move back car to be before car he hit after collision
-        car.setPositionOnLaneAndSpeed(firstCarOnLane.getPositionOnLane()
-            - Math.min(0.1, firstCarOnLane.getPositionOnLane() * 0.1), firstCarOnLane.getSpeed() * 0.9);
+        car.setPositionOnLaneAndSpeed(
+            firstCarOnLane.getPositionOnLane() - Math.min(0.1, firstCarOnLane.getPositionOnLane() * 0.1),
+            firstCarOnLane.getSpeed() * 0.9);
       }
     }
     cars.addFirst(car);
@@ -189,8 +191,14 @@ public class Lane implements LaneEditable {
     return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false);
   }
 
+  @Override
   public boolean removeCar(CarEditable car) {
     return this.cars.remove(car);
+  }
+
+  @Override
+  public void removeAllCars() {
+    cars.clear();
   }
 }
 

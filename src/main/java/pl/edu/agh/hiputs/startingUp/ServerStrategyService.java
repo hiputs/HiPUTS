@@ -22,7 +22,6 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -45,9 +44,10 @@ import pl.edu.agh.hiputs.partition.persistance.PatchesGraphWriter;
 import pl.edu.agh.hiputs.partition.service.MapFragmentPartitioner;
 import pl.edu.agh.hiputs.partition.service.MapStructureLoader;
 import pl.edu.agh.hiputs.service.ConfigurationService;
-import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.server.WorkerSynchronisationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
+import pl.edu.agh.hiputs.statistics.SimulationPoint;
+import pl.edu.agh.hiputs.statistics.server.StatisticSummaryService;
 
 @Slf4j
 // @Primary
@@ -67,44 +67,51 @@ public class ServerStrategyService implements Strategy {
 
   private final MapRepositoryServerHandler mapRepository;
   private final PatchesGraphReader patchesGraphReader;
-
   private final PatchesGraphWriter patchesGraphWriter;
-
   private final WorkerRepository workerRepository;
-
   private final GraphCoherencyUtil graphCoherencyUtil;
 
   @Override
   public void executeStrategy() throws InterruptedException {
 
     log.info("Running server");
+    statisticSummaryService.startStage(SimulationPoint.SERVER_APP);
+    statisticSummaryService.startStage(SimulationPoint.SERVER_INITIALIZATION);
     connectionInitializationService.init();
     workerPrepareExecutor.submit(new PrepareWorkerTask());
 
-    Path mapPackagePath = configurationService.getConfiguration().isReadFromOsmDirectly()
-        ? generateDeploymentPackageName(Path.of(configurationService.getConfiguration().getMapPath()))
-        : Path.of(configurationService.getConfiguration().getMapPath());
+    statisticSummaryService.startStage(SimulationPoint.SERVER_INIT_MAP);
+    Path mapPackagePath =
+        ConfigurationService.getConfiguration().isReadFromOsmDirectly() ? generateDeploymentPackageName(
+            Path.of(ConfigurationService.getConfiguration().getMapPath()))
+            : Path.of(ConfigurationService.getConfiguration().getMapPath());
 
-    Graph<PatchData, PatchConnectionData> patchesGraph = configurationService.getConfiguration().isReadFromOsmDirectly()
-        ? createAndSavePatchesPackage(mapPackagePath)
-        : patchesGraphReader.readGraphWithPatches(mapPackagePath);
+    Graph<PatchData, PatchConnectionData> patchesGraph =
+        ConfigurationService.getConfiguration().isReadFromOsmDirectly() ? createAndSavePatchesPackage(mapPackagePath)
+            : patchesGraphReader.readGraphWithPatches(mapPackagePath);
 
     mapRepository.setPatchesGraph(patchesGraph);
+    statisticSummaryService.endStage(SimulationPoint.SERVER_INIT_MAP);
 
     log.info("Start waiting for all workers be in state WorkerConnection");
     workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
 
-
-    if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
-      messageSenderServerService.broadcast(MapReadyToReadMessage.builder().mapPackagePath(mapPackagePath.toString()).build());
+    statisticSummaryService.startStage(SimulationPoint.SERVER_MAP_PARTITION);
+    if (ConfigurationService.getConfiguration().isReadFromOsmDirectly()) {
+      messageSenderServerService.broadcast(
+          MapReadyToReadMessage.builder().mapPackagePath(mapPackagePath.toString()).build());
     }
 
-    Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents = mapFragmentPartitioner.partition(patchesGraph);
+    Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents =
+        mapFragmentPartitioner.partition(patchesGraph);
 
     calculateAndDistributeConfiguration(mapFragmentsContents);
+    statisticSummaryService.endStage(SimulationPoint.SERVER_MAP_PARTITION);
 
     log.info("Waiting for all workers be in state CompletedInitialization");
     workerSynchronisationService.waitForAllWorkers(CompletedInitializationMessage);
+
+    statisticSummaryService.endStage(SimulationPoint.SERVER_INITIALIZATION);
 
     // if(!graphCoherencyUtil.validateEndModel()){
     //   log.error("the graph is not consistent");
@@ -112,22 +119,26 @@ public class ServerStrategyService implements Strategy {
     //   Thread.sleep(1000);
     //   shutDown();
     // }
-
+    statisticSummaryService.startStage(SimulationPoint.SERVER_SIMULATION);
     distributeRunSimulationMessage(mapFragmentsContents);
 
     log.info("Waiting for end simulation");
     workerSynchronisationService.waitForAllWorkers(FinishSimulationMessage);
     log.info("Simulation finished");
 
-    if (configurationService.getConfiguration().isStatisticModeActive()) {
+    statisticSummaryService.endStage(SimulationPoint.SERVER_SIMULATION);
+
+    if (ConfigurationService.getConfiguration().isStatisticModeActive()) {
       workerSynchronisationService.waitForAllWorkers(FinishSimulationStatisticMessage);
       log.info("Start generating summary");
+      statisticSummaryService.endStage(SimulationPoint.SERVER_APP);
       generateReport();
     }
 
     messageSenderServerService.broadcast(new ShutDownMessage());
     Thread.sleep(1000);
     shutDown();
+
   }
 
   private void calculateAndDistributeConfiguration(Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents) {
@@ -214,9 +225,9 @@ public class ServerStrategyService implements Strategy {
   private Graph<PatchData, PatchConnectionData> createAndSavePatchesPackage(Path mapPackagePath) {
     log.info("Start reading map");
     Graph<PatchData, PatchConnectionData> patchesGraph;
-    if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
+    if (ConfigurationService.getConfiguration().isReadFromOsmDirectly()) {
       log.info("Reading map from osm file");
-      patchesGraph = mapStructureLoader.loadFromOsmFile(Path.of(configurationService.getConfiguration().getMapPath()));
+      patchesGraph = mapStructureLoader.loadFromOsmFile(Path.of(ConfigurationService.getConfiguration().getMapPath()));
 
       log.info("Writing map with patches");
       createDeploymentPackageDir(mapPackagePath);
@@ -225,7 +236,8 @@ public class ServerStrategyService implements Strategy {
     } else {
       //read existing map
       log.info("Reading map from import package - patch partition skipped");
-      patchesGraph = mapStructureLoader.loadFromCsvImportPackage(Path.of(configurationService.getConfiguration().getMapPath()));
+      patchesGraph =
+          mapStructureLoader.loadFromCsvImportPackage(Path.of(ConfigurationService.getConfiguration().getMapPath()));
     }
 
     log.info("Reading map finished successfully");
@@ -246,7 +258,7 @@ public class ServerStrategyService implements Strategy {
   @Autowired
   private ApplicationContext context;
   private void shutDown() {
-    int exitCode = SpringApplication.exit(context, (ExitCodeGenerator) () -> 0);
+    int exitCode = SpringApplication.exit(context, () -> 0);
     System.exit(exitCode);
   }
 

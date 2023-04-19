@@ -2,7 +2,6 @@ package pl.edu.agh.hiputs.loadbalancer;
 
 import static pl.edu.agh.hiputs.loadbalancer.PID.PID.INITIALIZATION_STEP;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,6 @@ import pl.edu.agh.hiputs.loadbalancer.PID.PID;
 import pl.edu.agh.hiputs.loadbalancer.PID.ZieglerNicholsAutoTuner;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
-import pl.edu.agh.hiputs.loadbalancer.utils.TimeToCarCostUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
@@ -24,7 +22,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 public class PidLoadBalancingService implements LoadBalancingStrategy {
   private final SimulationStatisticService simulationStatisticService;
 
-  private final LocalLoadStatisticService localLoadStatisticService;
+  private final LocalLoadMonitorService localLoadMonitorService;
 
   private final SimplyLoadBalancingService simplyLoadBalancingService;
 
@@ -47,7 +45,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy {
 
     LoadBalancingDecision loadBalancingDecision = new LoadBalancingDecision();
     loadBalancingDecision.setAge(step);
-    LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
+    LoadBalancingHistoryInfo info = localLoadMonitorService.getMyLastLoad(actualStep);
 
     ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancingService.selectNeighbourToBalancing(transferDataHandler, step);
     calculateNewTargetAndInitPID(info);

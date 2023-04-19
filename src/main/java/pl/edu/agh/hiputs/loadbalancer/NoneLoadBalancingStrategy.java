@@ -13,7 +13,7 @@ public class NoneLoadBalancingStrategy implements LoadBalancingStrategy{
 
   private final SimulationStatisticService simulationStatisticService;
 
-  private final LocalLoadStatisticService localLoadStatisticService;
+  private final LocalLoadMonitorService localLoadMonitorService;
 
   int age = 0;
   @Override
@@ -23,7 +23,7 @@ public class NoneLoadBalancingStrategy implements LoadBalancingStrategy{
     loadBalancingDecision.setAge(age);
     loadBalancingDecision.setLoadBalancingRecommended(false);
 
-    LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
+    LoadBalancingHistoryInfo info = localLoadMonitorService.getMyLastLoad(actualStep - 1);
     double myCost = MapFragmentCostCalculatorUtil.calculateCost(info);
 
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, age, info.getWaitingTime());

@@ -1,9 +1,7 @@
 package pl.edu.agh.hiputs.communication;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -42,10 +40,10 @@ public class Connection {
     log.warn("Error connection with neighbour {}", message.getId());
   }
 
-  public synchronized void send(Message message) throws IOException {
+  public synchronized int send(Message message) throws IOException {
     if (Objects.isNull(output)) {
       log.info("Connection with worker " + id + " not exist");
-      return;
+      return 0;
     }
     byte[] bytes = SerializationUtils.serialize(message);
     int size = bytes.length;
@@ -54,5 +52,7 @@ public class Connection {
     output.flush();
     output.write(bytes);
     output.flush();
+
+    return size;
   }
 }
