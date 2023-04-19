@@ -24,7 +24,8 @@ public class StandardOsmTurnProcessor implements TurnProcessor {
 
   private final static String NONE_TURN_INDICATOR = "none";
 
-  private final static String LANES_SEPARATOR = "\\|";
+  private final static String LANES_REGEX_SEPARATOR = "\\|";
+  private final static String LANES_SEPARATOR = "|";
   private final static String TURN_SEPARATOR = ";";
 
   @Override
@@ -87,7 +88,7 @@ public class StandardOsmTurnProcessor implements TurnProcessor {
 
   private List<List<TurnDirection>> convertRoadTagToTurns(String entry) {
     return Stream.of(entry)
-        .flatMap(string -> Arrays.stream(string.split(LANES_SEPARATOR, -1)))
+        .flatMap(string -> Arrays.stream(string.split(LANES_REGEX_SEPARATOR, -1)))
         .map(this::convertLaneTagToTurns)
         .toList();
   }
