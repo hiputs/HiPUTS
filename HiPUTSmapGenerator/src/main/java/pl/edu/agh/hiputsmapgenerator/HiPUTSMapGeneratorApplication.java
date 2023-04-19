@@ -9,6 +9,7 @@ import pl.edu.agh.hiputsmapgenerator.model.Patch;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,16 +37,20 @@ public class HiPUTSMapGeneratorApplication {
         mapDims.setY(patchDims.getY() * (int) mapDims.getY() / patchDims.getY());
 
         genMap(1);
-        genMap(2);
-        genMap(4);
-        genMap(8);
-        genMap(12);
-        genMap(16);
-        genMap(20);
-        genMap(24);
-        genMap(28);
-        genMap(32);
-        genMap(48);
+        genMap(3);
+        // genMap(4);
+        // genMap(8);
+        // genMap(12);
+        // genMap(16);
+        // genMap(20);
+        // genMap(24);
+        // genMap(28);
+        // genMap(32);
+        // genMap(48);
+        // genMap(64);
+        // genMap(128);
+        // genMap(256);
+        // genMap(384);
 
     }
 
@@ -73,21 +78,27 @@ public class HiPUTSMapGeneratorApplication {
     }
 
     private static Pair calc_dims_multipliers(int workerCount){
-        int square = (int) sqrt(workerCount);
-        int multiX = 1;
+        int multiX = (int) sqrt(workerCount);
 
-        if(workerCount / square == (int) workerCount / square) {
-            multiX = square;
+        int diff = 1;
+        while(workerCount % multiX != 0 && multiX >= 1){ // finds number near sqrt which divides workerCount without rest
+            multiX += diff;
+
+            if(diff < 0){
+                diff -= 1;
+            }
+            else{
+                diff += 1;
+            }
+            diff *= -1;
         }
-        else if(workerCount / (square+1) == (int) workerCount / (square+1)){
-            multiX = square+1;
-        }
-        else if(workerCount / (square-1) == (int) workerCount / (square-1)){
-            multiX = square-1;
+        if(multiX < 1){
+            multiX = 1;
         }
 
         return new Pair(multiX, workerCount / multiX);
     }
+
 
     private static void savePatches(List<Patch> patches, int workerCount) throws IOException {
         PrintWriter writer = new PrintWriter(MAP_PATH + "square-map" + workerCount + "/patches.csv", StandardCharsets.UTF_8);

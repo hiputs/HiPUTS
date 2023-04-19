@@ -106,15 +106,21 @@ public class RectangleMapFragmentPartitioner extends QuadTreeMapFragmentPartitio
   }
 
   private Pair<Integer, Integer> calc_dims_divisors(int parts) {
-    int square = (int) sqrt(parts);
-    int x = 1;
+    int x = (int) sqrt(parts);
 
-    if (parts / square == parts / square) {
-      x = square;
-    } else if (parts / (square + 1) == parts / (square + 1)) {
-      x = square + 1;
-    } else if (parts / (square - 1) == parts / (square - 1)) {
-      x = square - 1;
+    int diff = 1;
+    while (parts % x != 0 && x >= 1) { // finds number near sqrt which divides parts without rest
+      x += diff;
+
+      if (diff < 0) {
+        diff -= 1;
+      } else {
+        diff += 1;
+      }
+      diff *= -1;
+    }
+    if (x < 1) {
+      x = 1;
     }
 
     return Pair.of(Math.max(x, parts / x), Math.min(x, parts / x));
