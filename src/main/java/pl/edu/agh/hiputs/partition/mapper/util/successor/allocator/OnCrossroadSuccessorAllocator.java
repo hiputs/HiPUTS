@@ -52,10 +52,11 @@ public class OnCrossroadSuccessorAllocator implements SuccessorAllocator{
                 .toList();
 
             Map<TurnDirection, Edge<JunctionData, WayData>> turn2OutgoingEdge = turnMapper.assignTurns2OutgoingEdges(
-                sortedOutgoings, incomingEdge
+                sortedOutgoings.subList(1, sortedOutgoings.size()), incomingEdge
             );
 
             if (zippedLanesAndTurns.stream()
+                .filter(pair -> !pair.getRight().contains(TurnDirection.REVERSE))
                 .allMatch(pair -> pair.getRight().stream()
                     .allMatch(turn2OutgoingEdge::containsKey))) {
               // allocating successors when turn->outgoings data are complete

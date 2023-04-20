@@ -27,21 +27,21 @@ public class OnBendSuccessorAllocatorTest {
     LaneData inLane1 = LaneData.builder().build();
     LaneData inLane2 = LaneData.builder().build();
     LaneData outLane = LaneData.builder().build();
-    Node<JunctionData, WayData> crossroad = new Node<>("0", JunctionData.builder().isCrossroad(false).build());
+    Node<JunctionData, WayData> bend = new Node<>("0", JunctionData.builder().isCrossroad(false).build());
     Edge<JunctionData, WayData> inEdge1 = new Edge<>("1", WayData.builder().lanes(List.of(inLane1)).tags(Collections.emptyMap()).build());
     Edge<JunctionData, WayData> inEdge2 = new Edge<>("2", WayData.builder().lanes(List.of(inLane2)).tags(Collections.emptyMap()).build());
     Edge<JunctionData, WayData> outEdge = new Edge<>("3", WayData.builder().lanes(List.of(outLane)).build());
 
     // when
     inEdge1.setSource(Mockito.mock(Node.class));
-    inEdge1.setTarget(crossroad);
+    inEdge1.setTarget(bend);
     inEdge2.setSource(Mockito.mock(Node.class));
-    inEdge2.setTarget(crossroad);
-    outEdge.setSource(crossroad);
+    inEdge2.setTarget(bend);
+    outEdge.setSource(bend);
     outEdge.setTarget(Mockito.mock(Node.class));
-    crossroad.getIncomingEdges().addAll(List.of(inEdge1, inEdge2));
-    crossroad.getOutgoingEdges().add(outEdge);
-    allocator.allocateOnNode(crossroad);
+    bend.getIncomingEdges().addAll(List.of(inEdge1, inEdge2));
+    bend.getOutgoingEdges().add(outEdge);
+    allocator.allocateOnNode(bend);
 
     // then
     Assertions.assertEquals(outLane, inLane1.getAvailableSuccessors().get(0));
@@ -55,7 +55,7 @@ public class OnBendSuccessorAllocatorTest {
     LaneData inLane2 = LaneData.builder().build();
     LaneData outLane1 = LaneData.builder().build();
     LaneData outLane2 = LaneData.builder().build();
-    Node<JunctionData, WayData> crossroad = new Node<>("00", JunctionData.builder().isCrossroad(false).build());
+    Node<JunctionData, WayData> bend = new Node<>("00", JunctionData.builder().isCrossroad(false).build());
     Node<JunctionData, WayData> node1 = new Node<>("01", JunctionData.builder().isCrossroad(false).build());
     Node<JunctionData, WayData> node2 = new Node<>("02", JunctionData.builder().isCrossroad(false).build());
     Edge<JunctionData, WayData> inEdge1 = new Edge<>("1", WayData.builder().lanes(List.of(inLane1)).tags(Collections.emptyMap()).build());
@@ -65,16 +65,16 @@ public class OnBendSuccessorAllocatorTest {
 
     // when
     inEdge1.setSource(node1);
-    inEdge1.setTarget(crossroad);
+    inEdge1.setTarget(bend);
     inEdge2.setSource(node2);
-    inEdge2.setTarget(crossroad);
-    outEdge1.setSource(crossroad);
+    inEdge2.setTarget(bend);
+    outEdge1.setSource(bend);
     outEdge1.setTarget(node1);
-    outEdge2.setSource(crossroad);
+    outEdge2.setSource(bend);
     outEdge2.setTarget(node2);
-    crossroad.getIncomingEdges().addAll(List.of(inEdge1, inEdge2));
-    crossroad.getOutgoingEdges().addAll(List.of(outEdge1, outEdge2));
-    allocator.allocateOnNode(crossroad);
+    bend.getIncomingEdges().addAll(List.of(inEdge1, inEdge2));
+    bend.getOutgoingEdges().addAll(List.of(outEdge1, outEdge2));
+    allocator.allocateOnNode(bend);
 
     // then
     Assertions.assertEquals(outLane2, inLane1.getAvailableSuccessors().get(0));
@@ -88,7 +88,7 @@ public class OnBendSuccessorAllocatorTest {
     LaneData inLane2 = LaneData.builder().build();
     LaneData inLane3 = LaneData.builder().build();
     LaneData outLane = LaneData.builder().build();
-    Node<JunctionData, WayData> crossroad = new Node<>("0", JunctionData.builder().isCrossroad(false).build());
+    Node<JunctionData, WayData> bend = new Node<>("0", JunctionData.builder().isCrossroad(false).build());
     Edge<JunctionData, WayData> inEdge1 = new Edge<>("1", WayData.builder()
         .lanes(List.of(inLane1, inLane2, inLane3))
         .tags(Collections.emptyMap())
@@ -97,12 +97,12 @@ public class OnBendSuccessorAllocatorTest {
 
     // when
     inEdge1.setSource(Mockito.mock(Node.class));
-    inEdge1.setTarget(crossroad);
-    outEdge.setSource(crossroad);
+    inEdge1.setTarget(bend);
+    outEdge.setSource(bend);
     outEdge.setTarget(Mockito.mock(Node.class));
-    crossroad.getIncomingEdges().add(inEdge1);
-    crossroad.getOutgoingEdges().add(outEdge);
-    allocator.allocateOnNode(crossroad);
+    bend.getIncomingEdges().add(inEdge1);
+    bend.getOutgoingEdges().add(outEdge);
+    allocator.allocateOnNode(bend);
 
     // then
     Assertions.assertTrue(inLane1.getAvailableSuccessors().isEmpty());
@@ -116,7 +116,7 @@ public class OnBendSuccessorAllocatorTest {
     LaneData inLane1 = LaneData.builder().build();
     LaneData inLane2 = LaneData.builder().build();
     LaneData outLane1 = LaneData.builder().build();
-    Node<JunctionData, WayData> crossroad = new Node<>("0", JunctionData.builder().isCrossroad(false).build());
+    Node<JunctionData, WayData> bend = new Node<>("0", JunctionData.builder().isCrossroad(false).build());
     Edge<JunctionData, WayData> inEdge = new Edge<>("1", WayData.builder()
         .lanes(List.of(inLane1, inLane2))
         .tags(Collections.singletonMap("turn:lanes", "none|merge_to_left"))
@@ -127,12 +127,12 @@ public class OnBendSuccessorAllocatorTest {
 
     // when
     inEdge.setSource(Mockito.mock(Node.class));
-    inEdge.setTarget(crossroad);
-    outEdge.setSource(crossroad);
+    inEdge.setTarget(bend);
+    outEdge.setSource(bend);
     outEdge.setTarget(Mockito.mock(Node.class));
-    crossroad.getIncomingEdges().add(inEdge);
-    crossroad.getOutgoingEdges().add(outEdge);
-    allocator.allocateOnNode(crossroad);
+    bend.getIncomingEdges().add(inEdge);
+    bend.getOutgoingEdges().add(outEdge);
+    allocator.allocateOnNode(bend);
 
     // then
     Assertions.assertEquals(List.of(outLane1), inLane1.getAvailableSuccessors());
@@ -146,7 +146,7 @@ public class OnBendSuccessorAllocatorTest {
     LaneData inLane2 = LaneData.builder().build();
     LaneData outLane1 = LaneData.builder().build();
     LaneData outLane2 = LaneData.builder().build();
-    Node<JunctionData, WayData> crossroad = new Node<>("0", JunctionData.builder().isCrossroad(false).build());
+    Node<JunctionData, WayData> bend = new Node<>("0", JunctionData.builder().isCrossroad(false).build());
     Edge<JunctionData, WayData> inEdge = new Edge<>("1", WayData.builder()
         .lanes(List.of(inLane1, inLane2))
         .tags(Collections.singletonMap("turn:lanes", "none|merge_to_left"))
@@ -157,12 +157,12 @@ public class OnBendSuccessorAllocatorTest {
 
     // when
     inEdge.setSource(Mockito.mock(Node.class));
-    inEdge.setTarget(crossroad);
-    outEdge.setSource(crossroad);
+    inEdge.setTarget(bend);
+    outEdge.setSource(bend);
     outEdge.setTarget(Mockito.mock(Node.class));
-    crossroad.getIncomingEdges().add(inEdge);
-    crossroad.getOutgoingEdges().add(outEdge);
-    allocator.allocateOnNode(crossroad);
+    bend.getIncomingEdges().add(inEdge);
+    bend.getOutgoingEdges().add(outEdge);
+    allocator.allocateOnNode(bend);
 
     // then
     Assertions.assertEquals(List.of(outLane1), inLane1.getAvailableSuccessors());
@@ -176,7 +176,7 @@ public class OnBendSuccessorAllocatorTest {
     LaneData outLane1 = LaneData.builder().build();
     LaneData outLane2 = LaneData.builder().build();
     LaneData outLane3 = LaneData.builder().build();
-    Node<JunctionData, WayData> crossroad = new Node<>("0", JunctionData.builder().isCrossroad(false).build());
+    Node<JunctionData, WayData> bend = new Node<>("0", JunctionData.builder().isCrossroad(false).build());
     Edge<JunctionData, WayData> inEdge = new Edge<>("1", WayData.builder()
         .lanes(List.of(inLane1))
         .tags(Collections.emptyMap())
@@ -187,12 +187,12 @@ public class OnBendSuccessorAllocatorTest {
 
     // when
     inEdge.setSource(Mockito.mock(Node.class));
-    inEdge.setTarget(crossroad);
-    outEdge.setSource(crossroad);
+    inEdge.setTarget(bend);
+    outEdge.setSource(bend);
     outEdge.setTarget(Mockito.mock(Node.class));
-    crossroad.getIncomingEdges().add(inEdge);
-    crossroad.getOutgoingEdges().add(outEdge);
-    allocator.allocateOnNode(crossroad);
+    bend.getIncomingEdges().add(inEdge);
+    bend.getOutgoingEdges().add(outEdge);
+    allocator.allocateOnNode(bend);
 
     // then
     Assertions.assertTrue(inLane1.getAvailableSuccessors().contains(outLane1));
