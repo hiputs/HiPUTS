@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.service.routegenerator.generator;
 
+import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.routegenerator.UnimplementedException;
@@ -20,8 +21,8 @@ public class LiveGenerator implements CarGenerator{
     };
 
     @Override
-    public List<RouteWithLocation> generateRoutes(Patch patch) {
-        throw new UnimplementedException();
+    public List<Car> generateCars(Patch patch, int step) {
+        return null;
     }
 
 

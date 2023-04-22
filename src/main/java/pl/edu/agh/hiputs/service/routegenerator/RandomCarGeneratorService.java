@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
@@ -25,6 +27,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "car-generator.generate-from-file", havingValue = "false")
 public class RandomCarGeneratorService implements Subscriber, CarGeneratorService {
 
   private static final int START_ADD_CAR = 5;
@@ -36,30 +39,25 @@ public class RandomCarGeneratorService implements Subscriber, CarGeneratorServic
   private int totalPatch = -1;
 
   @PostConstruct
-  void init(){
+  void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
   }
 
   @Override
-  public void generateRoutes(Patch patch) {
-    // reimplement old `generateCars` method
-    throw new UnimplementedException();
-  }
-
-  public void generateCars(MapFragment mapFragment) {
+  public void generateCars(MapFragment mapFragment, int step) {
     Configuration configuration = configurationService.getConfiguration();
 
-    if(totalPatch == -1){
+    if (totalPatch == -1) {
       totalPatch = mapRepository.getAllPatches().size();
     }
 
-    if(configuration.getNewCars() == 0){
+    if (configuration.getNewCars() == 0) {
       return;
     }
 
-    int targetCarMax = (int)(configuration.getNewCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
-    int targetCarMin = (int)(configuration.getMinCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
-    if(targetCarMax <= targetCarMin){
+    int targetCarMax = (int) (configuration.getNewCars() / (totalPatch * 1.0) * mapFragment.getMyPatchCount());
+    int targetCarMin = (int) (configuration.getMinCars() / (totalPatch * 1.0) * mapFragment.getMyPatchCount());
+    if (targetCarMax <= targetCarMin) {
       targetCarMax = targetCarMin + 1;
     }
     int count = ThreadLocalRandom.current().nextInt(targetCarMin, targetCarMax);
@@ -68,7 +66,7 @@ public class RandomCarGeneratorService implements Subscriber, CarGeneratorServic
       return;
     }
 
-    if(bigWorker){
+    if (bigWorker) {
       count = (int) (count * 10);
     }
 
