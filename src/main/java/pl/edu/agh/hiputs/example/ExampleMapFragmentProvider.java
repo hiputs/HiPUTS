@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -14,14 +13,14 @@ import lombok.Getter;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.HorizontalSign;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
-import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
-import pl.edu.agh.hiputs.model.map.roadstructure.NeighborLaneInfo;
+import pl.edu.agh.hiputs.model.map.roadstructure.Road;
+import pl.edu.agh.hiputs.model.map.roadstructure.NeighborRoadInfo;
 import pl.edu.agh.hiputs.utils.DeterminingNeighborhoodUtil;
 
 public class ExampleMapFragmentProvider {
@@ -120,7 +119,7 @@ public class ExampleMapFragmentProvider {
     laneHorizontalSigns.put("2->1", HorizontalSign.OPPOSITE_DIRECTION_SOLID_LINE);
     Map<String, String> laneToLaneMap = Stream.of(new String[][] {{"1->2", "2->1"},})
         .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-    Map<String, LaneUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
+    Map<String, RoadUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
     setOppositeLaneInformationOnLane(stringLaneMap, laneToLaneMap, laneHorizontalSigns);
 
     Map<String, JunctionUnderConstruction> stringJunctionMap =
@@ -133,7 +132,7 @@ public class ExampleMapFragmentProvider {
 
     setLaneLengths(stringLaneMap, laneLengths);
 
-    stringLaneMap.forEach((edge, laneUnderConstruction) -> putOnMap(edge, laneUnderConstruction, stringJunctionMap));
+    stringLaneMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
 
     Patch patch = createPatch(stringLaneMap, stringJunctionMap);
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
@@ -163,7 +162,7 @@ public class ExampleMapFragmentProvider {
     laneHorizontalSigns.put("4->3", HorizontalSign.OPPOSITE_DIRECTION_SOLID_LINE);
     Map<String, String> laneToLaneMap = Stream.of(new String[][] {{"1->2", "2->1"}, {"2->3", "3->2"}, {"3->4", "4->3"}})
         .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-    Map<String, LaneUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
+    Map<String, RoadUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
     setOppositeLaneInformationOnLane(stringLaneMap, laneToLaneMap, laneHorizontalSigns);
 
     Map<String, JunctionUnderConstruction> stringJunctionMap =
@@ -181,7 +180,7 @@ public class ExampleMapFragmentProvider {
 
     setLaneLengths(stringLaneMap, laneLengths);
 
-    stringLaneMap.forEach((edge, laneUnderConstruction) -> putOnMap(edge, laneUnderConstruction, stringJunctionMap));
+    stringLaneMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
 
     Patch patch = createPatch(stringLaneMap, stringJunctionMap);
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
@@ -191,22 +190,22 @@ public class ExampleMapFragmentProvider {
 
   public static MapFragment fromStringRepresentation(String mapStructure, Map<String, Double> laneLengths,
       int randomCarsPerLane) {
-    Map<String, LaneUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
+    Map<String, RoadUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
     Map<String, JunctionUnderConstruction> stringJunctionMap =
         getStringJunctionMapFromStringRepresentation(mapStructure);
 
     setLaneLengths(stringLaneMap, laneLengths);
-    stringLaneMap.forEach((edge, laneUnderConstruction) -> putOnMap(edge, laneUnderConstruction, stringJunctionMap));
+    stringLaneMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
 
     Patch patch = createPatch(stringLaneMap, stringJunctionMap);
 
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
     ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragment);
 
-    patch.streamLanesEditable().forEach(lane -> {
+    patch.streamRoadsEditable().forEach(lane -> {
       for (int i = 0; i < randomCarsPerLane; i++) {
         double carPosition = (randomCarsPerLane - i) * lane.getLength() / (randomCarsPerLane + 1);
-        Car car = exampleCarProvider.generateCar(carPosition, lane.getLaneId());
+        Car car = exampleCarProvider.generateCar(carPosition, lane.getRoadId());
         exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
         lane.addCarAtEntry(car);
       }
@@ -217,10 +216,10 @@ public class ExampleMapFragmentProvider {
     return mapFragment;
   }
 
-  private static Map<String, LaneUnderConstruction> getStringLaneMapFromStringRepresentation(String mapStructure) {
+  private static Map<String, RoadUnderConstruction> getStringLaneMapFromStringRepresentation(String mapStructure) {
     return Arrays.stream(mapStructure.split(" "))
         .map(edge -> edge.substring(1, edge.length() - 1))
-        .collect(Collectors.toMap(Function.identity(), e -> new LaneUnderConstruction()));
+        .collect(Collectors.toMap(Function.identity(), e -> new RoadUnderConstruction()));
   }
 
   private static Map<String, JunctionUnderConstruction> getStringJunctionMapFromStringRepresentation(
@@ -237,15 +236,15 @@ public class ExampleMapFragmentProvider {
   }
 
   private static void setOppositeLaneInformationOnLane(
-      Map<String, LaneUnderConstruction> stringLaneMap,
+      Map<String, RoadUnderConstruction> stringLaneMap,
       Map<String, String> laneToLaneMap,
       Map<String, HorizontalSign> laneHorizontalSigns
   ){
     laneToLaneMap.forEach((k, v) ->{
-      LaneUnderConstruction lane1 = stringLaneMap.get(k);
-      LaneUnderConstruction lane2 = stringLaneMap.get(v);
-      lane1.getLaneBuilder().leftNeighbor(Optional.of(new NeighborLaneInfo(lane2.getLaneId(), laneHorizontalSigns.get(k))));
-      lane2.getLaneBuilder().leftNeighbor(Optional.of(new NeighborLaneInfo(lane1.getLaneId(), laneHorizontalSigns.get(v))));
+      RoadUnderConstruction lane1 = stringLaneMap.get(k);
+      RoadUnderConstruction lane2 = stringLaneMap.get(v);
+      lane1.getRoadBuilder().leftNeighbor(Optional.of(new NeighborRoadInfo(lane2.getRoadId(), laneHorizontalSigns.get(k))));
+      lane2.getRoadBuilder().leftNeighbor(Optional.of(new NeighborRoadInfo(lane1.getRoadId(), laneHorizontalSigns.get(v))));
     });
 
   }
@@ -254,13 +253,13 @@ public class ExampleMapFragmentProvider {
     return targets.stream().filter(v -> v.equals(junctionStringRepr)).count() > 1 ? JunctionType.CROSSROAD : JunctionType.BEND;
   }
 
-  private static void setLaneLengths(Map<String, LaneUnderConstruction> stringLaneMap,
+  private static void setLaneLengths(Map<String, RoadUnderConstruction> stringLaneMap,
       Map<String, Double> laneLengths) {
-    stringLaneMap.forEach((key, laneUnderConstruction) -> laneUnderConstruction.getLaneBuilder()
+    stringLaneMap.forEach((key, roadUnderConstruction) -> roadUnderConstruction.getRoadBuilder()
         .length(Optional.ofNullable(laneLengths.get(key)).orElse(DEFAULT_LANE_LENGTH)));
   }
 
-  private static void putOnMap(String edge, LaneUnderConstruction laneUnderConstruction,
+  private static void putOnMap(String edge, RoadUnderConstruction roadUnderConstruction,
       Map<String, JunctionUnderConstruction> stringJunctionMap) {
     String begin = edge.split("->")[0];
     String end = edge.split("->")[1];
@@ -268,37 +267,37 @@ public class ExampleMapFragmentProvider {
     JunctionUnderConstruction incomingJunction = stringJunctionMap.get(begin);
     JunctionUnderConstruction outgoingJunction = stringJunctionMap.get(end);
 
-    laneUnderConstruction.getLaneBuilder().incomingJunctionId(incomingJunction.getJunctionId());
-    laneUnderConstruction.getLaneBuilder().outgoingJunctionId(outgoingJunction.getJunctionId());
+    roadUnderConstruction.getRoadBuilder().incomingJunctionId(incomingJunction.getJunctionId());
+    roadUnderConstruction.getRoadBuilder().outgoingJunctionId(outgoingJunction.getJunctionId());
 
-    incomingJunction.getJunctionBuilder().addOutgoingLaneId(laneUnderConstruction.getLaneId());
+    incomingJunction.getJunctionBuilder().addOutgoingRoadId(roadUnderConstruction.getRoadId());
 
-    outgoingJunction.getJunctionBuilder().addIncomingLaneId(laneUnderConstruction.getLaneId(), false);
+    outgoingJunction.getJunctionBuilder().addIncomingRoadId(roadUnderConstruction.getRoadId(), false);
   }
 
-  private static Patch createPatch(Map<String, LaneUnderConstruction> stringLaneMap,
+  private static Patch createPatch(Map<String, RoadUnderConstruction> stringLaneMap,
       Map<String, JunctionUnderConstruction> stringJunctionMap) {
     return Patch.builder()
         .junctions(stringJunctionMap.values()
             .stream()
             .map(junctionUnderConstruction -> junctionUnderConstruction.getJunctionBuilder().build())
             .collect(Collectors.toMap(Junction::getJunctionId, Function.identity())))
-        .lanes(stringLaneMap.values()
+        .roads(stringLaneMap.values()
             .stream()
-            .map(laneUnderConstruction -> laneUnderConstruction.getLaneBuilder().build())
-            .collect(Collectors.toMap(Lane::getLaneId, Function.identity())))
+            .map(roadUnderConstruction -> roadUnderConstruction.getRoadBuilder().build())
+            .collect(Collectors.toMap(Road::getRoadId, Function.identity())))
         .build();
   }
 
   @Getter
-  private static class LaneUnderConstruction {
+  private static class RoadUnderConstruction {
 
-    LaneId laneId;
-    Lane.LaneBuilder laneBuilder;
+    RoadId roadId;
+    Road.RoadBuilder roadBuilder;
 
-    public LaneUnderConstruction() {
-      this.laneId = LaneId.random();
-      this.laneBuilder = Lane.builder().laneId(this.laneId);
+    public RoadUnderConstruction() {
+      this.roadId = RoadId.random();
+      this.roadBuilder = Road.builder().roadId(this.roadId);
     }
   }
 

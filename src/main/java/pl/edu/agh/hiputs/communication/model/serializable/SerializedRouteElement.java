@@ -9,6 +9,6 @@ import lombok.Getter;
 public class SerializedRouteElement implements Serializable {
 
   private final String junctionId;
-  private final String outgoingLaneId;
+  private final String outgoingRoadId;
   private final String junctionType;
 }

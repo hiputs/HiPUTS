@@ -7,7 +7,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import pl.edu.agh.hiputs.loadbalancer.TicketService;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
@@ -23,7 +23,7 @@ public interface TransferDataHandler {
   Set<MapFragmentId> getNeighbors();
 
   /**
-   * Returns and clears the contents of collections holding Cars incoming to remote Lanes.
+   * Returns and clears the contents of collections holding Cars incoming to remote Roads.
    * The Cars should be partitioned based on the MapFragmentId of the owner of the destination lane of each car.
    * The method should also ensure that the Cars will not be returned again in the subsequent invocations
    * (usually in the next iteration of the simulation).
@@ -31,14 +31,14 @@ public interface TransferDataHandler {
   Map<MapFragmentId, Set<CarEditable>> pollOutgoingCars();
 
   /**
-   * Accepts Cars incoming to border Lanes.
+   * Accepts Cars incoming to border Roads.
    * This method may be invoked multiple times for a single iteration.
    */
   void acceptIncomingCars(Set<Car> incomingCars);
 
   /**
    * Returns the border Patches to be sent as shadow Patches to neighbors.
-   * The Patches should be partitioned based on the MapFragmentId of the owner of the targeted lanes.
+   * The Patches should be partitioned based on the MapFragmentId of the owner of the targeted roads.
    */
   Map<MapFragmentId, Set<Patch>> getBorderPatches();
 
@@ -80,7 +80,7 @@ public interface TransferDataHandler {
    */
   boolean isLocalPatch(PatchId patchId);
 
-  PatchId getPatchIdByLaneId(LaneId laneId);
+  PatchId getPatchIdByRoadId(RoadId roadId);
 
   void printStaistic();
 

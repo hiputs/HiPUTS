@@ -1,24 +1,19 @@
 package pl.edu.agh.hiputs.loadbalancer.utils;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.UtilityClass;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
-import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @Component
@@ -59,12 +54,12 @@ public class GraphCoherencyUtil {
         .get(borderParticipant)
         .stream()
         .map(patch -> patch.streamJunctionsReadable()
-            .map(j -> j.streamIncomingLaneIds().collect(Collectors.toSet()))
+            .map(j -> j.streamIncomingRoadIds().collect(Collectors.toSet()))
             .toList())
         .flatMap(List::stream)
         .flatMap(Set::stream)
         .distinct()
-        .map(transferDataHandler::getPatchIdByLaneId)
+        .map(transferDataHandler::getPatchIdByRoadId)
         .distinct()
         .filter(transferDataHandler::isLocalPatch)
         .collect(Collectors.toSet());

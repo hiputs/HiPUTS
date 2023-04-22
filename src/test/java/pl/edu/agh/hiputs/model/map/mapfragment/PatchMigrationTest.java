@@ -7,9 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -20,14 +18,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment.MapFragmentBuilder;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction.JunctionBuilder;
-import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
+import pl.edu.agh.hiputs.model.map.roadstructure.Road;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -90,8 +88,8 @@ class PatchMigrationTest {
         new ImmutablePair<>(new PatchId("P4"), new MapFragmentId("B"))
     );
 
-    Lane lane3 = laneBuilder("L3", "J3", "J4");
-    Lane lane4 = laneBuilder("L4", "J2", "J4");
+    Road lane3 = laneBuilder("L3", "J3", "J4");
+    Road lane4 = laneBuilder("L4", "J2", "J4");
     Junction junction4 = junctionBuilder("J4", List.of(), List.of(lane3, lane4));
     Patch patch4 = patchBuilder("P4", List.of(), List.of(junction4), List.of("P2", "P3"));
 
@@ -120,10 +118,10 @@ class PatchMigrationTest {
   //    |  L3           |
   //   P3--------------P4
   private MapFragment getExampleMapFragment3() {
-    Lane lane1 = laneBuilder("L1", "J1", "J2");
-    Lane lane2 = laneBuilder("L2", "J1", "J3");
-    Lane lane3 = laneBuilder("L3", "J3", "J4");
-    Lane lane4 = laneBuilder("L4", "J2", "J4");
+    Road lane1 = laneBuilder("L1", "J1", "J2");
+    Road lane2 = laneBuilder("L2", "J1", "J3");
+    Road lane3 = laneBuilder("L3", "J3", "J4");
+    Road lane4 = laneBuilder("L4", "J2", "J4");
 
     Junction junction1 = junctionBuilder("J1", List.of(lane1, lane2, lane3), List.of());
     Junction junction2 = junctionBuilder("J2", List.of(lane4), List.of(lane1));
@@ -158,11 +156,11 @@ class PatchMigrationTest {
   //    |  L3  \        /
   //   P3---------P4-- /
   private MapFragment getExampleMapFragment2() {
-    Lane lane1 = laneBuilder("L1", "J1", "J2");
-    Lane lane2 = laneBuilder("L2", "J1", "J3");
-    Lane lane3 = laneBuilder("L3", "J3", "J4");
-    Lane lane4 = laneBuilder("L4", "J2", "J4");
-    Lane lane5 = laneBuilder("L5", "J1", "J4");
+    Road lane1 = laneBuilder("L1", "J1", "J2");
+    Road lane2 = laneBuilder("L2", "J1", "J3");
+    Road lane3 = laneBuilder("L3", "J3", "J4");
+    Road lane4 = laneBuilder("L4", "J2", "J4");
+    Road lane5 = laneBuilder("L5", "J1", "J4");
 
     Junction junction1 = junctionBuilder("J1", List.of(lane1, lane2, lane3), List.of());
     Junction junction2 = junctionBuilder("J2", List.of(lane4), List.of(lane1));
@@ -201,11 +199,11 @@ class PatchMigrationTest {
   //   P3---------P4-- /
 
   private MapFragment getExampleMapFragment() {
-    Lane lane1 = laneBuilder("L1", "J1", "J2");
-    Lane lane2 = laneBuilder("L2", "J1", "J3");
-    Lane lane3 = laneBuilder("L3", "J3", "J4");
-    Lane lane4 = laneBuilder("L4", "J2", "J4");
-    Lane lane5 = laneBuilder("L5", "J1", "J4");
+    Road lane1 = laneBuilder("L1", "J1", "J2");
+    Road lane2 = laneBuilder("L2", "J1", "J3");
+    Road lane3 = laneBuilder("L3", "J3", "J4");
+    Road lane4 = laneBuilder("L4", "J2", "J4");
+    Road lane5 = laneBuilder("L5", "J1", "J4");
 
     Junction junction1 = junctionBuilder("J1", List.of(lane1, lane2, lane3), List.of());
     Junction junction2 = junctionBuilder("J2", List.of(lane4), List.of(lane1));
@@ -230,15 +228,15 @@ class PatchMigrationTest {
     return mapFragmentBuilder.build();
   }
 
-  private Patch patchBuilder(String id, List<Lane> lanes, List<Junction> junctions, List<String> neighboursPatches) {
+  private Patch patchBuilder(String id, List<Road> lanes, List<Junction> junctions, List<String> neighboursPatches) {
     return Patch.builder()
         .patchId(new PatchId(id))
         .junctions(junctions
             .stream()
             .collect(Collectors.toMap(Junction::getJunctionId, Function.identity())))
-        .lanes(lanes
+        .roads(lanes
             .stream()
-            .collect(Collectors.toMap(Lane::getLaneId, Function.identity())))
+            .collect(Collectors.toMap(Road::getRoadId, Function.identity())))
         .neighboringPatches(neighboursPatches
             .stream()
             .map(PatchId::new)
@@ -246,18 +244,18 @@ class PatchMigrationTest {
         .build();
   }
 
-  private Junction junctionBuilder(String id, List<Lane> inComing, List<Lane> outComing) {
+  private Junction junctionBuilder(String id, List<Road> inComing, List<Road> outComing) {
     JunctionBuilder builder = Junction.builder()
         .junctionId(new JunctionId(id, JunctionType.CROSSROAD));
 
-    inComing.forEach(l -> builder.addIncomingLaneId(l.getLaneId(), true));
-    outComing.forEach(l -> builder.addIncomingLaneId(l.getLaneId(), true));
+    inComing.forEach(l -> builder.addIncomingRoadId(l.getRoadId(), true));
+    outComing.forEach(l -> builder.addIncomingRoadId(l.getRoadId(), true));
     return  builder.build();
   }
 
-  private Lane laneBuilder(String id, String incomingId, String outComingId){
-      return  Lane.builder()
-          .laneId(new LaneId(id))
+  private Road laneBuilder(String id, String incomingId, String outComingId){
+      return  Road.builder()
+          .roadId(new RoadId(id))
           .incomingJunctionId(new JunctionId(incomingId, JunctionType.CROSSROAD))
           .outgoingJunctionId(new JunctionId(outComingId, JunctionType.CROSSROAD))
           .build();

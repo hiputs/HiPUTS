@@ -1,6 +1,5 @@
 package pl.edu.agh.hiputs.model.car.driver;
 
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Optional;
@@ -19,10 +18,9 @@ import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionPro
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecision;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.TrailJunctionDecider;
-import pl.edu.agh.hiputs.model.id.CarId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 
 /**
  * Driver class with an algorithm that will take into consideration all deciders
@@ -54,9 +52,9 @@ public class Driver implements IDriver {
     // make local decision based on read only road structure (watch environment) and save it locally
 
 
-    log.debug("Car: " + car.getCarId() + ", lane: " + car.getLaneId() + ", position: " + car.getPositionOnLane()
+    log.debug("Car: " + car.getCarId() + ", road: " + car.getRoadId() + ", position: " + car.getPositionOnRoad()
               + ", acc: " + car.getAcceleration() + ", speed: " + car.getSpeed()
-              + ", route0: " + car.getRouteOffsetLaneId(0) + ", route1: " + car.getRouteOffsetLaneId(1));
+              + ", route0: " + car.getRouteOffsetRoadId(0) + ", route1: " + car.getRouteOffsetRoadId(1));
 
 
     //First prepare CarEnvironment
@@ -112,26 +110,26 @@ public class Driver implements IDriver {
 
     acceleration = limitAccelerationPreventReversing(acceleration, car, timeStep);
 
-    LaneId currentLaneId = car.getLaneId();
-    LaneReadable destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
+    RoadId currentRoadId = car.getRoadId();
+    RoadReadable destinationCandidate = roadStructureReader.getRoadReadable(currentRoadId);
     int offset = 0;
     double desiredPosition = calculateFuturePosition(car, acceleration);
-    Optional<LaneId> desiredLaneId;
+    Optional<RoadId> desiredRoadId;
 
     while (desiredPosition > destinationCandidate.getLength()) {
       desiredPosition -= destinationCandidate.getLength();
-      desiredLaneId = car.getRouteOffsetLaneId(offset + 1);
-      if (desiredLaneId.isEmpty()) {
-        currentLaneId = null;
+      desiredRoadId = car.getRouteOffsetRoadId(offset + 1);
+      if (desiredRoadId.isEmpty()) {
+        currentRoadId = null;
         break;
       }
       offset++;
-      currentLaneId = desiredLaneId.get();
-      destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
+      currentRoadId = desiredRoadId.get();
+      destinationCandidate = roadStructureReader.getRoadReadable(currentRoadId);
       if(destinationCandidate == null){
         log.warn("Car: " + car.getCarId() + " Destination out of this node, positionRest: " + desiredPosition
-            + ", desiredLaneId: " + currentLaneId);
-        currentLaneId = null;
+            + ", desiredRoadId: " + currentRoadId);
+        currentRoadId = null;
         break;
       }
     }
@@ -139,14 +137,14 @@ public class Driver implements IDriver {
     double speed = car.getSpeed() + acceleration * timeStep;
 
     if(offset > 0 && crossroadDecisionProperties.isPresent()){
-      if(crossroadDecisionProperties.get().getMovePermanentLaneId().isPresent()){
+      if(crossroadDecisionProperties.get().getMovePermanentRoadId().isPresent()){
         CarEnvironment precedingCarInfo = prospector.getPrecedingCar(car, roadStructureReader);
         if(precedingCarInfo.getPrecedingCar().isPresent() && precedingCarInfo.getDistance() < (speed * speed / maxDeceleration / 2)){
           CarReadable precedingCar = precedingCarInfo.getPrecedingCar().get();
           speed = Math.min(speed, Math.max(precedingCar.getSpeed() - maxDeceleration, 0) * 0.8);
           desiredPosition = Math.min(desiredPosition,
-              precedingCar.getPositionOnLane() - Math.min(0.1, precedingCar.getPositionOnLane() * 0.1));
-          log.trace("Car: " + car.getCarId() + " finish move permanent and limit speed to car: " + precedingCar.getCarId() + ", speed: " + precedingCar.getSpeed() + ", position: " + precedingCar.getPositionOnLane());
+              precedingCar.getPositionOnRoad() - Math.min(0.1, precedingCar.getPositionOnRoad() * 0.1));
+          log.trace("Car: " + car.getCarId() + " finish move permanent and limit speed to car: " + precedingCar.getCarId() + ", speed: " + precedingCar.getSpeed() + ", position: " + precedingCar.getPositionOnRoad());
         }
         else{
           log.trace("Car: " + car.getCarId() + " finish move permanent without preceding car");
@@ -157,8 +155,8 @@ public class Driver implements IDriver {
     final Decision decision = Decision.builder()
         .acceleration(acceleration)
         .speed(speed)
-        .laneId(currentLaneId)
-        .positionOnLane(desiredPosition)
+        .roadId(currentRoadId)
+        .positionOnRoad(desiredPosition)
         .offsetToMoveOnRoute(offset)
         .crossroadDecisionProperties(crossroadDecisionProperties)
         .build();
@@ -188,6 +186,6 @@ public class Driver implements IDriver {
   }
 
   private double calculateFuturePosition(CarReadable car, double acceleration) {
-    return car.getPositionOnLane() + car.getSpeed() * timeStep + acceleration * timeStep * timeStep / 2;
+    return car.getPositionOnRoad() + car.getSpeed() * timeStep + acceleration * timeStep * timeStep / 2;
   }
 }

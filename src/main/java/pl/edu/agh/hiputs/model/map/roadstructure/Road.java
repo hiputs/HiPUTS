@@ -16,60 +16,60 @@ import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
 @Slf4j
 @Builder
 @AllArgsConstructor
-public class Lane implements LaneEditable {
+public class Road implements RoadEditable {
 
   /**
-   * Unique lane identifier.
+   * Unique road identifier.
    */
   @Getter
-  private final LaneId laneId;
+  private final RoadId roadId;
 
   /**
-   * Collection of cars traveling on this lane.
+   * Collection of cars traveling on this road.
    */
   @Builder.Default
   private final Deque<CarEditable> cars = new LinkedList<>();
 
   /**
-   * Reference to lane that is on the left side of this one, for now it should be in opposite direction.
+   * Reference to road that is on the left side of this one, for now it should be in opposite direction.
    */
   @Getter
   @Builder.Default
-  private final Optional<NeighborLaneInfo> leftNeighbor = Optional.empty();
+  private final Optional<NeighborRoadInfo> leftNeighbor = Optional.empty();
 
   /**
-   * Reference to junction id that is at the begging of lane
+   * Reference to junction id that is at the begging of road
    * j --------->
    */
   @Getter
   private final JunctionId incomingJunctionId;
 
   /**
-   * Reference to junction id that is at the end of lane
+   * Reference to junction id that is at the end of road
    * ---------> j
    */
   @Getter
   private final JunctionId outgoingJunctionId;
 
   /**
-   * Sign at the end of lane
+   * Sign at the end of road
    */
   @Getter
   private final Sign outSign;
 
   /**
-   * Length of lane in meters
+   * Length of road in meters
    */
   @Getter
   private final double length;
 
   /**
-   * Set for cars incoming onto this lane
+   * Set for cars incoming onto this road
    */
   @Builder.Default
   private Set<CarEditable> incomingCars = new ConcurrentSkipListSet<>();
@@ -77,14 +77,14 @@ public class Lane implements LaneEditable {
   @Override
   public Optional<CarReadable> getCarInFrontReadable(CarReadable car) {
     return cars.stream()
-        .filter(otherCar -> otherCar.getPositionOnLane() > car.getPositionOnLane())
+        .filter(otherCar -> otherCar.getPositionOnRoad() > car.getPositionOnRoad())
         .findFirst()
         .map(nextCar -> nextCar);
   }
 
   @Override
   public Optional<CarReadable> getCarBeforePosition(double position) {
-    return streamCarsFromExitReadable().filter(car -> car.getPositionOnLane() < position).findFirst();
+    return streamCarsFromExitReadable().filter(car -> car.getPositionOnRoad() < position).findFirst();
   }
 
   @Override
@@ -121,15 +121,15 @@ public class Lane implements LaneEditable {
   @Override
   public void addCarAtEntry(CarEditable car) {
     if(!cars.isEmpty()){
-      CarReadable firstCarOnLane = cars.peekFirst();
-      if(firstCarOnLane.getPositionOnLane() < car.getPositionOnLane()){
-        log.debug("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
-              + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnLane.getCarId()
-              + ", position: " + firstCarOnLane.getPositionOnLane() + ", speed: " + firstCarOnLane.getSpeed() + ". Collision after crossroad!");
+      CarReadable firstCarOnRoad = cars.peekFirst();
+      if(firstCarOnRoad.getPositionOnRoad() < car.getPositionOnRoad()){
+        log.debug("Road: " + roadId + " Try to add car at entry with higher position than first one car on road, car: "
+              + car.getCarId() + ", position: " + car.getPositionOnRoad() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnRoad.getCarId()
+              + ", position: " + firstCarOnRoad.getPositionOnRoad() + ", speed: " + firstCarOnRoad.getSpeed() + ". Collision after crossroad!");
 
         //Move back car to be before car he hit after collision
-        car.setPositionOnLaneAndSpeed(firstCarOnLane.getPositionOnLane()
-            - Math.min(0.1, firstCarOnLane.getPositionOnLane() * 0.1), firstCarOnLane.getSpeed() * 0.9);
+        car.setPositionOnRoadAndSpeed(firstCarOnRoad.getPositionOnRoad()
+            - Math.min(0.1, firstCarOnRoad.getPositionOnRoad() * 0.1), firstCarOnRoad.getSpeed() * 0.9);
       }
     }
     cars.addFirst(car);
@@ -138,15 +138,15 @@ public class Lane implements LaneEditable {
   @Override
   public void addNewCar(CarEditable car){
     if(!cars.isEmpty()){
-      double position = cars.getFirst().getPositionOnLane() - cars.getFirst().getLength() - 0.3;
+      double position = cars.getFirst().getPositionOnRoad() - cars.getFirst().getLength() - 0.3;
       double speed = cars.getFirst().getSpeed();
 
       if(position > length){
-        car.setPositionOnLaneAndSpeed(0, 10);
+        car.setPositionOnRoadAndSpeed(0, 10);
       }
 
       for (final CarEditable c : cars) {
-        double start = c.getPositionOnLane();
+        double start = c.getPositionOnRoad();
         double end = start + c.getLength();
 
         if(position >= start && position <= end){
@@ -156,7 +156,7 @@ public class Lane implements LaneEditable {
         }
       }
 
-        car.setPositionOnLaneAndSpeed(position, speed);
+        car.setPositionOnRoadAndSpeed(position, speed);
     }
     cars.addFirst(car);
   }

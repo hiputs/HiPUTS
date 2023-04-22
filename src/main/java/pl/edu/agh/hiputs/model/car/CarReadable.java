@@ -3,13 +3,13 @@ package pl.edu.agh.hiputs.model.car;
 import java.util.Optional;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionProperties;
 import pl.edu.agh.hiputs.model.id.CarId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
 public interface CarReadable {
 
-  double getPositionOnLane();
+  double getPositionOnRoad();
 
-  LaneId getLaneId();
+  RoadId getRoadId();
 
   double getLength();
 
@@ -23,7 +23,7 @@ public interface CarReadable {
 
   Optional<CrossroadDecisionProperties> getCrossRoadDecisionProperties();
 
-  Optional<LaneId> getRouteOffsetLaneId(int offset);
+  Optional<RoadId> getRouteOffsetRoadId(int offset);
 
   double getDistanceHeadway();
 }

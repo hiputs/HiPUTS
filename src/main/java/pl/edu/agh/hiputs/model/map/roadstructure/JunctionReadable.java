@@ -2,7 +2,7 @@ package pl.edu.agh.hiputs.model.map.roadstructure;
 
 import java.util.stream.Stream;
 import pl.edu.agh.hiputs.model.id.JunctionId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
 public interface JunctionReadable {
 
@@ -12,9 +12,9 @@ public interface JunctionReadable {
 
   Double getLatitude();
 
-  Stream<LaneId> streamIncomingLaneIds();
+  Stream<RoadId> streamIncomingRoadIds();
 
-  Stream<LaneId> streamOutgoingLaneIds();
+  Stream<RoadId> streamOutgoingRoadIds();
 
-  Stream<LaneOnJunction> streamLanesOnJunction();
+  Stream<RoadOnJunction> streamRoadOnJunction();
 }

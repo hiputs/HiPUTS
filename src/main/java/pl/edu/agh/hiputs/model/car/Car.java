@@ -11,9 +11,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 import pl.edu.agh.hiputs.model.car.driver.IDriver;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionProperties;
 import pl.edu.agh.hiputs.model.id.CarId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Configurable
@@ -46,14 +45,14 @@ public class Car implements CarEditable {
   private final IDriver driver;
 
   /**
-   * Lane on which car is currently situated.
+   * Road on which car is currently situated.
    */
-  private LaneId laneId;
+  private RoadId roadId;
 
   /**
-   * Position of car at its lane.
+   * Position of car at its road.
    */
-  private double positionOnLane;
+  private double positionOnRoad;
 
   /**
    * Route that car will follow and its location on this route.
@@ -91,7 +90,7 @@ public class Car implements CarEditable {
 
   @Override
   public Optional<CarUpdateResult> update() {
-    if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getLaneId() == null) { // remove car from lane
+    if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getRoadId() == null) { // remove car from lane
       log.warn("Car: " + this.getCarId() + " was removed due to finish his route");
       crossroadDecisionProperties = Optional.empty();
       return Optional.empty();
@@ -99,9 +98,9 @@ public class Car implements CarEditable {
     this.speed = decision.getSpeed();
     this.acceleration = decision.getAcceleration();
     CarUpdateResult carUpdateResult =
-        new CarUpdateResult(this.laneId, decision.getLaneId(), decision.getPositionOnLane());
-    this.laneId = decision.getLaneId();
-    this.positionOnLane = decision.getPositionOnLane();
+        new CarUpdateResult(this.roadId, decision.getRoadId(), decision.getPositionOnRoad());
+    this.roadId = decision.getRoadId();
+    this.positionOnRoad = decision.getPositionOnRoad();
     if(decision.getCrossroadDecisionProperties() == null ){
       log.trace("Car: " + this.getCarId() + " was removed due to decision null");
       return Optional.empty();
@@ -114,18 +113,18 @@ public class Car implements CarEditable {
     }
     this.crossroadDecisionProperties = decisionProperties;
 
-    Optional<LaneId> laneId = this.getRouteOffsetLaneId(0);
-    if(laneId.isPresent() && !this.laneId.equals(laneId.get())){
-      log.warn("Car: " + this.getCarId() + " was removed due to lane offset error");
+    Optional<RoadId> roadId = this.getRouteOffsetRoadId(0);
+    if(roadId.isPresent() && !this.roadId.equals(roadId.get())){
+      log.warn("Car: " + this.getCarId() + " was removed due to road offset error");
       return Optional.empty();
     }
     return Optional.of(carUpdateResult);
   }
 
   @Override
-  public void setPositionOnLaneAndSpeed(double position, double speed) {
-    if(positionOnLane > position){
-      positionOnLane = position;
+  public void setPositionOnRoadAndSpeed(double position, double speed) {
+    if(positionOnRoad > position){
+      positionOnRoad = position;
     }
     if(this.speed > speed){
       this.speed = speed;
@@ -138,8 +137,8 @@ public class Car implements CarEditable {
   }
 
   @Override
-  public Optional<LaneId> getRouteOffsetLaneId(int offset){
-      return this.routeWithLocation.getOffsetLaneId(offset);
+  public Optional<RoadId> getRouteOffsetRoadId(int offset){
+      return this.routeWithLocation.getOffsetRoadId(offset);
   }
 
   @Override

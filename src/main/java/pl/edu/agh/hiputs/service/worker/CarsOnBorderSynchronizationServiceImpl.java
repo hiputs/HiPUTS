@@ -19,7 +19,7 @@ import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.BorderSynchronizationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedRoad;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
@@ -62,8 +62,8 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     log.info("Step 9-0-2");
     Map<PatchId, List<byte[]>> serializedBorderPatches = distinctBorderPatches
         .parallelStream()
-        .map(p -> new ImmutablePair<PatchId, List<byte[]>>(p.getPatchId(), p.parallelStreamLanesEditable()
-            .map(SerializedLane::new)
+        .map(p -> new ImmutablePair<PatchId, List<byte[]>>(p.getPatchId(), p.parallelStreamRoadsEditable()
+            .map(SerializedRoad::new)
             .map(SerializationUtils::serialize)
             .toList()))
         .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));

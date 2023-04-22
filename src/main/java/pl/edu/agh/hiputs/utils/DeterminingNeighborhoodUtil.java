@@ -31,14 +31,14 @@ public class DeterminingNeighborhoodUtil {
         });
 
         allPatches.forEach(patch -> {
-            Set<PatchId> neighbourhoodPatchIds = patch.getLaneIds()
+            Set<PatchId> neighbourhoodPatchIds = patch.getRoadIds()
                     .parallelStream()
-                    .map(patch::getLaneReadable)
-                    .filter(lane -> patch.getJunctionReadable(lane.getOutgoingJunctionId()) == null ||
-                            patch.getJunctionReadable(lane.getIncomingJunctionId()) == null)
-                    .map(lane -> junction2Patch.get(lane.getOutgoingJunctionId()).equals(patch.getPatchId())
-                            ? junction2Patch.get(lane.getIncomingJunctionId())
-                            : junction2Patch.get(lane.getOutgoingJunctionId()))
+                    .map(patch::getRoadReadable)
+                    .filter(road -> patch.getJunctionReadable(road.getOutgoingJunctionId()) == null ||
+                            patch.getJunctionReadable(road.getIncomingJunctionId()) == null)
+                    .map(road -> junction2Patch.get(road.getOutgoingJunctionId()).equals(patch.getPatchId())
+                            ? junction2Patch.get(road.getIncomingJunctionId())
+                            : junction2Patch.get(road.getOutgoingJunctionId()))
                     .collect(Collectors.toSet());
 
             patch.getNeighboringPatches().addAll(neighbourhoodPatchIds);

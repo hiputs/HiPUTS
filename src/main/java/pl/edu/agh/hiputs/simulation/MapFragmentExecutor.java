@@ -18,8 +18,8 @@ import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationServi
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
-import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
-import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
+import pl.edu.agh.hiputs.tasks.RoadDecisionStageTask;
+import pl.edu.agh.hiputs.tasks.RoadUpdateStageTask;
 
 @Slf4j
 @Service
@@ -46,9 +46,9 @@ public class MapFragmentExecutor {
       // 3. decision
       log.info("Step 3 start");
       monitorLocalService.startSimulationStep();
-      List<Runnable> decisionStageTasks = mapFragment.getLocalLaneIds()
+      List<Runnable> decisionStageTasks = mapFragment.getLocalRoadIds()
           .parallelStream()
-          .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId))
+          .map(roadId -> new RoadDecisionStageTask(mapFragment, roadId))
           .collect(Collectors.toList());
       taskExecutor.executeBatch(decisionStageTasks);
 
@@ -64,9 +64,9 @@ public class MapFragmentExecutor {
 
       // 6. 7. insert incoming cars & update lanes/cars
       log.info("Step 6,7 start");
-      List<Runnable> updateStageTasks = mapFragment.getLocalLaneIds()
+      List<Runnable> updateStageTasks = mapFragment.getLocalRoadIds()
           .parallelStream()
-          .map(laneId -> new LaneUpdateStageTask(mapFragment, laneId))
+          .map(roadId -> new RoadUpdateStageTask(mapFragment, roadId))
           .collect(Collectors.toList());
       taskExecutor.executeBatch(updateStageTasks);
       monitorLocalService.markPointAsFinish(SimulationPoint.SECOND_ITERATION);

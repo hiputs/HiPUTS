@@ -1,11 +1,11 @@
 package pl.edu.agh.hiputs.model.map.roadstructure;
 
 import lombok.Data;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
 @Data
-public class NeighborLaneInfo {
-  private final LaneId laneId;
+public class NeighborRoadInfo {
+  private final RoadId roadId;
   private final HorizontalSign horizontalSign;
 
 }

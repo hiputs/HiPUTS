@@ -9,14 +9,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.id.JunctionId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
-import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.Road;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 
 @Builder
 @AllArgsConstructor
@@ -35,9 +35,9 @@ public class Patch implements PatchReader, PatchEditor {
   private final Map<JunctionId, Junction> junctions;
 
   /**
-   * Lanes within this patch
+   * Roads within this patch
    */
-  private final Map<LaneId, Lane> lanes;
+  private final Map<RoadId, Road> roads;
 
   /**
    * Patches that are adjacent/neighbours to this patch
@@ -47,33 +47,33 @@ public class Patch implements PatchReader, PatchEditor {
   private final Set<PatchId> neighboringPatches = new HashSet<>();
 
   @Override
-  public Set<LaneId> getLaneIds() {
-    return lanes.keySet();
+  public Set<RoadId> getRoadIds() {
+    return roads.keySet();
   }
 
   @Override
-  public LaneReadable getLaneReadable(LaneId laneId) {
-    return lanes.get(laneId);
+  public RoadReadable getRoadReadable(RoadId roadId) {
+    return roads.get(roadId);
   }
 
   @Override
-  public LaneEditable getLaneEditable(LaneId laneId) {
-    return lanes.get(laneId);
+  public RoadEditable getRoadEditable(RoadId roadId) {
+    return roads.get(roadId);
   }
 
   @Override
-  public Stream<LaneReadable> streamLanesReadable() {
-    return lanes.values().stream().map(Function.identity());
+  public Stream<RoadReadable> streamRoadReadable() {
+    return roads.values().stream().map(Function.identity());
   }
 
   @Override
-  public Stream<LaneEditable> streamLanesEditable() {
-    return lanes.values().stream().map(Function.identity());
+  public Stream<RoadEditable> streamRoadsEditable() {
+    return roads.values().stream().map(Function.identity());
   }
 
   @Override
-  public Stream<LaneEditable> parallelStreamLanesEditable() {
-    return lanes.values().parallelStream().map(Function.identity());
+  public Stream<RoadEditable> parallelStreamRoadsEditable() {
+    return roads.values().parallelStream().map(Function.identity());
   }
 
   @Override
@@ -102,7 +102,7 @@ public class Patch implements PatchReader, PatchEditor {
   }
 
   @Override
-  public LaneEditable getAnyLane() {
-    return lanes.values().iterator().next();
+  public RoadEditable getAnyRoad() {
+    return roads.values().iterator().next();
   }
 }
