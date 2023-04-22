@@ -18,12 +18,12 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
@@ -65,10 +65,10 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   public List<SerializedCar> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
     Patch patch = transferDataHandler.getPatchById(patchId);
 
-    return patch.getLaneIds()
+    return patch.getRoadIds()
         .parallelStream()
-        .map(patch::getLaneEditable)
-        .flatMap(LaneEditable::pollIncomingCars)
+        .map(patch::getRoadEditable)
+        .flatMap(RoadEditable::pollIncomingCars)
         .map(SerializedCar::new)
         .toList();
   }
@@ -116,7 +116,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   private String getWeaitingByMessage() {
     try {
       final Set<MapFragmentId> mapFragmentIds = incomingMessages.stream()
-          .map(m -> DebugUtils.getMapFragment().getPatchIdByLaneId(new LaneId(m.getCars().get(0).getLaneId())))
+          .map(m -> DebugUtils.getMapFragment().getPatchIdByRoadId(new RoadId(m.getCars().get(0).getRoadId())))
           .map(patchId -> DebugUtils.getMapFragment().getMapFragmentIdByPatchId(patchId))
           .collect(Collectors.toSet());
 

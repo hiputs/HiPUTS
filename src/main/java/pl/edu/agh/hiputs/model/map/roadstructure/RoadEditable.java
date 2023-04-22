@@ -5,37 +5,37 @@ import java.util.stream.Stream;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 
 /**
- * Editable interface for Lane class + readable interface
+ * Editable interface for Road class + readable interface
  */
-public interface LaneEditable extends LaneReadable {
+public interface RoadEditable extends RoadReadable {
 
   /**
-   * Adds a car to the set of cars intending to enter the lane.
+   * Adds a car to the set of cars intending to enter the road.
    */
   void addIncomingCar(CarEditable car);
 
   /**
-   * Adds a car to the lane, from the side of the incoming junction.
+   * Adds a car to the road, from the side of the incoming junction.
    */
   void addCarAtEntry(CarEditable car);
 
   /**
-   * Add new car into lane
+   * Add new car into road
    */
   void addNewCar(CarEditable car);
 
   /**
-   * Removes and returns the car from the lane that is closest to the outgoing junction.
+   * Removes and returns the car from the road that is closest to the outgoing junction.
    */
   Optional<CarEditable> pollCarAtExit();
 
   /**
-   * Returns the car from the lane that is closest to the outgoing junction.
+   * Returns the car from the road that is closest to the outgoing junction.
    */
   Optional<CarEditable> getCarAtExit();
 
   /**
-   * Returns a stream of cars intending to enter the lane, removing them from the collection.
+   * Returns a stream of cars intending to enter the road, removing them from the collection.
    */
   Stream<CarEditable> pollIncomingCars();
 

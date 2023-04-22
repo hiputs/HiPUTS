@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import pl.edu.agh.hiputs.model.id.JunctionId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
 @Getter
 @Setter
@@ -19,7 +19,7 @@ public class RouteElement {
   private JunctionId junctionId;
 
   /**
-   * Outgoing lane of junction that should be visited when following route.
+   * Outgoing road of junction that should be visited when following route.
    */
-  private LaneId outgoingLaneId;
+  private RoadId outgoingRoadId;
 }

@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
-import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedRoad;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
@@ -20,7 +20,7 @@ public class SynchronizeShadowPatchState implements Runnable {
 
   private final String patchId;
 
-  private final List<byte[]> serializedLanes;
+  private final List<byte[]> serializedRoads;
 
   private final TransferDataHandler transferDataHandler;
 
@@ -33,23 +33,23 @@ public class SynchronizeShadowPatchState implements Runnable {
         return;
       }
 
-      Map<String, List<Car>> newCarsOnLanes =
-          serializedLanes
+      Map<String, List<Car>> newCarsOnRoads =
+          serializedRoads
               .parallelStream()
-              .map(s -> (SerializedLane) SerializationUtils.deserialize(s))
-              .collect(Collectors.toMap(SerializedLane::getLaneId, SerializedLane::toRealObject));
+              .map(s -> (SerializedRoad) SerializationUtils.deserialize(s))
+              .collect(Collectors.toMap(SerializedRoad::getRoadId, SerializedRoad::toRealObject));
 
-      shadowPatch.parallelStreamLanesEditable()
-          .forEach(laneEditable -> {
-            List<Car> newCarsOnLane = newCarsOnLanes.get(laneEditable.getLaneId().getValue());
-            laneEditable.streamCarsFromExitEditable().toList().forEach(laneEditable::removeCar);
+      shadowPatch.parallelStreamRoadsEditable()
+          .forEach(roadEditable -> {
+            List<Car> newCarsOnRoad = newCarsOnRoads.get(roadEditable.getRoadId().getValue());
+            roadEditable.streamCarsFromExitEditable().toList().forEach(roadEditable::removeCar);
 
-            if (newCarsOnLane == null) {
+            if (newCarsOnRoad == null) {
               return;
             }
 
-            Collections.reverse(newCarsOnLane);
-            newCarsOnLane.forEach(laneEditable::addCarAtEntry);
+            Collections.reverse(newCarsOnRoad);
+            newCarsOnRoad.forEach(roadEditable::addCarAtEntry);
       });
 
       transferDataHandler.acceptShadowPatches(Set.of(shadowPatch));

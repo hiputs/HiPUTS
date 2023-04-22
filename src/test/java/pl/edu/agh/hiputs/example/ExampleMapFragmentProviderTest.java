@@ -8,7 +8,7 @@ import pl.edu.agh.hiputs.model.car.CarReadable;
 
 import java.util.stream.Collectors;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 
 @Disabled
 public class ExampleMapFragmentProviderTest {
@@ -26,21 +26,21 @@ public class ExampleMapFragmentProviderTest {
     }
     
     private boolean checkAllMapFragmentLanes(MapFragment mapFragment) {
-        return mapFragment.getLocalLaneIds()
+        return mapFragment.getLocalRoadIds()
                 .stream()
-                .map(laneId -> mapFragment.getLaneReadable(laneId))
+                .map(laneId -> mapFragment.getRoadReadable(laneId))
                 .collect(Collectors.toList())
                 .stream()
                 .map(lane -> this.carsInOrderAndOnLane(lane))
                 .noneMatch(b -> b==false);
     }
 
-    private boolean carsInOrderAndOnLane(LaneReadable lane) {
+    private boolean carsInOrderAndOnLane(RoadReadable lane) {
         double previousCarPosition = lane.getLength();
         for (CarReadable car : lane.streamCarsFromExitReadable().collect(Collectors.toList())) {
-            if (car.getPositionOnLane() > previousCarPosition || car.getPositionOnLane() <= 0)
+            if (car.getPositionOnRoad() > previousCarPosition || car.getPositionOnRoad() <= 0)
                 return false;
-            previousCarPosition = car.getPositionOnLane() - car.getLength();
+            previousCarPosition = car.getPositionOnRoad() - car.getLength();
         }
         return true;
     }

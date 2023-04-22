@@ -3,7 +3,7 @@ package pl.edu.agh.hiputs.communication.model.serializable;
 import java.util.Optional;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionProperties;
 import pl.edu.agh.hiputs.model.id.CarId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
 public class SerializedCrossroadDecisionProperties implements CustomSerializable<Optional<CrossroadDecisionProperties>> {
 
@@ -33,9 +33,9 @@ public class SerializedCrossroadDecisionProperties implements CustomSerializable
   private final boolean isAvailableSpaceAfterCrossroad;
 
   /**
-   * Serialized movePermanentLaneId empty if no value
+   * Serialized movePermanentRoadId empty if no value
    */
-  private final String movePermanentLaneId;
+  private final String movePermanentRoadId;
 
   /**
    * Serialized giveWayVehicleId empty if no value
@@ -49,7 +49,7 @@ public class SerializedCrossroadDecisionProperties implements CustomSerializable
       lockStepsCount = 0;
       complianceFactor = 0;
       isAvailableSpaceAfterCrossroad = true;
-      movePermanentLaneId = "";
+      movePermanentRoadId = "";
       giveWayVehicleId = "";
     }
     else{
@@ -58,7 +58,7 @@ public class SerializedCrossroadDecisionProperties implements CustomSerializable
       lockStepsCount = realObject.get().getLockStepsCount();
       complianceFactor = realObject.get().getComplianceFactor();
       isAvailableSpaceAfterCrossroad = realObject.get().getIsAvailableSpaceAfterCrossroad();
-      movePermanentLaneId = realObject.get().getMovePermanentLaneId().isEmpty() ? "" : realObject.get().getMovePermanentLaneId().get().getValue();
+      movePermanentRoadId = realObject.get().getMovePermanentRoadId().isEmpty() ? "" : realObject.get().getMovePermanentRoadId().get().getValue();
       giveWayVehicleId = realObject.get().getGiveWayVehicleId().isEmpty() ? "" : realObject.get().getGiveWayVehicleId().get().getValue();
     }
   }
@@ -69,14 +69,15 @@ public class SerializedCrossroadDecisionProperties implements CustomSerializable
       return Optional.empty();
     }
     else {
-      Optional<LaneId> movePermanentLaneIdOptional = movePermanentLaneId.isEmpty() ? Optional.empty() : Optional.of(new LaneId(movePermanentLaneId));
+      Optional<RoadId> movePermanentRoadIdOptional = movePermanentRoadId.isEmpty() ? Optional.empty() : Optional.of(new RoadId(
+          movePermanentRoadId));
       Optional<CarId> giveWayVehicleIdOptional = giveWayVehicleId.isEmpty() ? Optional.empty() : Optional.of(new CarId(giveWayVehicleId));
       return Optional.of(CrossroadDecisionProperties.builder()
           .blockingCarId(new CarId(blockingCarId))
           .lockStepsCount(lockStepsCount)
           .complianceFactor(complianceFactor)
           .isAvailableSpaceAfterCrossroad(isAvailableSpaceAfterCrossroad)
-          .movePermanentLaneId(movePermanentLaneIdOptional)
+          .movePermanentRoadId(movePermanentRoadIdOptional)
           .giveWayVehicleId(giveWayVehicleIdOptional)
           .build());
     }

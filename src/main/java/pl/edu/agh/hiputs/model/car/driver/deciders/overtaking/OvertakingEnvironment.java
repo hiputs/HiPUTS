@@ -13,6 +13,6 @@ import pl.edu.agh.hiputs.model.car.CarReadable;
 public class OvertakingEnvironment {
   final Optional<CarReadable> oppositeCar;
   final Optional<CarReadable> carBeforeOvertakenCar;
-  final double distanceOnOppositeLane;
+  final double distanceOnOppositeRoad;
   final double distanceBeforeOvertakenCar;
 }

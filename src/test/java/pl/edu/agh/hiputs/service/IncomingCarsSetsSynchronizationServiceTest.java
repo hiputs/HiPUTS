@@ -27,7 +27,7 @@ import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.SchedulerService;
@@ -73,18 +73,18 @@ public class IncomingCarsSetsSynchronizationServiceTest {
 
   private Car getCar(String id) {
     List<RouteElement> routeElementList =
-        List.of(new RouteElement(new JunctionId("zxc", JunctionType.BEND), new LaneId("vbn")),
-            new RouteElement(new JunctionId("zxc1", JunctionType.BEND), new LaneId("vbn1")));
+        List.of(new RouteElement(new JunctionId("zxc", JunctionType.BEND), new RoadId("vbn")),
+            new RouteElement(new JunctionId("zxc1", JunctionType.BEND), new RoadId("vbn1")));
 
     return Car.builder()
         .carId(new CarId(id))
         .length(12)
         .speed(13)
         .maxSpeed(14)
-        .laneId(new LaneId("abc"))
-        .positionOnLane(0)
+        .roadId(new RoadId("abc"))
+        .positionOnRoad(0)
         .routeWithLocation(new RouteWithLocation(routeElementList, 0))
-        .decision(Decision.builder().laneId(new LaneId("destination")).build())
+        .decision(Decision.builder().roadId(new RoadId("destination")).build())
         .build();
   }
 

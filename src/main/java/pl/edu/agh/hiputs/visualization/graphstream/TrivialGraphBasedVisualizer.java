@@ -12,12 +12,12 @@ import org.graphstream.ui.spriteManager.Sprite;
 import org.graphstream.ui.spriteManager.SpriteManager;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
@@ -78,35 +78,35 @@ public class TrivialGraphBasedVisualizer {
         .flatMap(patchReader -> patchReader.getJunctionIds().stream())
         .forEach(this::drawRemoteJunction);
 
-    mapFragment.getLocalLaneIds()
+    mapFragment.getLocalRoadIds()
         .stream()
-        .map(laneId -> laneId.getReadable(mapFragment))
-        .forEach(laneReadable -> drawLane(laneReadable, getLaneUiClass(laneReadable.getLaneId())));
+        .map(roadId -> roadId.getReadable(mapFragment))
+        .forEach(roadReadable -> drawRoad(roadReadable, getRoadUiClass(roadReadable.getRoadId())));
 
     mapFragment.getShadowPatchesReadable()
         .stream()
-        .map(PatchReader::getLaneIds)
+        .map(PatchReader::getRoadIds)
         .flatMap(Collection::stream)
-        .map(laneId -> laneId.getReadable(mapFragment))
-        .forEach(this::drawRemoteLane);
+        .map(roadId -> roadId.getReadable(mapFragment))
+        .forEach(this::drawRemoteRoad);
   }
 
-  private void drawLane(LaneReadable laneReadable, String laneType) {
-    LaneId laneId = laneReadable.getLaneId();
-    JunctionId junctionId1 = laneReadable.getIncomingJunctionId();
-    JunctionId junctionId2 = laneReadable.getOutgoingJunctionId();
-    Edge edge = this.graph.addEdge(laneId.getValue(), junctionId1.getValue(), junctionId2.getValue(), true);
-    edge.setAttribute("ui.class", laneType);
+  private void drawRoad(RoadReadable roadReadable, String roadType) {
+    RoadId roadId = roadReadable.getRoadId();
+    JunctionId junctionId1 = roadReadable.getIncomingJunctionId();
+    JunctionId junctionId2 = roadReadable.getOutgoingJunctionId();
+    Edge edge = this.graph.addEdge(roadId.getValue(), junctionId1.getValue(), junctionId2.getValue(), true);
+    edge.setAttribute("ui.class", roadType);
   }
 
-  private void drawRemoteLane(LaneReadable laneReadable) {
-    LaneId laneId = laneReadable.getLaneId();
+  private void drawRemoteRoad(RoadReadable roadReadable) {
+    RoadId roadId = roadReadable.getRoadId();
     // mapFragment.getShadowPatchesReadable().stream().map()
-    JunctionId junctionId1 = laneReadable.getIncomingJunctionId();
-    JunctionId junctionId2 = laneReadable.getOutgoingJunctionId();
+    JunctionId junctionId1 = roadReadable.getIncomingJunctionId();
+    JunctionId junctionId2 = roadReadable.getOutgoingJunctionId();
     drawRemoteJunction(junctionId1);
     drawRemoteJunction(junctionId2);
-    Edge edge = this.graph.addEdge(laneId.getValue(), junctionId1.getValue(), junctionId2.getValue(), true);
+    Edge edge = this.graph.addEdge(roadId.getValue(), junctionId1.getValue(), junctionId2.getValue(), true);
     edge.setAttribute("ui.class", "remote");
   }
 
@@ -140,15 +140,15 @@ public class TrivialGraphBasedVisualizer {
     }
   }
 
-  private String getLaneUiClass(LaneId laneId) {
-    Set<LaneId> borderLanes = mapFragment.getBorderPatches()
+  private String getRoadUiClass(RoadId roadId) {
+    Set<RoadId> borderRoads = mapFragment.getBorderPatches()
         .values()
         .stream()
         .flatMap(Collection::stream)
-        .map(Patch::getLaneIds)
+        .map(Patch::getRoadIds)
         .flatMap(Collection::stream)
         .collect(Collectors.toSet());
-    if (borderLanes.contains(laneId)) {
+    if (borderRoads.contains(roadId)) {
       return "border";
     }
     return "local";
@@ -159,21 +159,21 @@ public class TrivialGraphBasedVisualizer {
   public void redrawCars() {
     ArrayList<Sprite> spritesInThisUpdate = new ArrayList<>();
 
-    mapFragment.getKnownPatchReadable().stream().flatMap(PatchReader::streamLanesReadable).forEach(lane -> {
-      CarReadable car = lane.getCarAtEntryReadable().orElse(null);
+    mapFragment.getKnownPatchReadable().stream().flatMap(PatchReader::streamRoadReadable).forEach(road -> {
+      CarReadable car = road.getCarAtEntryReadable().orElse(null);
       while (car != null) {
-        Sprite sprite = spriteManager.getSprite(car.getCarId().getValue() + lane.getLaneId().getValue());
+        Sprite sprite = spriteManager.getSprite(car.getCarId().getValue() + road.getRoadId().getValue());
         if (sprite == null) {
-          sprite = spriteManager.addSprite(car.getCarId().getValue() + lane.getLaneId().getValue());
+          sprite = spriteManager.addSprite(car.getCarId().getValue() + road.getRoadId().getValue());
           sprite.setAttribute("label", car.getCarId().getValue().substring(0, 3));
-          sprite.attachToEdge(lane.getLaneId().getValue());
+          sprite.attachToEdge(road.getRoadId().getValue());
         }
         spritesInThisUpdate.add(sprite);
-        sprite.setPosition(car.getPositionOnLane() / lane.getLength());
+        sprite.setPosition(car.getPositionOnRoad() / road.getLength());
         int speedByte = (int) Math.min(car.getSpeed() * 10, 255);
         sprite.setAttribute("ui.style", String.format(vehicleSpriteTemplate, speedByte, 255 - speedByte));
 
-        car = lane.getCarInFrontReadable(car).orElse(null);
+        car = road.getCarInFrontReadable(car).orElse(null);
       }
     });
 

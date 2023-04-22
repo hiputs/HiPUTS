@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.id.JunctionId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
 @AllArgsConstructor
 public class Junction implements JunctionReadable, JunctionEditable {
@@ -32,37 +32,37 @@ public class Junction implements JunctionReadable, JunctionEditable {
   private final Double latitude;
 
   /**
-   * Lanes incoming into this junction
+   * Roads incoming into this junction
    */
-  private final Set<LaneId> incomingLaneIds;
+  private final Set<RoadId> incomingRoadIds;
 
   /**
-   * Lanes outgoing from this junction
+   * Roads outgoing from this junction
    */
-  private final Set<LaneId> outgoingLaneIds;
+  private final Set<RoadId> outgoingRoadIds;
 
   /**
-   * All lanes on this junction in order of index
+   * All roads on this junction in order of index
    */
-  private final List<LaneOnJunction> lanesOnJunction;
+  private final List<RoadOnJunction> roadOnJunctions;
 
   public static JunctionBuilder builder() {
     return new JunctionBuilder();
   }
 
   @Override
-  public Stream<LaneId> streamIncomingLaneIds() {
-    return incomingLaneIds.stream();
+  public Stream<RoadId> streamIncomingRoadIds() {
+    return incomingRoadIds.stream();
   }
 
   @Override
-  public Stream<LaneId> streamOutgoingLaneIds() {
-    return outgoingLaneIds.stream();
+  public Stream<RoadId> streamOutgoingRoadIds() {
+    return outgoingRoadIds.stream();
   }
 
   @Override
-  public Stream<LaneOnJunction> streamLanesOnJunction() {
-    return lanesOnJunction.stream();
+  public Stream<RoadOnJunction> streamRoadOnJunction() {
+    return roadOnJunctions.stream();
   }
 
   public static class JunctionBuilder {
@@ -71,9 +71,9 @@ public class Junction implements JunctionReadable, JunctionEditable {
 
     private Double longitude;
     private Double latitude;
-    private final Set<LaneId> incomingLaneIds = new HashSet<>();
-    private final Set<LaneId> outgoingLaneIds = new HashSet<>();
-    private final List<LaneOnJunction> lanesOnJunction = new ArrayList<>();
+    private final Set<RoadId> incomingRoadIds = new HashSet<>();
+    private final Set<RoadId> outgoingRoadIds = new HashSet<>();
+    private final List<RoadOnJunction> roadsOnJunction = new ArrayList<>();
 
     public JunctionBuilder junctionId(JunctionId junctionId) {
       this.junctionId = junctionId;
@@ -90,23 +90,23 @@ public class Junction implements JunctionReadable, JunctionEditable {
       return this;
     }
 
-    public JunctionBuilder addIncomingLaneId(LaneId laneId, boolean isSubordinate) {
-      incomingLaneIds.add(laneId);
-      lanesOnJunction.add(new LaneOnJunction(laneId, lanesOnJunction.size(), LaneDirection.INCOMING,
-          isSubordinate ? LaneSubordination.SUBORDINATE : LaneSubordination.NOT_SUBORDINATE, TrafficLightColor.GREEN));
+    public JunctionBuilder addIncomingRoadId(RoadId roadId, boolean isSubordinate) {
+      incomingRoadIds.add(roadId);
+      roadsOnJunction.add(new RoadOnJunction(roadId, roadsOnJunction.size(), RoadDirection.INCOMING,
+          isSubordinate ? RoadSubordination.SUBORDINATE : RoadSubordination.NOT_SUBORDINATE, TrafficLightColor.GREEN));
       return this;
     }
 
-    public JunctionBuilder addOutgoingLaneId(LaneId laneId) {
-      outgoingLaneIds.add(laneId);
-      lanesOnJunction.add(
-          new LaneOnJunction(laneId, lanesOnJunction.size(), LaneDirection.OUTGOING, LaneSubordination.NONE,
+    public JunctionBuilder addOutgoingRoadId(RoadId roadId) {
+      outgoingRoadIds.add(roadId);
+      roadsOnJunction.add(
+          new RoadOnJunction(roadId, roadsOnJunction.size(), RoadDirection.OUTGOING, RoadSubordination.NONE,
               TrafficLightColor.GREEN));
       return this;
     }
 
     public Junction build() {
-      return new Junction(junctionId, longitude, latitude, incomingLaneIds, outgoingLaneIds, lanesOnJunction);
+      return new Junction(junctionId, longitude, latitude, incomingRoadIds, outgoingRoadIds, roadsOnJunction);
     }
   }
 }

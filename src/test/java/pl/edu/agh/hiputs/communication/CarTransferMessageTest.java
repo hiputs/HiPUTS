@@ -16,7 +16,7 @@ import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
 @Disabled
 public class CarTransferMessageTest {
@@ -47,8 +47,8 @@ public class CarTransferMessageTest {
 
   private Car getCar() {
     List<RouteElement> routeElementList =
-        List.of(new RouteElement(new JunctionId("zxc", JunctionType.BEND), new LaneId("vbn")),
-            new RouteElement(new JunctionId("zxc1", JunctionType.BEND), new LaneId("vbn1")));
+        List.of(new RouteElement(new JunctionId("zxc", JunctionType.BEND), new RoadId("vbn")),
+            new RouteElement(new JunctionId("zxc1", JunctionType.BEND), new RoadId("vbn1")));
 
     RouteWithLocation route = new RouteWithLocation(routeElementList, 0);
     return Car.builder()
@@ -56,10 +56,10 @@ public class CarTransferMessageTest {
         .length(12)
         .speed(13)
         .maxSpeed(14)
-        .laneId(new LaneId("abc"))
-        .positionOnLane(0)
+        .roadId(new RoadId("abc"))
+        .positionOnRoad(0)
         .routeWithLocation(route)
-        .decision(Decision.builder().laneId(new LaneId("1111")).build())
+        .decision(Decision.builder().roadId(new RoadId("1111")).build())
         .build();
   }
 
@@ -72,10 +72,10 @@ public class CarTransferMessageTest {
         .length(12)
         .speed(13)
         .maxSpeed(14)
-        .laneId("abc")
-        .positionOnLane(0)
+        .roadId("abc")
+        .positionOnRoad(0)
         .routeElements(routeElementList)
-        .decision(SerializationUtils.serialize(SerializedDecision.builder().laneId("1111").build()))
+        .decision(SerializationUtils.serialize(SerializedDecision.builder().roadId("1111").build()))
         .build();
   }
 }

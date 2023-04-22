@@ -16,7 +16,7 @@ import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
@@ -64,22 +64,22 @@ public class CarGeneratorService implements Subscriber {
       count = (int) (count * 10);
     }
     
-    List<LaneEditable> lanesEditable = mapFragment.getRandomLanesEditable(count);
+    List<RoadEditable> roadsEditable = mapFragment.getRandomRoadsEditable(count);
     ExampleCarProvider carProvider = new ExampleCarProvider(mapFragment, mapRepository);
 
-    final List<Car> carsCreated = lanesEditable.parallelStream().map(lane -> {
+    final List<Car> carsCreated = roadsEditable.parallelStream().map(road -> {
       int hops = ThreadLocalRandom.current().nextInt(20, 40);
 
       if (bigWorker) {
         hops = 20;
       }
-      Car car = carProvider.generateCar(lane.getLaneId(), hops);
+      Car car = carProvider.generateCar(road.getRoadId(), hops);
 
       if (car == null) {
         return null;
       }
-      carProvider.limitSpeedPreventCollisionOnStart(car, lane);
-      lane.addNewCar(car);
+      carProvider.limitSpeedPreventCollisionOnStart(car, road);
+      road.addNewCar(car);
       return car;
     }).filter(Objects::nonNull).toList();
 

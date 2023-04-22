@@ -8,10 +8,10 @@ import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
 import pl.edu.agh.hiputs.model.id.JunctionId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadOnJunction;
 
 @Slf4j
 public class BasicJunctionDecider implements FunctionalDecider {
@@ -64,19 +64,19 @@ public class BasicJunctionDecider implements FunctionalDecider {
   }
 
   private double getClosestConflictVehicleArriveTime(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader){
-    if(environment.getNextCrossroadId().isEmpty() || environment.getIncomingLaneId().isEmpty()){
+    if(environment.getNextCrossroadId().isEmpty() || environment.getIncomingRoadId().isEmpty()){
       return Double.MAX_VALUE;
     }
     JunctionId nextJunctionId = environment.getNextCrossroadId().get();
     JunctionReadable junction = roadStructureReader.getJunctionReadable(nextJunctionId);
-    List<LaneOnJunction> lanesOnJunction = junction.streamLanesOnJunction().toList();
-    LaneId incomingLaneId = environment.getIncomingLaneId().get();
-    LaneId outgoingLaneId = prospector.getNextOutgoingLane(car, nextJunctionId, roadStructureReader);
+    List<RoadOnJunction> roadsOnJunction = junction.streamRoadOnJunction().toList();
+    RoadId incomingRoadId = environment.getIncomingRoadId().get();
+    RoadId outgoingRoadId = prospector.getNextOutgoingRoad(car, nextJunctionId, roadStructureReader);
 
-    List<LaneId> conflictLanesId = prospector.getConflictLaneIds(lanesOnJunction, incomingLaneId, outgoingLaneId,
+    List<RoadId> conflictRoadsId = prospector.getConflictRoadIds(roadsOnJunction, incomingRoadId, outgoingRoadId,
         car.getCarId(), roadStructureReader);
 
-    List<CarBasicDeciderData> conflictCars = prospector.getFirstCarsFromLanes(conflictLanesId, roadStructureReader);
+    List<CarBasicDeciderData> conflictCars = prospector.getFirstCarsFromRoads(conflictRoadsId, roadStructureReader);
     return getFirstArriveCarTime(conflictCars);
   }
 

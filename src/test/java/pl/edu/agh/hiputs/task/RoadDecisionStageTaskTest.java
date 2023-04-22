@@ -12,28 +12,28 @@ import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
-import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
+import pl.edu.agh.hiputs.tasks.RoadDecisionStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
 @Disabled
 @ExtendWith(MockitoExtension.class)
-public class LaneDecisionStageTaskTest {
+public class RoadDecisionStageTaskTest {
 
   private static final double DISTANCE_TO_LANE_END = 2.0;
 
   private Car car;
   private MapFragment mapFragment;
-  private LaneId laneId;
-  private LaneId nextLaneId;
+  private RoadId laneId;
+  private RoadId nextLaneId;
 
   @BeforeEach
   public void setup() {
     mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
-    laneId = mapFragment.getLocalLaneIds().stream().findAny().get();
+    laneId = mapFragment.getLocalRoadIds().stream().findAny().get();
     car = createTestCar();
   }
 
@@ -43,11 +43,11 @@ public class LaneDecisionStageTaskTest {
     setLaneId(car, laneId);
     setPositionOnLane(car, 0);
 
-    mapFragment.getLaneEditable(laneId).addCarAtEntry(car);
+    mapFragment.getRoadEditable(laneId).addCarAtEntry(car);
 
     //when
-    LaneDecisionStageTask laneDecisionStageTask = new LaneDecisionStageTask(mapFragment, laneId);
-    laneDecisionStageTask.run();
+    RoadDecisionStageTask roadDecisionStageTask = new RoadDecisionStageTask(mapFragment, laneId);
+    roadDecisionStageTask.run();
 
     //then
     Decision decision = car.getDecision();
@@ -58,7 +58,7 @@ public class LaneDecisionStageTaskTest {
   @Test
   public void laneDecisionStageTaskWithJumpsBetweenLanesTest() {
     //given
-    LaneEditable laneReadWrite = mapFragment.getLaneEditable(laneId);
+    RoadEditable laneReadWrite = mapFragment.getRoadEditable(laneId);
 
     setLaneId(car, laneId);
     setPositionOnLane(car, laneReadWrite.getLength() - DISTANCE_TO_LANE_END);
@@ -66,14 +66,14 @@ public class LaneDecisionStageTaskTest {
     laneReadWrite.addCarAtEntry(car);
 
     //when
-    LaneDecisionStageTask laneDecisionStageTask = new LaneDecisionStageTask(mapFragment, laneId);
-    laneDecisionStageTask.run();
+    RoadDecisionStageTask roadDecisionStageTask = new RoadDecisionStageTask(mapFragment, laneId);
+    roadDecisionStageTask.run();
 
     //then
     Decision decision = car.getDecision();
     Assertions.assertThat(decision).isNotNull();
     Assertions.assertThat(decision.getAcceleration()).isGreaterThan(0.0);
-    Assertions.assertThat(decision.getLaneId()).isEqualTo(nextLaneId);
+    Assertions.assertThat(decision.getRoadId()).isEqualTo(nextLaneId);
   }
 
   private Car createTestCar() {
@@ -81,15 +81,15 @@ public class LaneDecisionStageTaskTest {
   }
 
   private RouteWithLocation createTestRouteWithLocation() {
-    LaneReadable laneReadWrite = mapFragment.getLaneReadable(laneId);
+    RoadReadable laneReadWrite = mapFragment.getRoadReadable(laneId);
     nextLaneId =
-        mapFragment.getJunctionReadable(laneReadWrite.getOutgoingJunctionId()).streamOutgoingLaneIds().findAny().get();
+        mapFragment.getJunctionReadable(laneReadWrite.getOutgoingJunctionId()).streamOutgoingRoadIds().findAny().get();
 
     return new RouteWithLocation(
         List.of(new RouteElement(null, laneId), new RouteElement(laneReadWrite.getOutgoingJunctionId(), nextLaneId)), 0);
   }
 
-  private void setLaneId(Car car, LaneId laneId) {
+  private void setLaneId(Car car, RoadId laneId) {
     ReflectionUtil.setFieldValue(car, "laneId", laneId);
   }
 

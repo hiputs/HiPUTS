@@ -16,7 +16,7 @@ import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
@@ -48,12 +48,12 @@ public class SerializedCar implements CustomSerializable<Car> {
   /**
    * Lane location id
    */
-  private final String laneId;
+  private final String roadId;
 
   /**
    * Lane location position
    */
-  private final double positionOnLane;
+  private final double positionOnRoad;
 
   /**
    * Serialized route
@@ -80,15 +80,15 @@ public class SerializedCar implements CustomSerializable<Car> {
     speed = realObject.getSpeed();
     length = realObject.getLength();
     maxSpeed = realObject.getMaxSpeed();
-    laneId = realObject.getLaneId().getValue();
-    positionOnLane = realObject.getPositionOnLane();
+    roadId = realObject.getRoadId().getValue();
+    positionOnRoad = realObject.getPositionOnRoad();
 
     currentRoutePosition = realObject.getRouteWithLocation().getCurrentPosition();
     routeElements = realObject.getRouteWithLocation()
         .getRouteElements()
         .stream()
         .map(routeElement -> new SerializedRouteElement(routeElement.getJunctionId().getValue(),
-            routeElement.getOutgoingLaneId().getValue(), routeElement.getJunctionId().getJunctionType().name()))
+            routeElement.getOutgoingRoadId().getValue(), routeElement.getJunctionId().getJunctionType().name()))
         .collect(Collectors.toList());
     try {
       decision = SerializationUtils.serialize(new SerializedDecision(realObject.getDecision()));
@@ -104,7 +104,7 @@ public class SerializedCar implements CustomSerializable<Car> {
     List<RouteElement> routeElementList = routeElements.stream()
         .map(routeElement -> new RouteElement(
             new JunctionId(routeElement.getJunctionId(), JunctionType.valueOf(routeElement.getJunctionType())),
-            new LaneId(routeElement.getOutgoingLaneId())))
+            new RoadId(routeElement.getOutgoingRoadId())))
         .collect(Collectors.toList());
 
     RouteWithLocation routeWithLocation = new RouteWithLocation(routeElementList, currentRoutePosition);
@@ -115,8 +115,8 @@ public class SerializedCar implements CustomSerializable<Car> {
         .maxSpeed(maxSpeed)
         .routeWithLocation(routeWithLocation)
         .speed(speed)
-        .laneId(new LaneId(laneId))
-        .positionOnLane(positionOnLane)
+        .roadId(new RoadId(roadId))
+        .positionOnRoad(positionOnRoad)
         .decision(((SerializedDecision)SerializationUtils.deserialize(decision)).toRealObject())
         .crossroadDecisionProperties(((SerializedCrossroadDecisionProperties) SerializationUtils.deserialize(crossroadDecisionProperties)).toRealObject())
         .driver(new Driver(new DriverParameters(ConfigurationService.getConfiguration())))

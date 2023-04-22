@@ -4,12 +4,12 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
-// readable interface for Lane class
-public interface LaneReadable {
+// readable interface for Road class
+public interface RoadReadable {
 
-  LaneId getLaneId();
+  RoadId getRoadId();
 
   double getLength();
 
@@ -17,7 +17,7 @@ public interface LaneReadable {
 
   JunctionId getOutgoingJunctionId();
 
-  Optional<NeighborLaneInfo> getLeftNeighbor();
+  Optional<NeighborRoadInfo> getLeftNeighbor();
 
   /**
    * Returns the nearest car between the given one and the outgoing junction (i.e. in front of the given one).
@@ -50,7 +50,7 @@ public interface LaneReadable {
   Stream<CarReadable> streamCarsFromExitReadable();
 
   /**
-   * Returns number of vehicle in the current lane
+   * Returns number of vehicle in the current road
    */
   int numberOfCars();
 }

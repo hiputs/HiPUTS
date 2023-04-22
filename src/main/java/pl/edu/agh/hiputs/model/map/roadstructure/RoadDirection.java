@@ -1,6 +1,6 @@
 package pl.edu.agh.hiputs.model.map.roadstructure;
 
-public enum LaneDirection {
+public enum RoadDirection {
   /**
    * The lane is incoming to the junction
    */
