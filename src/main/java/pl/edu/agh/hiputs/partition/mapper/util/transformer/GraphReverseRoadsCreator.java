@@ -17,14 +17,14 @@ public class GraphReverseRoadsCreator implements GraphTransformer{
     graph.getNodes().values().forEach(newGraphBuilder::addNode);
     graph.getEdges().values().forEach(newGraphBuilder::addEdge);
 
-    // adding reverse road to dead ends
+    // adding reverse road to non-reachable start nodes
     graph.getNodes().values().stream()
         .filter(node -> node.getIncomingEdges().size() == 0)
         .flatMap(node -> node.getOutgoingEdges().stream())
         .map(this::createReversedRoad)
         .forEach(newGraphBuilder::addEdge);
 
-    // adding reverse road to non-reachable start nodes
+    // adding reverse road to dead ends
     graph.getNodes().values().stream()
         .filter(node -> node.getOutgoingEdges().size() == 0)
         .flatMap(node -> node.getIncomingEdges().stream())

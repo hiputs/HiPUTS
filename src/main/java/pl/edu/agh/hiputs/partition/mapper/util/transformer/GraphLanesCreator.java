@@ -35,10 +35,10 @@ public class GraphLanesCreator implements GraphTransformer{
         // 1. Lanes number with forward, backward and both_ways => equal assigning both_ways number of lanes to roads
         return wayData.isTagsInOppositeMeaning() ?
             createNoLanes(
-                Integer.parseInt(wayData.getTags().get(LANES_BACKWARD_KEY) + Integer.parseInt(wayData.getTags().get(LANES_BOTH_WAYS_KEY)))
+                Integer.parseInt(wayData.getTags().get(LANES_BACKWARD_KEY)) + Integer.parseInt(wayData.getTags().get(LANES_BOTH_WAYS_KEY))
             ) :
             createNoLanes(
-                Integer.parseInt(wayData.getTags().get(LANES_FORWARD_KEY) + Integer.parseInt(wayData.getTags().get(LANES_BOTH_WAYS_KEY)))
+                Integer.parseInt(wayData.getTags().get(LANES_FORWARD_KEY)) + Integer.parseInt(wayData.getTags().get(LANES_BOTH_WAYS_KEY))
             );
       }
       else if (wayData.getTags().containsKey(LANES_FORWARD_KEY) && wayData.getTags().containsKey(LANES_BACKWARD_KEY)) {
