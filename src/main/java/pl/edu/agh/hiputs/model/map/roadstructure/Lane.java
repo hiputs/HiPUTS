@@ -1,7 +1,6 @@
 package pl.edu.agh.hiputs.model.map.roadstructure;
 
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Set;
@@ -175,9 +174,9 @@ public class Lane implements LaneEditable {
   }
 
   @Override
-  public Stream<CarEditable> pollIncomingCars() {
+  public synchronized Stream<CarEditable> pollIncomingCars() {
     Set<CarEditable> oldIncomingCars = incomingCars;
-    this.incomingCars = new HashSet<>();
+    this.incomingCars = new ConcurrentSkipListSet<>();
     return oldIncomingCars.stream();
   }
 
