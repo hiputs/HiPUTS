@@ -51,42 +51,70 @@ public class RouteReader {
    * then returns route for new Car and increments lineCounter for this patch
    * it is used to generate route for generated car in simulation
    */
-  Optional<RouteWithLocation> readNextRoute(PatchId patchId, int step) {
-    var lineOpt = Optional.ofNullable(fileCursors.get(patchId)).flatMap(lineNumber -> readLineFromFile(patchId, lineNumber));
-    if (lineOpt.isEmpty())
-      removeFileCursor(patchId);
-    var route = lineOpt.flatMap(line -> parseRoute(line, step));
-    if (route.isPresent())
-      updateFileCursor(patchId);
-    return route;
-  }
-
-  private Optional<String> readLineFromFile(PatchId patch, int lineNumber) {
-    var filePath = format("{0}/patch_{1}", directoryPath, patch.getValue());
+  List<RouteWithLocation> readNextRoutes(PatchId patchId, int step) {
+    List<RouteWithLocation> nextRoutes = new ArrayList<>();
+    var filePath = format("{0}/patch_{1}", directoryPath, patchId.getValue());
     try (Stream<String> lines = Files.lines(Paths.get(filePath))) {
-      return lines.skip(lineNumber).findFirst();
+      var lineNumber = Optional.ofNullable(fileCursors.get(patchId));
+      if (lineNumber.isPresent()){
+        lines.skip(lineNumber.get()).takeWhile(line -> !isRouteFuture(line, step)).forEach(line -> {
+          updateFileCursor(patchId);
+          var parsed = getRoute(line, step);
+          parsed.ifPresent(nextRoutes::add);
+        });
+      }
+      else{
+        removeFileCursor(patchId);
+      }
+      return nextRoutes;
     } catch (IOException e) {
       log.error("Error while reading file: " + filePath, e);
-      return Optional.empty();
+      return nextRoutes;
     }
   }
 
   private Optional<RouteWithLocation> parseRoute(String line, int step) {
-    var tokens = line.split(";");
-    var creationTimeMs = Long.parseLong(tokens[0]);
-    var startLaneUUID = UUID.fromString(tokens[1]);
-    var endLaneUUID = UUID.fromString(tokens[2]);
-    var routeUUID = Stream.of(tokens[3].split(",")).toList();
-    var routeElements = new ArrayList<RouteElement>();
-    return optionalWhen(isReadyToBeCreated(creationTimeMs, step), () -> {
-      for (int i = 0; i < routeUUID.size(); i += 2) {
-        var junctionId = new JunctionId(routeUUID.get(i + 1), JunctionType.CROSSROAD);
-        var laneID = new LaneId(routeUUID.get(i));
-        // arbitralnie crossroad, trzeba sie zastanowic, jak to ogarnac
-        routeElements.add(new RouteElement(junctionId, laneID));
+      var tokens = line.split(";");
+      var creationTimeMs = Long.parseLong(tokens[0]);
+      var startLaneUUID = UUID.fromString(tokens[1]);
+      var endLaneUUID = UUID.fromString(tokens[2]);
+      var routeUUID = Stream.of(tokens[3].split(",")).toList();
+      var routeElements = new ArrayList<RouteElement>();
+      return optionalWhen(isReadyToBeCreated(creationTimeMs, step), () -> {
+        for (int i = 0; i < routeUUID.size(); i += 2) {
+          var junctionId = new JunctionId(routeUUID.get(i + 1), JunctionType.CROSSROAD);
+          var laneID = new LaneId(routeUUID.get(i));
+          // arbitralnie crossroad, trzeba sie zastanowic, jak to ogarnac
+          routeElements.add(new RouteElement(junctionId, laneID));
+        }
+        return new RouteWithLocation(routeElements, 0);
+      });
+  }
+
+  /**
+   * this method doesn't log error becouse we want to actualy skip incorect line and find last that is there to be
+   * read.The error will be logged in getRoute function, and this line will not be taken as route to generate car
+   */
+  private Boolean isRouteFuture(String line, int step){
+    try{
+      Optional<RouteWithLocation> parsed = parseRoute(line, step);
+      if (parsed.isPresent()){
+        return false;
       }
-      return new RouteWithLocation(routeElements, 0);
-    });
+    } catch (IllegalArgumentException e ){
+      return false;
+    }
+    return true;
+  }
+
+
+  private Optional<RouteWithLocation> getRoute(String line, int step) {
+    try {
+      return parseRoute(line, step);
+    } catch (IllegalArgumentException e){
+      log.error("Error while parsing line: " + line, e);
+      return Optional.empty();
+    }
   }
 
   private boolean isReadyToBeCreated(long creationTimeMs, int step) {

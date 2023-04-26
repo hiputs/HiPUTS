@@ -20,8 +20,8 @@ public class FileCarGenerator implements CarGenerator {
 
   @Override
   public List<Car>  generateCars(Patch patch, int step) {
-    return routeReader.readNextRoute(patch.getPatchId(), step).map(route -> {
-      return Car.builder()
+    return routeReader.readNextRoutes(patch.getPatchId(), step).stream().map(route ->
+      Car.builder()
         // randomowe wartosci - do zmiany
         .length(4.5)
         .maxSpeed(ConfigurationService.getConfiguration().getDefaultMaxSpeed())
@@ -30,7 +30,7 @@ public class FileCarGenerator implements CarGenerator {
         .positionOnLane(0)
         .speed(ConfigurationService.getConfiguration().getDefaultMaxSpeed())
         .driver(new Driver(new DriverParameters(ConfigurationService.getConfiguration())))
-        .build();
-    }).stream().toList();
+        .build()
+    ).toList();
   }
 }
