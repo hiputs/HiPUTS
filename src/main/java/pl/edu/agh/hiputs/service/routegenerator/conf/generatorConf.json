@@ -1,0 +1,28 @@
+{
+  "hours" : {
+    "00:00" : "val_per_1km",
+    "01:00" : "val_per_1km",
+    "02:00" : "val_per_1km",
+    "03:00" : "val_per_1km",
+    "04:00" : "val_per_1km",
+    "05:00" : "val_per_1km",
+    "06:00" : "val_per_1km",
+    "07:00" : "val_per_1km",
+    "08:00" : "val_per_1km",
+    "09:00" : "val_per_1km",
+    "10:00" : "val_per_1km",
+    "11:00" : "val_per_1km",
+    "12:00" : "val_per_1km",
+    "13:00" : "val_per_1km",
+    "14:00" : "val_per_1km",
+    "15:00" : "val_per_1km",
+    "16:00" : "val_per_1km",
+    "17:00" : "val_per_1km",
+    "18:00" : "val_per_1km",
+    "19:00" : "val_per_1km",
+    "20:00" : "val_per_1km",
+    "21:00" : "val_per_1km",
+    "22:00" : "val_per_1km",
+    "23:00" : "val_per_1km"
+  }
+}
