@@ -42,9 +42,9 @@ public class ExampleMapFragmentProvider {
 
   public static MapFragment getSimpleMap2(boolean withCars) {
     String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
-    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "3400.0"}, {"2->3", "1200.0"},})
+    Map<String, Double> roadLengths = Stream.of(new String[][] {{"1->2", "3400.0"}, {"2->3", "1200.0"},})
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 2 : 0);
+    return fromStringRepresentation(mapStructure, roadLengths, withCars ? 2 : 0);
   }
 
   public static MapFragment getSimpleMap3() {
@@ -54,9 +54,9 @@ public class ExampleMapFragmentProvider {
   //Map with many cars
   public static MapFragment getSimpleMap3(boolean withCars) {
     String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
-    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "3400.0"}, {"2->3", "1200.0"},})
+    Map<String, Double> roadLengths = Stream.of(new String[][] {{"1->2", "3400.0"}, {"2->3", "1200.0"},})
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 100 : 0);
+    return fromStringRepresentation(mapStructure, roadLengths, withCars ? 100 : 0);
   }
 
   public static MapFragment getSimpleMap4() {
@@ -66,39 +66,39 @@ public class ExampleMapFragmentProvider {
   //Map with many cars
   public static MapFragment getSimpleMap4(boolean withCars) {
     String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
-    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "200.0"}, {"2->3", "200.0"},
+    Map<String, Double> roadLengths = Stream.of(new String[][] {{"1->2", "200.0"}, {"2->3", "200.0"},
             {"3->4", "200.0"}, {"4->5", "200.0"}, {"5->6", "200.0"}, {"6->7", "200.0"}, {"7->8", "200.0"},
             {"8->1", "200.0"}, {"1->4", "200.0"}, {"4->1", "200.0"}, {"4->7", "200.0"}, {"7->4", "200.0"}, })
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 30 : 0);
+    return fromStringRepresentation(mapStructure, roadLengths, withCars ? 30 : 0);
   }
 
-  public static MapFragment getMapWithShortLane() {
-    return getMapWithShortLane(true);
+  public static MapFragment getMapWithShortRoad() {
+    return getMapWithShortRoad(true);
   }
 
   //Map with many cars
-  public static MapFragment getMapWithShortLane(boolean withCars) {
+  public static MapFragment getMapWithShortRoad(boolean withCars) {
     String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->1) (2->1) (3->2) (5->4) (6->5) (2->5) (5->2)";
-    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "200.0"}, {"2->3", "200.0"},
+    Map<String, Double> roadLengths = Stream.of(new String[][] {{"1->2", "200.0"}, {"2->3", "200.0"},
             {"3->4", "200.0"}, {"4->5", "200.0"}, {"5->6", "200.0"}, {"6->1", "200.0"}, {"2->1", "200.0"},
             {"3->2", "200.0"}, {"5->4", "200.0"}, {"6->5", "200.0"}, {"2->5", "2.0"}, {"5->2", "2.0"}, })
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 10 : 0);
+    return fromStringRepresentation(mapStructure, roadLengths, withCars ? 10 : 0);
   }
 
-  public static MapFragment getMapWithShortLane2() {
-    return getMapWithShortLane2(true);
+  public static MapFragment getMapWithShortRoad2() {
+    return getMapWithShortRoad2(true);
   }
 
   //Map with many cars
-  public static MapFragment getMapWithShortLane2(boolean withCars) {
+  public static MapFragment getMapWithShortRoad2(boolean withCars) {
     String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (7->2) (3->6)";
-    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "200.0"}, {"2->3", "2.0"},
+    Map<String, Double> roadLengths = Stream.of(new String[][] {{"1->2", "200.0"}, {"2->3", "2.0"},
             {"3->4", "200.0"}, {"4->5", "200.0"}, {"5->6", "200.0"}, {"6->7", "2.0"}, {"7->8", "200.0"},
             {"8->1", "200.0"}, {"7->2", "2.0"}, {"3->6", "2.0"}, })
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 10 : 0);
+    return fromStringRepresentation(mapStructure, roadLengths, withCars ? 10 : 0);
   }
 
   /**
@@ -112,15 +112,15 @@ public class ExampleMapFragmentProvider {
    */
   public static MapFragment getSimpleMapForOvertaking() {
     String mapStructure = "(1->2) (2->1)";
-    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "10000"}, {"2->1", "10000"},})
+    Map<String, Double> roadLengths = Stream.of(new String[][] {{"1->2", "10000"}, {"2->1", "10000"},})
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    Map<String, HorizontalSign> laneHorizontalSigns = new HashMap<>();
-    laneHorizontalSigns.put("1->2", HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE);
-    laneHorizontalSigns.put("2->1", HorizontalSign.OPPOSITE_DIRECTION_SOLID_LINE);
-    Map<String, String> laneToLaneMap = Stream.of(new String[][] {{"1->2", "2->1"},})
+    Map<String, HorizontalSign> roadHorizontalSigns = new HashMap<>();
+    roadHorizontalSigns.put("1->2", HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE);
+    roadHorizontalSigns.put("2->1", HorizontalSign.OPPOSITE_DIRECTION_SOLID_LINE);
+    Map<String, String> roadToRoadMap = Stream.of(new String[][] {{"1->2", "2->1"},})
         .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-    Map<String, RoadUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
-    setOppositeLaneInformationOnLane(stringLaneMap, laneToLaneMap, laneHorizontalSigns);
+    Map<String, RoadUnderConstruction> stringRoadMap = getStringRoadMapFromStringRepresentation(mapStructure);
+    setOppositeRoadInformationOnRoad(stringRoadMap, roadToRoadMap, roadHorizontalSigns);
 
     Map<String, JunctionUnderConstruction> stringJunctionMap =
         getStringJunctionMapFromStringRepresentation(mapStructure);
@@ -130,11 +130,11 @@ public class ExampleMapFragmentProvider {
       stringJunctionMap.get(v).junctionId = crossroadId;
     });
 
-    setLaneLengths(stringLaneMap, laneLengths);
+    setRoadLengths(stringRoadMap, roadLengths);
 
-    stringLaneMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
+    stringRoadMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
 
-    Patch patch = createPatch(stringLaneMap, stringJunctionMap);
+    Patch patch = createPatch(stringRoadMap, stringJunctionMap);
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
     return mapFragment;
   }
@@ -151,19 +151,19 @@ public class ExampleMapFragmentProvider {
    */
   public static MapFragment getSimpleLongerMapForOvertaking() {
     String mapStructure = "(1->2) (2->3) (3->4) (4->3) (3->2) (2->1)";
-    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "3000"}, {"2->1", "3000"}, {"3->4", "3000"}, {"4->3", "3000"}})
+    Map<String, Double> roadLengths = Stream.of(new String[][] {{"1->2", "3000"}, {"2->1", "3000"}, {"3->4", "3000"}, {"4->3", "3000"}})
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    Map<String, HorizontalSign> laneHorizontalSigns = new HashMap<>();
-    laneHorizontalSigns.put("1->2", HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE);
-    laneHorizontalSigns.put("2->1", HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE);
-    laneHorizontalSigns.put("2->3", HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE);
-    laneHorizontalSigns.put("3->2", HorizontalSign.OPPOSITE_DIRECTION_SOLID_LINE);
-    laneHorizontalSigns.put("3->4", HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE);
-    laneHorizontalSigns.put("4->3", HorizontalSign.OPPOSITE_DIRECTION_SOLID_LINE);
-    Map<String, String> laneToLaneMap = Stream.of(new String[][] {{"1->2", "2->1"}, {"2->3", "3->2"}, {"3->4", "4->3"}})
+    Map<String, HorizontalSign> roadHorizontalSigns = new HashMap<>();
+    roadHorizontalSigns.put("1->2", HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE);
+    roadHorizontalSigns.put("2->1", HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE);
+    roadHorizontalSigns.put("2->3", HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE);
+    roadHorizontalSigns.put("3->2", HorizontalSign.OPPOSITE_DIRECTION_SOLID_LINE);
+    roadHorizontalSigns.put("3->4", HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE);
+    roadHorizontalSigns.put("4->3", HorizontalSign.OPPOSITE_DIRECTION_SOLID_LINE);
+    Map<String, String> roadToRoadMap = Stream.of(new String[][] {{"1->2", "2->1"}, {"2->3", "3->2"}, {"3->4", "4->3"}})
         .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-    Map<String, RoadUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
-    setOppositeLaneInformationOnLane(stringLaneMap, laneToLaneMap, laneHorizontalSigns);
+    Map<String, RoadUnderConstruction> stringRoadMap = getStringRoadMapFromStringRepresentation(mapStructure);
+    setOppositeRoadInformationOnRoad(stringRoadMap, roadToRoadMap, roadHorizontalSigns);
 
     Map<String, JunctionUnderConstruction> stringJunctionMap =
         getStringJunctionMapFromStringRepresentation(mapStructure);
@@ -178,36 +178,36 @@ public class ExampleMapFragmentProvider {
       stringJunctionMap.get(v).junctionId = crossroadId;
     });
 
-    setLaneLengths(stringLaneMap, laneLengths);
+    setRoadLengths(stringRoadMap, roadLengths);
 
-    stringLaneMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
+    stringRoadMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
 
-    Patch patch = createPatch(stringLaneMap, stringJunctionMap);
+    Patch patch = createPatch(stringRoadMap, stringJunctionMap);
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
     DeterminingNeighborhoodUtil.execute(List.of(patch));
     return mapFragment;
   }
 
-  public static MapFragment fromStringRepresentation(String mapStructure, Map<String, Double> laneLengths,
+  public static MapFragment fromStringRepresentation(String mapStructure, Map<String, Double> roadLengths,
       int randomCarsPerLane) {
-    Map<String, RoadUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
+    Map<String, RoadUnderConstruction> stringRoadMap = getStringRoadMapFromStringRepresentation(mapStructure);
     Map<String, JunctionUnderConstruction> stringJunctionMap =
         getStringJunctionMapFromStringRepresentation(mapStructure);
 
-    setLaneLengths(stringLaneMap, laneLengths);
-    stringLaneMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
+    setRoadLengths(stringRoadMap, roadLengths);
+    stringRoadMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
 
-    Patch patch = createPatch(stringLaneMap, stringJunctionMap);
+    Patch patch = createPatch(stringRoadMap, stringJunctionMap);
 
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
     ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragment);
 
-    patch.streamRoadsEditable().forEach(lane -> {
+    patch.streamRoadsEditable().forEach(road -> {
       for (int i = 0; i < randomCarsPerLane; i++) {
-        double carPosition = (randomCarsPerLane - i) * lane.getLength() / (randomCarsPerLane + 1);
-        Car car = exampleCarProvider.generateCar(carPosition, lane.getRoadId());
-        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
-        lane.addCarAtEntry(car);
+        double carPosition = (randomCarsPerLane - i) * road.getLength() / (randomCarsPerLane + 1);
+        Car car = exampleCarProvider.generateCar(carPosition, road.getRoadId());
+        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, road);
+        road.addCarAtEntry(car);
       }
     });
 
@@ -216,7 +216,7 @@ public class ExampleMapFragmentProvider {
     return mapFragment;
   }
 
-  private static Map<String, RoadUnderConstruction> getStringLaneMapFromStringRepresentation(String mapStructure) {
+  private static Map<String, RoadUnderConstruction> getStringRoadMapFromStringRepresentation(String mapStructure) {
     return Arrays.stream(mapStructure.split(" "))
         .map(edge -> edge.substring(1, edge.length() - 1))
         .collect(Collectors.toMap(Function.identity(), e -> new RoadUnderConstruction()));
@@ -224,10 +224,10 @@ public class ExampleMapFragmentProvider {
 
   private static Map<String, JunctionUnderConstruction> getStringJunctionMapFromStringRepresentation(
       String mapStructure) {
-    List<String> targets = getStringLaneMapFromStringRepresentation(mapStructure).keySet().stream()
+    List<String> targets = getStringRoadMapFromStringRepresentation(mapStructure).keySet().stream()
         .map(edge -> edge.split("->")[1]).collect(Collectors.toList());
 
-    return getStringLaneMapFromStringRepresentation(mapStructure).keySet()
+    return getStringRoadMapFromStringRepresentation(mapStructure).keySet()
         .stream()
         .flatMap(edge -> Stream.of(edge.split("->")))
         .collect(Collectors.toSet())
@@ -235,16 +235,16 @@ public class ExampleMapFragmentProvider {
         .collect(Collectors.toMap(Function.identity(), v -> new JunctionUnderConstruction(getJunctionType(v, targets))));
   }
 
-  private static void setOppositeLaneInformationOnLane(
-      Map<String, RoadUnderConstruction> stringLaneMap,
-      Map<String, String> laneToLaneMap,
-      Map<String, HorizontalSign> laneHorizontalSigns
+  private static void setOppositeRoadInformationOnRoad(
+      Map<String, RoadUnderConstruction> stringRoadMap,
+      Map<String, String> roadToRoadMap,
+      Map<String, HorizontalSign> roadHorizontalSigns
   ){
-    laneToLaneMap.forEach((k, v) ->{
-      RoadUnderConstruction lane1 = stringLaneMap.get(k);
-      RoadUnderConstruction lane2 = stringLaneMap.get(v);
-      lane1.getRoadBuilder().leftNeighbor(Optional.of(new NeighborRoadInfo(lane2.getRoadId(), laneHorizontalSigns.get(k))));
-      lane2.getRoadBuilder().leftNeighbor(Optional.of(new NeighborRoadInfo(lane1.getRoadId(), laneHorizontalSigns.get(v))));
+    roadToRoadMap.forEach((k, v) ->{
+      RoadUnderConstruction road1 = stringRoadMap.get(k);
+      RoadUnderConstruction road2 = stringRoadMap.get(v);
+      road1.getRoadBuilder().leftNeighbor(Optional.of(new NeighborRoadInfo(road2.getRoadId(), roadHorizontalSigns.get(k))));
+      road2.getRoadBuilder().leftNeighbor(Optional.of(new NeighborRoadInfo(road1.getRoadId(), roadHorizontalSigns.get(v))));
     });
 
   }
@@ -253,10 +253,10 @@ public class ExampleMapFragmentProvider {
     return targets.stream().filter(v -> v.equals(junctionStringRepr)).count() > 1 ? JunctionType.CROSSROAD : JunctionType.BEND;
   }
 
-  private static void setLaneLengths(Map<String, RoadUnderConstruction> stringLaneMap,
-      Map<String, Double> laneLengths) {
-    stringLaneMap.forEach((key, roadUnderConstruction) -> roadUnderConstruction.getRoadBuilder()
-        .length(Optional.ofNullable(laneLengths.get(key)).orElse(DEFAULT_LANE_LENGTH)));
+  private static void setRoadLengths(Map<String, RoadUnderConstruction> stringRoadMap,
+      Map<String, Double> roadLengths) {
+    stringRoadMap.forEach((key, roadUnderConstruction) -> roadUnderConstruction.getRoadBuilder()
+        .length(Optional.ofNullable(roadLengths.get(key)).orElse(DEFAULT_LANE_LENGTH)));
   }
 
   private static void putOnMap(String edge, RoadUnderConstruction roadUnderConstruction,
@@ -275,14 +275,14 @@ public class ExampleMapFragmentProvider {
     outgoingJunction.getJunctionBuilder().addIncomingRoadId(roadUnderConstruction.getRoadId(), false);
   }
 
-  private static Patch createPatch(Map<String, RoadUnderConstruction> stringLaneMap,
+  private static Patch createPatch(Map<String, RoadUnderConstruction> stringRoadMap,
       Map<String, JunctionUnderConstruction> stringJunctionMap) {
     return Patch.builder()
         .junctions(stringJunctionMap.values()
             .stream()
             .map(junctionUnderConstruction -> junctionUnderConstruction.getJunctionBuilder().build())
             .collect(Collectors.toMap(Junction::getJunctionId, Function.identity())))
-        .roads(stringLaneMap.values()
+        .roads(stringRoadMap.values()
             .stream()
             .map(roadUnderConstruction -> roadUnderConstruction.getRoadBuilder().build())
             .collect(Collectors.toMap(Road::getRoadId, Function.identity())))
