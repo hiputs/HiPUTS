@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper;
+package pl.edu.agh.hiputs.partition.mapper.util.transformer;
 
 import java.util.Deque;
 import java.util.LinkedList;
