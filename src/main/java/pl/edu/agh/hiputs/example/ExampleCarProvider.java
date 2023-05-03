@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.example;
 
 import java.util.AbstractQueue;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -14,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
@@ -23,11 +25,13 @@ import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.car.driver.Driver;
 import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.id.JunctionId;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
@@ -38,23 +42,31 @@ public class ExampleCarProvider {
   private final MapFragment mapFragment;
   private Function<JunctionId, List<RoadId>> junctionIdToOutgoingRoadIdList;
   private Function<RoadId, JunctionId> roadIdToOutgoingJunctionId;
+  private Function<RoadId, Set<RoadId>> roadIdToSuccessorRoadIds;
   private List<RoadId> localRoadIdList;
+  private List<LaneId> localLaneIdList;
   private Configuration configuration;
 
   public ExampleCarProvider(MapFragment mapFragment) {
     this.mapFragment = mapFragment;
     this.localRoadIdList = mapFragment.getLocalRoadIds().stream().toList();
+    this.localLaneIdList = mapFragment.getLocalLaneIds().stream().toList();
 
     this.junctionIdToOutgoingRoadIdList =
         junctionId -> mapFragment.getJunctionReadable(junctionId).streamOutgoingRoadIds().toList();
 
     this.roadIdToOutgoingJunctionId = roadId -> mapFragment.getRoadReadable(roadId).getOutgoingJunctionId();
+    this.roadIdToSuccessorRoadIds = roadId -> mapFragment.getRoadToLaneSuccessorsReadable(roadId)
+        .stream()
+        .map(LaneReadable::getRoadId)
+        .collect(Collectors.toSet());
     this.configuration = ConfigurationService.getConfiguration();
   }
 
   public ExampleCarProvider(MapFragment mapFragment, MapRepository mapRepository) {
     this.mapFragment = mapFragment;
     this.localRoadIdList = mapFragment.getLocalRoadIds().stream().toList();
+    this.localLaneIdList = mapFragment.getLocalLaneIds().stream().toList();
 
     Queue<PatchId> notVisitedPatches = mapFragment.getKnownPatchReadable()
         .stream()
@@ -66,6 +78,7 @@ public class ExampleCarProvider {
       Patch currentPatch = mapRepository.getPatch(currentPatchId);
       currentPatch.getJunctionIds().forEach(junctionId -> junctionIdPatchId.put(junctionId, currentPatchId));
       currentPatch.getRoadIds().forEach(roadId -> roadIdToPatchId.put(roadId, currentPatchId));
+      currentPatch.getLaneIds().forEach(laneId -> laneIdToPatchId.put(laneId, currentPatchId));
 
       currentPatch.getNeighboringPatches()
           .stream()
@@ -82,6 +95,17 @@ public class ExampleCarProvider {
     this.roadIdToOutgoingJunctionId = roadId -> mapRepository.getPatch(roadIdToPatchId.get(roadId))
         .getRoadReadable(roadId)
         .getOutgoingJunctionId();
+
+    this.roadIdToSuccessorRoadIds = roadId -> mapRepository.getPatch(roadIdToPatchId.get(roadId))
+        .getRoadReadable(roadId)
+        .getLanes()
+        .stream()
+        .map(laneId -> mapRepository.getPatch(laneIdToPatchId.get(laneId))
+              .getLaneReadable(laneId).getLaneSuccessors())
+        .flatMap(Collection::stream)
+        .map(laneId -> mapRepository.getPatch(laneIdToPatchId.get(laneId))
+            .getLaneReadable(laneId).getRoadId())
+        .collect(Collectors.toSet());
 
     this.configuration = ConfigurationService.getConfiguration();
   }
@@ -111,17 +135,18 @@ public class ExampleCarProvider {
   }
 
   Map<RoadId, PatchId> roadIdToPatchId = new HashMap<>();
+  Map<LaneId, PatchId> laneIdToPatchId = new HashMap<>();
   Map<JunctionId, PatchId> junctionIdPatchId = new HashMap<>();
 
   public Car generateCar(int hops) {
-    RoadId startRoadId = getRandomStartRoadId();
-    return generateCar(startRoadId, hops);
+    LaneId startLaneId = getRandomStartLaneId();
+    return generateCar(startLaneId, hops);
   }
 
-  public Car generateCar(RoadId startRoadId, int hops) {
+  public Car generateCar(LaneId startLaneId, int hops) {
     try {
-      double position = ThreadLocalRandom.current().nextDouble(0, mapFragment.getRoadReadable(startRoadId).getLength());
-      return this.generateCar(position, startRoadId, hops, getDefaultCarLength(), getDefaultMaxSpeed());
+      double position = ThreadLocalRandom.current().nextDouble(0, mapFragment.getRoadReadableFromLaneId(startLaneId).getLength());
+      return this.generateCar(position, startLaneId, hops, getDefaultCarLength(), getDefaultMaxSpeed());
     } catch (IllegalArgumentException e){
       log.warn("Error generating car", e);
       return null;
@@ -131,12 +156,12 @@ public class ExampleCarProvider {
   public Car generateCar(double position) {
     return this.generateCar(position, getDefaultHops(), getDefaultCarLength(), getDefaultMaxSpeed());
   }
-  public Car generateCar(double position, RoadId startRoad) {
-    return this.generateCar(position, startRoad, getDefaultHops(), getDefaultCarLength(), getDefaultMaxSpeed());
+  public Car generateCar(double position, LaneId startLane) {
+    return this.generateCar(position, startLane, getDefaultHops(), getDefaultCarLength(), getDefaultMaxSpeed());
   }
 
-  public Car generateCar(double position, RoadId startRoad, int hops) {
-    return this.generateCar(position, startRoad, hops, getDefaultCarLength(), getDefaultMaxSpeed());
+  public Car generateCar(double position, LaneId startLane, int hops) {
+    return this.generateCar(position, startLane, hops, getDefaultCarLength(), getDefaultMaxSpeed());
   }
 
   public Car generate(double position, int hops) {
@@ -144,29 +169,32 @@ public class ExampleCarProvider {
   }
 
   public Car generateCar(double position, int hops, double length, double maxSpeed) {
-    RoadId startRoad = this.getRandomStartRoadId();
-    return this.generateCar(position, startRoad, hops, length, maxSpeed);
+    LaneId startLane = this.getRandomStartLaneId();
+    return this.generateCar(position, startLane, hops, length, maxSpeed);
   }
 
-  public Car generateCar(double position, RoadId startRoadId, int hops, double length, double maxSpeed) {
-    RouteWithLocation routeWithLocation = this.generateRoute(startRoadId, hops);
+  public Car generateCar(double position, LaneId startLaneId, int hops, double length, double maxSpeed) {
+    RoadId startRoadId = mapFragment.getLaneReadable(startLaneId).getRoadId();
+    RouteWithLocation routeWithLocation = this.generateRoute(startLaneId, hops);
     ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
     return Car.builder()
         .length(length)
         .maxSpeed(maxSpeed)
         .routeWithLocation(routeWithLocation)
         .roadId(startRoadId)
+        .laneId(startLaneId)
         .positionOnRoad(position)
         .speed(threadLocalRandom.nextDouble(getDefaultMaxSpeed()))
         .driver(new Driver(new DriverParameters(configuration)))
         .build();
   }
 
-  private RouteWithLocation generateRoute(RoadId startRoadId, int hops) {
+  private RouteWithLocation generateRoute(LaneId startLaneId, int hops) {
     List<RouteElement> routeElements = new ArrayList<>();
-    JunctionId startJunctionId = mapFragment.getRoadReadable(startRoadId).getIncomingJunctionId();
-    routeElements.add(new RouteElement(startJunctionId, startRoadId));
-    RoadId nextRoadId, roadId = startRoadId;
+    RoadReadable road = mapFragment.getRoadReadableFromLaneId(startLaneId);
+    JunctionId startJunctionId = road.getIncomingJunctionId();
+    routeElements.add(new RouteElement(startJunctionId, road.getRoadId()));
+    RoadId nextRoadId, roadId = road.getRoadId();
     JunctionId nextJunctionId , junctionId = startJunctionId;
     for (int i = 0; i < hops; i++) {
       nextJunctionId = this.roadIdToOutgoingJunctionId.apply(roadId);
@@ -174,9 +202,13 @@ public class ExampleCarProvider {
         break;
       }
       List<RoadId> junctionRoadIds = new LinkedList<>(this.junctionIdToOutgoingRoadIdList.apply(nextJunctionId));
+      HashSet<RoadId> successorRoadIds = new HashSet<>(this.roadIdToSuccessorRoadIds.apply(roadId));
       if (!nextJunctionId.isCrossroad()) {
         for(RoadId nextCandidateRoadId : new LinkedList<>(junctionRoadIds)) {
           if (this.roadIdToOutgoingJunctionId.apply(nextCandidateRoadId).equals(junctionId)) {
+            junctionRoadIds.remove(nextCandidateRoadId);
+          }
+          if (!successorRoadIds.contains(nextCandidateRoadId)) {
             junctionRoadIds.remove(nextCandidateRoadId);
           }
         }
@@ -193,8 +225,8 @@ public class ExampleCarProvider {
     return new RouteWithLocation(routeElements, 0);
   }
 
-  private RoadId getRandomStartRoadId() {
-    return this.localRoadIdList.get(ThreadLocalRandom.current().nextInt(this.localRoadIdList.size()));
+  private LaneId getRandomStartLaneId() {
+    return this.localLaneIdList.get(ThreadLocalRandom.current().nextInt(this.localLaneIdList.size()));
   }
 
   public void limitSpeedPreventCollisionOnStart(Car currentCar, RoadReadable road){

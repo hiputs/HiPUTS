@@ -214,7 +214,8 @@ public class ExampleMapFragmentProvider {
     patch.streamRoadsEditable().forEach(road -> {
       for (int i = 0; i < randomCarsPerLane; i++) {
         double carPosition = (randomCarsPerLane - i) * road.getLength() / (randomCarsPerLane + 1);
-        Car car = exampleCarProvider.generateCar(carPosition, road.getRoadId());
+        //TODO: Change Generate Car to all Lanes
+        Car car = exampleCarProvider.generateCar(carPosition, road.getLanes().get(0));
         exampleCarProvider.limitSpeedPreventCollisionOnStart(car, road);
         road.addCarAtEntry(car);
       }

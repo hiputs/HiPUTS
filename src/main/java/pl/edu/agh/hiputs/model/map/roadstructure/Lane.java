@@ -20,6 +20,7 @@ public class Lane implements LaneEditable{
   @Getter
   private final RoadId roadId;
 
+  @Getter
   @Builder.Default
   private final List<LaneId> laneSuccessors = new ArrayList<>();
 }

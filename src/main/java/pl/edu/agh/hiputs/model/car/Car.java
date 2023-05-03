@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import pl.edu.agh.hiputs.model.car.driver.IDriver;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionProperties;
 import pl.edu.agh.hiputs.model.id.CarId;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
@@ -48,6 +49,11 @@ public class Car implements CarEditable {
    * Road on which car is currently situated.
    */
   private RoadId roadId;
+
+  /**
+   * Lane on which car is currently situated.
+   */
+  private LaneId laneId;
 
   /**
    * Position of car at its road.

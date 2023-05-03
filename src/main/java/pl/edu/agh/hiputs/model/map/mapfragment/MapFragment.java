@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.model.map.mapfragment;
 import static java.lang.Math.min;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -116,6 +117,34 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
+  public List<LaneReadable> getLaneSuccessorsReadable(LaneId laneId) {
+    return getLaneReadable(laneId)
+        .getLaneSuccessors()
+        .stream()
+        .map(this::getLaneReadable)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<LaneReadable> getRoadToLaneSuccessorsReadable(RoadId roadId) {
+    return getRoadReadable(roadId)
+        .getLanes()
+        .stream()
+        .map(this::getLaneSuccessorsReadable)
+        .flatMap(Collection::stream)
+        .distinct()
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public RoadReadable getRoadReadableFromLaneId(LaneId laneId) {
+    return Optional.ofNullable(laneIdToPatchId.get(laneId))
+        .map(knownPatches::get)
+        .map(patch -> patch.getRoadReadable(patch.getLaneReadable(laneId).getRoadId()))
+        .orElse(null);
+  }
+
+  @Override
   public JunctionReadable getJunctionReadable(JunctionId junctionId) {
     return Optional.ofNullable(junctionIdToPatchId.get(junctionId))
         .map(knownPatches::get)
@@ -223,6 +252,13 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     return localPatchIds.stream()
         .map(knownPatches::get)
         .flatMap(patch -> patch.getRoadIds().stream())
+        .collect(Collectors.toSet());
+  }
+
+  public Set<LaneId> getLocalLaneIds() {
+    return localPatchIds.stream()
+        .map(knownPatches::get)
+        .flatMap(patch -> patch.getLaneIds().stream())
         .collect(Collectors.toSet());
   }
 

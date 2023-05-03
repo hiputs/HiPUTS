@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.model.map.patch;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import pl.edu.agh.hiputs.model.id.JunctionId;

@@ -73,7 +73,8 @@ public class CarGeneratorService implements Subscriber {
       if (bigWorker) {
         hops = 20;
       }
-      Car car = carProvider.generateCar(road.getRoadId(), hops);
+      // TODO: Generate Car per all Lanes
+      Car car = carProvider.generateCar(road.getLanes().get(0), hops);
 
       if (car == null) {
         return null;
