@@ -22,6 +22,7 @@ import pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
@@ -30,6 +31,8 @@ import pl.edu.agh.hiputs.model.map.patch.PatchEditor;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.MapStatistic;
@@ -83,6 +86,11 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   private final Map<RoadId, PatchId> roadIdToPatchId;
 
   /**
+   * Mapping from RoadId to PatchId of Patch containing this Lane
+   */
+  private final Map<LaneId, PatchId> laneIdToPatchId;
+
+  /**
    * Mapping from JunctionId to PatchId of Patch containing this Junction
    */
   private final Map<JunctionId, PatchId> junctionIdToPatchId;
@@ -100,6 +108,14 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
+  public LaneReadable getLaneReadable(LaneId laneId) {
+    return Optional.ofNullable(laneIdToPatchId.get(laneId))
+        .map(knownPatches::get)
+        .map(patch -> patch.getLaneReadable(laneId))
+        .orElse(null);
+  }
+
+  @Override
   public JunctionReadable getJunctionReadable(JunctionId junctionId) {
     return Optional.ofNullable(junctionIdToPatchId.get(junctionId))
         .map(knownPatches::get)
@@ -112,6 +128,14 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     return Optional.ofNullable(roadIdToPatchId.get(roadId))
         .map(knownPatches::get)
         .map(patch -> patch.getRoadEditable(roadId))
+        .orElse(null);
+  }
+
+  @Override
+  public LaneEditable getLaneEditable(LaneId laneId) {
+    return Optional.ofNullable(laneIdToPatchId.get(laneId))
+        .map(knownPatches::get)
+        .map(patch -> patch.getLaneEditable(laneId))
         .orElse(null);
   }
 
@@ -551,6 +575,14 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
           .flatMap(map -> map.entrySet().stream())
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+      Map<LaneId, PatchId> laneToPatch = knownPatches.values()
+          .stream()
+          .map(patch -> patch.getLaneIds()
+              .stream()
+              .collect(Collectors.toMap(Function.identity(), laneId -> patch.getPatchId())))
+          .flatMap(map -> map.entrySet().stream())
+          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
       Map<JunctionId, PatchId> junctionToPatch = new HashMap<>();
 
       knownPatches.values().forEach(patch -> {
@@ -558,7 +590,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       });
 
       return new MapFragment(mapFragmentId, knownPatches, localPatchIds, borderPatches, shadowPatches, roadToPatch,
-          junctionToPatch);
+          laneToPatch, junctionToPatch);
     }
 
     /**
