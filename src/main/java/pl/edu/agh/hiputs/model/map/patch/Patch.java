@@ -9,11 +9,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.id.JunctionId;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.Road;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
@@ -38,6 +42,11 @@ public class Patch implements PatchReader, PatchEditor {
    * Roads within this patch
    */
   private final Map<RoadId, Road> roads;
+
+  /**
+   * Lanes within this patch
+   */
+  private final Map<LaneId, Lane> lanes;
 
   /**
    * Patches that are adjacent/neighbours to this patch
@@ -74,6 +83,22 @@ public class Patch implements PatchReader, PatchEditor {
   @Override
   public Stream<RoadEditable> parallelStreamRoadsEditable() {
     return roads.values().parallelStream().map(Function.identity());
+  }
+
+  @Override
+  public Set<LaneId> getLaneIds() {
+    return lanes.keySet();
+  }
+
+  @Override
+  public LaneReadable getLaneReadable(LaneId laneId) {
+    return lanes.get(laneId);
+  }
+
+
+  @Override
+  public LaneEditable getLaneEditable(LaneId laneId) {
+    return lanes.get(laneId);
   }
 
   @Override
