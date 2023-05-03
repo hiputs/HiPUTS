@@ -10,17 +10,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pl.edu.agh.hiputs.partition.mapper.GraphCrossroadDeterminer;
-import pl.edu.agh.hiputs.partition.mapper.GraphLanesCreator;
-import pl.edu.agh.hiputs.partition.mapper.GraphLengthFiller;
-import pl.edu.agh.hiputs.partition.mapper.GraphMaxSpeedFiller;
-import pl.edu.agh.hiputs.partition.mapper.GraphNextLanesAllocator;
-import pl.edu.agh.hiputs.partition.mapper.GraphReverseRoadsCreator;
-import pl.edu.agh.hiputs.partition.mapper.LargestCCSelector;
+import pl.edu.agh.hiputs.partition.mapper.util.successor.allocator.OnBendSuccessorAllocator;
+import pl.edu.agh.hiputs.partition.mapper.util.successor.allocator.OnCrossroadSuccessorAllocator;
+import pl.edu.agh.hiputs.partition.mapper.util.successor.pairing.DefaultPairingIncomingWithOutgoings;
+import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphCrossroadDeterminer;
+import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphLanesCreator;
+import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphLengthFiller;
+import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphMaxSpeedFiller;
+import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphNextLanesAllocator;
+import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphReverseRoadsCreator;
+import pl.edu.agh.hiputs.partition.mapper.util.transformer.LargestCCSelector;
 import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapper;
 import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapperImpl;
 import pl.edu.agh.hiputs.partition.mapper.util.oneway.StandardOsmAndRoundaboutOnewayProcessor;
-import pl.edu.agh.hiputs.partition.mapper.util.turn.StandardOsmTurnProcessor;
+import pl.edu.agh.hiputs.partition.mapper.util.turn.mapper.FixedAngleRangeTurnMapper;
+import pl.edu.agh.hiputs.partition.mapper.util.turn.processor.StandardOsmTurnProcessor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -44,7 +48,14 @@ public class BFSInRangeTest {
           new GraphReverseRoadsCreator(),
           new GraphCrossroadDeterminer(),
           new GraphLanesCreator(new StandardOsmAndRoundaboutOnewayProcessor()),
-          new GraphNextLanesAllocator(new StandardOsmTurnProcessor())
+          new GraphNextLanesAllocator(List.of(
+              new OnBendSuccessorAllocator(new StandardOsmTurnProcessor()),
+              new OnCrossroadSuccessorAllocator(
+                  new DefaultPairingIncomingWithOutgoings(),
+                  new StandardOsmTurnProcessor(),
+                  new FixedAngleRangeTurnMapper()
+              )
+          ))
       )
   );
   private Graph<JunctionData, WayData> testGraph;

@@ -174,12 +174,15 @@ public class ExampleCarProvider {
         break;
       }
       List<RoadId> junctionRoadIds = new LinkedList<>(this.junctionIdToOutgoingRoadIdList.apply(nextJunctionId));
-      if (!nextJunctionId.isCrossroad() && junctionRoadIds.size() >= 2) {
+      if (!nextJunctionId.isCrossroad()) {
         for(RoadId nextCandidateRoadId : new LinkedList<>(junctionRoadIds)) {
           if (this.roadIdToOutgoingJunctionId.apply(nextCandidateRoadId).equals(junctionId)) {
             junctionRoadIds.remove(nextCandidateRoadId);
           }
         }
+      }
+      if (junctionRoadIds.isEmpty()) {
+        break;
       }
       nextRoadId = junctionRoadIds.get(ThreadLocalRandom.current().nextInt(junctionRoadIds.size()));
       routeElements.add(new RouteElement(nextJunctionId, nextRoadId));
