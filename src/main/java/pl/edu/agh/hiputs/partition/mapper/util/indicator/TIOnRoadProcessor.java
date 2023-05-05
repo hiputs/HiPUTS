@@ -42,7 +42,7 @@ public class TIOnRoadProcessor implements TIProcessor{
           .findAny()
           .orElse(null);
 
-      if (currentEdge == null || trafficIndicatorDeterminer.checkFromTags(currentEdge.getData().getTags())) {
+      if (currentEdge == null || trafficIndicatorDeterminer.checkFromTags(currentEdge.getTarget().getData().getTags())) {
         return null;
       }
     }

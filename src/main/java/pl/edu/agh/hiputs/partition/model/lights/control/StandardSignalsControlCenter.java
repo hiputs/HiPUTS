@@ -1,14 +1,11 @@
 package pl.edu.agh.hiputs.partition.model.lights.control;
 
+import java.util.ArrayList;
 import java.util.List;
 import pl.edu.agh.hiputs.partition.model.lights.group.GreenColorGroup;
 
 public class StandardSignalsControlCenter implements SignalsControlCenter{
-  private final List<GreenColorGroup> greenColorGroups;
-
-  private StandardSignalsControlCenter(GreenColorGroup ... greenColorGroups) {
-    this.greenColorGroups = List.of(greenColorGroups);
-  }
+  private final List<GreenColorGroup> greenColorGroups = new ArrayList<>();
 
   @Override
   public List<GreenColorGroup> getGreenColorGroups() {
