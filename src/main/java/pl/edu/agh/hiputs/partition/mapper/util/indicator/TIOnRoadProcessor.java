@@ -47,6 +47,7 @@ public class TIOnRoadProcessor implements TIProcessor{
       }
     }
 
-    return currentEdge.getTarget();
+    return trafficIndicatorDeterminer.checkFromTags(currentEdge.getTarget().getData().getTags()) ?
+        null : currentEdge.getTarget();
   }
 }
