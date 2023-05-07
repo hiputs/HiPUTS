@@ -37,7 +37,8 @@ public class OnCrossroadSuccessorAllocator implements SuccessorAllocator{
 
   private void allocateOnCrossroad(Node<JunctionData, WayData> crossroad) {
     crossroad.getIncomingEdges().forEach(incomingEdge -> {
-      List<Edge<JunctionData, WayData>> sortedOutgoings = edgeSorter.getSorted(crossroad.getOutgoingEdges(), incomingEdge);
+      List<Edge<JunctionData, WayData>> sortedOutgoings = edgeSorter.getSorted(
+          crossroad.getOutgoingEdges(), incomingEdge, edge -> edge.getTarget().getData());
       List<List<TurnDirection>> availableTurns = turnProcessor.getTurnDirectionsFromTags(incomingEdge.getData());
 
       Optional.of(availableTurns)

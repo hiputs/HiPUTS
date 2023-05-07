@@ -36,7 +36,7 @@ public class GraphGreenGroupsAggregator implements GraphTransformer{
 
   private void createGreenColorGroupsForJunction(Node<JunctionData, WayData> junction) {
     List<Edge<JunctionData, WayData>> sortedIncomingEdges = edgeSorter.getSorted(
-        junction.getIncomingEdges(), junction.getIncomingEdges().get(0));
+        junction.getIncomingEdges(), junction.getIncomingEdges().get(0), edge -> edge.getSource().getData());
 
     junction.getData().getSignalsControlCenter().ifPresent(signalsControlCenter ->
         signalsControlCenter.getGreenColorGroups().addAll(

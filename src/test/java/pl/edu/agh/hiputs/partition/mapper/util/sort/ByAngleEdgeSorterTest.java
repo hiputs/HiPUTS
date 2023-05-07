@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.partition.mapper.util.sort;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
@@ -28,7 +29,12 @@ public class ByAngleEdgeSorterTest {
   private final static Edge<JunctionData, WayData> firstEdge = new Edge<>("01", WayData.builder().build());
   private final static Edge<JunctionData, WayData> secondEdge = new Edge<>("02", WayData.builder().build());
   private final static Edge<JunctionData, WayData> thirdEdge = new Edge<>("03", WayData.builder().build());
+
   private final static Edge<JunctionData, WayData> refEdge = new Edge<>("10", WayData.builder().build());
+
+  private final static Edge<JunctionData, WayData> reverseFirstEdge = new Edge<>("10", WayData.builder().build());
+  private final static Edge<JunctionData, WayData> reverseSecondEdge = new Edge<>("20", WayData.builder().build());
+  private final static Edge<JunctionData, WayData> reverseThirdEdge = new Edge<>("30", WayData.builder().build());
 
   @BeforeAll
   public static void initAll() {
@@ -40,15 +46,24 @@ public class ByAngleEdgeSorterTest {
     secondEdge.setTarget(secondNode);
     thirdEdge.setSource(crossroad);
     thirdEdge.setTarget(thirdNode);
+    reverseFirstEdge.setSource(firstNode);
+    reverseFirstEdge.setTarget(crossroad);
+    reverseSecondEdge.setSource(secondNode);
+    reverseSecondEdge.setTarget(crossroad);
+    reverseThirdEdge.setSource(thirdNode);
+    reverseThirdEdge.setTarget(crossroad);
   }
 
   @ParameterizedTest
   @MethodSource("provideParamsForMultipleEdgesSorting")
-  public void sortEdges(List<Edge<JunctionData, WayData>> edges, List<Edge<JunctionData, WayData>> sorted) {
+  public void sortEdges(
+      List<Edge<JunctionData, WayData>> edges,
+      List<Edge<JunctionData, WayData>> sorted,
+      Function<Edge<JunctionData, WayData>, JunctionData> nodeGetter) {
     // given
 
     // when
-    List<Edge<JunctionData, WayData>> sortedEdges = sorter.getSorted(edges, refEdge);
+    List<Edge<JunctionData, WayData>> sortedEdges = sorter.getSorted(edges, refEdge, nodeGetter);
 
     // then
     Assertions.assertEquals(sorted.size(), sortedEdges.size());
@@ -57,11 +72,20 @@ public class ByAngleEdgeSorterTest {
   }
 
   private static Stream<Arguments> provideParamsForMultipleEdgesSorting() {
+    Function<Edge<JunctionData, WayData>, JunctionData> targetGetter = edge -> edge.getTarget().getData();
+    Function<Edge<JunctionData, WayData>, JunctionData> sourceGetter = edge -> edge.getSource().getData();
+
     return Stream.of(
-        Arguments.of(List.of(firstEdge, secondEdge, thirdEdge), List.of(firstEdge, secondEdge, thirdEdge)),
-        Arguments.of(List.of(secondEdge, thirdEdge, firstEdge), List.of(firstEdge, secondEdge, thirdEdge)),
-        Arguments.of(List.of(firstEdge), List.of(firstEdge)),
-        Arguments.of(List.of(), List.of())
+        Arguments.of(List.of(firstEdge, secondEdge, thirdEdge), List.of(firstEdge, secondEdge, thirdEdge), targetGetter),
+        Arguments.of(List.of(secondEdge, thirdEdge, firstEdge), List.of(firstEdge, secondEdge, thirdEdge), targetGetter),
+        Arguments.of(List.of(firstEdge), List.of(firstEdge), targetGetter),
+        Arguments.of(List.of(), List.of(), targetGetter),
+        Arguments.of(List.of(reverseFirstEdge, reverseSecondEdge, reverseThirdEdge),
+            List.of(reverseFirstEdge, reverseSecondEdge, reverseThirdEdge), sourceGetter),
+        Arguments.of(List.of(reverseSecondEdge, reverseThirdEdge, reverseFirstEdge),
+            List.of(reverseFirstEdge, reverseSecondEdge, reverseThirdEdge), sourceGetter),
+        Arguments.of(List.of(reverseFirstEdge), List.of(reverseFirstEdge), sourceGetter),
+        Arguments.of(List.of(), List.of(), sourceGetter)
     );
   }
 }

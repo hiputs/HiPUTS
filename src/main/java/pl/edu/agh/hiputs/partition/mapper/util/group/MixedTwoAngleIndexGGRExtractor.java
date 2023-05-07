@@ -6,14 +6,12 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 
 @Service
-@Primary
 @RequiredArgsConstructor
 public class MixedTwoAngleIndexGGRExtractor implements GreenGroupRoadsExtractor{
   private final static double ANGLE_DIFF = 180.0;

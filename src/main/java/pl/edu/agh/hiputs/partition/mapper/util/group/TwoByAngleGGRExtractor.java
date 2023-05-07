@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
@@ -18,6 +19,7 @@ import pl.edu.agh.hiputs.partition.model.geom.Vector;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 
 @Service
+@Primary
 public class TwoByAngleGGRExtractor implements GreenGroupRoadsExtractor, Angle2EdgeMapCreator{
   private final static double ANGLE_AMPLITUDE = 30.0;
   private final static double ANGLE_DIFF = 180.0;

@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.partition.mapper.util.sort;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,11 @@ public class ByAngleEdgeSorter implements EdgeSorter{
   @Override
   public List<Edge<JunctionData, WayData>> getSorted(
       List<Edge<JunctionData, WayData>> edgesToSort,
-      Edge<JunctionData, WayData> refEdge
+      Edge<JunctionData, WayData> refEdge,
+      Function<Edge<JunctionData, WayData>, JunctionData> appropriateNodeGetter
   ) {
     List<Pair<Point, Edge<JunctionData, WayData>>> dataToSort = edgesToSort.stream()
-        .map(edge -> Pair.of(Point.convertFromCoords(edge.getTarget().getData()), edge))
+        .map(edge -> Pair.of(Point.convertFromCoords(appropriateNodeGetter.apply(edge)), edge))
         .collect(Collectors.toList());
 
     edgeSorter.sortByPointsWithRef(
