@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,12 @@ public class MixedTwoAngleIndexGGRExtractor implements GreenGroupRoadsExtractor{
 
   @Override
   public List<List<Edge<JunctionData, WayData>>> extract(List<Edge<JunctionData, WayData>> edges) {
+    if (edges.size() <= 2) {
+      return edges.stream()
+          .map(List::of)
+          .collect(Collectors.toList());
+    }
+
     TreeMap<Double, Edge<JunctionData, WayData>> angle2EdgeMap = angle2EdgeMapCreator.create(edges, edges.get(0));
 
     Edge<JunctionData, WayData> oppositeStraightEdge = angle2EdgeMap.entrySet().stream()

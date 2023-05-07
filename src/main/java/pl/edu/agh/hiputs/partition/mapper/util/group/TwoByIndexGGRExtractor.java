@@ -18,6 +18,12 @@ public class TwoByIndexGGRExtractor implements GreenGroupRoadsExtractor, AtIndex
 
   @Override
   public List<List<Edge<JunctionData, WayData>>> split(List<Edge<JunctionData, WayData>> edges, int index) {
+    if (edges.size() <= 2) {
+      return edges.stream()
+          .map(List::of)
+          .collect(Collectors.toList());
+    }
+
     List<Edge<JunctionData, WayData>> firstPart = edges.subList(0, index);
     List<Edge<JunctionData, WayData>> secondPart = edges.subList(index, edges.size());
 
@@ -25,8 +31,15 @@ public class TwoByIndexGGRExtractor implements GreenGroupRoadsExtractor, AtIndex
         .mapToObj(i -> List.of(firstPart.get(i), secondPart.get(i)))
         .collect(Collectors.toList());
 
-    if (edges.size() % 2 != 0) {
-      result.add(List.of(secondPart.get(secondPart.size() - 1)));
+    if (index * 2 != edges.size()) {
+      result.addAll(
+          (firstPart.size() > secondPart.size() ?
+              firstPart.subList(secondPart.size(), firstPart.size()) :
+              secondPart.subList(firstPart.size(), secondPart.size())
+          ).stream()
+          .map(List::of)
+          .toList()
+      );
     }
 
     return result;
