@@ -42,7 +42,7 @@ public class GraphGreenGroupsAggregator implements GraphTransformer{
         signalsControlCenter.getGreenColorGroups().addAll(
             greenGroupsExtractor.extract(sortedIncomingEdges).stream()
                 .map(this::mapEdgesToTIs)
-                .map(MultipleTIsGreenColorGroup::new)
+                .map(group -> MultipleTIsGreenColorGroup.builder().trafficIndicators(group).build())
                 .toList()
         ));
   }
