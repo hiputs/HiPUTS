@@ -12,7 +12,7 @@ import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicatorEditab
 @Getter
 @Builder
 @EqualsAndHashCode
-public class MultipleTIsGreenColorGroup implements GreenColorGroup {
+public class MultipleTIsGreenColorGroup implements GreenColorGroupEditable {
   @Builder.Default
   private final String id = UUID.randomUUID().toString();
   @Builder.Default

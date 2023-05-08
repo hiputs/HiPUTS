@@ -6,7 +6,7 @@ import java.util.UUID;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import pl.edu.agh.hiputs.partition.model.lights.group.GreenColorGroup;
+import pl.edu.agh.hiputs.partition.model.lights.group.GreenColorGroupEditable;
 
 @Getter
 @Builder
@@ -17,5 +17,5 @@ public class StandardSignalsControlCenter implements SignalsControlCenter{
   @Builder.Default
   @EqualsAndHashCode.Exclude
   // list brings order ability (maybe needed in the future)
-  private final List<GreenColorGroup> greenColorGroups = new ArrayList<>();
+  private final List<GreenColorGroupEditable> greenColorGroups = new ArrayList<>();
 }
