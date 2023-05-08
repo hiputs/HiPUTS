@@ -9,7 +9,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,13 @@ import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
+import pl.edu.agh.hiputs.partition.model.lights.control.SignalsControlCenter;
+import pl.edu.agh.hiputs.partition.model.lights.control.StandardSignalsControlCenter;
+import pl.edu.agh.hiputs.partition.model.lights.group.GreenColorGroupEditable;
+import pl.edu.agh.hiputs.partition.model.lights.group.GreenColorGroupReadable;
+import pl.edu.agh.hiputs.partition.model.lights.group.MultipleTIsGreenColorGroup;
+import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicator;
+import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicatorReadable;
 
 @Slf4j
 @Service
@@ -62,6 +71,8 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     FileWriter edgesWriter = new FileWriter(exportDescriptor.getEdgesFilePath());
     FileWriter lanesWriter = new FileWriter(exportDescriptor.getLanesFilePath());
     FileWriter patchesWriter = new FileWriter(exportDescriptor.getPatchesFilePath());
+    FileWriter signalGroupsWriter = new FileWriter(exportDescriptor.getSignalGroupsFilePath());
+    FileWriter signalCentersWriter = new FileWriter(exportDescriptor.getSignalCentersFilePath());
 
     try (CSVPrinter nodesPrinter = new CSVPrinter(nodesWriter,
         CSVFormat.DEFAULT.builder().setHeader(NodeHeaders.class).build());
@@ -70,7 +81,11 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
         CSVPrinter lanesPrinter = new CSVPrinter(lanesWriter,
             CSVFormat.DEFAULT.builder().setHeader(LaneHeader.class).build());
         CSVPrinter patchesPrinter = new CSVPrinter(patchesWriter,
-            CSVFormat.DEFAULT.builder().setHeader(PatchHeader.class).build())) {
+            CSVFormat.DEFAULT.builder().setHeader(PatchHeader.class).build());
+        CSVPrinter signalGroupsPrinter = new CSVPrinter(signalGroupsWriter,
+            CSVFormat.DEFAULT.builder().setHeader(SignalGroupHeader.class).build());
+        CSVPrinter signalCentersPrinter = new CSVPrinter(signalCentersWriter,
+            CSVFormat.DEFAULT.builder().setHeader(SignalCenterHeader.class).build())) {
       for (Node<PatchData, PatchConnectionData> p : graph.getNodes().values()) {
         patchesPrinter.printRecord(p.getId(),
             mapToCsv(p.getOutgoingEdges().stream().map(e -> e.getTarget().getId()).collect(Collectors.toList())));
@@ -83,6 +98,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
                 n.getData().getLat(),
                 n.getData().isCrossroad(),
                 n.getData().getPatchId(),
+                n.getData().getSignalsControlCenter().map(SignalsControlCenter::getId).orElse(null),
                 mapToCsv(n.getData().getTags()));
           }
         }
@@ -96,6 +112,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
               e.getData().isPriorityRoad(),
               e.getData().isOneWay(),
               e.getData().getPatchId(),
+              e.getData().getTrafficIndicator().map(TrafficIndicatorReadable::getId).orElse(null),
               mapToCsv(e.getData().getLanes().stream()
                   .map(LaneData::getId)
                   .toList()),
@@ -117,6 +134,39 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
                   .toList())
           );
         }
+
+        // taking all signal control centers from crossroads
+        List<SignalsControlCenter> distinctSignalCenters = p.getData().getGraphInsidePatch().getNodes().values().stream()
+            .filter(node -> node.getData().getSignalsControlCenter().isPresent())
+            .map(node -> node.getData().getSignalsControlCenter().get())
+            .distinct()
+            .toList();
+
+        // saving distinct signal controls with green groups as IDs to one file
+        for (SignalsControlCenter controlCenter : distinctSignalCenters) {
+          signalCentersPrinter.printRecord(
+              controlCenter.getId(),
+              mapToCsv(controlCenter.getGreenColorGroups().stream()
+                  .map(GreenColorGroupEditable::getId)
+                  .toList())
+          );
+        }
+
+        // taking all signal groups from signal control centers
+        List<GreenColorGroupEditable> distinctSignalGroups = distinctSignalCenters.stream()
+            .flatMap(signalsControlCenter -> signalsControlCenter.getGreenColorGroups().stream())
+            .distinct()
+            .toList();
+
+        // saving distinct signal groups with traffic indicators as IDs to one file
+        for (GreenColorGroupReadable colorGroup : distinctSignalGroups) {
+          signalGroupsPrinter.printRecord(
+              colorGroup.getId(),
+              mapToCsv(colorGroup.getTrafficIndicators().stream()
+                  .map(TrafficIndicatorReadable::getId)
+                  .toList())
+          );
+        }
       }
     }
   }
@@ -127,13 +177,66 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     FileReader edgesReader = new FileReader(exportDescriptor.getEdgesFilePath());
     FileReader lanesReader = new FileReader(exportDescriptor.getLanesFilePath());
     FileReader patchesReader = new FileReader(exportDescriptor.getPatchesFilePath());
+    FileReader signalGroupsReader = new FileReader(exportDescriptor.getSignalGroupsFilePath());
+    FileReader signalCentersReader = new FileReader(exportDescriptor.getSignalCentersFilePath());
 
     Graph.GraphBuilder<JunctionData, WayData> wholeMapGraph = new GraphBuilder<>();
     Map<String, Graph.GraphBuilder<JunctionData, WayData>> insideGraphs = new HashMap<>();
 
     Map<String, Node<JunctionData, WayData>> nodeId2Node = new HashMap<>();
 
+    // retrieving signal green groups
     Iterable<CSVRecord> records =
+        CSVFormat.DEFAULT.builder().setHeader(SignalGroupHeader.class)
+            .setSkipHeaderRecord(true).build().parse(signalGroupsReader);
+    Map<String, Collection<String>> groupsAsIDs = new HashMap<>();
+    for (CSVRecord record : records) {
+      groupsAsIDs.put(
+          record.get(SignalGroupHeader.id),
+          csvToCollection(record.get(SignalGroupHeader.trafficIndicators))
+      );
+    }
+
+    // extracting traffic indicators
+    Map<String, TrafficIndicator> idToTrafficIndicator = groupsAsIDs.values().stream()
+        .flatMap(Collection::stream)
+        .distinct()
+        .collect(Collectors.toMap(Function.identity(), id -> TrafficIndicator.builder().id(id).build()));
+
+    // building group objects
+    Map<String, MultipleTIsGreenColorGroup> idToGreenColorGroup = groupsAsIDs.entrySet().stream()
+        .collect(Collectors.toMap(
+            Entry::getKey,
+            entry -> MultipleTIsGreenColorGroup.builder().trafficIndicators(
+                entry.getValue().stream()
+                    .map(idToTrafficIndicator::get)
+                    .collect(Collectors.toList())
+            ).build()));
+
+    // retrieving signal control centers
+    records =
+        CSVFormat.DEFAULT.builder().setHeader(SignalCenterHeader.class)
+            .setSkipHeaderRecord(true).build().parse(signalCentersReader);
+    Map<String, Collection<String>> centersAsIDs = new HashMap<>();
+    for (CSVRecord record : records) {
+      centersAsIDs.put(
+          record.get(SignalCenterHeader.id),
+          csvToCollection(record.get(SignalCenterHeader.greenColorGroups))
+      );
+    }
+
+    // building control center objects
+    Map<String, StandardSignalsControlCenter> idToControlCenter = centersAsIDs.entrySet().stream()
+        .collect(Collectors.toMap(
+            Entry::getKey,
+            entry -> StandardSignalsControlCenter.builder().greenColorGroups(
+                entry.getValue().stream()
+                    .map(idToGreenColorGroup::get)
+                    .collect(Collectors.toList())
+            ).build()
+        ));
+
+    records =
         CSVFormat.DEFAULT.builder().setHeader(NodeHeaders.class).setSkipHeaderRecord(true).build().parse(nodesReader);
 
     for (CSVRecord record : records) {
@@ -142,6 +245,8 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
           .lat(Double.parseDouble(record.get(NodeHeaders.latitude)))
           .isCrossroad(Boolean.parseBoolean(record.get(NodeHeaders.is_crossroad)))
           .patchId(record.get(NodeHeaders.patch_id))
+          .signalsControlCenter(Strings.isBlank(record.get(NodeHeaders.signalsControlCenter)) ?
+              Optional.empty() : Optional.of(idToControlCenter.get(record.get(NodeHeaders.signalsControlCenter))))
           .tags(csvToMap(record.get(NodeHeaders.tags)))
           .build();
 
@@ -186,6 +291,8 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
           .isPriorityRoad(Boolean.parseBoolean(record.get(EdgeHeader.is_priority_road)))
           .isOneWay(Boolean.parseBoolean(record.get(EdgeHeader.is_one_way)))
           .patchId(record.get(EdgeHeader.patch_id))
+          .trafficIndicator(Strings.isBlank(record.get(EdgeHeader.trafficIndicator)) ?
+              Optional.empty() : Optional.of(idToTrafficIndicator.get(record.get(EdgeHeader.trafficIndicator))))
           .lanes(csvToCollection(record.get(EdgeHeader.lanes)).stream()
               .map(laneIdToLaneData::get)
               .toList())

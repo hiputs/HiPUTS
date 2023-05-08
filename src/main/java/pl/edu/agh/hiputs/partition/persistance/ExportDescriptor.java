@@ -13,6 +13,10 @@ class ExportDescriptor {
 
   private static final String patchesFileName = "patches.csv";
 
+  private static final String signalGroupsFileName = "signal_groups.csv";
+
+  private static final String signalCentersFileName = "signal_centers.csv";
+
   private String exportDirAbsolutePath;
 
   public String getNodesFilePath() {
@@ -29,5 +33,13 @@ class ExportDescriptor {
 
   public String getPatchesFilePath() {
     return exportDirAbsolutePath + "/" + patchesFileName;
+  }
+
+  public String getSignalGroupsFilePath() {
+    return exportDirAbsolutePath + "/" + signalGroupsFileName;
+  }
+
+  public String getSignalCentersFilePath() {
+    return exportDirAbsolutePath + "/" + signalCentersFileName;
   }
 }
