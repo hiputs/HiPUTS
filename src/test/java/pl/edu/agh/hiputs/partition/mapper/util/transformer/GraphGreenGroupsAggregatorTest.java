@@ -87,10 +87,10 @@ public class GraphGreenGroupsAggregatorTest {
     // given
 
     // when
-    crossroad.getData().setSignalsControlCenter(Optional.of(new StandardSignalsControlCenter()));
-    inEdge1.getData().setTrafficIndicator(Optional.of(new TrafficIndicator()));
-    inEdge2.getData().setTrafficIndicator(Optional.of(new TrafficIndicator()));
-    inEdge3.getData().setTrafficIndicator(Optional.of(new TrafficIndicator()));
+    crossroad.getData().setSignalsControlCenter(Optional.of(StandardSignalsControlCenter.builder().build()));
+    inEdge1.getData().setTrafficIndicator(Optional.of(TrafficIndicator.builder().build()));
+    inEdge2.getData().setTrafficIndicator(Optional.of(TrafficIndicator.builder().build()));
+    inEdge3.getData().setTrafficIndicator(Optional.of(TrafficIndicator.builder().build()));
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>()
         .addNode(crossroad)
         .addNode(firstNode)
