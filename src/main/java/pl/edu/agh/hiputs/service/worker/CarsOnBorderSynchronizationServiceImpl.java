@@ -44,7 +44,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   private final List<BorderSynchronizationMessage> incomingMessages = Collections.synchronizedList(new LinkedList<>());
   private final List<BorderSynchronizationMessage> futureIncomingMessages = Collections.synchronizedList(new LinkedList<>());
 
-  private AtomicInteger simulationStepNo = new AtomicInteger(0);
+  private final AtomicInteger simulationStepNo = new AtomicInteger(0);
 
   @PostConstruct
   void init() {
@@ -142,11 +142,11 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
       // log.info("---Receive--- my it {} it {} from {}", simulationStepNo.get(), borderSynchronizationMessage.getSimulationStepNo(), borderSynchronizationMessage.getPatchContent().keySet().iterator().next());
       if (borderSynchronizationMessage.getSimulationStepNo() == simulationStepNo.get()) {
         incomingMessages.add(borderSynchronizationMessage);
+        notifyAll();
       } else {
         futureIncomingMessages.add(borderSynchronizationMessage);
       }
 
-      notifyAll();
     } catch (Exception e) {
       log.error("Unexpected Exception : ", e);
     }
