@@ -45,7 +45,7 @@ public class PidLoadBalancingService implements LoadBalancingStrategy {
 
     LoadBalancingDecision loadBalancingDecision = new LoadBalancingDecision();
     loadBalancingDecision.setAge(step);
-    LoadBalancingHistoryInfo info = localLoadMonitorService.getMyLastLoad(actualStep);
+    LoadBalancingHistoryInfo info = localLoadMonitorService.getMyLastLoad(actualStep - 1);
 
     ImmutablePair<MapFragmentId, Double> candidate = selectNeighbourToBalancingService.selectNeighbourToBalancing(transferDataHandler, step);
     calculateNewTargetAndInitPID(info);
