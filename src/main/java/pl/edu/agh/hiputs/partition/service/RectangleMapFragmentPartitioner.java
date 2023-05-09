@@ -19,7 +19,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.utils.MinMaxAcc;
 
-@Primary // todo - used for scalabity tests - for normal use mark QuadTreeMap... as @Primary
+@Primary // todo - used for scalability tests - for normal use mark QuadTreeMap... as @Primary
 @Service
 public class RectangleMapFragmentPartitioner extends QuadTreeMapFragmentPartitioner {
 
@@ -29,7 +29,7 @@ public class RectangleMapFragmentPartitioner extends QuadTreeMapFragmentPartitio
 
   @Override
   public Collection<Graph<PatchData, PatchConnectionData>> partition(Graph<PatchData, PatchConnectionData> graph) {
-    return partition(graph, configurationService.getConfiguration().getWorkerCount());
+    return partition(graph, ConfigurationService.getConfiguration().getWorkerCount());
   }
 
   private Collection<Graph<PatchData, PatchConnectionData>> partition(Graph<PatchData, PatchConnectionData> graph,

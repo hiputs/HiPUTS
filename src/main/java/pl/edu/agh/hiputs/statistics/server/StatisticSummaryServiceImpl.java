@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.statistics.server;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -135,21 +136,28 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
   }
 
   private void createCSVIterationTimes() {
-    String header = "NAME" + SEPARATOR + "STEP" + SEPARATOR + "TIME_TYPE" + SEPARATOR + "TIME" + SEPARATOR + END_LINE;
+    List<SimulationPoint> points = Arrays.stream(SimulationPoint.values())
+        .filter(point -> !point.toString().contains("SERVER") && !point.toString().contains("WORKER"))
+        .sorted(Comparator.comparing(Enum::toString))
+        .collect(Collectors.toList());
+
+    String header = "NAME" + SEPARATOR + "STEP" + SEPARATOR + points.stream()
+        .map(Enum::toString)
+        .collect(Collectors.joining(SEPARATOR)) + END_LINE;
 
     String workersContent = repository.stream()
         .map(workerData -> workerData.getIterationStatisticRepository()
             .stream()
             .map(iterationStats -> (workerData.getWorkerId() + SEPARATOR + iterationStats.getStep() + SEPARATOR
-                + iterationStats.getIterationTimes()
-                .entrySet()
-                .stream()
-                .map(set -> set.getKey().toString() + SEPARATOR + set.getValue().toString() + SEPARATOR)
-                .collect(Collectors.joining()) + END_LINE))
+                + getPointsTimes(points, iterationStats.getIterationTimes()) + END_LINE))
             .collect(Collectors.joining()))
         .collect(Collectors.joining());
 
     save(header + workersContent, ITERATION_TIMES_CSV);
+  }
+
+  private String getPointsTimes(List<SimulationPoint> points, HashMap<SimulationPoint, Long> iterationTimes) {
+    return points.stream().map(point -> iterationTimes.get(point).toString()).collect(Collectors.joining(SEPARATOR));
   }
 
   private void createCSVIterationData() {
@@ -158,9 +166,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
             + SEPARATOR + "ALL_MSG_SENT_SIZE" + SEPARATOR + "HEAP_MEM_USED" + SEPARATOR + "NO_HEAP_MEM_USED" + SEPARATOR
             + "HEAP_MEM_MAX" + SEPARATOR + "NO_HEAP_MEM_MAX" + SEPARATOR + END_LINE;
 
-    String workersContent = repository.stream()
-        .map(workerData -> workerData.getIterationStatisticRepository()
-            .stream()
+    String workersContent = repository.stream().map(workerData -> workerData.getIterationStatisticRepository().stream()
             .map(iterationStats -> workerData.getWorkerId() + SEPARATOR + iterationStats.getStep() + SEPARATOR
                 + iterationStats.getCarCountAfterStep() + SEPARATOR + iterationStats.getOutgoingMessagesToServer()
                 + SEPARATOR + iterationStats.getOutgoingMessages() + SEPARATOR

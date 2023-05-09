@@ -41,16 +41,14 @@ public class SynchronizeShadowPatchState implements Runnable {
 
       shadowPatch.parallelStreamLanesEditable()
           .forEach(laneEditable -> {
-            List<Car> newCarsOnLane = newCarsOnLanes.get(laneEditable.getLaneId().getValue());
+            List<Car> newCarsOnOneLane = newCarsOnLanes.get(laneEditable.getLaneId().getValue());
             // laneEditable.streamCarsFromExitEditable().toList().forEach(laneEditable::removeCar); ????? todo
             laneEditable.removeAllCars();
 
-            if (newCarsOnLane == null) {
-              return;
+            if (newCarsOnOneLane != null) {
+              Collections.reverse(newCarsOnOneLane);
+              newCarsOnOneLane.forEach(laneEditable::addCarAtEntry);
             }
-
-            Collections.reverse(newCarsOnLane);
-            newCarsOnLane.forEach(laneEditable::addCarAtEntry);
           });
 
       transferDataHandler.acceptShadowPatches(Set.of(shadowPatch));

@@ -69,7 +69,7 @@ public class MessageSenderService implements Subscriber {
       createServerConnection();
     }
     log.debug("Worker send message to: SERVER message type: " + message.getMessageType());
-    sentMessagesSize = serverConnection.send(message);
+    sentMessagesSize += serverConnection.send(message);
     sentServerMessages++;
   }
 
