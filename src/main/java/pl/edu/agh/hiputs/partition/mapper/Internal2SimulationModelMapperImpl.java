@@ -25,6 +25,7 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
+import pl.edu.agh.hiputs.visualization.web.Coordinates;
 
 @Service
 public class Internal2SimulationModelMapperImpl implements Internal2SimulationModelMapper {
@@ -91,6 +92,8 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
         .length(edge.getData().getLength())
         .incomingJunctionId(new JunctionId(edge.getSource().getId(), getJunctionType(edge.getSource())))
         .outgoingJunctionId(new JunctionId(edge.getTarget().getId(), getJunctionType(edge.getTarget())))
+        .start(new Coordinates(edge.getSource().getData().getLat(),edge.getSource().getData().getLon()))
+        .end(new Coordinates(edge.getTarget().getData().getLat(),edge.getTarget().getData().getLon()))
         .leftNeighbor(getOppositeLaneId(edge).map(laneId -> new NeighborLaneInfo(laneId,
             HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE))); //todo parse line from osm if possible
     return laneBuilder.build();

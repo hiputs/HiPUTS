@@ -17,6 +17,7 @@ import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.visualization.web.Coordinates;
 
 @Slf4j
 @Builder
@@ -71,6 +72,13 @@ public class Lane implements LaneEditable {
   /**
    * Set for cars incoming onto this lane
    */
+
+  @Getter
+  private final Coordinates start;
+
+  @Getter
+  private final Coordinates end;
+
   @Builder.Default
   private Set<CarEditable> incomingCars = new ConcurrentSkipListSet<>();
 

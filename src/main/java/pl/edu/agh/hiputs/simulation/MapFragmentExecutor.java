@@ -20,6 +20,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
+import pl.edu.agh.hiputs.visualization.web.VisualizationService;
 
 @Slf4j
 @Service
@@ -41,8 +42,12 @@ public class MapFragmentExecutor {
 
   private final SimulationStatisticService simulationStatisticService;
 
+  private final VisualizationService visualizationService;
+
   public void run(int step) {
     try {
+
+      Thread.sleep(1000);
       // 3. decision
       log.info("Step 3 start");
       monitorLocalService.startSimulationStep();
@@ -99,6 +104,7 @@ public class MapFragmentExecutor {
       log.info("Step 11 start");
 
       carGeneratorService.generateCars(mapFragment);
+      visualizationService.sendCars(mapFragment,step);
 
       // mapFragment.printFullStatistic();
 
