@@ -35,11 +35,12 @@ class App extends Component<IProps, IAppState> {
   }
   render() {
     console.log(" Configuration: ", this.state);
+    const load_style={ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
     return <>
-    <div>
-      {this.state.loading? 
+    <div style={load_style}>
+      {this.state.loading?
       <ClipLoader loading = {this.state.loading} speedMultiplier={0.5}></ClipLoader>
-       : <Visualization map={this.state.map} cars={this.state.cars}></Visualization> } 
+       : <Visualization map={this.state.map} cars={this.state.cars}></Visualization> }
     </div>
     </>
   }
