@@ -114,7 +114,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
           .lat(Double.parseDouble(record.get(NodeHeaders.latitude)))
           .isCrossroad(Boolean.parseBoolean(record.get(NodeHeaders.is_crossroad)))
           .patchId(record.get(NodeHeaders.patch_id))
-          .tags(csvToMap(record.get(NodeHeaders.tags)))
+          .tags(csvToMap(record.isSet(NodeHeaders.tags.name()) ? record.get(NodeHeaders.tags) : ""))
           .build();
 
       if (!patchId2graphInsidePatch.containsKey(record.get(NodeHeaders.patch_id))) {
@@ -135,7 +135,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
           .isPriorityRoad(Boolean.parseBoolean(record.get(EdgeHeader.is_priority_road)))
           .isOneWay(Boolean.parseBoolean(record.get(EdgeHeader.is_one_way)))
           .patchId(record.get(EdgeHeader.patch_id))
-          .tags(csvToMap(record.get(EdgeHeader.tags)))
+          .tags(csvToMap(record.isSet(EdgeHeader.tags.name()) ? record.get(EdgeHeader.tags) : ""))
           .build();
       Edge<JunctionData, WayData> edge = new Edge<>(record.get(EdgeHeader.source) + "->" + record.get(EdgeHeader.target), wayData);
       edge.setSource(nodeId2Node.get(record.get(EdgeHeader.source)));
