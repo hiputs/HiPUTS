@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
@@ -20,27 +21,32 @@ import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
+
 @Disabled
 
 public class GetPrecedingCarTest {
 
   private MapFragment mapFragment;
+  @Mock
+  private MapRepository mapRepository;
   private ExampleCarProvider carProvider;
   private LaneId startLaneId;
   private LaneEditable startLane;
   private Car car1, car2;
   private CarProspector prospector;
-    @BeforeEach
-    public void setup() {
-        mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
-        carProvider = new ExampleCarProvider(mapFragment);
-        startLaneId = mapFragment.getLocalLaneIds().iterator().next();
-        startLane = mapFragment.getLaneEditable(startLaneId);
-        car1 = carProvider.generateCar(10.0, startLaneId, 3);
-        car2 = carProvider.generateCar(60.0, startLaneId, 4);
-        prospector = new CarProspectorImpl();
-    }
+
+  @BeforeEach
+  public void setup() {
+    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false, mapRepository);
+    carProvider = new ExampleCarProvider(mapFragment, mapRepository);
+    startLaneId = mapFragment.getLocalLaneIds().iterator().next();
+    startLane = mapFragment.getLaneEditable(startLaneId);
+    car1 = carProvider.generateCar(10.0, startLaneId, 3);
+    car2 = carProvider.generateCar(60.0, startLaneId, 4);
+    prospector = new CarProspectorImpl();
+  }
 
 
   @Test

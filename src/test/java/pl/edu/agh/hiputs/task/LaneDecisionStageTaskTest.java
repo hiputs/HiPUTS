@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.Car;
@@ -16,6 +17,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
@@ -30,9 +32,12 @@ public class LaneDecisionStageTaskTest {
   private LaneId laneId;
   private LaneId nextLaneId;
 
+  @Mock
+  private MapRepository mapRepository;
+
   @BeforeEach
   public void setup() {
-    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
+    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false, mapRepository);
     laneId = mapFragment.getLocalLaneIds().stream().findAny().get();
     car = createTestCar();
   }

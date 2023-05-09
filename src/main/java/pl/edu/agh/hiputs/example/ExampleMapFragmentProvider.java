@@ -1,12 +1,13 @@
 package pl.edu.agh.hiputs.example;
 
+import static java.lang.Thread.sleep;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,84 +23,87 @@ import pl.edu.agh.hiputs.model.map.roadstructure.HorizontalSign;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.model.map.roadstructure.NeighborLaneInfo;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.utils.DeterminingNeighborhoodUtil;
 
 public class ExampleMapFragmentProvider {
 
   private static final Double DEFAULT_LANE_LENGTH = 1000.0;
 
-  public static MapFragment getSimpleMap1() {
-    return getSimpleMap1(true);
+  public static MapFragment getSimpleMap1(MapRepository mapRepository) {
+    return getSimpleMap1(true, mapRepository);
   }
 
-  public static MapFragment getSimpleMap1(boolean withCars) {
+  public static MapFragment getSimpleMap1(boolean withCars, MapRepository mapRepository) {
     String mapStructure = "(1->2) (2->3) (3->1)";
-    return fromStringRepresentation(mapStructure, Collections.emptyMap(), withCars ? 2 : 0);
+    return fromStringRepresentation(mapStructure, Collections.emptyMap(), withCars ? 2 : 0, mapRepository);
   }
 
-  public static MapFragment getSimpleMap2() {
-    return getSimpleMap2(true);
+  public static MapFragment getSimpleMap2(MapRepository mapRepository) {
+    return getSimpleMap2(true, mapRepository);
   }
 
-  public static MapFragment getSimpleMap2(boolean withCars) {
+  public static MapFragment getSimpleMap2(boolean withCars, MapRepository mapRepository) {
     String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
     Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "3400.0"}, {"2->3", "1200.0"},})
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 2 : 0);
+    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 2 : 0, mapRepository);
   }
 
-  public static MapFragment getSimpleMap3() {
-    return getSimpleMap3(true);
+  public static MapFragment getSimpleMap3(MapRepository mapRepository) {
+    return getSimpleMap3(true, mapRepository);
   }
 
   //Map with many cars
-  public static MapFragment getSimpleMap3(boolean withCars) {
+  public static MapFragment getSimpleMap3(boolean withCars, MapRepository mapRepository) {
     String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
     Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "3400.0"}, {"2->3", "1200.0"},})
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 100 : 0);
+    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 100 : 0, mapRepository);
   }
 
-  public static MapFragment getSimpleMap4() {
-    return getSimpleMap4(true);
+  public static MapFragment getSimpleMap4(MapRepository mapRepository) {
+    return getSimpleMap4(true, mapRepository);
   }
 
   //Map with many cars
-  public static MapFragment getSimpleMap4(boolean withCars) {
+  public static MapFragment getSimpleMap4(boolean withCars, MapRepository mapRepository) {
     String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (1->4) (4->1) (4->7) (7->4)";
-    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "200.0"}, {"2->3", "200.0"},
-            {"3->4", "200.0"}, {"4->5", "200.0"}, {"5->6", "200.0"}, {"6->7", "200.0"}, {"7->8", "200.0"},
-            {"8->1", "200.0"}, {"1->4", "200.0"}, {"4->1", "200.0"}, {"4->7", "200.0"}, {"7->4", "200.0"}, })
+    Map<String, Double> laneLengths = Stream.of(
+        new String[][] {{"1->2", "200.0"}, {"2->3", "200.0"}, {"3->4", "200.0"}, {"4->5", "200.0"}, {"5->6", "200.0"},
+            {"6->7", "200.0"}, {"7->8", "200.0"}, {"8->1", "200.0"}, {"1->4", "200.0"}, {"4->1", "200.0"},
+            {"4->7", "200.0"}, {"7->4", "200.0"},})
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 30 : 0);
+    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 30 : 0, mapRepository);
   }
 
-  public static MapFragment getMapWithShortLane() {
-    return getMapWithShortLane(true);
+  public static MapFragment getMapWithShortLane(MapRepository mapRepository) {
+    return getMapWithShortLane(true, mapRepository);
   }
 
   //Map with many cars
-  public static MapFragment getMapWithShortLane(boolean withCars) {
+  public static MapFragment getMapWithShortLane(boolean withCars, MapRepository mapRepository) {
     String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->1) (2->1) (3->2) (5->4) (6->5) (2->5) (5->2)";
-    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "200.0"}, {"2->3", "200.0"},
-            {"3->4", "200.0"}, {"4->5", "200.0"}, {"5->6", "200.0"}, {"6->1", "200.0"}, {"2->1", "200.0"},
-            {"3->2", "200.0"}, {"5->4", "200.0"}, {"6->5", "200.0"}, {"2->5", "2.0"}, {"5->2", "2.0"}, })
+    Map<String, Double> laneLengths = Stream.of(
+        new String[][] {{"1->2", "200.0"}, {"2->3", "200.0"}, {"3->4", "200.0"}, {"4->5", "200.0"}, {"5->6", "200.0"},
+            {"6->1", "200.0"}, {"2->1", "200.0"}, {"3->2", "200.0"}, {"5->4", "200.0"}, {"6->5", "200.0"},
+            {"2->5", "2.0"}, {"5->2", "2.0"},})
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 10 : 0);
+    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 10 : 0, mapRepository);
   }
 
-  public static MapFragment getMapWithShortLane2() {
-    return getMapWithShortLane2(true);
+  public static MapFragment getMapWithShortLane2(MapRepository mapRepository) {
+    return getMapWithShortLane2(true, mapRepository);
   }
 
   //Map with many cars
-  public static MapFragment getMapWithShortLane2(boolean withCars) {
+  public static MapFragment getMapWithShortLane2(boolean withCars, MapRepository mapRepository) {
     String mapStructure = "(1->2) (2->3) (3->4) (4->5) (5->6) (6->7) (7->8) (8->1) (7->2) (3->6)";
-    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "200.0"}, {"2->3", "2.0"},
-            {"3->4", "200.0"}, {"4->5", "200.0"}, {"5->6", "200.0"}, {"6->7", "2.0"}, {"7->8", "200.0"},
-            {"8->1", "200.0"}, {"7->2", "2.0"}, {"3->6", "2.0"}, })
+    Map<String, Double> laneLengths = Stream.of(
+        new String[][] {{"1->2", "200.0"}, {"2->3", "2.0"}, {"3->4", "200.0"}, {"4->5", "200.0"}, {"5->6", "200.0"},
+            {"6->7", "2.0"}, {"7->8", "200.0"}, {"8->1", "200.0"}, {"7->2", "2.0"}, {"3->6", "2.0"},})
         .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
-    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 10 : 0);
+    return fromStringRepresentation(mapStructure, laneLengths, withCars ? 10 : 0, mapRepository);
   }
 
   /**
@@ -190,7 +194,7 @@ public class ExampleMapFragmentProvider {
   }
 
   public static MapFragment fromStringRepresentation(String mapStructure, Map<String, Double> laneLengths,
-      int randomCarsPerLane) {
+      int randomCarsPerLane, MapRepository mapRepository) {
     Map<String, LaneUnderConstruction> stringLaneMap = getStringLaneMapFromStringRepresentation(mapStructure);
     Map<String, JunctionUnderConstruction> stringJunctionMap =
         getStringJunctionMapFromStringRepresentation(mapStructure);
@@ -201,7 +205,14 @@ public class ExampleMapFragmentProvider {
     Patch patch = createPatch(stringLaneMap, stringJunctionMap);
 
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
-    ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragment);
+    while (!mapRepository.isReady()) {
+      try {
+        sleep(5);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+    ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragment, mapRepository);
 
     patch.streamLanesEditable().forEach(lane -> {
       for (int i = 0; i < randomCarsPerLane; i++) {

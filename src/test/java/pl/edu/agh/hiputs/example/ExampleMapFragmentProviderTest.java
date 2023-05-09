@@ -1,27 +1,30 @@
 package pl.edu.agh.hiputs.example;
 
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import pl.edu.agh.hiputs.model.car.CarReadable;
-
-
-import java.util.stream.Collectors;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @Disabled
 public class ExampleMapFragmentProviderTest {
 
+    @Mock
+    private MapRepository mapRepository;
+
     @Test
     public void checkCarOrderInSimpleMap1() {
-        MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap1(true);
+        MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap1(true, mapRepository);
         Assertions.assertTrue(checkAllMapFragmentLanes(mapFragment));
     }
 
     @Test
     public void checkCarOrderInSimpleMap2() {
-        MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap2(true);
+        MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap2(true, mapRepository);
         Assertions.assertTrue(checkAllMapFragmentLanes(mapFragment));
     }
     

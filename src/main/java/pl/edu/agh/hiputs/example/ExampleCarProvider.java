@@ -36,27 +36,30 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 public class ExampleCarProvider {
 
   private final MapFragment mapFragment;
-  private Function<JunctionId, List<LaneId>> junctionIdToOutgoingLaneIdList;
-  private Function<LaneId, JunctionId> laneIdToOutgoingJunctionId;
-  private List<LaneId> localLaneIdList;
-  private Configuration configuration;
+  private final MapRepository mapRepository;
+  private final Function<JunctionId, List<LaneId>> junctionIdToOutgoingLaneIdList;
+  private final Function<LaneId, JunctionId> laneIdToOutgoingJunctionId;
+  private final List<LaneId> localLaneIdList;
+  private final Configuration configuration;
 
-  public ExampleCarProvider(MapFragment mapFragment) {
-    this.mapFragment = mapFragment;
-    this.localLaneIdList = mapFragment.getLocalLaneIds().stream().toList();
-
-    this.junctionIdToOutgoingLaneIdList =
-        junctionId -> mapFragment.getJunctionReadable(junctionId).streamOutgoingLaneIds().toList();
-
-    this.laneIdToOutgoingJunctionId = laneId -> mapFragment.getLaneReadable(laneId).getOutgoingJunctionId();
-    this.configuration = ConfigurationService.getConfiguration();
-  }
+  // public ExampleCarProvider(MapFragment mapFragment) {
+  //   this.mapFragment = mapFragment;
+  //   this.localLaneIdList = mapFragment.getLocalLaneIds().stream().toList();
+  //
+  //   this.junctionIdToOutgoingLaneIdList =
+  //       junctionId -> mapFragment.getJunctionReadable(junctionId).streamOutgoingLaneIds().toList();
+  //
+  //   this.laneIdToOutgoingJunctionId = laneId -> mapFragment.getLaneReadable(laneId).getOutgoingJunctionId();
+  //   this.configuration = ConfigurationService.getConfiguration();
+  // }
 
   public ExampleCarProvider(MapFragment mapFragment, MapRepository mapRepository) {
     this.mapFragment = mapFragment;
+    this.mapRepository = mapRepository;
     this.localLaneIdList = mapFragment.getLocalLaneIds().stream().toList();
 
-    Queue<PatchId> notVisitedPatches = mapFragment.getKnownPatchReadable()
+    // Queue<PatchId> notVisitedPatches = mapFragment.getKnownPatchReadable()
+    Queue<PatchId> notVisitedPatches = mapRepository.getAllPatches()
         .stream()
         .map(PatchReader::getPatchId)
         .collect(Collectors.toCollection(UniqueQueue::new));
@@ -180,10 +183,12 @@ public class ExampleCarProvider {
 
   public List<RouteElement> generateRouteElements(LaneId startLaneId, int hops) {
     List<RouteElement> routeElements = new ArrayList<>();
-    JunctionId startJunctionId = mapFragment.getLaneReadable(startLaneId).getIncomingJunctionId();
+    // JunctionId startJunctionId = mapFragment.getLaneReadable(startLaneId).getIncomingJunctionId();
+    JunctionId startJunctionId =
+        mapRepository.getPatch(laneIdToPatchId.get(startLaneId)).getLaneReadable(startLaneId).getIncomingJunctionId();
     routeElements.add(new RouteElement(startJunctionId, startLaneId));
     LaneId nextLaneId, laneId = startLaneId;
-    JunctionId nextJunctionId , junctionId = startJunctionId;
+    JunctionId nextJunctionId, junctionId = startJunctionId;
     for (int i = 0; i < hops; i++) {
       nextJunctionId = this.laneIdToOutgoingJunctionId.apply(laneId);
       if (nextJunctionId == null) {
@@ -238,8 +243,9 @@ public class ExampleCarProvider {
   }
 
   private static class UniqueQueue<T> extends AbstractQueue<T> {
-    private Queue<T> queue = new LinkedList<>();
-    private Set<T> set = new HashSet<>();
+
+    private final Queue<T> queue = new LinkedList<>();
+    private final Set<T> set = new HashSet<>();
 
     @Override
     public Iterator<T> iterator() {
