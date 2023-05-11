@@ -10,6 +10,10 @@ public interface IterationStatisticsService extends StageTimeService {
 
   void setCarsNumberInStep(long cars);
 
+  void setStoppedCars(long cars);
+
+  void setSpeedSum(double speed);
+
   void setOutgoingMessagesToServerInStep(int messages);
 
   void setOutgoingMessagesInStep(int messages);

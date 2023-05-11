@@ -73,6 +73,20 @@ public class Lane implements LaneEditable {
   @Builder.Default
   private Set<CarEditable> incomingCars = new ConcurrentSkipListSet<>();
 
+  /**
+   * Cars whose speed is less than 1km/h - for metrics
+   */
+  @Getter
+  @Builder.Default
+  private int stoppedCars = 0;
+
+  /**
+   * Summary speed of cars on this Lane - for metrics
+   */
+  @Getter
+  @Builder.Default
+  private double sumSpeed = 0;
+
   @Override
   public Optional<CarReadable> getCarInFrontReadable(CarReadable car) {
     return cars.stream()
@@ -198,6 +212,19 @@ public class Lane implements LaneEditable {
   @Override
   public void removeAllCars() {
     cars.clear();
+  }
+
+  @Override
+  public void updateCarSpeedMetrics() {
+    stoppedCars = 0;
+    sumSpeed = 0;
+    for (CarEditable car : cars) {
+      sumSpeed += car.getSpeed();
+      if (car.getSpeed() <= 0.27) //0.27 m/s is less than 1 km/h
+      {
+        stoppedCars += 1;
+      }
+    }
   }
 }
 

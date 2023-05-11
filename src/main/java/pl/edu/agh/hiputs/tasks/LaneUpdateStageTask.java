@@ -3,7 +3,6 @@ package pl.edu.agh.hiputs.tasks;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
@@ -25,6 +24,7 @@ public class LaneUpdateStageTask implements Runnable {
       this.removeLeavingCars(lane);
       this.updateCarsOnLane(lane);
       this.handleIncomingCars(lane);
+      lane.updateCarSpeedMetrics();
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);
     }

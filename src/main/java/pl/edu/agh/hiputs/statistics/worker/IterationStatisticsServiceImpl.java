@@ -66,6 +66,16 @@ public class IterationStatisticsServiceImpl implements IterationStatisticsServic
   }
 
   @Override
+  public void setStoppedCars(long cars) {
+    iterationStatistics.get(step).setStoppedCars(cars);
+  }
+
+  @Override
+  public void setSpeedSum(double speed) {
+    iterationStatistics.get(step).setSpeedSum(speed);
+  }
+
+  @Override
   public void setOutgoingMessagesToServerInStep(int messages) {
     iterationStatistics.get(step).setOutgoingMessagesToServer(messages);
   }
@@ -140,6 +150,8 @@ public class IterationStatisticsServiceImpl implements IterationStatisticsServic
     private long usedNoHeapMemory;
     private long maxHeapMemory;
     private long maxNoHeapMemory;
+    private long stoppedCars;
+    private double speedSum;
     private int step;
 
   }

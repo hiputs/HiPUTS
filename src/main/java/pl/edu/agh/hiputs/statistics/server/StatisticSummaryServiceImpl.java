@@ -162,17 +162,19 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
 
   private void createCSVIterationData() {
     String header =
-        "NAME" + SEPARATOR + "STEP" + SEPARATOR + "CARS" + SEPARATOR + "MSG_SERVER_SENT" + SEPARATOR + "MSG_SENT"
-            + SEPARATOR + "ALL_MSG_SENT_SIZE" + SEPARATOR + "HEAP_MEM_USED" + SEPARATOR + "NO_HEAP_MEM_USED" + SEPARATOR
-            + "HEAP_MEM_MAX" + SEPARATOR + "NO_HEAP_MEM_MAX" + SEPARATOR + END_LINE;
+        "NAME" + SEPARATOR + "STEP" + SEPARATOR + "CARS" + SEPARATOR + "STOPPED_CARS" + SEPARATOR + "SPEED_SUMMARY"
+            + SEPARATOR + "MSG_SERVER_SENT" + SEPARATOR + "MSG_SENT" + SEPARATOR + "ALL_MSG_SENT_SIZE" + SEPARATOR
+            + "HEAP_MEM_USED" + SEPARATOR + "NO_HEAP_MEM_USED" + SEPARATOR + "HEAP_MEM_MAX" + SEPARATOR
+            + "NO_HEAP_MEM_MAX" + SEPARATOR + END_LINE;
 
     String workersContent = repository.stream().map(workerData -> workerData.getIterationStatisticRepository().stream()
             .map(iterationStats -> workerData.getWorkerId() + SEPARATOR + iterationStats.getStep() + SEPARATOR
-                + iterationStats.getCarCountAfterStep() + SEPARATOR + iterationStats.getOutgoingMessagesToServer()
-                + SEPARATOR + iterationStats.getOutgoingMessages() + SEPARATOR
-                + iterationStats.getOutgoingMessagesSize() + SEPARATOR + iterationStats.getUsedHeapMemory() + SEPARATOR
-                + iterationStats.getUsedNoHeapMemory() + SEPARATOR + iterationStats.getMaxHeapMemory() + SEPARATOR
-                + iterationStats.getMaxNoHeapMemory() + SEPARATOR + END_LINE)
+                + iterationStats.getCarCountAfterStep() + SEPARATOR + iterationStats.getStoppedCars() + SEPARATOR
+                + iterationStats.getSpeedSum() + SEPARATOR + iterationStats.getOutgoingMessagesToServer() + SEPARATOR
+                + iterationStats.getOutgoingMessages() + SEPARATOR + iterationStats.getOutgoingMessagesSize()
+                + SEPARATOR + iterationStats.getUsedHeapMemory() + SEPARATOR + iterationStats.getUsedNoHeapMemory()
+                + SEPARATOR + iterationStats.getMaxHeapMemory() + SEPARATOR + iterationStats.getMaxNoHeapMemory()
+                + SEPARATOR + END_LINE)
             .collect(Collectors.joining()))
         .collect(Collectors.joining());
 

@@ -58,4 +58,9 @@ public interface LaneEditable extends LaneReadable {
    * Remove all cars from list
    */
   void removeAllCars();
+
+  /**
+   * Updates attributes related to speed metrics
+   */
+  void updateCarSpeedMetrics();
 }

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingService;
@@ -81,8 +82,14 @@ public class MapFragmentExecutor {
           .collect(Collectors.toList());
       taskExecutor.executeBatch(updateStageTasks);
       iterationStatisticsService.endStage(SimulationPoint.SECOND_ITERATION_UPDATING_CARS);
-      iterationStatisticsService.setCarsNumberInStep(CarCounterUtil.countAllCars(mapFragment));
+
+      iterationStatisticsService.startStage(SimulationPoint.SECOND_ITERATION_NOTIFY);
+      Triple<Integer, Integer, Double> carsStats = CarCounterUtil.countAllCarStats(mapFragment);
+      iterationStatisticsService.setCarsNumberInStep(carsStats.getLeft());
+      iterationStatisticsService.setStoppedCars(carsStats.getMiddle());
+      iterationStatisticsService.setSpeedSum(carsStats.getRight());
       localLoadMonitorService.notifyAboutMyLoad(step);
+      iterationStatisticsService.endStage(SimulationPoint.SECOND_ITERATION_NOTIFY);
 
       // 8. load balancing
       log.info("Step 8 start");
@@ -130,7 +137,6 @@ public class MapFragmentExecutor {
       iterationStatisticsService.setOutgoingMessagesToServerInStep(messageSenderService.getSentServerMessages());
       iterationStatisticsService.setOutgoingMessagesSize(messageSenderService.getSentMessagesSize());
       iterationStatisticsService.setMemoryUsage();
-
       iterationStatisticsService.endSimulationStep();
 
     } catch (Exception e) {
