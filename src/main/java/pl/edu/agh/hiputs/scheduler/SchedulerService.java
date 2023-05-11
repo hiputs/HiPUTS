@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.scheduler.exception.InsufficientSystemResourcesException;
+import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Service
@@ -19,7 +20,10 @@ public class SchedulerService implements TaskExecutorService {
 
   @PostConstruct
   public void init() {
-    int cores = 48; //getFreeCores();
+    int cores = ConfigurationService.getConfiguration().getCoresPerWorkerCount(); //getFreeCores();
+
+    log.info("Cores available in this processor :" + Runtime.getRuntime().availableProcessors()
+        + ". Cores used by Scheduler: " + cores);
 
     if (cores <= 0) {
       throw new InsufficientSystemResourcesException("Insufficient number of cores");

@@ -27,6 +27,12 @@ public class Configuration {
   private int workerCount;
 
   /**
+   * Count of cores per worker
+   * (number of threads used by Scheduler)
+   */
+  private int coresPerWorkerCount;
+
+  /**
    * Every worker run visualisation
    */
   private boolean enableGUI;
@@ -176,9 +182,7 @@ public class Configuration {
   private boolean extendCarRouteWhenItEnds;
 
   public static Configuration getDefault() {
-    return Configuration.builder()
-        .testMode(true)
-        .workerCount(1)
+    return Configuration.builder().testMode(true).workerCount(1).coresPerWorkerCount(48)
         .enableGUI(true)
         .statisticModeActive(false)
         .simulationStep(1000)
