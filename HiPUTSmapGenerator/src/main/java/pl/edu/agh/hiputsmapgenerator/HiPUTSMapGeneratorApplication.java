@@ -19,9 +19,8 @@ import static java.lang.Math.sqrt;
 public class HiPUTSMapGeneratorApplication {
 
     private static final String MAP_PATH = "..\\data\\";
-
-    private static final Pair mapDims = new Pair(21,21); // all nodes in map for one worker
-
+    private static final Pair mapDims = new Pair(108,108); // all nodes in map for one worker
+    private static final String MAP_PATCHES_NAME = "_"+mapDims.toString();
     private static Pair patchDims = new Pair(3,3); // nodes in patch
     private static int laneLength = 500; //meters
 
@@ -36,16 +35,16 @@ public class HiPUTSMapGeneratorApplication {
         mapDims.setX(patchDims.getX() * (int) mapDims.getX() / patchDims.getX());
         mapDims.setY(patchDims.getY() * (int) mapDims.getY() / patchDims.getY());
 
-        genMap(1);
-        genMap(3);
+        // genMap(1);
+        // genMap(2);
         // genMap(4);
-        // genMap(8);
+        genMap(8);
         // genMap(12);
         // genMap(16);
         // genMap(20);
         // genMap(24);
         // genMap(28);
-        // genMap(32);
+        // genMap(36);
         // genMap(48);
         // genMap(64);
         // genMap(128);
@@ -71,7 +70,7 @@ public class HiPUTSMapGeneratorApplication {
         List<Patch> patches = new LinkedList<>();
         createPatches(map, totalSize, patches);
 
-        new File(MAP_PATH + "square-map" + workerCount).mkdir();
+        new File(getDirPath(workerCount)).mkdir();
         saveEdges(edges, workerCount);
         saveNodes(map, workerCount);
         savePatches(patches, workerCount);
@@ -101,14 +100,18 @@ public class HiPUTSMapGeneratorApplication {
 
 
     private static void savePatches(List<Patch> patches, int workerCount) throws IOException {
-        PrintWriter writer = new PrintWriter(MAP_PATH + "square-map" + workerCount + "/patches.csv", StandardCharsets.UTF_8);
+        PrintWriter writer = new PrintWriter(getDirPath(workerCount) + "/patches.csv", StandardCharsets.UTF_8);
         writer.println("id,neighbouring_patches_ids");
         patches.forEach(p -> writer.println(p.toString()));
         writer.close();
     }
 
+    private static String getDirPath(int workerCount) {
+        return MAP_PATH + "square-map" + workerCount + MAP_PATCHES_NAME ;
+    }
+
     private static void saveNodes(Node[][] map, int workerCount) throws IOException {
-        PrintWriter writer = new PrintWriter(MAP_PATH + "square-map" + workerCount + "/nodes.csv", StandardCharsets.UTF_8);
+        PrintWriter writer = new PrintWriter(getDirPath(workerCount) + "/nodes.csv", StandardCharsets.UTF_8);
         writer.println("id,longitude,latitude,is_crossroad,patch_id,tags");
 
         for (int i = 0; i < map.length; i++) {
@@ -121,7 +124,7 @@ public class HiPUTSMapGeneratorApplication {
     }
 
     private static void saveEdges(List<Lane> edges, int workerCount) throws IOException {
-        PrintWriter writer = new PrintWriter(MAP_PATH + "square-map" + workerCount + "/edges.csv", StandardCharsets.UTF_8);
+        PrintWriter writer = new PrintWriter(getDirPath(workerCount)+ "/edges.csv", StandardCharsets.UTF_8);
         writer.println("source,target,length,max_speed,is_priority_road,is_one_way,patch_id,tags");
         edges.forEach(e -> writer.println(e.toString()));
         writer.close();
@@ -272,6 +275,10 @@ public class HiPUTSMapGeneratorApplication {
     private static class Pair {
         private int x; // in dims: longitude
         private int y; // in dims: latitude
+
+        public String toString(){
+            return x+"x"+y;
+        }
 
     }
 
