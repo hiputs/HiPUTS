@@ -13,7 +13,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.partition.mapper.Internal2SimulationModelMapper;
@@ -102,10 +102,10 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
   }
 
   @Override
-  public PatchId getPatchIdByLaneId(LaneId laneId) {
+  public PatchId getPatchIdByRoadId(RoadId roadId) {
     return patches.values()
         .parallelStream()
-        .filter(p -> p.getLaneIds().contains(laneId))
+        .filter(p -> p.getRoadIds().contains(roadId))
         .findFirst()
         .get()
         .getPatchId();

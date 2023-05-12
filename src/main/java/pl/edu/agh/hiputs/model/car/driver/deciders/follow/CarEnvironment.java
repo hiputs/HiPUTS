@@ -2,11 +2,10 @@ package pl.edu.agh.hiputs.model.car.driver.deciders.follow;
 
 import java.util.Optional;
 import lombok.AllArgsConstructor;
-import lombok.ToString;
 import lombok.Value;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
 /**
  * precedingCar contain preceding car if found
@@ -23,13 +22,13 @@ public class CarEnvironment {
   double distance;
   Optional<CarReadable> precedingCar;
   Optional<JunctionId> nextCrossroadId;
-  Optional<LaneId> incomingLaneId;
+  Optional<RoadId> incomingRoadId;
 
   public CarEnvironment(Optional<CarReadable> precedingCar, Optional<JunctionId> nextCrossroadId, double distance) {
     this.distance = distance;
     this.precedingCar = precedingCar;
     this.nextCrossroadId = nextCrossroadId;
-    this.incomingLaneId = Optional.empty();
+    this.incomingRoadId = Optional.empty();
   }
 
   @Override
@@ -38,6 +37,6 @@ public class CarEnvironment {
         + ", precedingCar=Optional" + (precedingCar.map(carReadable -> "[" + carReadable.getCarId() + "]")
         .orElse(".empty"))
         + ", nextCrossroadId=Optional" + (nextCrossroadId.map(junctionId -> "[" + junctionId + "]").orElse(".empty"))
-        + ", incomingLaneId=Optional" + (incomingLaneId.map(laneId -> "[" + laneId + "]").orElse(".empty)"));
+        + ", incomingRoadId=Optional" + (incomingRoadId.map(roadId -> "[" + roadId + "]").orElse(".empty)"));
   }
 }

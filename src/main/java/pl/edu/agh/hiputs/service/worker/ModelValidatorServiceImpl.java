@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.exception.ModelValidationException;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 import pl.edu.agh.hiputs.service.worker.usecase.ModelValidatorService;
 
 @Service
@@ -18,7 +18,7 @@ public class ModelValidatorServiceImpl implements ModelValidatorService {
     Map<String, String> errors = new HashMap<>();
 
     checkMapFragmentInitialization(mapFragment, errors);
-    checkInitializationOfLanes(mapFragment, errors);
+    checkInitializationOfRoads(mapFragment, errors);
     checkJunctions(mapFragment, errors, deadEnd);
 
   }
@@ -40,47 +40,47 @@ public class ModelValidatorServiceImpl implements ModelValidatorService {
       errors.put("junctionId", "IS_NULL");
     }
 
-    if (junction.streamIncomingLaneIds().count() + junction.streamOutgoingLaneIds().count() <= 0) {
-      errors.put("lanesCount", "LOST_STATE");
+    if (junction.streamIncomingRoadIds().count() + junction.streamOutgoingRoadIds().count() <= 0) {
+      errors.put("roadsCount", "LOST_STATE");
     }
 
-    if (deadEnd && (junction.streamIncomingLaneIds().findAny().isEmpty() || junction.streamOutgoingLaneIds()
+    if (deadEnd && (junction.streamIncomingRoadIds().findAny().isEmpty() || junction.streamOutgoingRoadIds()
         .findAny()
         .isEmpty())) {
-      errors.put("lanesCount", "DEAD_END");
+      errors.put("roadsCount", "DEAD_END");
     }
 
     return errors.size() <= 0;
   }
 
-  private void checkInitializationOfLanes(MapFragment mapFragment, Map<String, String> errors)
+  private void checkInitializationOfRoads(MapFragment mapFragment, Map<String, String> errors)
       throws ModelValidationException {
 
     boolean passValidation = mapFragment.getKnownPatchReadable()
         .parallelStream()
-        .flatMap(patch -> patch.getLaneIds().stream().map(patch::getLaneReadable))
-        .allMatch(lane -> validateLane(lane, errors));
+        .flatMap(patch -> patch.getRoadIds().stream().map(patch::getRoadReadable))
+        .allMatch(road -> validateRoad(road, errors));
 
     if (!passValidation) {
       throw new ModelValidationException(errors);
     }
   }
 
-  private boolean validateLane(LaneReadable lane, Map<String, String> errors) {
-    if (lane.getLaneId() == null || StringUtils.isBlank(lane.getLaneId().getValue())) {
-      errors.put("laneId", "IS_NULL");
+  private boolean validateRoad(RoadReadable road, Map<String, String> errors) {
+    if (road.getRoadId() == null || StringUtils.isBlank(road.getRoadId().getValue())) {
+      errors.put("roadId", "IS_NULL");
     }
 
-    if (lane.getIncomingJunctionId() == null) {
+    if (road.getIncomingJunctionId() == null) {
       errors.put("incoming junction", "IS_NULL");
     }
 
-    if (lane.getOutgoingJunctionId() == null) {
+    if (road.getOutgoingJunctionId() == null) {
       errors.put("outgoingJunction", "IS_NULL");
     }
 
-    if (lane.getLength() <= 0) {
-      errors.put("lane length", "TOO_SHORT ");
+    if (road.getLength() <= 0) {
+      errors.put("road length", "TOO_SHORT ");
     }
 
     if (errors.size() > 0) {
@@ -108,8 +108,8 @@ public class ModelValidatorServiceImpl implements ModelValidatorService {
       errors.put("localJunction", "IS_NULL");
     }
 
-    if (mapFragment.getLocalLaneIds() == null) {
-      errors.put("lanes", "IS_NULL");
+    if (mapFragment.getLocalRoadIds() == null) {
+      errors.put("roads", "IS_NULL");
     }
 
     if (mapFragment.getShadowPatchesReadable() == null) {

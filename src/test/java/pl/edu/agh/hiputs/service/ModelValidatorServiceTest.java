@@ -17,13 +17,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.exception.ModelValidationException;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
-import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
+import pl.edu.agh.hiputs.model.map.roadstructure.Road;
 import pl.edu.agh.hiputs.service.worker.ModelValidatorServiceImpl;
 
 @Disabled
@@ -42,7 +42,7 @@ public class ModelValidatorServiceTest {
     when(mapFragment.getShadowPatchesReadable()).thenReturn(null);
     when(mapFragment.getBorderPatches()).thenReturn(null);
     when(mapFragment.getNeighbors()).thenReturn(null);
-    when(mapFragment.getLocalLaneIds()).thenReturn(null);
+    when(mapFragment.getLocalRoadIds()).thenReturn(null);
     when(mapFragment.getLocalJunctionIds()).thenReturn(null);
 
     ModelValidationException exception = null;
@@ -108,15 +108,15 @@ public class ModelValidatorServiceTest {
   private Set<PatchReader> getMockPatchWithJunctionFail() {
     Junction junction = new Junction(new JunctionId("", JunctionType.BEND), 1.d, 1.d, Set.of(), Set.of(), List.of());
 
-    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(junction.getJunctionId(), junction), Map.of(), Set.of());
+    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(junction.getJunctionId(), junction), Map.of(), Map.of(), Set.of());
 
     return Set.of(patch);
   }
 
   private Set<PatchReader> getMockPatchWithLainFail() {
-    Lane lane = new Lane(new LaneId("Lane_ID"), null, null, null, null, null, 0, null);
+    Road lane = new Road(new RoadId("Lane_ID"), null, null, null, null, null, null, 0, null);
 
-    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(), Map.of(lane.getLaneId(), lane), Set.of());
+    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(), Map.of(lane.getRoadId(), lane), Map.of(), Set.of());
 
     return Set.of(patch);
   }

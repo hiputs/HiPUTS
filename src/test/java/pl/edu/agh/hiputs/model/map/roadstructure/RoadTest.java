@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.CarId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
-class LaneTest {
+class RoadTest {
 
   private final double lane_length = 1000.0;
   private final double car1_speed = 10.4;
@@ -25,29 +25,29 @@ class LaneTest {
   private final double car2_pos = 262.4;
   private final double car3_speed = 14.2;
   private final double car3_pos = 563.2;
-  private Lane lane;
+  private Road lane;
   private Car car1;
   private Car car2;
   private Car car3;
 
   @BeforeEach
   void setupLane() {
-    lane = Lane.builder().length(lane_length).build();
+    lane = Road.builder().length(lane_length).build();
 
-    car1 = createCar(lane.getLaneId(), car1_pos, car1_speed);
-    car2 = createCar(lane.getLaneId(), car2_pos, car2_speed);
-    car3 = createCar(lane.getLaneId(), car3_pos, car3_speed);
+    car1 = createCar(lane.getRoadId(), car1_pos, car1_speed);
+    car2 = createCar(lane.getRoadId(), car2_pos, car2_speed);
+    car3 = createCar(lane.getRoadId(), car3_pos, car3_speed);
 
     lane.addCarAtEntry(car3);
     lane.addCarAtEntry(car2);
     lane.addCarAtEntry(car1);
   }
 
-  private Car createCar(LaneId currentLaneId, double positionOnLane, double speed) {
+  private Car createCar(RoadId currentLaneId, double positionOnLane, double speed) {
     return Car.builder()
         .carId(CarId.random())
-        .laneId(currentLaneId)
-        .positionOnLane(positionOnLane)
+        .roadId(currentLaneId)
+        .positionOnRoad(positionOnLane)
         .speed(speed)
         .build();
   }
@@ -56,9 +56,9 @@ class LaneTest {
   void getNextCarData() {
     Optional<CarReadable> optional1 = lane.getCarInFrontReadable(car1);
     Optional<CarReadable> optional2 = lane.getCarInFrontReadable(car2);
-    assertAll(() -> assertFalse(optional1.isEmpty()), () -> assertEquals(optional1.get().getPositionOnLane(), car2_pos),
+    assertAll(() -> assertFalse(optional1.isEmpty()), () -> assertEquals(optional1.get().getPositionOnRoad(), car2_pos),
         () -> assertEquals(optional1.get().getSpeed(), car2_speed), () -> assertFalse(optional2.isEmpty()),
-        () -> assertEquals(optional2.get().getPositionOnLane(), car3_pos),
+        () -> assertEquals(optional2.get().getPositionOnRoad(), car3_pos),
         () -> assertEquals(optional2.get().getSpeed(), car3_speed));
   }
 
@@ -72,13 +72,13 @@ class LaneTest {
   void getFirstCar() {
     Optional<CarReadable> optional = lane.getCarAtEntryReadable();
     assertAll(() -> assertFalse(optional.isEmpty()),
-        () -> assertEquals(optional.map(CarReadable::getPositionOnLane).get(), car1_pos),
+        () -> assertEquals(optional.map(CarReadable::getPositionOnRoad).get(), car1_pos),
         () -> assertEquals(optional.map(CarReadable::getSpeed).get(), car1_speed));
   }
 
   @Test
   void getFirstCarEmpty() {
-    Lane emptyLane = Lane.builder().build();
+    Road emptyLane = Road.builder().build();
     Optional<CarReadable> optional = emptyLane.getCarAtEntryReadable();
     assertTrue(optional.isEmpty());
   }

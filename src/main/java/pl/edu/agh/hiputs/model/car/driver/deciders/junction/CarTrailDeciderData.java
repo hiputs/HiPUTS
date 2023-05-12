@@ -4,7 +4,7 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import pl.edu.agh.hiputs.model.id.CarId;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
 @Value
 @AllArgsConstructor
@@ -14,8 +14,8 @@ public class CarTrailDeciderData {
   private double length;
   private double acceleration;
   private double maxSpeed;
-  private CarId firstCarOnIncomingLaneId;
-  private LaneId incomingLaneId;
-  private Optional<LaneId> outgoingLaneIdOptional;
+  private CarId firstCarOnIncomingRoadId;
+  private RoadId incomingRoadId;
+  private Optional<RoadId> outgoingRoadIdOptional;
 }
 

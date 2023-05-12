@@ -1,6 +1,8 @@
 package pl.edu.agh.hiputs.partition.mapper;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -11,13 +13,15 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
 import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.HorizontalSign;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction.JunctionBuilder;
 import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
-import pl.edu.agh.hiputs.model.map.roadstructure.NeighborLaneInfo;
+import pl.edu.agh.hiputs.model.map.roadstructure.Road;
+import pl.edu.agh.hiputs.model.map.roadstructure.NeighborRoadInfo;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -55,7 +59,9 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
 
     return Patch.builder()
         .patchId(id)
-        .lanes(edgesParallelStream(patch).map(this::mapEdgeToSimulationModel)
+        .roads(edgesParallelStream(patch).map(this::mapEdgeToSimulationModel)
+            .collect(Collectors.toMap(Road::getRoadId, Function.identity())))
+        .lanes(edgesParallelStream(patch).map(this::mapLaneToSimulationModel).flatMap(Collection::stream)
             .collect(Collectors.toMap(Lane::getLaneId, Function.identity())))
         .junctions(nodesParallelStream(patch).map(this::mapNodeToSimulationModel)
             .collect(Collectors.toMap(Junction::getJunctionId, Function.identity())))
@@ -78,22 +84,44 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
         .latitude(node.getData().getLat());
 
     node.getIncomingEdges()
-        .forEach(e -> junctionBuilder.addIncomingLaneId(new LaneId(e.getId()), !e.getData().isPriorityRoad()));
+        .forEach(e -> junctionBuilder.addIncomingRoadId(new RoadId(e.getId()), !e.getData().isPriorityRoad()));
 
-    node.getOutgoingEdges().forEach(e -> junctionBuilder.addOutgoingLaneId(new LaneId(e.getId())));
+    node.getOutgoingEdges().forEach(e -> junctionBuilder.addOutgoingRoadId(new RoadId(e.getId())));
 
     return junctionBuilder.build();
   }
 
-  private Lane mapEdgeToSimulationModel(Edge<JunctionData, WayData> edge) {
-    Lane.LaneBuilder laneBuilder = Lane.builder()
-        .laneId(new LaneId(edge.getId()))
+  private Road mapEdgeToSimulationModel(Edge<JunctionData, WayData> edge) {
+    Road.RoadBuilder roadBuilder = Road.builder()
+        .roadId(new RoadId(edge.getId()))
+        .lanes(getLanes(edge))
         .length(edge.getData().getLength())
         .incomingJunctionId(new JunctionId(edge.getSource().getId(), getJunctionType(edge.getSource())))
         .outgoingJunctionId(new JunctionId(edge.getTarget().getId(), getJunctionType(edge.getTarget())))
-        .leftNeighbor(getOppositeLaneId(edge).map(laneId -> new NeighborLaneInfo(laneId,
+        .leftNeighbor(getOppositeRoadId(edge).map(roadId -> new NeighborRoadInfo(roadId,
             HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE))); //todo parse line from osm if possible
-    return laneBuilder.build();
+    return roadBuilder.build();
+  }
+
+  private List<LaneId> getLanes(Edge<JunctionData, WayData> edge) {
+    return edge.getData()
+        .getLanes()
+        .stream()
+        .map(l -> new LaneId(l.getId()))
+        .collect(Collectors.toList());
+  }
+
+  private List<Lane> mapLaneToSimulationModel(Edge<JunctionData, WayData> edge) {
+
+    return edge.getData().getLanes().stream().map(laneData -> {
+      Lane.LaneBuilder laneBuilder = Lane.builder()
+          .laneId(new LaneId(laneData.getId()))
+          .roadId(new RoadId(edge.getId()))
+          .laneSuccessors(laneData.getAvailableSuccessors().stream()
+              .map(lanesSuccessors -> new LaneId(lanesSuccessors.getId())).collect(Collectors.toList()));
+
+      return laneBuilder.build();
+    }).collect(Collectors.toList());
   }
 
   private JunctionType getJunctionType(Node<JunctionData, WayData> node) {
@@ -101,7 +129,7 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
     return node.getData().isCrossroad() ? JunctionType.CROSSROAD : JunctionType.BEND;
   }
 
-  private Optional<LaneId> getOppositeLaneId(Edge<JunctionData, WayData> edge) {
+  private Optional<RoadId> getOppositeRoadId(Edge<JunctionData, WayData> edge) {
     if (edge.getData().isOneWay()) {
       return Optional.empty();
     }
@@ -110,7 +138,7 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
         .getIncomingEdges()
         .stream()
         .filter(e -> e.getSource().equals(edge.getTarget()))
-        .map(e -> new LaneId(e.getId()))
+        .map(e -> new RoadId(e.getId()))
         .findFirst();
   }
 }

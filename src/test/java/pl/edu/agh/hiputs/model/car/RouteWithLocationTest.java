@@ -5,15 +5,14 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.util.RouteMatcher.Route;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 
 public class RouteWithLocationTest {
 
   private static final List<JunctionId> orderedJunctionsOnRoute = new ArrayList<>();
-  private static final List<LaneId> orderedLaneIdsOnRoute = new ArrayList<>();
+  private static final List<RoadId> orderedLaneIdsOnRoute = new ArrayList<>();
   private static List<RouteElement> routeElements;
   private static int elementCount = 5;
 
@@ -22,7 +21,7 @@ public class RouteWithLocationTest {
     routeElements = new ArrayList<>();
     for (int i = 0; i < elementCount; i++) {
       JunctionId junctionId = new JunctionId(String.valueOf(i), JunctionType.BEND);
-      LaneId laneId = new LaneId(String.valueOf(i));
+      RoadId laneId = new RoadId(String.valueOf(i));
       orderedJunctionsOnRoute.add(junctionId);
       orderedLaneIdsOnRoute.add(laneId);
       routeElements.add(new RouteElement(junctionId, laneId));
@@ -48,7 +47,7 @@ public class RouteWithLocationTest {
   public void getNextLaneIdTest() {
     RouteWithLocation routeWithLocation = new RouteWithLocation(routeElements, 0);
     Assertions.assertThat(
-            routeWithLocation.getRouteElements().get(routeWithLocation.getCurrentPosition()).getOutgoingLaneId())
+            routeWithLocation.getRouteElements().get(routeWithLocation.getCurrentPosition()).getOutgoingRoadId())
         .isEqualTo(orderedLaneIdsOnRoute.get(0));
   }
 
@@ -60,7 +59,7 @@ public class RouteWithLocationTest {
             routeWithLocation.getRouteElements().get(routeWithLocation.getCurrentPosition()).getJunctionId())
         .isEqualTo(orderedJunctionsOnRoute.get(1));
     Assertions.assertThat(
-            routeWithLocation.getRouteElements().get(routeWithLocation.getCurrentPosition()).getOutgoingLaneId())
+            routeWithLocation.getRouteElements().get(routeWithLocation.getCurrentPosition()).getOutgoingRoadId())
         .isEqualTo(orderedLaneIdsOnRoute.get(1));
   }
 
@@ -79,7 +78,7 @@ public class RouteWithLocationTest {
               routeWithLocation.getRouteElements().get(routeWithLocation.getCurrentPosition()).getJunctionId())
           .isEqualTo(orderedJunctionsOnRoute.get(i));
       Assertions.assertThat(
-              routeWithLocation.getRouteElements().get(routeWithLocation.getCurrentPosition()).getOutgoingLaneId())
+              routeWithLocation.getRouteElements().get(routeWithLocation.getCurrentPosition()).getOutgoingRoadId())
           .isEqualTo(orderedLaneIdsOnRoute.get(i));
     }
   }
@@ -92,19 +91,19 @@ public class RouteWithLocationTest {
             routeWithLocation.getRouteElements().get(routeWithLocation.getCurrentPosition()).getJunctionId())
         .isEqualTo(orderedJunctionsOnRoute.get(4));
     Assertions.assertThat(
-            routeWithLocation.getRouteElements().get(routeWithLocation.getCurrentPosition()).getOutgoingLaneId())
+            routeWithLocation.getRouteElements().get(routeWithLocation.getCurrentPosition()).getOutgoingRoadId())
         .isEqualTo(orderedLaneIdsOnRoute.get(4));
   }
 
   @Test
   public void getOffsetLaneIdTest() {
     RouteWithLocation routeWithLocation = new RouteWithLocation(routeElements, 0);
-    Assertions.assertThat(routeWithLocation.getOffsetLaneId(1).get()).isEqualTo(routeElements.get(1).getOutgoingLaneId());
+    Assertions.assertThat(routeWithLocation.getOffsetRoadId(1).get()).isEqualTo(routeElements.get(1).getOutgoingRoadId());
   }
 
   @Test
   public void getOffsetLaneIdEmptyTest() {
     RouteWithLocation routeWithLocation = new RouteWithLocation(routeElements, 0);
-    Assertions.assertThat(routeWithLocation.getOffsetLaneId(elementCount).isEmpty()).isTrue();
+    Assertions.assertThat(routeWithLocation.getOffsetRoadId(elementCount).isEmpty()).isTrue();
   }
 }

@@ -8,27 +8,27 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 
 @Slf4j
 @Getter
 @Builder
 @AllArgsConstructor
-public class SerializedLane implements CustomSerializable<List<Car>> {
+public class SerializedRoad implements CustomSerializable<List<Car>> {
 
-  String laneId;
+  String roadId;
   List<SerializedCar> cars;
 
-  public SerializedLane(LaneEditable lane) {
-    cars = getCars(lane);
-    laneId = lane.getLaneId().getValue();
+  public SerializedRoad(RoadEditable road) {
+    cars = getCars(road);
+    roadId = road.getRoadId().getValue();
   }
 
-  private List<SerializedCar> getCars(LaneEditable lane) {
+  private List<SerializedCar> getCars(RoadEditable road) {
     try {
-      return lane.streamCarsFromEntryEditable().map(SerializedCar::new).collect(Collectors.toList());
+      return road.streamCarsFromEntryEditable().map(SerializedCar::new).collect(Collectors.toList());
     } catch (Exception e){
-      log.warn("Error get Cars from lane", e);
+      log.warn("Error get Cars from road", e);
       return List.of();
     }
   }

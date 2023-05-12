@@ -14,19 +14,19 @@ import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
-import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
+import pl.edu.agh.hiputs.tasks.RoadUpdateStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
 @Disabled
 @ExtendWith(MockitoExtension.class)
-public class LaneUpdateStageTaskTest {
+public class RoadUpdateStageTaskTest {
 
   private MapFragment mapFragment;
-  private LaneId laneId1, laneId2;
-  private LaneEditable lane1, lane2;
+  private RoadId laneId1, laneId2;
+  private RoadEditable lane1, lane2;
   private final RouteWithLocation routeWithLocation = Mockito.mock(RouteWithLocation.class);
   private final Car car1 = Car.builder().length(4).speed(15).routeWithLocation(routeWithLocation).build();
   private final Car car2 = Car.builder().length(4).speed(15).routeWithLocation(routeWithLocation).build();
@@ -36,31 +36,31 @@ public class LaneUpdateStageTaskTest {
   @BeforeEach
   public void setup() {
     mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
-    laneId1 = mapFragment.getLocalLaneIds().iterator().next();
-    lane1 = mapFragment.getLaneEditable(laneId1);
-    laneId2 = mapFragment.getJunctionReadable(lane1.getOutgoingJunctionId()).streamOutgoingLaneIds().findFirst().get();
-    lane2 = mapFragment.getLaneEditable(laneId2);
+    laneId1 = mapFragment.getLocalRoadIds().iterator().next();
+    lane1 = mapFragment.getRoadEditable(laneId1);
+    laneId2 = mapFragment.getJunctionReadable(lane1.getOutgoingJunctionId()).streamOutgoingRoadIds().findFirst().get();
+    lane2 = mapFragment.getRoadEditable(laneId2);
     decision1 = Decision.builder()
         .acceleration(2.0)
         .speed(12.0)
-        .laneId(laneId2)
-        .positionOnLane(10.0)
+        .roadId(laneId2)
+        .positionOnRoad(10.0)
         .offsetToMoveOnRoute(1)
         .build();
 
     decision2 = Decision.builder()
         .acceleration(2.0)
         .speed(12.0)
-        .laneId(laneId2)
-        .positionOnLane(20.0)
+        .roadId(laneId2)
+        .positionOnRoad(20.0)
         .offsetToMoveOnRoute(1)
         .build();
 
     decision3 = Decision.builder()
         .acceleration(2.0)
         .speed(12.0)
-        .laneId(laneId2)
-        .positionOnLane(30.0)
+        .roadId(laneId2)
+        .positionOnRoad(30.0)
         .offsetToMoveOnRoute(0)
         .build();
 
@@ -71,7 +71,7 @@ public class LaneUpdateStageTaskTest {
     ReflectionUtil.setFieldValue(car, "decision", decision);
   }
 
-  private void setLaneId(Car car, LaneId laneId) {
+  private void setLaneId(Car car, RoadId laneId) {
     ReflectionUtil.setFieldValue(car, "laneId", laneId);
   }
 
@@ -94,15 +94,15 @@ public class LaneUpdateStageTaskTest {
     setDecision(car2, decision2);
     setDecision(car3, decision3);
 
-    LaneUpdateStageTask laneUpdateStageTask = new LaneUpdateStageTask(mapFragment, laneId2);
+    RoadUpdateStageTask roadUpdateStageTask = new RoadUpdateStageTask(mapFragment, laneId2);
 
-    laneUpdateStageTask.run();
-    Assertions.assertAll(() -> Assertions.assertEquals(decision1.getLaneId(), car1.getLaneId()),
-        () -> Assertions.assertEquals(decision1.getPositionOnLane(), car1.getPositionOnLane()),
-        () -> Assertions.assertEquals(decision2.getLaneId(), car2.getLaneId()),
-        () -> Assertions.assertEquals(decision2.getPositionOnLane(), car2.getPositionOnLane()),
-        () -> Assertions.assertEquals(decision3.getLaneId(), car3.getLaneId()),
-        () -> Assertions.assertEquals(decision3.getPositionOnLane(), car3.getPositionOnLane()),
+    roadUpdateStageTask.run();
+    Assertions.assertAll(() -> Assertions.assertEquals(decision1.getRoadId(), car1.getRoadId()),
+        () -> Assertions.assertEquals(decision1.getPositionOnRoad(), car1.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision2.getRoadId(), car2.getRoadId()),
+        () -> Assertions.assertEquals(decision2.getPositionOnRoad(), car2.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision3.getRoadId(), car3.getRoadId()),
+        () -> Assertions.assertEquals(decision3.getPositionOnRoad(), car3.getPositionOnRoad()),
         () -> Assertions.assertEquals(3, lane2.streamCarsFromExitEditable().count()),
         () -> Assertions.assertEquals(car3, lane2.streamCarsFromExitEditable().findFirst().get()),
         () -> Assertions.assertEquals(car2, lane2.streamCarsFromExitEditable().skip(1).findFirst().get()),
@@ -127,17 +127,17 @@ public class LaneUpdateStageTaskTest {
     lane2.addIncomingCar(car1);
     lane2.addIncomingCar(car2);
 
-    LaneUpdateStageTask laneUpdateStageTask1 = new LaneUpdateStageTask(mapFragment, laneId1);
-    laneUpdateStageTask1.run();
-    LaneUpdateStageTask laneUpdateStageTask2 = new LaneUpdateStageTask(mapFragment, laneId2);
-    laneUpdateStageTask2.run();
+    RoadUpdateStageTask roadUpdateStageTask1 = new RoadUpdateStageTask(mapFragment, laneId1);
+    roadUpdateStageTask1.run();
+    RoadUpdateStageTask roadUpdateStageTask2 = new RoadUpdateStageTask(mapFragment, laneId2);
+    roadUpdateStageTask2.run();
 
-    Assertions.assertAll(() -> Assertions.assertEquals(decision1.getLaneId(), car1.getLaneId()),
-        () -> Assertions.assertEquals(decision1.getPositionOnLane(), car1.getPositionOnLane()),
-        () -> Assertions.assertEquals(decision2.getLaneId(), car2.getLaneId()),
-        () -> Assertions.assertEquals(decision2.getPositionOnLane(), car2.getPositionOnLane()),
-        () -> Assertions.assertEquals(decision3.getLaneId(), car3.getLaneId()),
-        () -> Assertions.assertEquals(decision3.getPositionOnLane(), car3.getPositionOnLane()),
+    Assertions.assertAll(() -> Assertions.assertEquals(decision1.getRoadId(), car1.getRoadId()),
+        () -> Assertions.assertEquals(decision1.getPositionOnRoad(), car1.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision2.getRoadId(), car2.getRoadId()),
+        () -> Assertions.assertEquals(decision2.getPositionOnRoad(), car2.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision3.getRoadId(), car3.getRoadId()),
+        () -> Assertions.assertEquals(decision3.getPositionOnRoad(), car3.getPositionOnRoad()),
         () -> Assertions.assertEquals(3, lane2.streamCarsFromExitEditable().count()),
         () -> Assertions.assertEquals(0, lane1.streamCarsFromExitEditable().count()),
         () -> Assertions.assertEquals(0, lane2.pollIncomingCars().count()),
@@ -161,8 +161,8 @@ public class LaneUpdateStageTaskTest {
     decision1 = Decision.builder()
         .acceleration(2.0)
         .speed(12.0)
-        .laneId(laneId1)
-        .positionOnLane(900.0)
+        .roadId(laneId1)
+        .positionOnRoad(900.0)
         .offsetToMoveOnRoute(0)
         .build();
     setDecision(car1, decision1);
@@ -171,17 +171,17 @@ public class LaneUpdateStageTaskTest {
 
     lane2.addIncomingCar(car2);
 
-    LaneUpdateStageTask laneUpdateStageTask1 = new LaneUpdateStageTask(mapFragment, laneId1);
-    laneUpdateStageTask1.run();
-    LaneUpdateStageTask laneUpdateStageTask2 = new LaneUpdateStageTask(mapFragment, laneId2);
-    laneUpdateStageTask2.run();
+    RoadUpdateStageTask roadUpdateStageTask1 = new RoadUpdateStageTask(mapFragment, laneId1);
+    roadUpdateStageTask1.run();
+    RoadUpdateStageTask roadUpdateStageTask2 = new RoadUpdateStageTask(mapFragment, laneId2);
+    roadUpdateStageTask2.run();
 
-    Assertions.assertAll(() -> Assertions.assertEquals(decision1.getLaneId(), car1.getLaneId()),
-        () -> Assertions.assertEquals(decision1.getPositionOnLane(), car1.getPositionOnLane()),
-        () -> Assertions.assertEquals(decision2.getLaneId(), car2.getLaneId()),
-        () -> Assertions.assertEquals(decision2.getPositionOnLane(), car2.getPositionOnLane()),
-        () -> Assertions.assertEquals(decision3.getLaneId(), car3.getLaneId()),
-        () -> Assertions.assertEquals(decision3.getPositionOnLane(), car3.getPositionOnLane()),
+    Assertions.assertAll(() -> Assertions.assertEquals(decision1.getRoadId(), car1.getRoadId()),
+        () -> Assertions.assertEquals(decision1.getPositionOnRoad(), car1.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision2.getRoadId(), car2.getRoadId()),
+        () -> Assertions.assertEquals(decision2.getPositionOnRoad(), car2.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision3.getRoadId(), car3.getRoadId()),
+        () -> Assertions.assertEquals(decision3.getPositionOnRoad(), car3.getPositionOnRoad()),
         () -> Assertions.assertEquals(2, lane2.streamCarsFromExitEditable().count()),
         () -> Assertions.assertEquals(1, lane1.streamCarsFromExitEditable().count()),
         () -> Assertions.assertEquals(0, lane2.pollIncomingCars().count()),

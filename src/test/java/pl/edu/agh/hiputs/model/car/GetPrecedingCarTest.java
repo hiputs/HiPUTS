@@ -13,13 +13,13 @@ import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspectorImpl;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
-import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 @Disabled
 
@@ -27,16 +27,16 @@ public class GetPrecedingCarTest {
 
   private MapFragment mapFragment;
   private ExampleCarProvider carProvider;
-  private LaneId startLaneId;
-  private LaneEditable startLane;
+  private RoadId startLaneId;
+  private RoadEditable startLane;
   private Car car1, car2;
   private CarProspector prospector;
     @BeforeEach
     public void setup() {
         mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
         carProvider = new ExampleCarProvider(mapFragment);
-        startLaneId = mapFragment.getLocalLaneIds().iterator().next();
-        startLane = mapFragment.getLaneEditable(startLaneId);
+        startLaneId = mapFragment.getLocalRoadIds().iterator().next();
+        startLane = mapFragment.getRoadEditable(startLaneId);
         car1 = carProvider.generateCar(10.0, startLaneId, 3);
         car2 = carProvider.generateCar(60.0, startLaneId, 4);
         prospector = new CarProspectorImpl();
@@ -88,7 +88,7 @@ public class GetPrecedingCarTest {
     Assertions.assertAll(() -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
         () -> Assertions.assertTrue(carEnvironment.getNextCrossroadId().isPresent()),
         () -> Assertions.assertEquals(startLane.getOutgoingJunctionId(), carEnvironment.getNextCrossroadId().get()),
-        () -> Assertions.assertEquals(startLane.getLength() - car1.getPositionOnLane(), carEnvironment.getDistance()));
+        () -> Assertions.assertEquals(startLane.getLength() - car1.getPositionOnRoad(), carEnvironment.getDistance()));
   }
 
     @Test
@@ -112,7 +112,7 @@ public class GetPrecedingCarTest {
     CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
     Assertions.assertAll(() -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
         () -> Assertions.assertFalse(carEnvironment.getNextCrossroadId().isPresent()),
-        () -> Assertions.assertEquals(3 * startLane.getLength() - car1.getPositionOnLane(),
+        () -> Assertions.assertEquals(3 * startLane.getLength() - car1.getPositionOnRoad(),
             carEnvironment.getDistance()));
   }
 
@@ -129,9 +129,9 @@ public class GetPrecedingCarTest {
   }
 
   private void setAllJunctionTypeBend() {
-    for (LaneId laneId : mapFragment.getLocalLaneIds()) {
+    for (RoadId laneId : mapFragment.getLocalRoadIds()) {
       JunctionReadable junction =
-          mapFragment.getJunctionReadable(mapFragment.getLaneEditable(laneId).getOutgoingJunctionId());
+          mapFragment.getJunctionReadable(mapFragment.getRoadEditable(laneId).getOutgoingJunctionId());
       this.setJunctionTypeBend(junction);
     }
     recalculateJunctionsHashCodes(mapFragment);
@@ -144,9 +144,9 @@ public class GetPrecedingCarTest {
 
 
   private void setAllJunctionTypeCrossroad() {
-    for (LaneId laneId : mapFragment.getLocalLaneIds()) {
+    for (RoadId laneId : mapFragment.getLocalRoadIds()) {
       JunctionReadable junction =
-          mapFragment.getJunctionReadable(mapFragment.getLaneEditable(laneId).getOutgoingJunctionId());
+          mapFragment.getJunctionReadable(mapFragment.getRoadEditable(laneId).getOutgoingJunctionId());
       this.setJunctionTypeCrossroad(junction);
     }
     recalculateJunctionsHashCodes(mapFragment);

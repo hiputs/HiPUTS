@@ -2,11 +2,9 @@ package pl.edu.agh.hiputs.communication.model.messages;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
-import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 
 @Getter
 @AllArgsConstructor

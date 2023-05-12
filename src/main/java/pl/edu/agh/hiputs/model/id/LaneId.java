@@ -16,20 +16,12 @@ public class LaneId {
 
   private final String value;
 
-  public static LaneId random() {
-    return new LaneId(UUID.randomUUID().toString());
-  }
+  public static LaneId random() {return new LaneId(UUID.randomUUID().toString());}
 
-  public LaneEditable getEditable(RoadStructureEditor editor) {
-    return editor.getLaneEditable(this);
-  }
+  public LaneEditable getEditable(RoadStructureEditor editor) {return editor.getLaneEditable(this);}
 
-  public LaneReadable getReadable(RoadStructureReader reader) {
-    return reader.getLaneReadable(this);
-  }
+  public LaneReadable getReadable(RoadStructureReader editor) {return editor.getLaneReadable(this);}
 
   @Override
-  public String toString() {
-    return "LaneId{" + value + '}';
-  }
+  public String toString() {return "LaneId{"+value+"}";}
 }
