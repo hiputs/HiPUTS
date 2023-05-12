@@ -182,7 +182,10 @@ public class Configuration {
   private boolean extendCarRouteWhenItEnds;
 
   public static Configuration getDefault() {
-    return Configuration.builder().testMode(true).workerCount(1).coresPerWorkerCount(48)
+    return Configuration.builder()
+        .testMode(true)
+        .workerCount(1)
+        .coresPerWorkerCount(48)
         .enableGUI(true)
         .statisticModeActive(false)
         .simulationStep(1000)
@@ -226,7 +229,7 @@ public class Configuration {
      * Arbitrary maximum distance in meters at which the car should be able to retrieve all necessary information
      * required by decision process
      */
-    private double carViewRange;
+    private double carViewRange; // todo duplicated in 'master' configuration
 
     /**
      * Property related only for "hexagon" patch partitioner.

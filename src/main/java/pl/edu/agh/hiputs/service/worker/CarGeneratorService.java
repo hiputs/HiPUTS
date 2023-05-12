@@ -1,14 +1,10 @@
 package pl.edu.agh.hiputs.service.worker;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -27,6 +23,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.PatchEditor;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
+import pl.edu.agh.hiputs.scheduler.task.CarGenerationTask;
 import pl.edu.agh.hiputs.scheduler.task.CarRouteExtendTask;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
@@ -43,7 +40,6 @@ public class CarGeneratorService implements Subscriber {
   private final TaskExecutorService taskExecutor;
   private final MapRepository mapRepository;
   private final WorkerSubscriptionService subscriptionService;
-  private final ConfigurationService configurationService;
   private boolean bigWorker = false;
   private int step = 0;
   private int totalPatch = -1;
@@ -53,17 +49,17 @@ public class CarGeneratorService implements Subscriber {
   @PostConstruct
   void init(){
     subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
-    configuration = configurationService.getConfiguration();
+    configuration = ConfigurationService.getConfiguration();
   }
 
   public void generateInitialCars(){
     createCarProvider();
 
-    List<Car> generatedCars = configuration.getNumberOfCarsPerWorker() > 0 ?
-        generateCarsDistributedEvenlyBetweenPatches() :
-        generateCarsOnEachLane();
+    List<Runnable> generationTasks =
+        configuration.getNumberOfCarsPerWorker() > 0 ? generateCarsDistributedEvenlyBetweenPatches()
+            : generateCarsOnEachLane();
 
-    putCarsOnLanes(generatedCars);
+    taskExecutor.executeBatch(generationTasks);
   }
 
   private void putCarsOnLanes(List<Car> generatedCars) {
@@ -74,40 +70,43 @@ public class CarGeneratorService implements Subscriber {
     });
   }
 
-  private List<Car> generateCarsDistributedEvenlyBetweenPatches() {
-    int idx = 0;
-    List<Car> generatedCars = new LinkedList<>();
+  private List<Runnable> generateCarsDistributedEvenlyBetweenPatches() {
+    int minCarsPerPatch = configuration.getNumberOfCarsPerWorker() / mapFragment.getMyPatchCount();
+    List<Runnable> tasks = new LinkedList<>();
+    int patchIdx = 0;
 
-    for(PatchEditor patch : mapFragment.getLocalPatchesEditable()){
-      int carsToGenerateInPatch = idx++ < configuration.getNumberOfCarsPerWorker() % mapFragment.getMyPatchCount()
-          ? configuration.getNumberOfCarsPerWorker() / mapFragment.getMyPatchCount() + 1
-          : configuration.getNumberOfCarsPerWorker() / mapFragment.getMyPatchCount();
+    for (PatchEditor patch : mapFragment.getLocalPatchesEditable()) {
+      int carsToGenerateInPatch =
+          patchIdx < configuration.getNumberOfCarsPerWorker() % mapFragment.getMyPatchCount() ? minCarsPerPatch + 1
+              : minCarsPerPatch;
+      int minCarsPerLane = carsToGenerateInPatch / patch.getLaneIds().size();
 
-      LaneId[] lanes = patch.getLaneIds().toArray(new LaneId[0]);
+      int taskIdx = 0;
+      for (LaneId lane : patch.getLaneIds()) {
+        int carsToGenerateOnLane =
+            taskIdx < carsToGenerateInPatch % patch.getLaneIds().size() ? minCarsPerLane + 1 : minCarsPerLane;
 
-      for(int i=0;i<carsToGenerateInPatch;i++){
-        generatedCars.add(carProvider.generateCar(lanes[i % lanes.length]));
+        tasks.add(new CarGenerationTask(carProvider, mapFragment, lane, carsToGenerateOnLane));
+        taskIdx++;
       }
+      patchIdx++;
     }
-
-    return generatedCars;
+    return tasks;
   }
 
-  private List<Car> generateCarsOnEachLane(){
-    return mapFragment.getLocalLaneIds()
-        .stream()
-        .map(laneId -> {
-          List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-              .mapToObj(x -> carProvider.generateCar(laneId))
-              .filter(Objects::nonNull)
-              .sorted(Comparator.comparing(Car::getPositionOnLane))
-              .collect(Collectors.toList());
-          Collections.reverse(generatedCars);
-
-          return generatedCars;
-        })
-        .flatMap(Collection::stream)
-        .toList();
+  private List<Runnable> generateCarsOnEachLane() {
+    return mapFragment.getLocalLaneIds().stream().map(laneId -> {
+      return new CarGenerationTask(carProvider, mapFragment, laneId, configuration.getInitialNumberOfCarsPerLane());
+      // List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
+      //     .mapToObj(x -> carProvider.generateCar(laneId))
+      //     .filter(Objects::nonNull)
+      //     .sorted(Comparator.comparing(Car::getPositionOnLane))
+      //     .collect(Collectors.toList());
+      // Collections.reverse(generatedCars);
+      // return generatedCars;
+    })
+        // .flatMap(Collection::stream)
+        .collect(Collectors.toList());
   }
 
   public void extendCarsRoutes(int step){
@@ -144,7 +143,7 @@ public class CarGeneratorService implements Subscriber {
     }
 
     if(bigWorker){
-      count = (int) (count * 10);
+      count = count * 10;
     }
     
     List<LaneEditable> lanesEditable = mapFragment.getRandomLanesEditable(count);

@@ -17,7 +17,7 @@ public class CarRouteExtendTask implements Runnable{
   private final MapFragment mapFragment;
   private final LaneId laneId;
   private final int remainingTimeSteps;
-  private static final int ROUTE_ELEMENTS_THRESHOLD = 5;
+  private static final int ROUTE_ELEMENTS_THRESHOLD = 15;
 
 
   @Override
