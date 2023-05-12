@@ -53,7 +53,7 @@ public class CarGeneratorService implements Subscriber {
   @PostConstruct
   void init(){
     subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
-    configuration = configurationService.getConfiguration();
+    configuration = ConfigurationService.getConfiguration();
   }
 
   public void generateInitialCars(){
@@ -67,6 +67,11 @@ public class CarGeneratorService implements Subscriber {
   }
 
   private void putCarsOnLanes(List<Car> generatedCars) {
+    generatedCars.sort(Comparator.comparing(Car::getPositionOnLane));
+    Collections.reverse(
+        generatedCars); // it's important because now we place cars from the and of the road to the beginning and
+    // when needed car's position is modified to not be generated on other car
+
     generatedCars.forEach(car -> {
       LaneEditable lane = mapFragment.getLaneEditable(car.getLaneId());
       carProvider.limitSpeedPreventCollisionOnStart(car, lane);
@@ -96,16 +101,10 @@ public class CarGeneratorService implements Subscriber {
   private List<Car> generateCarsOnEachLane(){
     return mapFragment.getLocalLaneIds()
         .stream()
-        .map(laneId -> {
-          List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-              .mapToObj(x -> carProvider.generateCar(laneId))
-              .filter(Objects::nonNull)
-              .sorted(Comparator.comparing(Car::getPositionOnLane))
-              .collect(Collectors.toList());
-          Collections.reverse(generatedCars);
-
-          return generatedCars;
-        })
+        .map(laneId -> IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
+            .mapToObj(x -> carProvider.generateCar(laneId))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList()))
         .flatMap(Collection::stream)
         .toList();
   }
@@ -144,7 +143,7 @@ public class CarGeneratorService implements Subscriber {
     }
 
     if(bigWorker){
-      count = (int) (count * 10);
+      count = count * 10;
     }
     
     List<LaneEditable> lanesEditable = mapFragment.getRandomLanesEditable(count);

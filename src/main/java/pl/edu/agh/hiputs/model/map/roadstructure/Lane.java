@@ -156,18 +156,17 @@ public class Lane implements LaneEditable {
       double position = cars.getFirst().getPositionOnLane() - cars.getFirst().getLength() - 0.3;
       double speed = cars.getFirst().getSpeed(); //
 
-      if(position < 0){
-        position = 0;
-        speed = 2;
+      if (position > length) {
+        car.setPositionOnLaneAndSpeed(0, 10);
       }
 
       for (final CarEditable c : cars) {
         double start = c.getPositionOnLane();
         double end = start + c.getLength();
 
-        if(position >= start && position <= end){
+        if (position >= start && position <= end) {
           position = end + 0.3;
-        } else{
+        } else {
           break;
         }
       }
