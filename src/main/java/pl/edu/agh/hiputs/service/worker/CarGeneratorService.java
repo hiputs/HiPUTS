@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.service.worker;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -63,6 +65,12 @@ public class CarGeneratorService implements Subscriber {
   }
 
   private void putCarsOnLanes(List<Car> generatedCars) {
+    generatedCars.sort(Comparator.comparing(Car::getPositionOnLane));
+    Collections.reverse(generatedCars);
+    // it's important to sort and reverse cars because now we place cars from the end of the road
+    // to the beginning and
+    // when needed car's position is modified to not be generated on other car
+
     generatedCars.forEach(car -> {
       LaneEditable lane = mapFragment.getLaneEditable(car.getLaneId());
       carProvider.limitSpeedPreventCollisionOnStart(car, lane);
@@ -95,17 +103,10 @@ public class CarGeneratorService implements Subscriber {
   }
 
   private List<Runnable> generateCarsOnEachLane() {
-    return mapFragment.getLocalLaneIds().stream().map(laneId -> {
-      return new CarGenerationTask(carProvider, mapFragment, laneId, configuration.getInitialNumberOfCarsPerLane());
-      // List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-      //     .mapToObj(x -> carProvider.generateCar(laneId))
-      //     .filter(Objects::nonNull)
-      //     .sorted(Comparator.comparing(Car::getPositionOnLane))
-      //     .collect(Collectors.toList());
-      // Collections.reverse(generatedCars);
-      // return generatedCars;
-    })
-        // .flatMap(Collection::stream)
+    return mapFragment.getLocalLaneIds()
+        .stream()
+        .map(laneId -> new CarGenerationTask(carProvider, mapFragment, laneId,
+            configuration.getInitialNumberOfCarsPerLane()))
         .collect(Collectors.toList());
   }
 

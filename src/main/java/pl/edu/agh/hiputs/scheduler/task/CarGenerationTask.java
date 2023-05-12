@@ -1,5 +1,9 @@
 package pl.edu.agh.hiputs.scheduler.task;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
@@ -22,11 +26,15 @@ public class CarGenerationTask implements Runnable {
     try {
       LaneEditable lane = mapFragment.getLaneEditable(laneId);
 
-      for (int i = 0; i < carsToGenerate; i++) {
-        Car car = carProvider.generateCar(laneId);
+      List<Car> cars = IntStream.range(0, carsToGenerate)
+          .mapToObj(i -> carProvider.generateCar(laneId))
+          .sorted(Comparator.comparing(Car::getPositionOnLane).reversed())
+          .collect(Collectors.toList());
+
+      cars.forEach(car -> {
         carProvider.limitSpeedPreventCollisionOnStart(car, lane);
         lane.addNewCar(car);
-      }
+      });
 
     } catch (Exception e) {
       log.error("Unexpected exception occurred during initial car generation", e);
