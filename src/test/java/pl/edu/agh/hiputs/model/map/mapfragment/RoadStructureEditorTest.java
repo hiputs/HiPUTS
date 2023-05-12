@@ -81,11 +81,13 @@ public class RoadStructureEditorTest {
     Patch localPatch = Patch.builder()
         .roads(Map.of(lane1.getRoadId(), lane1, lane2.getRoadId(), lane2))
         .junctions(Map.of(junction1.getJunctionId(), junction1, junction2.getJunctionId(), junction2))
+        .lanes(Map.of())
         .build();
 
     Patch remotePatch = Patch.builder()
         .roads(Map.of(lane3.getRoadId(), lane3, lane4.getRoadId(), lane4))
         .junctions(Map.of(junction3.getJunctionId(), junction3))
+        .lanes(Map.of())
         .build();
 
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random())
