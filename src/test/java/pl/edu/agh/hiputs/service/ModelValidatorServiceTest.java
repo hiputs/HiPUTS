@@ -108,15 +108,15 @@ public class ModelValidatorServiceTest {
   private Set<PatchReader> getMockPatchWithJunctionFail() {
     Junction junction = new Junction(new JunctionId("", JunctionType.BEND), 1.d, 1.d, Set.of(), Set.of(), List.of());
 
-    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(junction.getJunctionId(), junction), Map.of(), Set.of());
+    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(junction.getJunctionId(), junction), Map.of(), Map.of(), Set.of());
 
     return Set.of(patch);
   }
 
   private Set<PatchReader> getMockPatchWithLainFail() {
-    Road lane = new Road(new RoadId("Lane_ID"), null, null, null, null, null, 0, null);
+    Road lane = new Road(new RoadId("Lane_ID"), null, null, null, null, null, null, 0, null);
 
-    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(), Map.of(lane.getRoadId(), lane), Set.of());
+    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(), Map.of(lane.getRoadId(), lane), Map.of(), Set.of());
 
     return Set.of(patch);
   }
