@@ -7,6 +7,7 @@ import static pl.edu.agh.hiputs.example.ExampleMapFragmentProvider.getSimpleMap2
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -106,7 +107,7 @@ public class ModelValidatorServiceTest {
   }
 
   private Set<PatchReader> getMockPatchWithJunctionFail() {
-    Junction junction = new Junction(new JunctionId("", JunctionType.BEND), 1.d, 1.d, Set.of(), Set.of(), List.of());
+    Junction junction = new Junction(new JunctionId("", JunctionType.BEND), 1.d, 1.d, Set.of(), Set.of(), List.of(), Optional.empty());
 
     Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(junction.getJunctionId(), junction), Map.of(), Map.of(), Set.of());
 
@@ -114,7 +115,7 @@ public class ModelValidatorServiceTest {
   }
 
   private Set<PatchReader> getMockPatchWithLainFail() {
-    Road lane = new Road(new RoadId("Lane_ID"), null, null, null, null, null, null, 0, null);
+    Road lane = new Road(new RoadId("Lane_ID"), null, null, null, null, null, null, 0, Optional.empty(), null);
 
     Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(), Map.of(lane.getRoadId(), lane), Map.of(), Set.of());
 

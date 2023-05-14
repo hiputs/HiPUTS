@@ -20,6 +20,7 @@ import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
+import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicatorReadable;
 
 @Slf4j
 @Builder
@@ -77,6 +78,13 @@ public class Road implements RoadEditable {
    */
   @Getter
   private final double length;
+
+  /**
+   * Traffic indicator which prohibits or allows entering incomingJunction
+   */
+  @Getter
+  @Builder.Default
+  private final Optional<TrafficIndicatorReadable> trafficIndicator = Optional.empty();
 
   /**
    * Set for cars incoming onto this road

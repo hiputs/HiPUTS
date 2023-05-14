@@ -88,6 +88,8 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
 
     node.getOutgoingEdges().forEach(e -> junctionBuilder.addOutgoingRoadId(new RoadId(e.getId())));
 
+    node.getData().getSignalsControlCenter().ifPresent(junctionBuilder::signalsControlCenter);
+
     return junctionBuilder.build();
   }
 
@@ -100,6 +102,10 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
         .outgoingJunctionId(new JunctionId(edge.getTarget().getId(), getJunctionType(edge.getTarget())))
         .leftNeighbor(getOppositeRoadId(edge).map(roadId -> new NeighborRoadInfo(roadId,
             HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE))); //todo parse line from osm if possible
+
+    edge.getData().getTrafficIndicator()
+        .ifPresent(trafficIndicator -> roadBuilder.trafficIndicator(Optional.of(trafficIndicator)));
+
     return roadBuilder.build();
   }
 
