@@ -7,5 +7,7 @@ public interface SignalsControlCenter {
 
   String getId();
 
+  int getDurationTime();
+
   List<GreenColorGroupEditable> getGreenColorGroups();
 }

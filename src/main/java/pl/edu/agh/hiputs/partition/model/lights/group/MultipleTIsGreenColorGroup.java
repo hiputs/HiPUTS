@@ -1,23 +1,24 @@
 package pl.edu.agh.hiputs.partition.model.lights.group;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.partition.model.lights.LightColor;
 import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicatorEditable;
 
 @Getter
-@Builder
+@RequiredArgsConstructor
 @EqualsAndHashCode
 public class MultipleTIsGreenColorGroup implements GreenColorGroupEditable {
-  @Builder.Default
-  private final String id = UUID.randomUUID().toString();
-  @Builder.Default
+  private final String id;
   @EqualsAndHashCode.Exclude
-  private Collection<TrafficIndicatorEditable> trafficIndicators = new ArrayList<>();
+  private final Collection<TrafficIndicatorEditable> trafficIndicators;
+
+  public MultipleTIsGreenColorGroup(Collection<TrafficIndicatorEditable> trafficIndicators) {
+    this(UUID.randomUUID().toString(), trafficIndicators);
+  }
 
   @Override
   public void switchColorForAll(LightColor newColor) {

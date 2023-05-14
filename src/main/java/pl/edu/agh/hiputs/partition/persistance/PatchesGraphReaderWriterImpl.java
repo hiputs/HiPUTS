@@ -146,6 +146,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
         for (SignalsControlCenter controlCenter : distinctSignalCenters) {
           signalCentersPrinter.printRecord(
               controlCenter.getId(),
+              controlCenter.getDurationTime(),
               mapToCsv(controlCenter.getGreenColorGroups().stream()
                   .map(GreenColorGroupEditable::getId)
                   .toList())
@@ -201,27 +202,27 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     Map<String, TrafficIndicator> idToTrafficIndicator = groupsAsIDs.values().stream()
         .flatMap(Collection::stream)
         .distinct()
-        .collect(Collectors.toMap(Function.identity(), id -> TrafficIndicator.builder().id(id).build()));
+        .collect(Collectors.toMap(Function.identity(), TrafficIndicator::new));
 
     // building group objects
     Map<String, MultipleTIsGreenColorGroup> idToGreenColorGroup = groupsAsIDs.entrySet().stream()
         .collect(Collectors.toMap(
             Entry::getKey,
-            entry -> MultipleTIsGreenColorGroup.builder().trafficIndicators(
+            entry -> new MultipleTIsGreenColorGroup(entry.getKey(),
                 entry.getValue().stream()
                     .map(idToTrafficIndicator::get)
                     .collect(Collectors.toList())
-            ).build()));
+            )));
 
     // retrieving signal control centers
     records =
         CSVFormat.DEFAULT.builder().setHeader(SignalCenterHeader.class)
             .setSkipHeaderRecord(true).build().parse(signalCentersReader);
-    Map<String, Collection<String>> centersAsIDs = new HashMap<>();
+    Map<String, Pair<String, Collection<String>>> centersAsIDs = new HashMap<>();
     for (CSVRecord record : records) {
       centersAsIDs.put(
           record.get(SignalCenterHeader.id),
-          csvToCollection(record.get(SignalCenterHeader.greenColorGroups))
+          Pair.of(record.get(SignalCenterHeader.durationTime), csvToCollection(record.get(SignalCenterHeader.greenColorGroups)))
       );
     }
 
@@ -229,12 +230,15 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     Map<String, StandardSignalsControlCenter> idToControlCenter = centersAsIDs.entrySet().stream()
         .collect(Collectors.toMap(
             Entry::getKey,
-            entry -> StandardSignalsControlCenter.builder().greenColorGroups(
-                entry.getValue().stream()
+            entry -> new StandardSignalsControlCenter(
+                entry.getKey(),
+                Optional.ofNullable(entry.getValue().getLeft())
+                    .map(Integer::parseInt)
+                    .orElse(0),
+                entry.getValue().getRight().stream()
                     .map(idToGreenColorGroup::get)
                     .collect(Collectors.toList())
-            ).build()
-        ));
+            )));
 
     records =
         CSVFormat.DEFAULT.builder().setHeader(NodeHeaders.class).setSkipHeaderRecord(true).build().parse(nodesReader);

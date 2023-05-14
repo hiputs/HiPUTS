@@ -23,8 +23,8 @@ public class TIOnCrossroadProcessor implements TIProcessor, TIAllocator{
   @Override
   public void allocateAroundNode(Node<JunctionData, WayData> node) {
     node.getIncomingEdges().forEach(incomingEdge ->
-        incomingEdge.getData().setTrafficIndicator(Optional.of(TrafficIndicator.builder().build())));
+        incomingEdge.getData().setTrafficIndicator(Optional.of(new TrafficIndicator())));
 
-    node.getData().setSignalsControlCenter(Optional.of(StandardSignalsControlCenter.builder().build()));
+    node.getData().setSignalsControlCenter(Optional.of(new StandardSignalsControlCenter(0)));
   }
 }
