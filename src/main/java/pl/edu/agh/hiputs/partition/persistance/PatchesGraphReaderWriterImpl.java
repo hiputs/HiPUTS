@@ -57,9 +57,8 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
   @Override
   public Graph<PatchData, PatchConnectionData> readGraphWithPatches(Path importPath) {
     try {
-      Graph<PatchData, PatchConnectionData> graph = readGraphWithPatches(
+      return readGraphWithPatches(
           ExportDescriptor.builder().exportDirAbsolutePath(importPath.toAbsolutePath().toString()).build());
-      return graph;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -146,7 +145,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
         for (SignalsControlCenter controlCenter : distinctSignalCenters) {
           signalCentersPrinter.printRecord(
               controlCenter.getId(),
-              controlCenter.getDurationTime(),
+              controlCenter.getDurationSteps(),
               mapToCsv(controlCenter.getGreenColorGroups().stream()
                   .map(GreenColorGroupEditable::getId)
                   .toList())

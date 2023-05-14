@@ -14,14 +14,14 @@ import pl.edu.agh.hiputs.partition.model.lights.group.GreenColorGroupEditable;
 @EqualsAndHashCode
 public class StandardSignalsControlCenter implements SignalsControlCenter{
   private final String id;
-  private final int durationTime;
+  private final int durationSteps;
   @EqualsAndHashCode.Exclude
   // list brings order ability (maybe needed in the future)
   private final List<GreenColorGroupEditable> greenColorGroups;
   @Setter
   private int currentTime = 0;
 
-  public StandardSignalsControlCenter(int durationTime) {
-    this(UUID.randomUUID().toString(), durationTime, new ArrayList<>());
+  public StandardSignalsControlCenter(int durationSteps) {
+    this(UUID.randomUUID().toString(), durationSteps, new ArrayList<>());
   }
 }
