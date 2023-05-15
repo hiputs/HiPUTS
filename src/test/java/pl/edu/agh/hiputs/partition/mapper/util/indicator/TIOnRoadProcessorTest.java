@@ -4,14 +4,19 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import pl.edu.agh.hiputs.partition.mapper.util.indicator.helper.SimulationTimeStepGetter;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
+import pl.edu.agh.hiputs.partition.service.SignalsConfigurationService;
 
 public class TIOnRoadProcessorTest {
+  private final SignalsConfigurationService signalConfigService = Mockito.mock(SignalsConfigurationService.class);
+  private final SimulationTimeStepGetter simulationTimeStepGetter = Mockito.mock(SimulationTimeStepGetter.class);
   private final TIOnRoadProcessor processor = new TIOnRoadProcessor(
-      new StandardTIDeterminer(), new TIOnCrossroadProcessor()
+      new StandardTIDeterminer(), new TIOnCrossroadProcessor(signalConfigService, simulationTimeStepGetter)
   );
 
   @Test
@@ -46,6 +51,9 @@ public class TIOnRoadProcessorTest {
     edge1.setTarget(crossroad);
     edge2.setSource(crossroad);
     edge2.setTarget(bend);
+
+    Mockito.when(signalConfigService.getTimeForSpecificNode(Mockito.any())).thenReturn(0);
+    Mockito.when(simulationTimeStepGetter.get()).thenReturn(1);
     processor.checkAndAllocate(bend);
 
     // then
@@ -84,6 +92,9 @@ public class TIOnRoadProcessorTest {
     edge3.setTarget(crossroad2);
     edge4.setSource(crossroad2);
     edge4.setTarget(bend);
+
+    Mockito.when(signalConfigService.getTimeForSpecificNode(Mockito.any())).thenReturn(0);
+    Mockito.when(simulationTimeStepGetter.get()).thenReturn(1);
     processor.checkAndAllocate(bend);
 
     // then
@@ -125,6 +136,9 @@ public class TIOnRoadProcessorTest {
     edge3.setTarget(crossroad2);
     edge4.setSource(crossroad2);
     edge4.setTarget(bend);
+
+    Mockito.when(signalConfigService.getTimeForSpecificNode(Mockito.any())).thenReturn(0);
+    Mockito.when(simulationTimeStepGetter.get()).thenReturn(1);
     processor.checkAndAllocate(bend);
 
     // then

@@ -4,23 +4,31 @@ import java.util.HashMap;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.partition.mapper.util.indicator.StandardTIDeterminer;
 import pl.edu.agh.hiputs.partition.mapper.util.indicator.TIOnCrossroadProcessor;
 import pl.edu.agh.hiputs.partition.mapper.util.indicator.TIOnRoadProcessor;
+import pl.edu.agh.hiputs.partition.mapper.util.indicator.helper.SimulationTimeStepGetter;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
+import pl.edu.agh.hiputs.partition.service.SignalsConfigurationService;
 
+@ExtendWith(MockitoExtension.class)
 public class GraphTrafficIndicatorsCreatorTest {
+  private final SignalsConfigurationService signalConfigService = Mockito.mock(SignalsConfigurationService.class);
+  private final SimulationTimeStepGetter simulationTimeStepGetter = Mockito.mock(SimulationTimeStepGetter.class);
   private final GraphTrafficIndicatorsCreator creator = new GraphTrafficIndicatorsCreator(
       List.of(
-          new TIOnCrossroadProcessor(),
+          new TIOnCrossroadProcessor(signalConfigService, simulationTimeStepGetter),
           new TIOnRoadProcessor(
               new StandardTIDeterminer(),
-              new TIOnCrossroadProcessor())
+              new TIOnCrossroadProcessor(signalConfigService, simulationTimeStepGetter))
       ),
       new StandardTIDeterminer());
 
@@ -130,6 +138,9 @@ public class GraphTrafficIndicatorsCreatorTest {
         .addEdge(outEdge2)
         .addEdge(outEdge3)
         .build();
+
+    Mockito.when(signalConfigService.getTimeForSpecificNode(Mockito.any())).thenReturn(0);
+    Mockito.when(simulationTimeStepGetter.get()).thenReturn(1);
     creator.transform(graph);
 
     // then
