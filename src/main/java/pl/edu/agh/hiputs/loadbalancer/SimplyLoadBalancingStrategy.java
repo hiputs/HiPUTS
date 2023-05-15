@@ -3,7 +3,6 @@ package pl.edu.agh.hiputs.loadbalancer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
 import pl.edu.agh.hiputs.loadbalancer.utils.TimeToCarCostUtil;
@@ -12,9 +11,8 @@ import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
-public class SimplyLoadBalancingService implements LoadBalancingStrategy {
+public class SimplyLoadBalancingStrategy implements LoadBalancingStrategy {
 
   private static final double ALLOW_LOAD_IMBALANCE = 1.05;
   private static final double LOW_THRESHOLD = 1.25;

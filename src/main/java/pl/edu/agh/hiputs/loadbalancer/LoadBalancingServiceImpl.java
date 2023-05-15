@@ -41,13 +41,12 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
   private static final int MAX_PATCH_EXCHANGE = 40;
   private final PatchTransferService patchTransferService;
-  private final SimplyLoadBalancingService simplyLoadBalancingService;
-  private final PidLoadBalancingService pidLoadBalancingService;
   private final SimulationStatisticService simulationStatisticService;
   private final WorkerSubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
   private final List<Message> synchronizationLoadBalancingList = new ArrayList<>();
-  private final NoneLoadBalancingStrategy noneLoadBalancingService;
+  private final LocalLoadMonitorService localLoadMonitorService;
+  private final SelectNeighbourToBalancingService selectNeighbourToBalancingService;
 
   private LoadBalancingStrategy strategy;
   private MapFragmentId lastLoadBalancingCandidate = null; //We must repete their neighbourTransferMessage
@@ -205,9 +204,12 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
   private LoadBalancingStrategy getStrategyByMode() {
     return switch (ConfigurationService.getConfiguration().getBalancingMode()) {
-      case SIMPLY -> simplyLoadBalancingService;
-      case PID -> pidLoadBalancingService;
-      default -> noneLoadBalancingService;
+      case SIMPLY -> new SimplyLoadBalancingStrategy(simulationStatisticService, localLoadMonitorService,
+          selectNeighbourToBalancingService);
+      case PID -> new PidLoadBalancingStrategy(simulationStatisticService, localLoadMonitorService,
+          new SimplyLoadBalancingStrategy(simulationStatisticService, localLoadMonitorService,
+              selectNeighbourToBalancingService), selectNeighbourToBalancingService);
+      default -> new NoneLoadBalancingStrategy(simulationStatisticService, localLoadMonitorService);
     };
   }
 

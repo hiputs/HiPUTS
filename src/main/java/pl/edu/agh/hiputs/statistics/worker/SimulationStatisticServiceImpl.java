@@ -28,14 +28,13 @@ import pl.edu.agh.hiputs.statistics.SimulationPoint;
 @RequiredArgsConstructor
 public class SimulationStatisticServiceImpl implements SimulationStatisticService {
 
-  private final ConfigurationService configurationService;
   private final MessageSenderService messageSenderService;
   private boolean enableLogs = false;
   private final List<LoadBalancingStatistic> balancingStatisticRepository = new LinkedList<>();
   private final List<DecisionStatistic> decisionRepository = new LinkedList<>();
   private final List<MapStatistic> mapStatisticsRepository = new LinkedList<>();
   private final HashMap<SimulationPoint, Long> workerTimeStatisticRepository = new HashMap<SimulationPoint, Long>();
-  private final IterationStatisticsServiceImpl iterationStatisticService;
+  private final IterationStatisticsService iterationStatisticService;
 
   @PostConstruct
   void init() {
