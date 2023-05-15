@@ -22,7 +22,6 @@ public class IterationStatisticsServiceImpl implements IterationStatisticsServic
 
   @Getter
   private int step = 0;
-  private final ConfigurationService configurationService;
   private List<IterationInfo> iterationStatistics;
 
   @PostConstruct

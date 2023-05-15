@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.scheduler;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
@@ -42,6 +43,13 @@ public class SchedulerService implements TaskExecutorService {
     waitForAllTaskFinished(futures);
   }
 
+  @Override
+  public List<?> executeCallableBatch(Collection<Callable<?>> tasks) {
+    List<Future<?>> futures = tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
+
+    return waitForAllTaskReturnResult(futures);
+  }
+
   private void waitForAllTaskFinished(List<Future<?>> futures) {
     for (Future<?> future : futures) {
       try {
@@ -50,5 +58,16 @@ public class SchedulerService implements TaskExecutorService {
         log.error("Error occurred util waiting for task", e);
       }
     }
+  }
+
+  private List<?> waitForAllTaskReturnResult(List<Future<?>> futures) {
+    return futures.stream().map(future -> {
+      try {
+        return future.get();
+      } catch (InterruptedException | ExecutionException e) {
+        log.error("Error occurred util waiting for task", e);
+        return null;
+      }
+    }).collect(Collectors.toList());
   }
 }

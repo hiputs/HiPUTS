@@ -33,11 +33,9 @@ public class SynchronizeShadowPatchState implements Runnable {
         return;
       }
 
-      Map<String, List<Car>> newCarsOnLanes =
-          serializedLanes
-              .parallelStream()
-              .map(s -> (SerializedLane) SerializationUtils.deserialize(s))
-              .collect(Collectors.toMap(SerializedLane::getLaneId, SerializedLane::toRealObject));
+      Map<String, List<Car>> newCarsOnLanes = serializedLanes.parallelStream()
+          .map(s -> (SerializedLane) SerializationUtils.deserialize(s))
+          .collect(Collectors.toConcurrentMap(SerializedLane::getLaneId, SerializedLane::toRealObject));
 
       shadowPatch.parallelStreamLanesEditable()
           .forEach(laneEditable -> {

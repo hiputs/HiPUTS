@@ -13,13 +13,8 @@ public class HiPUTS {
   public static final List<String> globalInitArgs = new LinkedList<>();
 
   public static void main(String[] args) {
-    long timeStart = System.currentTimeMillis();
-
     globalInitArgs.addAll(List.of(args));
     SpringApplication.run(HiPUTS.class, args);
-
-    log.info("Elapsed time: " + (System.currentTimeMillis() - timeStart));
-    System.out.println("Elapsed time: " + (System.currentTimeMillis() - timeStart));
   }
 }
 
