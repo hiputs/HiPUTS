@@ -1,9 +1,9 @@
 package pl.edu.agh.hiputs.loadbalancer;
 
-import static java.util.stream.Collectors.groupingBy;
 import static pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil.countCars;
 import static pl.edu.agh.hiputs.loadbalancer.utils.GraphCoherencyUtil.isCoherency;
-import static pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil.*;
+import static pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil.findNeighbouringPatches;
+import static pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil.findShadowPatchesNeighbouringOnlyWithPatch;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,9 +20,10 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.LoadSynchronizationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
-import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
+import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingStrategy.LoadBalancingDecision;
+import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.PatchBalancingInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.PatchCostCalculatorUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
@@ -43,21 +44,19 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   private final SimplyLoadBalancingService simplyLoadBalancingService;
   private final PidLoadBalancingService pidLoadBalancingService;
   private final SimulationStatisticService simulationStatisticService;
-
   private final WorkerSubscriptionService subscriptionService;
-
   private final MessageSenderService messageSenderService;
-
   private final List<Message> synchronizationLoadBalancingList = new ArrayList<>();
   private final NoneLoadBalancingStrategy noneLoadBalancingService;
 
+  private LoadBalancingStrategy strategy;
   private MapFragmentId lastLoadBalancingCandidate = null; //We must repete their neighbourTransferMessage
-
   private int actualStep = 0;
 
   @PostConstruct
   void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.LoadSynchronizationMessage);
+    strategy = getStrategyByMode();
   }
 
   @Override
@@ -66,16 +65,16 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
       return null;
     }
     actualStep++;
-
-    List<MapFragmentId> neighboursToNotify = List.copyOf(transferDataHandler.getNeighbors());
     balance(transferDataHandler);
-    synchronizedWithNeighbour(neighboursToNotify);
+
+    if (!ConfigurationService.getConfiguration().getBalancingMode().equals(BalancingMode.NONE)) {
+      synchronizedWithNeighbour(List.copyOf(transferDataHandler.getNeighbors()));
+    }
 
     return lastLoadBalancingCandidate;
   }
 
   private void balance(TransferDataHandler transferDataHandler) {
-    LoadBalancingStrategy strategy = getStrategyByMode();
     LoadBalancingDecision loadBalancingDecision = strategy.makeBalancingDecision(transferDataHandler, actualStep);
 
     if (!loadBalancingDecision.isLoadBalancingRecommended()) {
@@ -135,7 +134,6 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
     }
 
     synchronizationLoadBalancingList.clear();
-
   }
 
   private ImmutablePair<PatchBalancingInfo, Double> findPatchesToSend(MapFragmentId recipient,
