@@ -36,29 +36,26 @@ public class TicketServiceImpl implements TicketService, Subscriber {
   private int TICKET_POOL_SIZE = 10;
   private final WorkerSubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
-
-  private final ConfigurationService configurationService;
-
-
-  private MapFragmentId[] ticketPool;
-
   private final Queue<AvailableTicketMessage> availableTicketMessageQueue = new LinkedList<>();
   private final Queue<MapFragmentId> newMapFragment = new LinkedList<>();
   private final BlockingQueue<SelectTicketMessage> selectTicketQueue = new LinkedBlockingQueue<>();
-
   private final Executor executor = Executors.newSingleThreadExecutor();
 
+  private MapFragmentId[] ticketPool;
   private final AtomicInteger actualStep = new AtomicInteger();
 
   @PostConstruct
   void init() {
-    subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
-    subscriptionService.subscribe(this, MessagesTypeEnum.SelectTicketMessage);
-    subscriptionService.subscribe(this, MessagesTypeEnum.AvailableTicketMessage);
+    if (ConfigurationService.getConfiguration().isTicketActive()) {
+      subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
+      subscriptionService.subscribe(this, MessagesTypeEnum.SelectTicketMessage);
+      subscriptionService.subscribe(this, MessagesTypeEnum.AvailableTicketMessage);
 
-    TICKET_POOL_SIZE = Math.min(TICKET_POOL_SIZE, ConfigurationService.getConfiguration().getWorkerCount() * 2);
-    ticketPool = new MapFragmentId[TICKET_POOL_SIZE];
-    executor.execute(new TicketInfinityLoop());
+      TICKET_POOL_SIZE = Math.min(TICKET_POOL_SIZE, ConfigurationService.getConfiguration().getWorkerCount() * 2);
+      ticketPool = new MapFragmentId[TICKET_POOL_SIZE];
+
+      executor.execute(new TicketInfinityLoop());
+    }
   }
 
   @Override

@@ -30,6 +30,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.statistics.worker.SimulationStatisticServiceImpl.MapStatistic;
 
@@ -321,9 +322,10 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     });
 
     shadowPatchesToAdd.forEach(pair -> {
-
       mapFragmentIdToShadowPatchIds.computeIfAbsent(pair.getRight(), k -> {
-        ticketService.addNewTalker(k);
+        if (ConfigurationService.getConfiguration().isTicketActive()) {
+          ticketService.addNewTalker(k);
+        }
         return new HashSet<>();
       });
       // log.info("Add shadow patch {} to nieghbour {}", pair.getLeft().getValue(), pair.getRight().getId());
@@ -334,6 +336,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       List<PatchId> newBorderPatches = PatchConnectionSearchUtil.findNeighbouringPatches(pair.getLeft(), this);
       mapFragmentIdToBorderPatchIds.get(pair.getRight()).addAll(newBorderPatches);
     });
+
 
     removeEmptyNeighbours(ticketService);
   }
@@ -353,7 +356,9 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     }
 
     mapFragmentIdToShadowPatchIds.computeIfAbsent(destination, k -> {
-      ticketService.addNewTalker(k);
+      if (ConfigurationService.getConfiguration().isTicketActive()) {
+        ticketService.addNewTalker(k);
+      }
       return new HashSet<>();
     });
     mapFragmentIdToShadowPatchIds.get(destination).add(patchId);
@@ -444,7 +449,10 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
     lostConnectNeighbours.forEach(n -> {
       mapFragmentIdToBorderPatchIds.remove(n);
-      ticketService.removeTalker(n);
+
+      if (ConfigurationService.getConfiguration().isTicketActive()) {
+        ticketService.removeTalker(n);
+      }
 
       if (mapFragmentIdToShadowPatchIds.get(n).size() == 0) {
         // log.info("Remove shadow too");
