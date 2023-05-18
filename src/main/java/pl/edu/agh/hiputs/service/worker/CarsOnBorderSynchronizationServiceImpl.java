@@ -64,7 +64,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     Set<Patch> distinctBorderPatches =
         mapFragment.getBorderPatches().values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
 
-    List<Callable<?>> serializedBorderPatchesTasks = distinctBorderPatches.stream()
+    List<Callable<?>> serializedBorderPatchesTasks = distinctBorderPatches.parallelStream()
         .map(patch -> patch.parallelStreamLanesEditable().map(LaneSerializationTask::new).collect(Collectors.toList()))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
@@ -167,13 +167,14 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   }
 
   private void sendMessages(Map<MapFragmentId, BorderSynchronizationMessage> messages) {
-    messages.forEach((mapFragmentId, message) -> {
+    messages.entrySet().parallelStream().forEach(entry -> {
       try {
-        messageSenderService.send(mapFragmentId, message);
+        messageSenderService.send(entry.getKey(), entry.getValue());
       } catch (IOException e) {
-        log.error("Error sending message BorderSynchronizationMessage to: " + mapFragmentId, e);
+        log.error("Error sending message BorderSynchronizationMessage to: " + entry.getKey(), e);
       }
     });
+
   }
 
   private BorderSynchronizationMessage createMessageFrom(Set<Patch> patches,

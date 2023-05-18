@@ -3,8 +3,13 @@ package pl.edu.agh.hiputs.communication.service.worker;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
@@ -32,24 +37,26 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 @RequiredArgsConstructor
 public class MessageSenderService implements Subscriber {
 
-  private final Map<MapFragmentId, Connection> neighbourRepository = new HashMap<>();
+  private final Map<MapFragmentId, Connection> neighbourRepository = new ConcurrentHashMap<>();
   @Getter
   private final Map<MapFragmentId, ConnectionDto> connectionDtoMap = new HashMap<>();
   private final ConfigurationService configurationService;
   private Connection serverConnection;
   private final WorkerSubscriptionService subscriptionService;
-  private int sentMessages;
-  private int sentServerMessages;
-  private long sentMessagesSize;
+  private AtomicLong sentMessagesSize;
+  private AtomicInteger sentServerMessages;
+  private AtomicInteger sentMessages;
+  private List<String> sentMessagesType;
 
   @PostConstruct
   void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
     subscriptionService.subscribe(this, MessagesTypeEnum.PatchTransferMessage);
     subscriptionService.subscribe(this, MessagesTypeEnum.PatchTransferNotificationMessage);
-    sentMessages = 0;
-    sentServerMessages = 0;
-    sentMessagesSize = 0;
+    sentMessagesSize = new AtomicLong(0);
+    sentServerMessages = new AtomicInteger(0);
+    sentMessages = new AtomicInteger(0);
+    sentMessagesType = new LinkedList<>();
   }
 
   /**
@@ -60,8 +67,12 @@ public class MessageSenderService implements Subscriber {
    */
   public void send(MapFragmentId mapFragmentId, Message message) throws IOException {
     log.debug("Worker send message to: " + mapFragmentId + " message type: " + message.getMessageType());
-    sentMessagesSize += neighbourRepository.get(mapFragmentId).send(message);
-    sentMessages++;
+
+    sentMessagesSize.addAndGet(neighbourRepository.get(mapFragmentId).send(message));
+
+    sentMessages.incrementAndGet();
+    // sentMessagesType.add(message.getMessageType().name());
+
   }
 
   public void sendServerMessage(Message message) throws IOException {
@@ -69,8 +80,8 @@ public class MessageSenderService implements Subscriber {
       createServerConnection();
     }
     log.debug("Worker send message to: SERVER message type: " + message.getMessageType());
-    sentMessagesSize += serverConnection.send(message);
-    sentServerMessages++;
+    sentMessagesSize.addAndGet(serverConnection.send(message));
+    sentServerMessages.incrementAndGet();
   }
 
   private void createServerConnection() {
@@ -91,10 +102,12 @@ public class MessageSenderService implements Subscriber {
    *     <p>Method send message to all existing worker</p>
    */
   public void broadcast(Message message) {
+
     neighbourRepository.values().forEach(n -> {
       try {
         n.send(message);
-        sentMessages++;
+        sentMessages.incrementAndGet();
+        // sentMessagesType.add(message.getMessageType().name());
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -112,21 +125,21 @@ public class MessageSenderService implements Subscriber {
   }
 
   public int getSentMessages() {
-    int tmp = sentMessages;
-    sentMessages = 0;
+    return sentMessages.getAndSet(0);
+  }
+
+  public String getSentMessageTypes() {
+    String tmp = sentMessagesType.toString();
+    sentMessagesType.clear();
     return tmp;
   }
 
   public int getSentServerMessages() {
-    int tmp = sentServerMessages;
-    sentServerMessages = 0;
-    return tmp;
+    return sentServerMessages.getAndSet(0);
   }
 
   public long getSentMessagesSize() {
-    long tmp = sentMessagesSize;
-    sentMessagesSize = 0;
-    return tmp;
+    return sentMessagesSize.getAndSet(0);
   }
 
   private void handlePatchTransferNotificationMessage(Message message) {
