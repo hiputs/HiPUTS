@@ -7,7 +7,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 
 public interface CarSynchronizationService {
 
-  void sendIncomingSetsOfCarsToNeighbours(TransferDataHandler transferDataHandler);
+  int sendIncomingSetsOfCarsToNeighbours(TransferDataHandler transferDataHandler);
 
   void synchronizedGetIncomingSetsOfCars(TransferDataHandler transferDataHandler);
 

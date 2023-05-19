@@ -1,11 +1,14 @@
 package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -37,8 +40,8 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   private final WorkerSubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutorService;
   private final MessageSenderService messageSenderService;
-  private final List<CarTransferMessage> incomingMessages = new ArrayList<>();
-  private final List<CarTransferMessage> futureIncomingMessages = new ArrayList<>();
+  private final BlockingQueue<CarTransferMessage> incomingMessages = new LinkedBlockingQueue<>();//ArrayList<>();
+  private final BlockingQueue<CarTransferMessage> futureIncomingMessages = new LinkedBlockingQueue<>();
 
   @PostConstruct
   void init() {
@@ -46,19 +49,15 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   }
 
   @Override
-  public void sendIncomingSetsOfCarsToNeighbours(TransferDataHandler mapFragment) {
+  public int sendIncomingSetsOfCarsToNeighbours(TransferDataHandler mapFragment) {
     Map<MapFragmentId, List<SerializedCar>> serializedCarMap = mapFragment.pollOutgoingCars()
         .entrySet()
         .parallelStream()
-        .collect(Collectors.toMap(
-            Entry::getKey,
-            e -> e.getValue()
-                .parallelStream()
-                .map(SerializedCar::new)
-                .collect(Collectors.toList())
-        ));
+        .collect(Collectors.toMap(Entry::getKey,
+            e -> e.getValue().parallelStream().map(SerializedCar::new).collect(Collectors.toList())));
 
     sendMessages(serializedCarMap);
+    return serializedCarMap.values().stream().map(List::size).reduce(0, (a, b) -> a + b);
   }
 
   @Override
@@ -85,33 +84,28 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   }
 
   @Override
-  public synchronized void synchronizedGetIncomingSetsOfCars(TransferDataHandler mapFragment) {
+  public void synchronizedGetIncomingSetsOfCars(TransferDataHandler mapFragment) {
     int countOfNeighbours = mapFragment.getNeighbors().size();
-    int readedMessage = 0;
-    while (incomingMessages.size() < countOfNeighbours && readedMessage < countOfNeighbours) {
+    List<Future<?>> injectIncomingCarFutures = new LinkedList<>();
+    int consumedMessages = 0;
+
+    while (consumedMessages < countOfNeighbours) {
       try {
-        this.wait(1000);
-        readedMessage += applyMessages(mapFragment, readedMessage);
+        CarTransferMessage msg = incomingMessages.take();
+        List<Future<?>> f = taskExecutorService.executeBatchReturnFutures(
+            List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
+        injectIncomingCarFutures.addAll(f);
+        consumedMessages += 1;
+
       } catch (InterruptedException e) {
-        log.error(e.getMessage());
+        log.error("Exception when waiting for cars: " + e);
         throw new RuntimeException(e);
       }
     }
+    taskExecutorService.waitForAllTaskFinished(injectIncomingCarFutures);
 
-    applyMessages(mapFragment, readedMessage);
     incomingMessages.clear();
-    incomingMessages.addAll(futureIncomingMessages);
-    futureIncomingMessages.clear();
-  }
-
-  private int applyMessages(TransferDataHandler mapFragment, int start) {
-    List<Runnable> injectIncomingCarTasks = incomingMessages.subList(start, incomingMessages.size())
-        .stream()
-        .map(message -> new InjectIncomingCarsTask(message.getCars(), mapFragment))
-        .collect(Collectors.toList());
-
-    taskExecutorService.executeBatch(injectIncomingCarTasks);
-    return injectIncomingCarTasks.size();
+    futureIncomingMessages.drainTo(incomingMessages);
   }
 
   private String getWeaitingByMessage() {
@@ -134,7 +128,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   }
 
   @Override
-  public synchronized void notify(Message message) {
+  public void notify(Message message) {
     if (message.getMessageType() != MessagesTypeEnum.CarTransferMessage) {
       return;
     }
@@ -144,8 +138,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
       futureIncomingMessages.add(carTransferMessage);
     } else {
       incomingMessages.add(carTransferMessage);
+      // notifyAll();
     }
-
-    notifyAll();
   }
 }
