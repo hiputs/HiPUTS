@@ -82,8 +82,8 @@ public class RouteReader {
       var routeElements = new ArrayList<RouteElement>();
       return optionalWhen(isReadyToBeCreated(creationTimeMs, step), () -> {
         for (int i = 0; i < routeUUID.size(); i += 2) {
-          var junctionId = new JunctionId(routeUUID.get(i + 1), JunctionType.CROSSROAD);
-          var laneID = new LaneId(routeUUID.get(i));
+          var junctionId = new JunctionId(routeUUID.get(i), JunctionType.CROSSROAD);
+          var laneID = new LaneId(routeUUID.get(i+1));
           // arbitralnie crossroad, trzeba sie zastanowic, jak to ogarnac
           routeElements.add(new RouteElement(junctionId, laneID));
         }
