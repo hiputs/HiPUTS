@@ -45,9 +45,7 @@ public class SchedulerService implements TaskExecutorService {
 
   @Override
   public List<Future<?>> executeBatchReturnFutures(Collection<Runnable> tasks) {
-    List<Future<?>> futures = tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
-
-    return futures;
+    return tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
   }
 
   @Override

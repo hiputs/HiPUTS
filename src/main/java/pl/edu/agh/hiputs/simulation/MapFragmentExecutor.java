@@ -64,8 +64,8 @@ public class MapFragmentExecutor {
       // 4. send incoming sets of cars to neighbours
       log.info("Step 4 start");
       iterationStatisticsService.startStage(SimulationPoint.SENDING_CARS);
-      carSynchronizationService.sendIncomingSetsOfCarsToNeighbours(mapFragment);
-      iterationStatisticsService.endStage(List.of(SimulationPoint.SENDING_CARS, SimulationPoint.FIRST_ITERATION));
+      int send_cars = carSynchronizationService.sendIncomingSetsOfCarsToNeighbours(mapFragment);
+      iterationStatisticsService.endStage(List.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SENDING_CARS));
 
       // 5. receive incoming sets of cars from neighbours
       log.info("Step 5 start");
@@ -136,6 +136,7 @@ public class MapFragmentExecutor {
       iterationStatisticsService.setOutgoingMessagesInStep(messageSenderService.getSentMessages());
       iterationStatisticsService.setOutgoingMessagesToServerInStep(messageSenderService.getSentServerMessages());
       iterationStatisticsService.setOutgoingMessagesSize(messageSenderService.getSentMessagesSize());
+      iterationStatisticsService.setInfo(String.valueOf(send_cars));
       iterationStatisticsService.setMemoryUsage();
       iterationStatisticsService.endSimulationStep();
 

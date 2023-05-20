@@ -22,6 +22,8 @@ public interface IterationStatisticsService extends StageTimeService {
 
   void setMemoryUsage();
 
+  void setInfo(String info);
+
   void endSimulationStep();
 
   void startSimulationStep();

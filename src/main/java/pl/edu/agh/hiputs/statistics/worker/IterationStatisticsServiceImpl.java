@@ -99,6 +99,11 @@ public class IterationStatisticsServiceImpl implements IterationStatisticsServic
   }
 
   @Override
+  public void setInfo(String info) {
+    iterationStatistics.get(step).setInfo(info);
+  }
+
+  @Override
   public void endSimulationStep() {
     step++;
   }
@@ -152,6 +157,7 @@ public class IterationStatisticsServiceImpl implements IterationStatisticsServic
     private long stoppedCars;
     private double speedSum;
     private int step;
+    private String info;
 
   }
 
