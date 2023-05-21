@@ -17,8 +17,6 @@ public class JunctionId {
 
   private final String value;
 
-  // Dlaczego type w ID ???
-
   private final JunctionType junctionType;
 
   public static JunctionId randomCrossroad() {

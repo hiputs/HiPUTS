@@ -18,7 +18,6 @@ public class RouteElement {
    */
   private JunctionId junctionId;
 
-//  ???
 
   /**
    * Outgoing lane of junction that should be visited when following route.
