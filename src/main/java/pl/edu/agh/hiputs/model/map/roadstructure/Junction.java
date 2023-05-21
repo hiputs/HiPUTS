@@ -51,6 +51,7 @@ public class Junction implements JunctionReadable, JunctionEditable {
   /**
    * Traffic lights manager of the representing junction
    */
+  @Getter
   private final Optional<SignalsControlCenter> signalsControlCenter;
 
   public static JunctionBuilder builder() {

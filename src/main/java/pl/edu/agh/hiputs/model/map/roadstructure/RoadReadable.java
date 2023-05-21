@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.RoadId;
+import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicatorReadable;
 
 // readable interface for Road class
 public interface RoadReadable {
@@ -53,4 +54,9 @@ public interface RoadReadable {
    * Returns number of vehicle in the current road
    */
   int numberOfCars();
+
+  /**
+   * Returns a traffic indicator which prohibits or allows entering incomingJunction
+   */
+  Optional<TrafficIndicatorReadable> getTrafficIndicator();
 }
