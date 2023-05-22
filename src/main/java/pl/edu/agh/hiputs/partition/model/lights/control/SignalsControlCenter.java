@@ -9,5 +9,13 @@ public interface SignalsControlCenter {
 
   int getDurationSteps();
 
+  int getCurrentTime();
+
+  void setCurrentTime(int currentTime);
+
+  int getCurrentGreenGroupIndex();
+
+  void setCurrentGreenGroupIndex(int currentGroupIndex);
+
   List<GreenColorGroupEditable> getGreenColorGroups();
 }

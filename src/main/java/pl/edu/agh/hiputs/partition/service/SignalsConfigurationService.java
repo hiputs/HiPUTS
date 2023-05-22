@@ -45,6 +45,7 @@ public class SignalsConfigurationService {
       } else {
         signalsConfig = new SignalsConfiguration();
         signalsConfig.setDefaultTime(randIntegerFromInterval());
+        signalsConfig.setStrategy("redGreenOnlyTrafficLightsStrategy");
 
         nodeId2TimeMap = new HashMap<>();
       }
@@ -59,6 +60,10 @@ public class SignalsConfigurationService {
     }
 
     return nodeId2TimeMap.getOrDefault(nodeId, signalsConfig.getDefaultTime());
+  }
+
+  public String getStrategyName() {
+    return signalsConfig.getStrategy();
   }
 
   private int randIntegerFromInterval() {

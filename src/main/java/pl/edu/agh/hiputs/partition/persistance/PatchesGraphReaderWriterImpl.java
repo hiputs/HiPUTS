@@ -231,12 +231,12 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
             Entry::getKey,
             entry -> new StandardSignalsControlCenter(
                 entry.getKey(),
-                Optional.ofNullable(entry.getValue().getLeft())
-                    .map(Integer::parseInt)
-                    .orElse(0),
                 entry.getValue().getRight().stream()
                     .map(idToGreenColorGroup::get)
-                    .collect(Collectors.toList())
+                    .collect(Collectors.toList()),
+                Optional.ofNullable(entry.getValue().getLeft())
+                    .map(Integer::parseInt)
+                    .orElse(0)
             )));
 
     records =

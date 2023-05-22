@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.simulation;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingService;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint;
+import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
@@ -18,6 +20,8 @@ import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationServi
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
+import pl.edu.agh.hiputs.service.worker.usecase.TrafficLightsStrategyFactoryService;
+import pl.edu.agh.hiputs.tasks.JunctionLightsUpdateStageTask;
 import pl.edu.agh.hiputs.tasks.RoadDecisionStageTask;
 import pl.edu.agh.hiputs.tasks.RoadUpdateStageTask;
 
@@ -29,6 +33,11 @@ public class MapFragmentExecutor {
   @Setter
   @Getter
   private MapFragment mapFragment;
+  @Setter
+  @Getter
+  private Collection<JunctionId> junctionsWithTrafficLights;
+
+  private final TrafficLightsStrategyFactoryService trafficLightsStrategyFactoryService;
   private final TaskExecutorService taskExecutor;
   private final CarSynchronizationService carSynchronizationService;
   private final CarsOnBorderSynchronizationService carsOnBorderSynchronizationService;
@@ -62,12 +71,19 @@ public class MapFragmentExecutor {
       carSynchronizationService.synchronizedGetIncomingSetsOfCars(mapFragment);
       monitorLocalService.markPointAsFinish(SimulationPoint.WAITING_FOR_FIRST_ITERATION);
 
-      // 6. 7. insert incoming cars & update lanes/cars
+      // 6. 7. insert incoming cars & update lanes/cars & update traffic lights
       log.info("Step 6,7 start");
       List<Runnable> updateStageTasks = mapFragment.getLocalRoadIds()
           .parallelStream()
           .map(roadId -> new RoadUpdateStageTask(mapFragment, roadId))
           .collect(Collectors.toList());
+
+      updateStageTasks.addAll(mapFragment.getLocalJunctionIds()
+          .parallelStream()
+          .map(junctionId -> new JunctionLightsUpdateStageTask(mapFragment, junctionId,
+              trafficLightsStrategyFactoryService.getFromConfiguration()))
+          .toList());
+
       taskExecutor.executeBatch(updateStageTasks);
       monitorLocalService.markPointAsFinish(SimulationPoint.SECOND_ITERATION);
       monitorLocalService.notifyAboutMyLoad();

@@ -20,6 +20,11 @@ public class SignalsConfiguration {
   private int defaultTime;
 
   /**
+   * Strategy for switching lights on junctions with traffic signals control center
+   */
+  private String strategy;
+
+  /**
    * Configuration for each signal control center
    */
   private SignalControlCenterConfiguration[] signalControlCenterConfigurations;
