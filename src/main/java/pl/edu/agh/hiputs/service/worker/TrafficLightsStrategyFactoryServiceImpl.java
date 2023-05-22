@@ -3,7 +3,7 @@ package pl.edu.agh.hiputs.service.worker;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.partition.service.SignalsConfigurationService;
+import pl.edu.agh.hiputs.service.SignalsConfigurationService;
 import pl.edu.agh.hiputs.service.worker.strategies.TrafficLightsStrategy;
 import pl.edu.agh.hiputs.service.worker.usecase.TrafficLightsStrategyFactoryService;
 

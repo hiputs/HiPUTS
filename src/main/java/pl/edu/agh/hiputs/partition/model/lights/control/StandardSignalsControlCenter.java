@@ -20,7 +20,7 @@ public class StandardSignalsControlCenter implements SignalsControlCenter{
   private final int durationSteps;
   @Setter
   @EqualsAndHashCode.Exclude
-  private int currentTime = Integer.MAX_VALUE;
+  private int currentStep = Integer.MAX_VALUE;
   @Setter
   @EqualsAndHashCode.Exclude
   private int currentGreenGroupIndex = 0;

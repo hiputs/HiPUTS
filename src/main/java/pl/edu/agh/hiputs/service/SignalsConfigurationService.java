@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.service;
+package pl.edu.agh.hiputs.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

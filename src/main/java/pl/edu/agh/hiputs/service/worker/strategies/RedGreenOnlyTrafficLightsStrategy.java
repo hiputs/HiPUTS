@@ -9,10 +9,10 @@ public class RedGreenOnlyTrafficLightsStrategy implements TrafficLightsStrategy 
 
   @Override
   public void execute(SignalsControlCenter signalsControlCenter) {
-    if (signalsControlCenter.getCurrentTime() < signalsControlCenter.getDurationSteps()) {
-      signalsControlCenter.setCurrentTime(signalsControlCenter.getCurrentTime() + 1);
+    if (signalsControlCenter.getCurrentStep() < signalsControlCenter.getDurationSteps()) {
+      signalsControlCenter.setCurrentStep(signalsControlCenter.getCurrentStep() + 1);
     } else {
-      signalsControlCenter.setCurrentTime(0);
+      signalsControlCenter.setCurrentStep(0);
       changeColorBetweenRedAndGreen(signalsControlCenter);
     }
   }

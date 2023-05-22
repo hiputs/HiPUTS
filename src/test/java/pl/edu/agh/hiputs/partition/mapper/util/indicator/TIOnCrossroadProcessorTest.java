@@ -9,7 +9,7 @@ import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
-import pl.edu.agh.hiputs.partition.service.SignalsConfigurationService;
+import pl.edu.agh.hiputs.service.SignalsConfigurationService;
 
 public class TIOnCrossroadProcessorTest {
   private final SignalsConfigurationService signalConfigService = Mockito.mock(SignalsConfigurationService.class);

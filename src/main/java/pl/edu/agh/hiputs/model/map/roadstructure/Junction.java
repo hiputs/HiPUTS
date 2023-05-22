@@ -102,15 +102,14 @@ public class Junction implements JunctionReadable, JunctionEditable {
     public JunctionBuilder addIncomingRoadId(RoadId roadId, boolean isSubordinate) {
       incomingRoadIds.add(roadId);
       roadsOnJunction.add(new RoadOnJunction(roadId, roadsOnJunction.size(), RoadDirection.INCOMING,
-          isSubordinate ? RoadSubordination.SUBORDINATE : RoadSubordination.NOT_SUBORDINATE, TrafficLightColor.GREEN));
+          isSubordinate ? RoadSubordination.SUBORDINATE : RoadSubordination.NOT_SUBORDINATE));
       return this;
     }
 
     public JunctionBuilder addOutgoingRoadId(RoadId roadId) {
       outgoingRoadIds.add(roadId);
       roadsOnJunction.add(
-          new RoadOnJunction(roadId, roadsOnJunction.size(), RoadDirection.OUTGOING, RoadSubordination.NONE,
-              TrafficLightColor.GREEN));
+          new RoadOnJunction(roadId, roadsOnJunction.size(), RoadDirection.OUTGOING, RoadSubordination.NONE));
       return this;
     }
 

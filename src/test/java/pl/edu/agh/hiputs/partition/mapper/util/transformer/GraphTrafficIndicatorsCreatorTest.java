@@ -17,7 +17,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
-import pl.edu.agh.hiputs.partition.service.SignalsConfigurationService;
+import pl.edu.agh.hiputs.service.SignalsConfigurationService;
 
 @ExtendWith(MockitoExtension.class)
 public class GraphTrafficIndicatorsCreatorTest {

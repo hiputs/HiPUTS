@@ -9,9 +9,9 @@ public interface SignalsControlCenter {
 
   int getDurationSteps();
 
-  int getCurrentTime();
+  int getCurrentStep();
 
-  void setCurrentTime(int currentTime);
+  void setCurrentStep(int currentStep);
 
   int getCurrentGreenGroupIndex();
 

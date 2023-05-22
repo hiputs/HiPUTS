@@ -10,7 +10,7 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.partition.model.lights.control.StandardSignalsControlCenter;
 import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicator;
-import pl.edu.agh.hiputs.partition.service.SignalsConfigurationService;
+import pl.edu.agh.hiputs.service.SignalsConfigurationService;
 
 @Service
 @Order(1)
