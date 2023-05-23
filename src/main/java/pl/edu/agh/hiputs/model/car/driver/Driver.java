@@ -18,6 +18,7 @@ import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionPro
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecision;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.TrailJunctionDecider;
+import pl.edu.agh.hiputs.model.car.driver.deciders.lights.RedGreenTrafficLightsDecider;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
@@ -42,7 +43,7 @@ public class Driver implements IDriver {
     this.prospector = new CarProspectorImpl(parameters.getViewRange());
     IFollowingModel idm = new Idm(parameters);
     this.idmDecider = new IdmDecider(idm);
-    this.junctionDecider = new TrailJunctionDecider(prospector, idm, parameters);
+    this.junctionDecider = new TrailJunctionDecider(prospector, idm, new RedGreenTrafficLightsDecider(idm), parameters);
     this.timeStep = parameters.getTimeStep();
     this.distanceHeadway = getDistanceHeadway();
     this.maxDeceleration = parameters.getIdmNormalDeceleration();

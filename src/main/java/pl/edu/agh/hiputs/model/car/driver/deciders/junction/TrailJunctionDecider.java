@@ -11,6 +11,7 @@ import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
+import pl.edu.agh.hiputs.model.car.driver.deciders.lights.TrafficLightsDecider;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.RoadId;
@@ -24,6 +25,7 @@ public class TrailJunctionDecider implements JunctionDecider {
 
   private final CarProspector prospector;
   private final IFollowingModel followingModel;
+  private final TrafficLightsDecider trafficLightsDecider;
   private final double timeDelta;
   private final double idmDelta;
   private final double conflictAreaLength;
@@ -33,9 +35,15 @@ public class TrailJunctionDecider implements JunctionDecider {
   private final int giveWayWaitCycles;
   private final int movePermanentWaitCycles;
 
-  public TrailJunctionDecider(CarProspector prospector, IFollowingModel followingModel, DriverParameters parameters){
+  public TrailJunctionDecider(
+      CarProspector prospector,
+      IFollowingModel followingModel,
+      TrafficLightsDecider trafficLightsDecider,
+      DriverParameters parameters
+  ){
       this.prospector = prospector;
       this.followingModel = followingModel;
+      this.trafficLightsDecider = trafficLightsDecider;
       this.timeDelta = parameters.getJunctionTimeDeltaFactor();
       this.idmDelta = parameters.getIdmDelta();
       this.conflictAreaLength = parameters.getJunctionDefaultConflictAreaLength();
@@ -65,6 +73,13 @@ public class TrailJunctionDecider implements JunctionDecider {
         log.trace("Car: " + managedCar.getCarId() + " locked");
       }
       return new JunctionDecision(res.getAcceleration());
+    }
+
+    // no decision made earlier && car found a crossroad nearby => decision dependent on traffic lights
+    Optional<JunctionDecision> trafficLightsDecision = trafficLightsDecider.tryToMakeDecision(
+        managedCar, environment, roadStructureReader);
+    if (trafficLightsDecision.isPresent()) {
+      return trafficLightsDecision.get();
     }
 
     if(precedingCarInfo.getPrecedingCar().isPresent()){
