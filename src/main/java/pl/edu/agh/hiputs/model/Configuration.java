@@ -165,6 +165,11 @@ public class Configuration {
    */
   private MapFragmentId mapFragmentId;
 
+  /**
+   * Configuration for pathFinding parameters
+   */
+  private PathGeneratorConfiguration pathGeneratorConfiguration;
+
   public static Configuration getDefault() {
     return Configuration.builder()
         .testMode(true)
@@ -173,7 +178,7 @@ public class Configuration {
         .statisticModeActive(false)
         .simulationStep(1000)
         .pauseAfterStep(1000)
-        .mapPath("")
+        .mapPath("C:\\Studia\\ModelowanieISymulacjaSystemów\\HiPUTS\\src\\test\\resources\\minimalMap")
         .serverAddress("localhost")
         .serverPort(8081)
         .initialNumberOfCarsPerLane(1)
@@ -189,10 +194,11 @@ public class Configuration {
         .movePermanentThreshold(50)
         .simulationTimeStep(1.0)
         .balancingMode(BalancingMode.NONE)
-        .newCars(15)
+        .newCars(1)
         .minCars(0)
         .ticketActive(false)
         .patchPartitionerConfiguration(PatchPartitionerConfiguration.getDefault())
+        .pathGeneratorConfiguration(PathGeneratorConfiguration.getDefault())
         .build();
   }
 
@@ -225,6 +231,37 @@ public class Configuration {
           .carViewRange(100.0)
           .borderHandlingStrategy(BorderEdgesHandlingStrategy.maxLaneLengthBuffer)
           .build();
+    }
+  }
+
+  @Getter
+  @Setter
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class PathGeneratorConfiguration {
+    /**
+     * Type of algorithm used for generating paths. Supported: random, cHBidirectionalDijkstra, cHBidirectionalAStar
+     */
+    private String generatorType;
+
+    /**
+     * Number of threads used for generating paths, for 0 currect thread will be used.
+     */
+    private int threadsForExecutors;
+
+    /**
+     * Path to graph with dumped precomputed graph. If value is empty then graph will be calculated
+     * - which is time expensive
+     */
+    private String graphPath;
+
+    public static PathGeneratorConfiguration getDefault() {
+      return PathGeneratorConfiguration.builder()
+              .generatorType("random")
+              .threadsForExecutors(0)
+              .graphPath("")
+              .build();
     }
   }
 }

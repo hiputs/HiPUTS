@@ -31,7 +31,7 @@ public class SingleWorkStrategyService implements Strategy {
     while (true) {
       mapFragmentExecutor.run(-1);
       graphBasedVisualizer.redrawCars();
-      sleep(5);
+      sleep(200);
     }
   }
 }

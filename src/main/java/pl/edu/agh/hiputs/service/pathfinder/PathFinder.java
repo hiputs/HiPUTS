@@ -5,7 +5,7 @@ import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
 import java.util.List;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public interface PathFinder<V extends LaneId> {
 
@@ -29,7 +29,7 @@ public interface PathFinder<V extends LaneId> {
      * @param executor method executors
      * @return list of paths from source to sink
      */
-    List<RouteWithLocation> getPathsWithExecutor(List<Pair<V, V>> requests, Executor executor);
+    List<RouteWithLocation> getPathsWithExecutor(List<Pair<V, V>> requests, ThreadPoolExecutor executor);
 
     /**
      * Finds multiple paths from source to random sinks
@@ -44,7 +44,7 @@ public interface PathFinder<V extends LaneId> {
      * @param executor method executors
      * @return list of sink vertex and paths from source to sink
      */
-    List<Pair<V, RouteWithLocation>> getPathsToRandomSinkWithExecutor(List<V> starts, Executor executor);
+    List<Pair<V, RouteWithLocation>> getPathsToRandomSinkWithExecutor(List<V> starts, ThreadPoolExecutor executor);
 
     /**
      * Create n random paths
@@ -59,5 +59,5 @@ public interface PathFinder<V extends LaneId> {
      * @param executor method executors
      * @return list of sink vertex and paths from source to sink
      */
-    List<Pair<Pair<V,V>, RouteWithLocation>> getRandomPathsWithExecutor(int n, Executor executor);
+    List<Pair<Pair<V,V>, RouteWithLocation>> getRandomPathsWithExecutor(int n, ThreadPoolExecutor executor);
 }

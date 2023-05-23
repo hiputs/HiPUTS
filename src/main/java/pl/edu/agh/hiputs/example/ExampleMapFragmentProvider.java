@@ -136,8 +136,7 @@ public class ExampleMapFragmentProvider {
     stringLaneMap.forEach((edge, laneUnderConstruction) -> putOnMap(edge, laneUnderConstruction, stringJunctionMap));
 
     Patch patch = createPatch(stringLaneMap, stringJunctionMap);
-    MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
-    return mapFragment;
+    return MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
   }
 
   /**
@@ -203,14 +202,14 @@ public class ExampleMapFragmentProvider {
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
     ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragment);
 
-    patch.streamLanesEditable().forEach(lane -> {
-      for (int i = 0; i < randomCarsPerLane; i++) {
-        double carPosition = (randomCarsPerLane - i) * lane.getLength() / (randomCarsPerLane + 1);
-        Car car = exampleCarProvider.generateCar(carPosition, lane.getLaneId());
-        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
-        lane.addCarAtEntry(car);
-      }
-    });
+//    patch.streamLanesEditable().forEach(lane -> {
+//      for (int i = 0; i < randomCarsPerLane; i++) {
+//        double carPosition = (randomCarsPerLane - i) * lane.getLength() / (randomCarsPerLane + 1);
+//        Car car = exampleCarProvider.generateCar(carPosition, lane.getLaneId());
+//        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
+//        lane.addCarAtEntry(car);
+//      }
+//    });
 
     DeterminingNeighborhoodUtil.execute(List.of(patch));
 
