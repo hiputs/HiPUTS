@@ -3,7 +3,6 @@ package pl.edu.agh.hiputs.communication.service.worker;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,7 +55,6 @@ public class MessageSenderService implements Subscriber {
     sentMessagesSize = new AtomicLong(0);
     sentServerMessages = new AtomicInteger(0);
     sentMessages = new AtomicInteger(0);
-    sentMessagesType = new LinkedList<>();
   }
 
   /**
@@ -126,12 +124,6 @@ public class MessageSenderService implements Subscriber {
 
   public int getSentMessages() {
     return sentMessages.getAndSet(0);
-  }
-
-  public String getSentMessageTypes() {
-    String tmp = sentMessagesType.toString();
-    sentMessagesType.clear();
-    return tmp;
   }
 
   public int getSentServerMessages() {

@@ -114,7 +114,7 @@ public class CarGeneratorService implements Subscriber {
     if(configuration.isExtendCarRouteWhenItEnds()){
 
       List<Runnable> extendRoutes = mapFragment.getLocalLaneIds()
-          .parallelStream()
+          .stream()
           .map(laneId -> new CarRouteExtendTask(carProvider, mapFragment, laneId, configuration.getSimulationStep() - step))
           .collect(Collectors.toList());
       taskExecutor.executeBatch(extendRoutes);

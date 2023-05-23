@@ -40,7 +40,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   private final WorkerSubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutorService;
   private final MessageSenderService messageSenderService;
-  private final BlockingQueue<CarTransferMessage> incomingMessages = new LinkedBlockingQueue<>();//ArrayList<>();
+  private final BlockingQueue<CarTransferMessage> incomingMessages = new LinkedBlockingQueue<>();
   private final BlockingQueue<CarTransferMessage> futureIncomingMessages = new LinkedBlockingQueue<>();
 
   @PostConstruct
@@ -57,7 +57,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
             e -> e.getValue().parallelStream().map(SerializedCar::new).collect(Collectors.toList())));
 
     sendMessages(serializedCarMap);
-    return serializedCarMap.values().stream().map(List::size).reduce(0, (a, b) -> a + b);
+    return serializedCarMap.values().stream().map(List::size).reduce(0, Integer::sum);
   }
 
   @Override
@@ -69,7 +69,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
         .map(patch::getLaneEditable)
         .flatMap(LaneEditable::pollIncomingCars)
         .map(SerializedCar::new)
-        .toList();
+        .collect(Collectors.toList());
   }
 
   private void sendMessages(Map<MapFragmentId, List<SerializedCar>> serializedCarMap) {
@@ -92,6 +92,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
     while (consumedMessages < countOfNeighbours) {
       try {
         CarTransferMessage msg = incomingMessages.take();
+
         List<Future<?>> f = taskExecutorService.executeBatchReturnFutures(
             List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
         injectIncomingCarFutures.addAll(f);
@@ -102,6 +103,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
         throw new RuntimeException(e);
       }
     }
+
     taskExecutorService.waitForAllTaskFinished(injectIncomingCarFutures);
 
     incomingMessages.clear();

@@ -142,7 +142,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private void waitForMapLoad() {
     while (!mapRepository.isReady()) {
       try {
-        sleep(100); //active waiting for load map from disk
+        sleep(10); //active waiting for load map from disk
       } catch (InterruptedException e) {
         log.warn("Error util waiting for map will be load", e);
       }

@@ -25,7 +25,7 @@ public class CarRouteExtendTask implements Runnable{
     try {
       LaneEditable lane = mapFragment.getLaneEditable(laneId);
 
-      lane.streamCarsFromEntryEditable()
+      lane.streamCarsFromEntryEditable().parallel()
           .filter(car -> car.getRouteWithLocation().getRemainingRouteSize() <= ROUTE_ELEMENTS_THRESHOLD)
           .forEach(car -> {
             List<RouteElement> newRoute= carProvider.generateRouteElements(car.getRouteWithLocation().getLastRouteElement().getOutgoingLaneId(), remainingTimeSteps/20 + ROUTE_ELEMENTS_THRESHOLD);

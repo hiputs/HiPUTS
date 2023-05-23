@@ -76,8 +76,7 @@ public class MapFragmentExecutor {
       // 6. 7. insert incoming cars & update lanes/cars
       log.info("Step 6,7 start");
       iterationStatisticsService.startStage(SimulationPoint.SECOND_ITERATION_UPDATING_CARS);
-      List<Runnable> updateStageTasks = mapFragment.getLocalLaneIds()
-          .parallelStream()
+      List<Runnable> updateStageTasks = mapFragment.getLocalLaneIds().stream()
           .map(laneId -> new LaneUpdateStageTask(mapFragment, laneId))
           .collect(Collectors.toList());
       taskExecutor.executeBatch(updateStageTasks);

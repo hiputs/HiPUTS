@@ -21,7 +21,7 @@ public class LaneUpdateStageTask implements Runnable {
   public void run() {
     try {
       LaneEditable lane = mapFragment.getLaneEditable(laneId);
-      this.removeLeavingCars(lane);
+      // this.removeLeavingCars(lane);
       this.updateCarsOnLane(lane);
       this.handleIncomingCars(lane);
       lane.updateCarSpeedMetrics();
@@ -33,15 +33,16 @@ public class LaneUpdateStageTask implements Runnable {
   /**
    * Removes from Lane.carsQueue all cars which decided to leave this lane
    */
-  private void removeLeavingCars(LaneEditable lane) {
-    while (lane
-            .getCarAtExit()
-            .map(car -> Objects.isNull(laneId) || !Objects.equals(laneId, car.getDecision().getLaneId()))
-            .orElse(false)) {
-      CarEditable car = lane.pollCarAtExit().get();
-      log.debug("Car: " + car.getCarId() + " with destination lane: " + car.getDecision().getLaneId() + " removeLeavingCar from lane: " + laneId);
-    }
-  }
+  // private void removeLeavingCars(LaneEditable lane) {
+  //   while (lane
+  //           .getCarAtExit()
+  //           .map(car -> Objects.isNull(laneId) || !Objects.equals(laneId, car.getDecision().getLaneId()))
+  //           .orElse(false)) {
+  //     CarEditable car = lane.pollCarAtExit().get();
+  //     log.debug("Car: " + car.getCarId() + " with destination lane: " + car.getDecision().getLaneId() + "
+  //     removeLeavingCar from lane: " + laneId);
+  //   }
+  // }
 
   /**
    * Iterates in reverse over Lane.carsQueue and call Car.update()
@@ -64,7 +65,7 @@ public class LaneUpdateStageTask implements Runnable {
         }
       }
     }catch (Exception e) {
-       log.warn("Error uptade lane - incorrect map error");
+      log.warn("Error update lane - incorrect map error");
       }
   }
 

@@ -19,9 +19,7 @@ import pl.edu.agh.hiputs.model.map.patch.Patch;
 public class SynchronizeShadowPatchState implements Runnable {
 
   private final String patchId;
-
   private final List<byte[]> serializedLanes;
-
   private final TransferDataHandler transferDataHandler;
 
   @Override
@@ -32,10 +30,10 @@ public class SynchronizeShadowPatchState implements Runnable {
       if (shadowPatch == null) {
         return;
       }
-
+      // List<byte[]> listOfLanes =  SerializationUtils.deserialize(serializedLanes);
       Map<String, List<Car>> newCarsOnLanes = serializedLanes.parallelStream()
           .map(s -> (SerializedLane) SerializationUtils.deserialize(s))
-          .collect(Collectors.toConcurrentMap(SerializedLane::getLaneId, SerializedLane::toRealObject));
+          .collect(Collectors.toMap(SerializedLane::getLaneId, SerializedLane::toRealObject));
 
       shadowPatch.parallelStreamLanesEditable()
           .forEach(laneEditable -> {

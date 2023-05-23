@@ -176,7 +176,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
-  public void acceptShadowPatches(Set<Patch> shadowPatches) {
+  public synchronized void acceptShadowPatches(Set<Patch> shadowPatches) {
     shadowPatches.forEach(shadowPatch -> knownPatches.put(shadowPatch.getPatchId(), shadowPatch));
   }
 

@@ -50,6 +50,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   private final MessageSenderService messageSenderService;
   private final BlockingQueue<BorderSynchronizationMessage> incomingMessages = new LinkedBlockingQueue<>();
   private final BlockingQueue<BorderSynchronizationMessage> futureIncomingMessages = new LinkedBlockingQueue<>();
+
   private final IterationStatisticsService iterationStatisticsService;
   private final AtomicInteger simulationStepNo = new AtomicInteger(0);
 
@@ -65,30 +66,37 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     Set<Patch> distinctBorderPatches =
         mapFragment.getBorderPatches().values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
 
-    List<Callable<?>> serializedBorderPatchesTasks = distinctBorderPatches.parallelStream()
+    List<Callable<?>> serializedBorderPatchesTasks = distinctBorderPatches.stream()
         .map(patch -> patch.streamLanesEditable().map(LaneSerializationTask::new).collect(Collectors.toList()))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
 
     // log.info("Step 9-0-3");
-    List<Pair<LaneId, byte[]>> serializedBorderLines =
+    List<Pair<LaneId, byte[]>> serializedBorderLanes =
         (List<Pair<LaneId, byte[]>>) taskExecutorService.executeCallableBatch(serializedBorderPatchesTasks);
-    Map<PatchId, List<byte[]>> serializedBorderPatches = serializedBorderLines.stream()
+
+    Map<PatchId, List<byte[]>> serializedBorderPatches = serializedBorderLanes.stream()
         .collect(Collectors.groupingBy(pair -> mapFragment.getPatchIdByLaneId(pair.getLeft()),
             mapping(Pair::getRight, toList())));
+
+    // Map<PatchId, byte[]> doubleSerializedBorderPatches = serializedBorderPatches.entrySet()
+    //     .stream()
+    //     .parallel()
+    //     .map(pair -> new ImmutablePair<>(pair.getKey(), SerializationUtils.serialize((Serializable) pair.getValue
+    //     ())))
+    //     .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
 
     Map<MapFragmentId, BorderSynchronizationMessage> messages = mapFragment.getBorderPatches()
         .entrySet()
         .parallelStream()
         .map(entry -> new ImmutablePair<>(entry.getKey(), createMessageFrom(entry.getValue(), serializedBorderPatches)))
-        .collect(Collectors.toConcurrentMap(ImmutablePair::getLeft, ImmutablePair::getRight));
+        .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
 
     log.info("Step 9-0-2");
     iterationStatisticsService.endStage(SimulationPoint.PATCHES_SERIALIZATION);
     iterationStatisticsService.startStage(SimulationPoint.PATCHES_SENDING);
     // long time3 = System.currentTimeMillis();
     sendMessages(messages);
-
     iterationStatisticsService.endStage(SimulationPoint.PATCHES_SENDING);
     // long time4 = System.currentTimeMillis();
     // log.info("Step 9 times: {}, {}; {}; {};", time1-time0,time2-time1, time3-time2, time4-time3);
@@ -112,11 +120,13 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
 
         patchSynchronizationFutures.addAll(taskExecutorService.executeBatchReturnFutures(tasks));
         consumedMessages += 1;
+
       } catch (InterruptedException e) {
         log.error("Exception when waiting for cars: " + e);
         throw new RuntimeException(e);
       }
     }
+
     taskExecutorService.waitForAllTaskFinished(patchSynchronizationFutures);
 
     incomingMessages.clear();
@@ -173,11 +183,11 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
         log.error("Error sending message BorderSynchronizationMessage to: " + entry.getKey(), e);
       }
     });
-
   }
 
   private BorderSynchronizationMessage createMessageFrom(Set<Patch> patches,
       Map<PatchId, List<byte[]>> serializedBorderPatches) {
+
     Map<String, List<byte[]>> patchContent = patches.stream()
         .collect(Collectors.toMap(e -> e.getPatchId().getValue(),
             e -> serializedBorderPatches.get(e.getPatchId())));
