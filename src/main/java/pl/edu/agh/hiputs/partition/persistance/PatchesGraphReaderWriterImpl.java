@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -37,13 +38,17 @@ import pl.edu.agh.hiputs.partition.model.lights.group.GreenColorGroupReadable;
 import pl.edu.agh.hiputs.partition.model.lights.group.MultipleTIsGreenColorGroup;
 import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicator;
 import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicatorReadable;
+import pl.edu.agh.hiputs.service.SignalsConfigurationService;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, PatchesGraphWriter {
 
   private static final String COLLECTION_ELEMENT_CSV_DELIMITER = ":ELEM:";
   private static final String MAP_KEY_VALUE_PAIR_CSV_DELIMITER = ":PAIR:";
+
+  private final SignalsConfigurationService signalsConfigService;
 
   @Override
   public void saveGraphWithPatches(Graph<PatchData, PatchConnectionData> graph, Path exportPath) {
@@ -145,7 +150,6 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
         for (SignalsControlCenter controlCenter : distinctSignalCenters) {
           signalCentersPrinter.printRecord(
               controlCenter.getId(),
-              controlCenter.getDurationSteps(),
               mapToCsv(controlCenter.getGreenColorGroups().stream()
                   .map(GreenColorGroupEditable::getId)
                   .toList())
@@ -185,8 +189,35 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
 
     Map<String, Node<JunctionData, WayData>> nodeId2Node = new HashMap<>();
 
-    // retrieving signal green groups
     Iterable<CSVRecord> records =
+        CSVFormat.DEFAULT.builder().setHeader(NodeHeaders.class).setSkipHeaderRecord(true).build().parse(nodesReader);
+    Map<String, String> signalsCCId2NodeId = new HashMap<>();
+    for (CSVRecord record : records) {
+      JunctionData junctionData = JunctionData.builder()
+          .lon(Double.parseDouble(record.get(NodeHeaders.longitude)))
+          .lat(Double.parseDouble(record.get(NodeHeaders.latitude)))
+          .isCrossroad(Boolean.parseBoolean(record.get(NodeHeaders.is_crossroad)))
+          .patchId(record.get(NodeHeaders.patch_id))
+          .signalsControlCenter(Optional.empty())
+          .tags(csvToMap(record.get(NodeHeaders.tags)))
+          .build();
+
+      if (!insideGraphs.containsKey(record.get(NodeHeaders.patch_id))) {
+        insideGraphs.put(record.get(NodeHeaders.patch_id), new GraphBuilder<>());
+      }
+      Node<JunctionData, WayData> newNode = new Node<>(record.get(NodeHeaders.id), junctionData);
+      nodeId2Node.put(record.get(NodeHeaders.id), newNode);
+      insideGraphs.get(record.get(NodeHeaders.patch_id)).addNode(newNode);
+      wholeMapGraph.addNode(newNode);
+
+      // taking all nodes with signal control centers and mapping their id's: signalControlCenterId -> nodeId
+      if (!Strings.isBlank(record.get(NodeHeaders.signalsControlCenter))) {
+        signalsCCId2NodeId.put(record.get(NodeHeaders.signalsControlCenter), record.get(NodeHeaders.id));
+      }
+    }
+
+    // retrieving signal green groups
+    records =
         CSVFormat.DEFAULT.builder().setHeader(SignalGroupHeader.class)
             .setSkipHeaderRecord(true).build().parse(signalGroupsReader);
     Map<String, Collection<String>> groupsAsIDs = new HashMap<>();
@@ -217,50 +248,30 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     records =
         CSVFormat.DEFAULT.builder().setHeader(SignalCenterHeader.class)
             .setSkipHeaderRecord(true).build().parse(signalCentersReader);
-    Map<String, Pair<String, Collection<String>>> centersAsIDs = new HashMap<>();
+    Map<String, Collection<String>> centersAsIDs = new HashMap<>();
     for (CSVRecord record : records) {
       centersAsIDs.put(
           record.get(SignalCenterHeader.id),
-          Pair.of(record.get(SignalCenterHeader.durationTime), csvToCollection(record.get(SignalCenterHeader.greenColorGroups)))
+          csvToCollection(record.get(SignalCenterHeader.greenColorGroups))
       );
     }
 
-    // building control center objects
+    // building control center objects with duration steps defined in configuration using previously created map
     Map<String, StandardSignalsControlCenter> idToControlCenter = centersAsIDs.entrySet().stream()
         .collect(Collectors.toMap(
             Entry::getKey,
             entry -> new StandardSignalsControlCenter(
                 entry.getKey(),
-                entry.getValue().getRight().stream()
+                entry.getValue().stream()
                     .map(idToGreenColorGroup::get)
                     .collect(Collectors.toList()),
-                Optional.ofNullable(entry.getValue().getLeft())
-                    .map(Integer::parseInt)
-                    .orElse(0)
+                signalsConfigService.getTimeForSpecificNode(signalsCCId2NodeId.get(entry.getKey()))
             )));
 
-    records =
-        CSVFormat.DEFAULT.builder().setHeader(NodeHeaders.class).setSkipHeaderRecord(true).build().parse(nodesReader);
-
-    for (CSVRecord record : records) {
-      JunctionData junctionData = JunctionData.builder()
-          .lon(Double.parseDouble(record.get(NodeHeaders.longitude)))
-          .lat(Double.parseDouble(record.get(NodeHeaders.latitude)))
-          .isCrossroad(Boolean.parseBoolean(record.get(NodeHeaders.is_crossroad)))
-          .patchId(record.get(NodeHeaders.patch_id))
-          .signalsControlCenter(Strings.isBlank(record.get(NodeHeaders.signalsControlCenter)) ?
-              Optional.empty() : Optional.of(idToControlCenter.get(record.get(NodeHeaders.signalsControlCenter))))
-          .tags(csvToMap(record.get(NodeHeaders.tags)))
-          .build();
-
-      if (!insideGraphs.containsKey(record.get(NodeHeaders.patch_id))) {
-        insideGraphs.put(record.get(NodeHeaders.patch_id), new GraphBuilder<>());
-      }
-      Node<JunctionData, WayData> newNode = new Node<>(record.get(NodeHeaders.id), junctionData);
-      nodeId2Node.put(record.get(NodeHeaders.id), newNode);
-      insideGraphs.get(record.get(NodeHeaders.patch_id)).addNode(newNode);
-      wholeMapGraph.addNode(newNode);
-    }
+    // assigning created signal control centers to nodes
+    signalsCCId2NodeId.entrySet().stream()
+        .map(entry -> Map.entry(idToControlCenter.get(entry.getKey()), nodeId2Node.get(entry.getValue())))
+        .forEach(entry -> entry.getValue().getData().setSignalsControlCenter(Optional.of(entry.getKey())));
 
     // parsing lane info as map ID -> [successors IDs]
     records =
