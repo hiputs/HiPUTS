@@ -19,7 +19,7 @@ public class RedGreenTrafficLightsDecider implements TrafficLightsDecider{
   public Optional<JunctionDecision> tryToMakeDecision(CarReadable car, CarEnvironment carEnvironment,
       RoadStructureReader roadStructureReader) {
 
-    return Optional.of(carEnvironment)
+    return Optional.ofNullable(carEnvironment)
         .map(CarEnvironment::getIncomingRoadId)
         .filter(Optional::isPresent)
         .map(Optional::get)

@@ -18,12 +18,16 @@ public class RedGreenOnlyTrafficLightsStrategy implements TrafficLightsStrategy 
   }
 
   private void changeColorBetweenRedAndGreen(SignalsControlCenter signalsControlCenter) {
-    int currentGreenGroupIndex = signalsControlCenter.getCurrentGreenGroupIndex();
+    if (signalsControlCenter.getGreenColorGroups().size() > 1) {
+      int currentGreenGroupIndex = signalsControlCenter.getCurrentGreenGroupIndex();
 
-    signalsControlCenter.getGreenColorGroups().get(currentGreenGroupIndex).switchColorForAll(LightColor.RED);
-    currentGreenGroupIndex = (currentGreenGroupIndex + 1) % signalsControlCenter.getGreenColorGroups().size();
-    signalsControlCenter.getGreenColorGroups().get(currentGreenGroupIndex).switchColorForAll(LightColor.GREEN);
+      signalsControlCenter.getGreenColorGroups().get(currentGreenGroupIndex).switchColorForAll(LightColor.RED);
+      currentGreenGroupIndex = (currentGreenGroupIndex + 1) % signalsControlCenter.getGreenColorGroups().size();
+      signalsControlCenter.getGreenColorGroups().get(currentGreenGroupIndex).switchColorForAll(LightColor.GREEN);
 
-    signalsControlCenter.setCurrentGreenGroupIndex(currentGreenGroupIndex);
+      signalsControlCenter.setCurrentGreenGroupIndex(currentGreenGroupIndex);
+    } else if (signalsControlCenter.getGreenColorGroups().size() == 1) {
+      signalsControlCenter.getGreenColorGroups().get(0).switchColorForAll(LightColor.GREEN);
+    }
   }
 }
