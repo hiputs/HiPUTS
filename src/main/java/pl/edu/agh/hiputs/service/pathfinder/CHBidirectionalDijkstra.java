@@ -25,17 +25,20 @@ public class CHBidirectionalDijkstra implements PathFinder<LaneId> {
     private ContractionHierarchyPrecomputation.ContractionHierarchy<JunctionReadable, LaneReadable> ch;
     private ContractionHierarchyBidirectionalDijkstra<JunctionReadable, LaneReadable> dijkstraShortestPath;
     private final Map<LaneId, Pair<JunctionReadable, JunctionReadable>> laneToJunctionsMapping = new HashMap<>();
+    private final ArrayList<LaneId> laneIds = new ArrayList<>();
 
     public CHBidirectionalDijkstra(MapRepository mapRepository, ThreadPoolExecutor executor) {
         Graph<JunctionReadable, LaneReadable> graph = createGraphFromMapRepository(mapRepository);
         ch = createCHBidirectionalDijkstra(graph, executor);
         dijkstraShortestPath = new ContractionHierarchyBidirectionalDijkstra<>(ch);
+        laneIds.addAll(laneToJunctionsMapping.keySet());
     }
 
     public CHBidirectionalDijkstra(MapFragment mapFragment, ThreadPoolExecutor executor) {
         Graph<JunctionReadable, LaneReadable> graph = createGraphFromMapFragment(mapFragment);
         ch = createCHBidirectionalDijkstra(graph, executor);
         dijkstraShortestPath = new ContractionHierarchyBidirectionalDijkstra<>(ch);
+        laneIds.addAll(laneToJunctionsMapping.keySet());
     }
 
     public CHBidirectionalDijkstra(String precomputationFilePath) {
@@ -46,6 +49,7 @@ public class CHBidirectionalDijkstra implements PathFinder<LaneId> {
         catch(Exception e) {
             log.error("Cannot read CHBidirectionalDijkstra precomputation:" + e);
         }
+        laneIds.addAll(laneToJunctionsMapping.keySet());
     }
 
     private Graph<JunctionReadable, LaneReadable> createGraphFromMapRepository(MapRepository mapRepository) {
@@ -98,28 +102,15 @@ public class CHBidirectionalDijkstra implements PathFinder<LaneId> {
 
     // Serialization
     // Save object into a file.
+    // TODO implement serialization
     public void dumpPrecomputationToFile(String filePath) throws IOException {
-        File file = new File(filePath);
-        try (FileOutputStream fos = new FileOutputStream(file);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-            oos.writeObject(dijkstraShortestPath);
-            oos.writeObject(ch.getContractionMapping());
-            oos.flush();
-        }
     }
 
     // Deserialization
     // Get object from a file.
+    // TODO implement deserialization
     public static ContractionHierarchyPrecomputation.ContractionHierarchy<JunctionReadable, LaneReadable>  readObjectFromFile(String filePath) throws IOException, ClassNotFoundException {
-        File file = new File(filePath);
-        ContractionHierarchyPrecomputation.ContractionHierarchy<JunctionReadable, LaneReadable>  result;
-        try (FileInputStream fis = new FileInputStream(file);
-             ObjectInputStream ois = new ObjectInputStream(fis)) {
-            result = (ContractionHierarchyPrecomputation.ContractionHierarchy<JunctionReadable, LaneReadable>) ois.readObject();
-
-        }
-        Graph<ContractionHierarchyPrecomputation.ContractionVertex<JunctionReadable>, ContractionHierarchyPrecomputation.ContractionEdge<LaneReadable>> graph = null;
-        return result;
+        return null;
     }
 
     private GraphPath<JunctionReadable, LaneReadable> findRoute(JunctionReadable source, JunctionReadable sink) {
@@ -128,7 +119,7 @@ public class CHBidirectionalDijkstra implements PathFinder<LaneId> {
 
     @Override
     public RouteWithLocation getPath(Pair<LaneId, LaneId> request) {
-        System.out.println("Current thread: " + Thread.currentThread());
+        // System.out.println("Current thread: " + Thread.currentThread());
         JunctionReadable incomingJunction = laneToJunctionsMapping.get(request.getFirst()).getFirst();
         JunctionReadable outgoingJunction = laneToJunctionsMapping.get(request.getSecond()).getSecond();
         JunctionReadable endingJunction;
@@ -194,22 +185,68 @@ public class CHBidirectionalDijkstra implements PathFinder<LaneId> {
 
     @Override
     public List<Pair<LaneId, RouteWithLocation>> getPathsToRandomSink(List<LaneId> starts) {
-        return null;
+        List<Pair<LaneId, RouteWithLocation>> routeWithLocationList = new ArrayList<>();
+        for (LaneId start: starts) {
+            LaneId end = laneIds.get(ThreadLocalRandom.current().nextInt(laneIds.size()));
+            routeWithLocationList.add(new Pair<>(end, getPath(new Pair<>(start, end))));
+        }
+        return routeWithLocationList;
     }
 
     @Override
     public List<Pair<LaneId, RouteWithLocation>> getPathsToRandomSinkWithExecutor(List<LaneId> starts, ThreadPoolExecutor executor) {
-        return null;
+        List<Pair<LaneId, RouteWithLocation>> routeWithLocationList = new ArrayList<>();
+        List<Future<RouteWithLocation>> futureRoutesWithLocation = new ArrayList<>();
+        List<LaneId> ends = new ArrayList<>();
+        for (LaneId start: starts) {
+            LaneId end = laneIds.get(ThreadLocalRandom.current().nextInt(laneIds.size()));
+            ends.add(end);
+            GetPathCallable callable = new GetPathCallable(new Pair<>(start, end), this);
+            futureRoutesWithLocation.add(executor.submit(callable));
+        }
+        try {
+            for (int i = 0; i < starts.size(); i++) {
+                routeWithLocationList.add(new Pair<>(ends.get(i), futureRoutesWithLocation.get(i).get()));
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Cannot collect future\n" + e);
+        }
+        return routeWithLocationList;
     }
 
     @Override
     public List<Pair<Pair<LaneId, LaneId>, RouteWithLocation>> getRandomPaths(int n) {
-        return null;
+        List<Pair<Pair<LaneId, LaneId>, RouteWithLocation>> routeWithLocationList = new ArrayList<>();
+        for (int i=0; i<n; i++) {
+            LaneId start = laneIds.get(ThreadLocalRandom.current().nextInt(laneIds.size()));
+            LaneId end = laneIds.get(ThreadLocalRandom.current().nextInt(laneIds.size()));
+            routeWithLocationList.add(new Pair<>(new Pair<>(start, end), getPath(new Pair<>(start, end))));
+        }
+        return routeWithLocationList;
     }
 
     @Override
     public List<Pair<Pair<LaneId, LaneId>, RouteWithLocation>> getRandomPathsWithExecutor(int n, ThreadPoolExecutor executor) {
-        return null;
+        List<Pair<Pair<LaneId, LaneId>, RouteWithLocation>> routeWithLocationList = new ArrayList<>();
+        List<Future<RouteWithLocation>> futureRoutesWithLocation = new ArrayList<>();
+        List<Pair<LaneId, LaneId>> requests = new ArrayList<>();
+        for (int i=0; i<n; i++) {
+            LaneId start = laneIds.get(ThreadLocalRandom.current().nextInt(laneIds.size()));
+            LaneId end = laneIds.get(ThreadLocalRandom.current().nextInt(laneIds.size()));
+            requests.add(new Pair<>(start, end));
+            GetPathCallable callable = new GetPathCallable(new Pair<>(start, end), this);
+            futureRoutesWithLocation.add(executor.submit(callable));
+        }
+        try {
+            for (int i=0; i<n; i++) {
+                routeWithLocationList.add(new Pair<>(requests.get(i), futureRoutesWithLocation.get(i).get()));
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Cannot collect future\n" + e);
+        }
+        return routeWithLocationList;
     }
 
 
