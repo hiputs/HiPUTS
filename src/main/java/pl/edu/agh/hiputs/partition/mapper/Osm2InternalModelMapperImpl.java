@@ -10,6 +10,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.partition.mapper.queue.ServiceQueue;
 import pl.edu.agh.hiputs.partition.mapper.util.oneway.OneWayProcessor;
 import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphTransformer;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -25,20 +26,30 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
   private final OneWayProcessor oneWayProcessor;
   private final List<GraphTransformer> graphTransformers;
+  private final ServiceQueue<OsmGraph, OsmGraph> filterQueue;
+  private final ServiceQueue<Graph<JunctionData, WayData>, Void> detectorQueue;
+  private final ServiceQueue<Graph<JunctionData, WayData>, Graph<JunctionData, WayData>> correctorQueue;
 
   public Graph<JunctionData, WayData> mapToInternalModel(OsmGraph osmGraph) {
+    log.info("Filtering osmGraph");
+    osmGraph = filterQueue.executeAll(osmGraph);
+
+    log.info("Mapping osmGraph to model graph");
     Graph.GraphBuilder<JunctionData, WayData> graphBuilder = new Graph.GraphBuilder<>();
     osmGraph.getNodes().stream().map(this::osmToInternal).forEach(graphBuilder::addNode);
     osmGraph.getWays().stream().flatMap(osmWay -> osmToInternal(osmWay).stream()).forEach(graphBuilder::addEdge);
-
     Graph<JunctionData, WayData> graph = graphBuilder.build();
-    log.info("Building internal graph from osmGraph finished");
-    log.info("Applying transforms started");
+
+    log.info("Applying transforms");
     for (final GraphTransformer graphTransformer : graphTransformers) {
       graph = graphTransformer.transform(graph);
     }
-    log.info("Applying transforms finished");
-    return graph;
+
+    log.info("Detecting incorrectness");
+    detectorQueue.executeAll(graph);
+
+    log.info("Correcting graph");
+    return correctorQueue.executeAll(graph);
   }
 
   private Node<JunctionData, WayData> osmToInternal(OsmNode osmNode) {
