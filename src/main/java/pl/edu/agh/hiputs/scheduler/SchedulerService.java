@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -17,7 +16,7 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 @Service
 public class SchedulerService implements TaskExecutorService {
 
-  private ForkJoinPool threadPoolExecutor;
+  // private ForkJoinPool threadPoolExecutor;
 
   @PostConstruct
   public void init() {
@@ -29,7 +28,7 @@ public class SchedulerService implements TaskExecutorService {
     if (cores <= 0) {
       throw new InsufficientSystemResourcesException("Insufficient number of cores");
     }
-    threadPoolExecutor = new ForkJoinPool(cores);
+    // threadPoolExecutor = new ForkJoinPool(cores);
   }
 
   private int getFreeCores() {
@@ -38,21 +37,31 @@ public class SchedulerService implements TaskExecutorService {
 
   @Override
   public void executeBatch(Collection<Runnable> tasks) {
-    List<Future<?>> futures = tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
+    // List<Future<?>> futures = tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
+    tasks.parallelStream().forEach(t -> t.run());
 
-    waitForAllTaskFinished(futures);
+    // waitForAllTaskFinished(futures);
   }
 
   @Override
   public List<Future<?>> executeBatchReturnFutures(Collection<Runnable> tasks) {
-    return tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
+    return null;
+    // return tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
   }
 
   @Override
   public List<?> executeCallableBatch(Collection<Callable<?>> tasks) {
-    List<Future<?>> futures = tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
+    // List<Future<?>> futures = tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
+    return tasks.parallelStream().map(t -> {
+      try {
+        return t.call();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return null;
+    }).collect(Collectors.toList());
 
-    return waitForAllTaskReturnResult(futures);
+    // return waitForAllTaskReturnResult(futures);
   }
 
   public void waitForAllTaskFinished(List<Future<?>> futures) {

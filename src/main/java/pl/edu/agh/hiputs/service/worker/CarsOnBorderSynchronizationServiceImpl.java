@@ -107,6 +107,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     int countOfNeighbours = mapFragment.getNeighbors().size();
     List<Future<?>> patchSynchronizationFutures = new LinkedList<>();
     int consumedMessages = 0;
+    List<Runnable> patchSynchronizationTasks = new LinkedList<>();
 
     while (consumedMessages < countOfNeighbours) {
       try {
@@ -118,7 +119,8 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
             .map(e -> new SynchronizeShadowPatchState(e.getKey(), e.getValue(), mapFragment))
             .collect(Collectors.toList());
 
-        patchSynchronizationFutures.addAll(taskExecutorService.executeBatchReturnFutures(tasks));
+        // patchSynchronizationFutures.addAll(taskExecutorService.executeBatchReturnFutures(tasks));
+        patchSynchronizationTasks.addAll(tasks);
         consumedMessages += 1;
 
       } catch (InterruptedException e) {
@@ -127,7 +129,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
       }
     }
 
-    taskExecutorService.waitForAllTaskFinished(patchSynchronizationFutures);
+    // taskExecutorService.waitForAllTaskFinished(patchSynchronizationFutures);
 
     incomingMessages.clear();
     futureIncomingMessages.drainTo(incomingMessages);

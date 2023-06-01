@@ -88,14 +88,16 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
     int countOfNeighbours = mapFragment.getNeighbors().size();
     List<Future<?>> injectIncomingCarFutures = new LinkedList<>();
     int consumedMessages = 0;
+    List<Runnable> injectIncomingCarTasks = new LinkedList<>();
 
     while (consumedMessages < countOfNeighbours) {
       try {
         CarTransferMessage msg = incomingMessages.take();
 
-        List<Future<?>> f = taskExecutorService.executeBatchReturnFutures(
-            List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
-        injectIncomingCarFutures.addAll(f);
+        // List<Future<?>> f = taskExecutorService.executeBatchReturnFutures(
+        //     List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
+        // injectIncomingCarFutures.addAll(f);
+        injectIncomingCarTasks.addAll(List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
         consumedMessages += 1;
 
       } catch (InterruptedException e) {
@@ -104,8 +106,8 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
       }
     }
 
-    taskExecutorService.waitForAllTaskFinished(injectIncomingCarFutures);
-
+    // taskExecutorService.waitForAllTaskFinished(injectIncomingCarFutures);
+    taskExecutorService.executeBatch(injectIncomingCarTasks);
     incomingMessages.clear();
     futureIncomingMessages.drainTo(incomingMessages);
   }
