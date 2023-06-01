@@ -38,9 +38,9 @@ public class ExampleMapFragmentProviderTest {
     private boolean carsInOrderAndOnLane(RoadReadable lane) {
         double previousCarPosition = lane.getLength();
         for (CarReadable car : lane.streamCarsFromExitReadable().collect(Collectors.toList())) {
-            if (car.getPositionOnRoad() > previousCarPosition || car.getPositionOnRoad() <= 0)
+            if (car.getPositionOnLane() > previousCarPosition || car.getPositionOnLane() <= 0)
                 return false;
-            previousCarPosition = car.getPositionOnRoad() - car.getLength();
+            previousCarPosition = car.getPositionOnLane() - car.getLength();
         }
         return true;
     }

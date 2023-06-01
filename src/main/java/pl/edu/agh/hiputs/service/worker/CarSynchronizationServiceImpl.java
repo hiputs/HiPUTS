@@ -23,6 +23,7 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
@@ -65,10 +66,10 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   public List<SerializedCar> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
     Patch patch = transferDataHandler.getPatchById(patchId);
 
-    return patch.getRoadIds()
+    return patch.getLaneIds()
         .parallelStream()
-        .map(patch::getRoadEditable)
-        .flatMap(RoadEditable::pollIncomingCars)
+        .map(patch::getLaneEditable)
+        .flatMap(LaneEditable::pollIncomingCars)
         .map(SerializedCar::new)
         .toList();
   }

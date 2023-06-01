@@ -36,7 +36,8 @@ import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
@@ -159,13 +160,13 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
           .mapToObj(x -> exampleCarProvider.generateCar(laneId, 30))
           .filter(Objects::nonNull)
-          .sorted(Comparator.comparing(Car::getPositionOnRoad))
+          .sorted(Comparator.comparing(Car::getPositionOnLane))
           .collect(Collectors.toList());
       Collections.reverse(generatedCars);
       generatedCars.forEach(car -> {
-        RoadEditable road = mapFragmentExecutor.getMapFragment().getRoadEditable(car.getRoadId());
-        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, road);
-        road.addNewCar(car);
+        LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
+        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
+        lane.addNewCar(car);
       });
     });
   }

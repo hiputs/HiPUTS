@@ -9,6 +9,7 @@ import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.HorizontalSign;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 
 @RequiredArgsConstructor
@@ -37,17 +38,19 @@ public class OvertakingDecider {
   /**
    * Method decider, returns decision whether car should overtake or not
    */
-  public boolean overtakeDecision(CarEditable car, CarEnvironment carEnvironment,
-      RoadStructureReader roadStructureReader) {
+  public boolean overtakeDecision(CarEditable car, CarEnvironment carEnvironment, RoadStructureReader roadStructureReader) {
     if (isCarCloseEnough(car.getSpeed(), carEnvironment) && isPrecedingCarSlower(car, carEnvironment)) {
       Optional<OvertakingEnvironment> overtakingEnvironment =
           getOvertakingInformation(car, carEnvironment, roadStructureReader);
+
       if (overtakingEnvironment.isPresent() && carEnvironment.getPrecedingCar().isPresent()) {
+
         CarReadable precedingCar = carEnvironment.getPrecedingCar().get();
         double safeDistanceForOvertakenCar = precedingCar.getSpeed() * safetyTimeDistance;
         double maximalDistanceForOvertaking =
             carEnvironment.getDistance() + precedingCar.getLength() + safeDistanceForOvertakenCar;
         double speedDelta;
+
         if (car.getSpeed() <= (precedingCar.getSpeed() + precedingCar.getAcceleration()) - minDeltaSpeed) {
           // todo for future investigate situation where car is moving slow but can accelerate
           // for now let's assume that it's effective speed is mean from actual and max speed
@@ -56,6 +59,7 @@ public class OvertakingDecider {
           speedDelta = car.getSpeed() - precedingCar.getSpeed();
         }
         double timeNeededForOvertaking = maximalDistanceForOvertaking / speedDelta;
+
         if (enoughSpaceForReturningBeforeOvertakenCar(safeDistanceForOvertakenCar, car, overtakingEnvironment.get(),
             precedingCar, timeNeededForOvertaking)) {
           if (overtakingEnvironment.get().getOppositeCar().isPresent()) {
@@ -120,6 +124,7 @@ public class OvertakingDecider {
    */
   private boolean enoughSpaceForReturningBeforeOvertakenCar(double safeDistanceForOvertakenCar, CarReadable car,
       OvertakingEnvironment overtakingEnvironment, CarReadable precedingCar, double timeNeededForOvertaking) {
+
     if (overtakingEnvironment.getCarBeforeOvertakenCar().isEmpty()) {
       return safeDistanceForOvertakenCar + car.getLength() + car.getMaxSpeed() * safetyTimeDistance
           < overtakingEnvironment.getDistanceBeforeOvertakenCar();
@@ -157,30 +162,39 @@ public class OvertakingDecider {
   public Optional<OvertakingEnvironment> getOvertakingInformation(CarEditable currentCar, CarEnvironment carEnvironment,
       RoadStructureReader roadStructureReader) {
     RoadReadable currentRoad = roadStructureReader.getRoadReadable(currentCar.getRoadId());
-    if (!canOvertakeOnRoad(currentRoad) || carEnvironment.getPrecedingCar().isEmpty()) {
+    LaneReadable currentLane = roadStructureReader.getLaneReadable(currentCar.getLaneId());
+
+    // We can overtake only if current road and opposite road have only one lane each
+    //  and there is a preceding car to overtake
+    //  and there is a dotted line between roads
+    if (!canOvertakeOnRoad(currentRoad, roadStructureReader) || carEnvironment.getPrecedingCar().isEmpty()) {
       return Optional.empty(); // we can't overtake
     }
+
     JunctionId nextJunctionId = currentRoad.getOutgoingJunctionId();
     RoadReadable oppositeRoad = roadStructureReader.getRoadReadable(currentRoad.getLeftNeighbor().get().getRoadId());
+    LaneReadable oppositeLane = roadStructureReader.getLaneReadable(oppositeRoad.getLanes().get(0));
     CarReadable overtakenCar = carEnvironment.getPrecedingCar().get();
-    Optional<CarReadable> carBeforeOvertakenCar = currentRoad.getCarInFrontReadable(overtakenCar); // find C car
+
+    Optional<CarReadable> carBeforeOvertakenCar = currentLane.getCarInFrontReadable(overtakenCar); // find C car
     Optional<CarReadable> oppositeCar =
-        oppositeRoad.getCarBeforePosition(oppositeRoad.getLength() - currentCar.getPositionOnRoad()); // find D car
+        oppositeLane.getCarBeforePosition(oppositeLane.getLength() - currentCar.getPositionOnLane()); // find D car
     OvertakingEnvironment overtakingEnvironment;
+
     if (foundAllInformation(nextJunctionId, carBeforeOvertakenCar,
         oppositeCar)) { // for future if we find oppositeCar car, we need to find carBeforeOvertakenCar?
       double distanceBeforeOvertakenCar =
-          carBeforeOvertakenCar.map(car -> car.getPositionOnRoad() - car.getLength()).orElse(currentRoad.getLength())
-              - overtakenCar.getPositionOnRoad();
+          carBeforeOvertakenCar.map(car -> car.getPositionOnLane() - car.getLength()).orElse(currentRoad.getLength())
+              - overtakenCar.getPositionOnLane();
       double distanceOnOppositeRoad =
-          currentRoad.getLength() - oppositeCar.map(CarReadable::getPositionOnRoad).orElse(0.0)
-              - currentCar.getPositionOnRoad();
+          currentRoad.getLength() - oppositeCar.map(CarReadable::getPositionOnLane).orElse(0.0)
+              - currentCar.getPositionOnLane();
       overtakingEnvironment = new OvertakingEnvironment(oppositeCar, carBeforeOvertakenCar, distanceOnOppositeRoad,
           distanceBeforeOvertakenCar);
     } else {
       overtakingEnvironment =
           searchRouteForOvertakingInformation(currentCar, overtakenCar, carBeforeOvertakenCar, oppositeCar,
-              nextJunctionId, currentRoad, oppositeRoad, roadStructureReader);
+              nextJunctionId, currentRoad, currentLane, oppositeRoad, oppositeLane, roadStructureReader);
     }
     return Optional.of(overtakingEnvironment);
   }
@@ -192,45 +206,55 @@ public class OvertakingDecider {
    */
   private OvertakingEnvironment searchRouteForOvertakingInformation(CarEditable currentCar, CarReadable overtakenCar,
       Optional<CarReadable> carBeforeOvertakenCar, Optional<CarReadable> oppositeCar, JunctionId nextJunctionId,
-      RoadReadable currentRoad, RoadReadable oppositeRoad, RoadStructureReader roadStructureReader) {
+      RoadReadable currentRoad, LaneReadable currentLane, RoadReadable oppositeRoad, LaneReadable oppositeLane ,RoadStructureReader roadStructureReader) {
     double distanceBeforeOvertakenCar = 0;
     double distanceOnOppositeRoad = 0;
     int offset = 0;
     Optional<RoadId> nextRoadId;
     RoadReadable nextRoad;
+    LaneReadable nextLane;
     RoadReadable nextOppositeRoad;
+    LaneReadable nextOppositeLane;
+
     while (!foundAllInformation(nextJunctionId, carBeforeOvertakenCar, oppositeCar)) {
       nextRoadId = currentCar.getRouteWithLocation().getOffsetRoadId(++offset);
       if (nextRoadId.isEmpty()) {
         break;
       }
       nextRoad = roadStructureReader.getRoadReadable(nextRoadId.get());
-      if (!canOvertakeOnRoad(nextRoad)) {
+      if (!canOvertakeOnRoad(nextRoad, roadStructureReader)) {
         break; // we can't overtake any further
       }
+      nextLane = roadStructureReader.getLaneReadable(nextRoad.getLanes().get(0));
       nextOppositeRoad = roadStructureReader.getRoadReadable(nextRoad.getLeftNeighbor().get().getRoadId());
+      nextOppositeLane = roadStructureReader.getLaneReadable(nextOppositeRoad.getLanes().get(0));
       distanceBeforeOvertakenCar += currentRoad.getLength();
       distanceOnOppositeRoad += oppositeRoad.getLength();
       nextJunctionId = nextRoad.getOutgoingJunctionId();
-      carBeforeOvertakenCar = nextRoad.getCarAtEntryReadable();
-      oppositeCar = nextOppositeRoad.getCarAtExitReadable();
+      carBeforeOvertakenCar = nextLane.getCarAtEntryReadable();
+      oppositeCar = nextOppositeLane.getCarAtExitReadable();
       currentRoad = nextRoad;
+      currentLane = nextLane;
       oppositeRoad = nextOppositeRoad;
+      oppositeLane = nextOppositeLane;
     }
     distanceBeforeOvertakenCar +=
-        carBeforeOvertakenCar.map(car -> car.getPositionOnRoad() - car.getLength()).orElse(currentRoad.getLength())
-            - overtakenCar.getPositionOnRoad();
-    distanceOnOppositeRoad += oppositeRoad.getLength() - oppositeCar.map(CarReadable::getPositionOnRoad).orElse(0.0)
-        - currentCar.getPositionOnRoad();
+        carBeforeOvertakenCar.map(car -> car.getPositionOnLane() - car.getLength()).orElse(currentRoad.getLength())
+            - overtakenCar.getPositionOnLane();
+    distanceOnOppositeRoad += oppositeRoad.getLength() - oppositeCar.map(CarReadable::getPositionOnLane).orElse(0.0)
+        - currentCar.getPositionOnLane();
     return new OvertakingEnvironment(oppositeCar, carBeforeOvertakenCar, distanceOnOppositeRoad,
         distanceBeforeOvertakenCar);
   }
 
-  private boolean canOvertakeOnRoad(RoadReadable road) {
-    return road.getLeftNeighbor().isPresent() && road.getLeftNeighbor()
+  private boolean canOvertakeOnRoad(RoadReadable road, RoadStructureReader roadStructureReader) {
+    return road.getLanes().size() == 1 && road.getLeftNeighbor().isPresent()
+        && road.getLeftNeighbor()
         .get()
         .getHorizontalSign()
-        .equals(HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE);
+        .equals(HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE)
+        && roadStructureReader.getRoadReadable(road.getLeftNeighbor().get().getRoadId())
+        .getLanes().size() == 1;
   }
 
   private boolean foundAllInformation(JunctionId nextJunctionId, Optional<CarReadable> carBeforeOvertakenCar,

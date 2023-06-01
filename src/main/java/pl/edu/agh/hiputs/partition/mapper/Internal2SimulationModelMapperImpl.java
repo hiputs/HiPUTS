@@ -116,6 +116,7 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
       Lane.LaneBuilder laneBuilder = Lane.builder()
           .laneId(new LaneId(laneData.getId()))
           .roadId(new RoadId(edge.getId()))
+          .length(edge.getData().getLength())
           .laneSuccessors(laneData.getAvailableSuccessors().stream()
               .map(lanesSuccessors -> new LaneId(lanesSuccessors.getId())).collect(Collectors.toList()));
 

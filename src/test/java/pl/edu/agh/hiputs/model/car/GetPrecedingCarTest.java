@@ -88,7 +88,7 @@ public class GetPrecedingCarTest {
     Assertions.assertAll(() -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
         () -> Assertions.assertTrue(carEnvironment.getNextCrossroadId().isPresent()),
         () -> Assertions.assertEquals(startLane.getOutgoingJunctionId(), carEnvironment.getNextCrossroadId().get()),
-        () -> Assertions.assertEquals(startLane.getLength() - car1.getPositionOnRoad(), carEnvironment.getDistance()));
+        () -> Assertions.assertEquals(startLane.getLength() - car1.getPositionOnLane(), carEnvironment.getDistance()));
   }
 
     @Test
@@ -112,7 +112,7 @@ public class GetPrecedingCarTest {
     CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
     Assertions.assertAll(() -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
         () -> Assertions.assertFalse(carEnvironment.getNextCrossroadId().isPresent()),
-        () -> Assertions.assertEquals(3 * startLane.getLength() - car1.getPositionOnRoad(),
+        () -> Assertions.assertEquals(3 * startLane.getLength() - car1.getPositionOnLane(),
             carEnvironment.getDistance()));
   }
 

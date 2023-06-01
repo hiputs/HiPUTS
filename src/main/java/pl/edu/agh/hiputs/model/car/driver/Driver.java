@@ -3,6 +3,8 @@ package pl.edu.agh.hiputs.model.car.driver;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
@@ -18,8 +20,11 @@ import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionPro
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecision;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.TrailJunctionDecider;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
+import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 
 /**
@@ -52,7 +57,7 @@ public class Driver implements IDriver {
     // make local decision based on read only road structure (watch environment) and save it locally
 
 
-    log.debug("Car: " + car.getCarId() + ", road: " + car.getRoadId() + ", position: " + car.getPositionOnRoad()
+    log.debug("Car: " + car.getCarId() + ", road: " + car.getRoadId() + ", lane: " + car.getLaneId() +", position: " + car.getPositionOnLane()
               + ", acc: " + car.getAcceleration() + ", speed: " + car.getSpeed()
               + ", route0: " + car.getRouteOffsetRoadId(0) + ", route1: " + car.getRouteOffsetRoadId(1));
 
@@ -112,6 +117,8 @@ public class Driver implements IDriver {
 
     RoadId currentRoadId = car.getRoadId();
     RoadReadable destinationCandidate = roadStructureReader.getRoadReadable(currentRoadId);
+    LaneId currentLaneId = car.getLaneId();
+    LaneReadable currentLane;
     int offset = 0;
     double desiredPosition = calculateFuturePosition(car, acceleration);
     Optional<RoadId> desiredRoadId;
@@ -130,7 +137,24 @@ public class Driver implements IDriver {
         log.warn("Car: " + car.getCarId() + " Destination out of this node, positionRest: " + desiredPosition
             + ", desiredRoadId: " + currentRoadId);
         currentRoadId = null;
+        currentLaneId = null;
         break;
+      }
+
+      // TODO: To be changed in future
+      final RoadId finalCurrentRoadId = currentRoadId;
+      currentLane = roadStructureReader
+          .getLaneSuccessorsReadable(currentLaneId)
+          .stream()
+          .filter(l -> l.getRoadId()== finalCurrentRoadId)
+          .findAny()
+          .orElse(null);
+
+      if (currentLane == null) {
+        currentLaneId = destinationCandidate.getLanes().get(ThreadLocalRandom.current().nextInt(0, destinationCandidate.getLanes().size()));
+        currentLane = roadStructureReader.getLaneReadable(currentLaneId);
+      } else {
+        currentLaneId = currentLane.getLaneId();
       }
     }
 
@@ -143,8 +167,8 @@ public class Driver implements IDriver {
           CarReadable precedingCar = precedingCarInfo.getPrecedingCar().get();
           speed = Math.min(speed, Math.max(precedingCar.getSpeed() - maxDeceleration, 0) * 0.8);
           desiredPosition = Math.min(desiredPosition,
-              precedingCar.getPositionOnRoad() - Math.min(0.1, precedingCar.getPositionOnRoad() * 0.1));
-          log.trace("Car: " + car.getCarId() + " finish move permanent and limit speed to car: " + precedingCar.getCarId() + ", speed: " + precedingCar.getSpeed() + ", position: " + precedingCar.getPositionOnRoad());
+              precedingCar.getPositionOnLane() - Math.min(0.1, precedingCar.getPositionOnLane() * 0.1));
+          log.trace("Car: " + car.getCarId() + " finish move permanent and limit speed to car: " + precedingCar.getCarId() + ", speed: " + precedingCar.getSpeed() + ", position: " + precedingCar.getPositionOnLane());
         }
         else{
           log.trace("Car: " + car.getCarId() + " finish move permanent without preceding car");
@@ -156,6 +180,7 @@ public class Driver implements IDriver {
         .acceleration(acceleration)
         .speed(speed)
         .roadId(currentRoadId)
+        .laneId(currentLaneId)
         .positionOnRoad(desiredPosition)
         .offsetToMoveOnRoute(offset)
         .crossroadDecisionProperties(crossroadDecisionProperties)
@@ -186,6 +211,6 @@ public class Driver implements IDriver {
   }
 
   private double calculateFuturePosition(CarReadable car, double acceleration) {
-    return car.getPositionOnRoad() + car.getSpeed() * timeStep + acceleration * timeStep * timeStep / 2;
+    return car.getPositionOnLane() + car.getSpeed() * timeStep + acceleration * timeStep * timeStep / 2;
   }
 }

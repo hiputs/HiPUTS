@@ -16,6 +16,7 @@ import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 
@@ -46,9 +47,14 @@ public class SerializedCar implements CustomSerializable<Car> {
   private final double maxSpeed;
 
   /**
-   * Lane location id
+   * Road location id
    */
   private final String roadId;
+
+  /**
+   * Lane location id
+   */
+  private final String laneId;
 
   /**
    * Lane location position
@@ -81,7 +87,8 @@ public class SerializedCar implements CustomSerializable<Car> {
     length = realObject.getLength();
     maxSpeed = realObject.getMaxSpeed();
     roadId = realObject.getRoadId().getValue();
-    positionOnRoad = realObject.getPositionOnRoad();
+    laneId = realObject.getLaneId().getValue();
+    positionOnRoad = realObject.getPositionOnLane();
 
     currentRoutePosition = realObject.getRouteWithLocation().getCurrentPosition();
     routeElements = realObject.getRouteWithLocation()
@@ -116,7 +123,8 @@ public class SerializedCar implements CustomSerializable<Car> {
         .routeWithLocation(routeWithLocation)
         .speed(speed)
         .roadId(new RoadId(roadId))
-        .positionOnRoad(positionOnRoad)
+        .laneId(new LaneId(laneId))
+        .positionOnLane(positionOnRoad)
         .decision(((SerializedDecision)SerializationUtils.deserialize(decision)).toRealObject())
         .crossroadDecisionProperties(((SerializedCrossroadDecisionProperties) SerializationUtils.deserialize(crossroadDecisionProperties)).toRealObject())
         .driver(new Driver(new DriverParameters(ConfigurationService.getConfiguration())))

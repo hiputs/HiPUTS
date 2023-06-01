@@ -5,12 +5,12 @@ public enum RoadSubordination {
   /**
    * Road is subordinate
    */
-  SUBORDINATE,
+  SUBORDINATED,
 
   /**
    * Road is not subordinate
    */
-  NOT_SUBORDINATE,
+  MAIN_ROAD,
 
   /**
    * Road is not subject to subordination rules (e.g. outgoing road)

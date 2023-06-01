@@ -31,5 +31,5 @@ public interface CarProspector {
 
   List<RoadOnJunction> getRightRoadsOnJunction(List<RoadOnJunction> roadOnJunctions, RoadId incomingRoadId, RoadId outgoingRoadId);
 
-  List<CarReadable> getAllFirstCarsFromRoadsReadable(List<RoadId> roads, RoadStructureReader roadStructureReader);
+  List<CarReadable> getAllFirstCarsFromRoads(List<RoadId> roads, RoadStructureReader roadStructureReader);
 }

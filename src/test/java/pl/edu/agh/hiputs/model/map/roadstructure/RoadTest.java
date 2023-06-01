@@ -47,7 +47,7 @@ class RoadTest {
     return Car.builder()
         .carId(CarId.random())
         .roadId(currentLaneId)
-        .positionOnRoad(positionOnLane)
+        .positionOnLane(positionOnLane)
         .speed(speed)
         .build();
   }
@@ -56,9 +56,9 @@ class RoadTest {
   void getNextCarData() {
     Optional<CarReadable> optional1 = lane.getCarInFrontReadable(car1);
     Optional<CarReadable> optional2 = lane.getCarInFrontReadable(car2);
-    assertAll(() -> assertFalse(optional1.isEmpty()), () -> assertEquals(optional1.get().getPositionOnRoad(), car2_pos),
+    assertAll(() -> assertFalse(optional1.isEmpty()), () -> assertEquals(optional1.get().getPositionOnLane(), car2_pos),
         () -> assertEquals(optional1.get().getSpeed(), car2_speed), () -> assertFalse(optional2.isEmpty()),
-        () -> assertEquals(optional2.get().getPositionOnRoad(), car3_pos),
+        () -> assertEquals(optional2.get().getPositionOnLane(), car3_pos),
         () -> assertEquals(optional2.get().getSpeed(), car3_speed));
   }
 
@@ -72,7 +72,7 @@ class RoadTest {
   void getFirstCar() {
     Optional<CarReadable> optional = lane.getCarAtEntryReadable();
     assertAll(() -> assertFalse(optional.isEmpty()),
-        () -> assertEquals(optional.map(CarReadable::getPositionOnRoad).get(), car1_pos),
+        () -> assertEquals(optional.map(CarReadable::getPositionOnLane).get(), car1_pos),
         () -> assertEquals(optional.map(CarReadable::getSpeed).get(), car1_speed));
   }
 

@@ -20,6 +20,8 @@ public interface RoadStructureReader {
 
   List<LaneReadable> getRoadToLaneSuccessorsReadable(RoadId roadId);
 
+  List<LaneReadable> getLanesReadableFromRoadId(RoadId roadId);
+
   JunctionReadable getJunctionReadable(JunctionId junctionId);
 
 }

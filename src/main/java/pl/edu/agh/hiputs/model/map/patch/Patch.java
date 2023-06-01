@@ -98,6 +98,20 @@ public class Patch implements PatchReader, PatchEditor {
     return lanes.get(laneId);
   }
 
+  @Override
+  public Stream<LaneEditable> streamLanesEditable() {
+    return lanes.values().parallelStream().map(Function.identity());
+  }
+
+  @Override
+  public Stream<LaneReadable> streamLaneReadable() {
+    return lanes.values().stream().map(Function.identity());
+  }
+
+  @Override
+  public Stream<LaneEditable> parallelStreamLanesEditable() {
+    return lanes.values().parallelStream().map(Function.identity());
+  }
 
   @Override
   public LaneEditable getLaneEditable(LaneId laneId) {

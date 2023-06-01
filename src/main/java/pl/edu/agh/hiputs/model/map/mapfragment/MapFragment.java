@@ -137,6 +137,15 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
+  public List<LaneReadable> getLanesReadableFromRoadId(RoadId roadId) {
+    return getRoadReadable(roadId)
+        .getLanes()
+        .stream()
+        .map(this::getLaneReadable)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public RoadReadable getRoadReadableFromLaneId(LaneId laneId) {
     return Optional.ofNullable(laneIdToPatchId.get(laneId))
         .map(knownPatches::get)
@@ -177,18 +186,17 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
-  public List<RoadEditable> getRandomRoadsEditable(int count) {
-    List<RoadEditable> road = new ArrayList<>(count);
+  public List<LaneEditable> getRandomLanesEditable(int count) {
+    List<LaneEditable> lane = new ArrayList<>(count);
     Object[] array = localPatchIds.toArray();
 
     do {
       PatchId patchId = (PatchId) array[ThreadLocalRandom.current().nextInt(0, array.length)];
       Patch patch = knownPatches.get(patchId);
-      road.addAll(patch.getRoadIds().parallelStream().map(patch::getRoadEditable).toList());
-    } while (road.size() < count);
+      lane.addAll(patch.getLaneIds().parallelStream().map(patch::getLaneEditable).toList());
+    } while (lane.size() < count);
 
-    return new ArrayList<>(road);
-
+    return new ArrayList<>(lane);
   }
 
   @Override
@@ -203,15 +211,15 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
             .parallelStream()
             .map(knownPatches::get)
-            .flatMap(Patch::streamRoadsEditable)
-            .flatMap(RoadEditable::pollIncomingCars)
+            .flatMap(Patch::streamLanesEditable)
+            .flatMap(LaneEditable::pollIncomingCars)
             .collect(Collectors.toSet())));
   }
 
   @Override
   public void acceptIncomingCars(Set<Car> incomingCars) {
     incomingCars.parallelStream().peek(car -> {
-      RoadEditable road = car.getDecision().getRoadId().getEditable(this);
+      LaneEditable road = car.getDecision().getLaneId().getEditable(this);
       if (road != null) {
         road.addIncomingCar(car);
       } else {

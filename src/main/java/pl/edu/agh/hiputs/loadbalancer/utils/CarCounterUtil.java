@@ -5,14 +5,15 @@ import lombok.experimental.UtilityClass;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 
 @UtilityClass
 public class CarCounterUtil {
 
     public static int countCars(PatchReader patchReader){
-      return patchReader.streamRoadReadable()
-          .map(RoadReadable::numberOfCars)
+      return patchReader.streamLaneReadable()
+          .map(LaneReadable::numberOfCars)
           .reduce(0, Integer::sum);
     }
 

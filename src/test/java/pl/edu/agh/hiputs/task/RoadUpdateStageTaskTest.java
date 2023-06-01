@@ -98,11 +98,11 @@ public class RoadUpdateStageTaskTest {
 
     roadUpdateStageTask.run();
     Assertions.assertAll(() -> Assertions.assertEquals(decision1.getRoadId(), car1.getRoadId()),
-        () -> Assertions.assertEquals(decision1.getPositionOnRoad(), car1.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision1.getPositionOnRoad(), car1.getPositionOnLane()),
         () -> Assertions.assertEquals(decision2.getRoadId(), car2.getRoadId()),
-        () -> Assertions.assertEquals(decision2.getPositionOnRoad(), car2.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision2.getPositionOnRoad(), car2.getPositionOnLane()),
         () -> Assertions.assertEquals(decision3.getRoadId(), car3.getRoadId()),
-        () -> Assertions.assertEquals(decision3.getPositionOnRoad(), car3.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision3.getPositionOnRoad(), car3.getPositionOnLane()),
         () -> Assertions.assertEquals(3, lane2.streamCarsFromExitEditable().count()),
         () -> Assertions.assertEquals(car3, lane2.streamCarsFromExitEditable().findFirst().get()),
         () -> Assertions.assertEquals(car2, lane2.streamCarsFromExitEditable().skip(1).findFirst().get()),
@@ -133,11 +133,11 @@ public class RoadUpdateStageTaskTest {
     roadUpdateStageTask2.run();
 
     Assertions.assertAll(() -> Assertions.assertEquals(decision1.getRoadId(), car1.getRoadId()),
-        () -> Assertions.assertEquals(decision1.getPositionOnRoad(), car1.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision1.getPositionOnRoad(), car1.getPositionOnLane()),
         () -> Assertions.assertEquals(decision2.getRoadId(), car2.getRoadId()),
-        () -> Assertions.assertEquals(decision2.getPositionOnRoad(), car2.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision2.getPositionOnRoad(), car2.getPositionOnLane()),
         () -> Assertions.assertEquals(decision3.getRoadId(), car3.getRoadId()),
-        () -> Assertions.assertEquals(decision3.getPositionOnRoad(), car3.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision3.getPositionOnRoad(), car3.getPositionOnLane()),
         () -> Assertions.assertEquals(3, lane2.streamCarsFromExitEditable().count()),
         () -> Assertions.assertEquals(0, lane1.streamCarsFromExitEditable().count()),
         () -> Assertions.assertEquals(0, lane2.pollIncomingCars().count()),
@@ -177,11 +177,11 @@ public class RoadUpdateStageTaskTest {
     roadUpdateStageTask2.run();
 
     Assertions.assertAll(() -> Assertions.assertEquals(decision1.getRoadId(), car1.getRoadId()),
-        () -> Assertions.assertEquals(decision1.getPositionOnRoad(), car1.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision1.getPositionOnRoad(), car1.getPositionOnLane()),
         () -> Assertions.assertEquals(decision2.getRoadId(), car2.getRoadId()),
-        () -> Assertions.assertEquals(decision2.getPositionOnRoad(), car2.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision2.getPositionOnRoad(), car2.getPositionOnLane()),
         () -> Assertions.assertEquals(decision3.getRoadId(), car3.getRoadId()),
-        () -> Assertions.assertEquals(decision3.getPositionOnRoad(), car3.getPositionOnRoad()),
+        () -> Assertions.assertEquals(decision3.getPositionOnRoad(), car3.getPositionOnLane()),
         () -> Assertions.assertEquals(2, lane2.streamCarsFromExitEditable().count()),
         () -> Assertions.assertEquals(1, lane1.streamCarsFromExitEditable().count()),
         () -> Assertions.assertEquals(0, lane2.pollIncomingCars().count()),

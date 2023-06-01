@@ -3,8 +3,11 @@ package pl.edu.agh.hiputs.tasks;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
+import pl.edu.agh.hiputs.model.car.Decision;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 
 @Slf4j
@@ -19,20 +22,25 @@ public class RoadDecisionStageTask implements Runnable {
     try {
       RoadEditable road = mapFragment.getRoadEditable(roadId);
 
-      road.streamCarsFromExitEditable().forEach(car -> {
-        car.decide(mapFragment);
-        addToIncomingCarsOfDestinationRoad(car, car.getDecision().getRoadId());
-      });
+      road.getLanes()
+          .stream()
+          .map(mapFragment::getLaneEditable)
+          .flatMap(LaneEditable::streamCarsFromExitEditable)
+          .forEach(car -> {
+            LaneId prevLaneId = car.getLaneId();
+            car.decide(mapFragment);
+            addToIncomingCarsOfDestinationLane(car, prevLaneId, car.getDecision());
+          });
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);
     }
   }
 
-  private void addToIncomingCarsOfDestinationRoad(CarEditable car, RoadId destinationRoadId) {
-    if (destinationRoadId != null && !roadId.equals(destinationRoadId)) {
-      RoadEditable destinationRoad = mapFragment.getRoadEditable(destinationRoadId);
-      destinationRoad.addIncomingCar(car);
-      log.debug("Car: " + car.getCarId() + " addToIncomingCarsOfDestinationRoad: " + destinationRoadId);
+  private void addToIncomingCarsOfDestinationLane(CarEditable car, LaneId prevLaneId, Decision decision) {
+    if (decision.getRoadId() != null && !prevLaneId.equals(decision.getLaneId())) {
+      LaneEditable destinationLane = mapFragment.getLaneEditable(decision.getLaneId());
+      destinationLane.addIncomingCar(car);
+      log.debug("Car: " + car.getCarId() + ", RoadId: "+decision.getRoadId() + ", addToIncomingCarsOfDestinationLane: " + decision.getLaneId());
     }
   }
 }

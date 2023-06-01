@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import pl.edu.agh.hiputs.model.id.CarId;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 
 @AllArgsConstructor
@@ -18,6 +19,7 @@ public class CrossroadDecisionProperties {
   private int complianceFactor;
   private boolean isAvailableSpaceAfterCrossroad;
   private Optional<RoadId> movePermanentRoadId;
+  private Optional<LaneId> movePermanentLaneId;
   private Optional<CarId> giveWayVehicleId;
 
   public boolean getIsAvailableSpaceAfterCrossroad() {

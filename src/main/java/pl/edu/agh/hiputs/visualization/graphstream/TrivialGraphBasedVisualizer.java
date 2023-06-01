@@ -2,11 +2,13 @@ package pl.edu.agh.hiputs.visualization.graphstream;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.spriteManager.Sprite;
 import org.graphstream.ui.spriteManager.SpriteManager;
@@ -17,6 +19,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.utils.CoordinatesUtil;
@@ -54,7 +57,7 @@ public class TrivialGraphBasedVisualizer {
     this.mapFragment = mapFragment;
     this.mapRepository = mapRepository;
 
-    this.graph = new SingleGraph("The city");
+    this.graph = new MultiGraph("The city");
     this.graph.setStrict(false);
     this.graph.setAutoCreate(true);
     this.graph.setAttribute("ui.stylesheet", graphStyles);
@@ -92,22 +95,26 @@ public class TrivialGraphBasedVisualizer {
   }
 
   private void drawRoad(RoadReadable roadReadable, String roadType) {
-    RoadId roadId = roadReadable.getRoadId();
     JunctionId junctionId1 = roadReadable.getIncomingJunctionId();
     JunctionId junctionId2 = roadReadable.getOutgoingJunctionId();
-    Edge edge = this.graph.addEdge(roadId.getValue(), junctionId1.getValue(), junctionId2.getValue(), true);
-    edge.setAttribute("ui.class", roadType);
+    roadReadable.getLanes()
+        .forEach(laneId -> {
+          Edge edge = this.graph.addEdge(laneId.getValue(), junctionId1.getValue(), junctionId2.getValue(), true);
+          edge.setAttribute("ui.class", roadType);
+        });
   }
 
   private void drawRemoteRoad(RoadReadable roadReadable) {
-    RoadId roadId = roadReadable.getRoadId();
     // mapFragment.getShadowPatchesReadable().stream().map()
     JunctionId junctionId1 = roadReadable.getIncomingJunctionId();
     JunctionId junctionId2 = roadReadable.getOutgoingJunctionId();
     drawRemoteJunction(junctionId1);
     drawRemoteJunction(junctionId2);
-    Edge edge = this.graph.addEdge(roadId.getValue(), junctionId1.getValue(), junctionId2.getValue(), true);
-    edge.setAttribute("ui.class", "remote");
+    roadReadable.getLanes()
+        .forEach(laneId -> {
+          Edge edge = this.graph.addEdge(laneId.getValue(), junctionId1.getValue(), junctionId2.getValue(), true);
+          edge.setAttribute("ui.class", "remote");
+        });
   }
 
   private void drawJunction(JunctionId junctionId) {
@@ -159,21 +166,21 @@ public class TrivialGraphBasedVisualizer {
   public void redrawCars() {
     ArrayList<Sprite> spritesInThisUpdate = new ArrayList<>();
 
-    mapFragment.getKnownPatchReadable().stream().flatMap(PatchReader::streamRoadReadable).forEach(road -> {
-      CarReadable car = road.getCarAtEntryReadable().orElse(null);
+    mapFragment.getKnownPatchReadable().stream().flatMap(PatchReader::streamLaneReadable).forEach(lane -> {
+      CarReadable car = lane.getCarAtEntryReadable().orElse(null);
       while (car != null) {
-        Sprite sprite = spriteManager.getSprite(car.getCarId().getValue() + road.getRoadId().getValue());
+        Sprite sprite = spriteManager.getSprite(car.getCarId().getValue() + lane.getLaneId().getValue());
         if (sprite == null) {
-          sprite = spriteManager.addSprite(car.getCarId().getValue() + road.getRoadId().getValue());
+          sprite = spriteManager.addSprite(car.getCarId().getValue() + lane.getLaneId().getValue());
           sprite.setAttribute("label", car.getCarId().getValue().substring(0, 3));
-          sprite.attachToEdge(road.getRoadId().getValue());
+          sprite.attachToEdge(lane.getLaneId().getValue());
         }
         spritesInThisUpdate.add(sprite);
-        sprite.setPosition(car.getPositionOnRoad() / road.getLength());
+        sprite.setPosition(car.getPositionOnLane() / lane.getLength());
         int speedByte = (int) Math.min(car.getSpeed() * 10, 255);
         sprite.setAttribute("ui.style", String.format(vehicleSpriteTemplate, speedByte, 255 - speedByte));
 
-        car = road.getCarInFrontReadable(car).orElse(null);
+        car = lane.getCarInFrontReadable(car).orElse(null);
       }
     });
 

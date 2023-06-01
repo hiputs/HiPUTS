@@ -56,9 +56,9 @@ public class Car implements CarEditable {
   private LaneId laneId;
 
   /**
-   * Position of car at its road.
+   * Position of car at its lane.
    */
-  private double positionOnRoad;
+  private double positionOnLane;
 
   /**
    * Route that car will follow and its location on this route.
@@ -96,7 +96,7 @@ public class Car implements CarEditable {
 
   @Override
   public Optional<CarUpdateResult> update() {
-    if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getRoadId() == null) { // remove car from lane
+    if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getRoadId() == null || decision.getLaneId() == null) { // remove car from lane
       log.warn("Car: " + this.getCarId() + " was removed due to finish his route");
       crossroadDecisionProperties = Optional.empty();
       return Optional.empty();
@@ -104,9 +104,10 @@ public class Car implements CarEditable {
     this.speed = decision.getSpeed();
     this.acceleration = decision.getAcceleration();
     CarUpdateResult carUpdateResult =
-        new CarUpdateResult(this.roadId, decision.getRoadId(), decision.getPositionOnRoad());
+        new CarUpdateResult(this.roadId, this.laneId, decision.getRoadId(), decision.getLaneId(), decision.getPositionOnRoad());
     this.roadId = decision.getRoadId();
-    this.positionOnRoad = decision.getPositionOnRoad();
+    this.laneId = decision.getLaneId();
+    this.positionOnLane = decision.getPositionOnRoad();
     if(decision.getCrossroadDecisionProperties() == null ){
       log.trace("Car: " + this.getCarId() + " was removed due to decision null");
       return Optional.empty();
@@ -128,9 +129,9 @@ public class Car implements CarEditable {
   }
 
   @Override
-  public void setPositionOnRoadAndSpeed(double position, double speed) {
-    if(positionOnRoad > position){
-      positionOnRoad = position;
+  public void setPositionOnLaneAndSpeed(double position, double speed) {
+    if(positionOnLane > position){
+      positionOnLane = position;
     }
     if(this.speed > speed){
       this.speed = speed;

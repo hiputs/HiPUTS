@@ -1,6 +1,5 @@
 package pl.edu.agh.hiputs.example;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -211,13 +210,13 @@ public class ExampleMapFragmentProvider {
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
     ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragment);
 
-    patch.streamRoadsEditable().forEach(road -> {
+    patch.streamLanesEditable().forEach(lane -> {
       for (int i = 0; i < randomCarsPerLane; i++) {
-        double carPosition = (randomCarsPerLane - i) * road.getLength() / (randomCarsPerLane + 1);
+        double carPosition = (randomCarsPerLane - i) * patch.getRoadReadable(lane.getRoadId()).getLength() / (randomCarsPerLane + 1);
         //TODO: Change Generate Car to all Lanes
-        Car car = exampleCarProvider.generateCar(carPosition, road.getLanes().get(0));
-        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, road);
-        road.addCarAtEntry(car);
+        Car car = exampleCarProvider.generateCar(carPosition, lane.getLaneId());
+        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
+        lane.addCarAtEntry(car);
       }
     });
 

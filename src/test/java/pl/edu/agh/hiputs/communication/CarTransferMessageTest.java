@@ -57,7 +57,7 @@ public class CarTransferMessageTest {
         .speed(13)
         .maxSpeed(14)
         .roadId(new RoadId("abc"))
-        .positionOnRoad(0)
+        .positionOnLane(0)
         .routeWithLocation(route)
         .decision(Decision.builder().roadId(new RoadId("1111")).build())
         .build();

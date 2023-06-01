@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
@@ -96,6 +95,7 @@ public class ExampleCarProvider {
         .getRoadReadable(roadId)
         .getOutgoingJunctionId();
 
+    //TODO: move to mapRepository?
     this.roadIdToSuccessorRoadIds = roadId -> mapRepository.getPatch(roadIdToPatchId.get(roadId))
         .getRoadReadable(roadId)
         .getLanes()
@@ -183,7 +183,7 @@ public class ExampleCarProvider {
         .routeWithLocation(routeWithLocation)
         .roadId(startRoadId)
         .laneId(startLaneId)
-        .positionOnRoad(position)
+        .positionOnLane(position)
         .speed(threadLocalRandom.nextDouble(getDefaultMaxSpeed()))
         .driver(new Driver(new DriverParameters(configuration)))
         .build();
@@ -229,18 +229,18 @@ public class ExampleCarProvider {
     return this.localLaneIdList.get(ThreadLocalRandom.current().nextInt(this.localLaneIdList.size()));
   }
 
-  public void limitSpeedPreventCollisionOnStart(Car currentCar, RoadReadable road){
-    Optional<CarReadable> carAtEntryOptional = road.getCarAtEntryReadable();
+  public void limitSpeedPreventCollisionOnStart(Car currentCar, LaneReadable lane){
+    Optional<CarReadable> carAtEntryOptional = lane.getCarAtEntryReadable();
     double distance;
     if(carAtEntryOptional.isPresent()) {
       CarReadable carAtEntry = carAtEntryOptional.get();
       double brakingDistance = carAtEntry.getSpeed() * carAtEntry.getSpeed() / getMaxDeceleration() / 2;
-      distance = carAtEntry.getPositionOnRoad() - carAtEntry.getLength() + brakingDistance;
+      distance = carAtEntry.getPositionOnLane() - carAtEntry.getLength() + brakingDistance;
     }
     else{
-      distance = road.getLength();
+      distance = lane.getLength();
     }
-    distance -=  currentCar.getPositionOnRoad();
+    distance -=  currentCar.getPositionOnLane();
 
     double maxSpeed = 0.0;
       //Limit maxSped cause car need to stop in integer number of time steps

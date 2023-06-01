@@ -94,7 +94,7 @@ public class PatchTransferServiceTest {
         .speed(13)
         .maxSpeed(14)
         .roadId(new RoadId("abc"))
-        .positionOnRoad(0)
+        .positionOnLane(0)
         .routeWithLocation(new RouteWithLocation(routeElementList, 0))
         .build();
   }

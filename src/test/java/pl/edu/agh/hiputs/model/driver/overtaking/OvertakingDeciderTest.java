@@ -43,9 +43,9 @@ public class OvertakingDeciderTest {
 
   @Test
   public void getPositiveOvertakingDecisionOnlyPrecedingCar() {
-    carA = Car.builder().roadId(startLane.getRoadId()).positionOnRoad(0).maxSpeed(25).speed(18).acceleration(1).build();
+    carA = Car.builder().roadId(startLane.getRoadId()).positionOnLane(0).maxSpeed(25).speed(18).acceleration(1).build();
     carB =
-        Car.builder().roadId(startLane.getRoadId()).positionOnRoad(6).maxSpeed(16).speed(15).acceleration(0.1).build();
+        Car.builder().roadId(startLane.getRoadId()).positionOnLane(6).maxSpeed(16).speed(15).acceleration(0.1).build();
     startLane.addCarAtEntry(carB);
     startLane.addCarAtEntry(carA);
     CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(carA, mapFragment);
@@ -56,12 +56,12 @@ public class OvertakingDeciderTest {
 
   @Test
   public void getPositiveOvertakingDecisionCarOnOppositeLane() {
-    carA = Car.builder().roadId(startLane.getRoadId()).positionOnRoad(0).maxSpeed(25).speed(18).acceleration(1).build();
+    carA = Car.builder().roadId(startLane.getRoadId()).positionOnLane(0).maxSpeed(25).speed(18).acceleration(1).build();
     carB =
-        Car.builder().roadId(startLane.getRoadId()).positionOnRoad(6).maxSpeed(16).speed(15).acceleration(0.1).build();
+        Car.builder().roadId(startLane.getRoadId()).positionOnLane(6).maxSpeed(16).speed(15).acceleration(0.1).build();
     carD = Car.builder()
         .roadId(oppositeLane.getRoadId())
-        .positionOnRoad(oppositeLane.getLength() - 300)
+        .positionOnLane(oppositeLane.getLength() - 300)
         .maxSpeed(20)
         .speed(16)
         .acceleration(0.1)
@@ -77,12 +77,12 @@ public class OvertakingDeciderTest {
 
   @Test
   public void getNegativeOvertakingDecisionCarOnOppositeLaneIsToClose() {
-    carA = Car.builder().roadId(startLane.getRoadId()).positionOnRoad(0).maxSpeed(25).speed(18).acceleration(1).build();
+    carA = Car.builder().roadId(startLane.getRoadId()).positionOnLane(0).maxSpeed(25).speed(18).acceleration(1).build();
     carB =
-        Car.builder().roadId(startLane.getRoadId()).positionOnRoad(6).maxSpeed(16).speed(15).acceleration(0.1).build();
+        Car.builder().roadId(startLane.getRoadId()).positionOnLane(6).maxSpeed(16).speed(15).acceleration(0.1).build();
     carD = Car.builder()
         .roadId(oppositeLane.getRoadId())
-        .positionOnRoad(oppositeLane.getLength() - 100)
+        .positionOnLane(oppositeLane.getLength() - 100)
         .maxSpeed(20)
         .speed(16)
         .acceleration(0.1)
@@ -98,13 +98,13 @@ public class OvertakingDeciderTest {
 
   @Test
   public void getNegativeOvertakingDecisionCarBeforeOvertakingCarIsSlowingDown() {
-    carA = Car.builder().roadId(startLane.getRoadId()).positionOnRoad(0).maxSpeed(25).speed(18).acceleration(1).build();
+    carA = Car.builder().roadId(startLane.getRoadId()).positionOnLane(0).maxSpeed(25).speed(18).acceleration(1).build();
     carB =
-        Car.builder().roadId(startLane.getRoadId()).positionOnRoad(6).maxSpeed(16).speed(15).acceleration(0.1).build();
-    carC = Car.builder().roadId(startLane.getRoadId()).positionOnRoad(100).maxSpeed(20).speed(18).acceleration(-3).build();
+        Car.builder().roadId(startLane.getRoadId()).positionOnLane(6).maxSpeed(16).speed(15).acceleration(0.1).build();
+    carC = Car.builder().roadId(startLane.getRoadId()).positionOnLane(100).maxSpeed(20).speed(18).acceleration(-3).build();
     carD = Car.builder()
         .roadId(oppositeLane.getRoadId())
-        .positionOnRoad(oppositeLane.getLength() - 400)
+        .positionOnLane(oppositeLane.getLength() - 400)
         .maxSpeed(20)
         .speed(16)
         .acceleration(0.1)
@@ -194,9 +194,9 @@ public class OvertakingDeciderTest {
   }
 
   private void setupCarsForGatheringInformation() {
-    carA = Car.builder().roadId(startLane.getRoadId()).positionOnRoad(100.0).length(4).build();
-    carB = Car.builder().roadId(startLane.getRoadId()).positionOnRoad(200.0).length(4).build();
-    carC = Car.builder().roadId(startLane.getRoadId()).positionOnRoad(304.0).length(4).build();
-    carD = Car.builder().roadId(oppositeLane.getRoadId()).positionOnRoad(100.0).length(4).build();
+    carA = Car.builder().roadId(startLane.getRoadId()).positionOnLane(100.0).length(4).build();
+    carB = Car.builder().roadId(startLane.getRoadId()).positionOnLane(200.0).length(4).build();
+    carC = Car.builder().roadId(startLane.getRoadId()).positionOnLane(304.0).length(4).build();
+    carD = Car.builder().roadId(oppositeLane.getRoadId()).positionOnLane(100.0).length(4).build();
   }
 }
