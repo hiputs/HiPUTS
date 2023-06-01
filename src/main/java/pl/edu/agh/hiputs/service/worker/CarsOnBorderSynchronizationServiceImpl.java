@@ -128,7 +128,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
         throw new RuntimeException(e);
       }
     }
-
+    taskExecutorService.executeBatch(patchSynchronizationTasks);
     // taskExecutorService.waitForAllTaskFinished(patchSynchronizationFutures);
 
     incomingMessages.clear();
