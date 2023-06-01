@@ -38,7 +38,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     try {
       saveGraphWithPatches(graph, ExportDescriptor.builder().exportDirAbsolutePath(exportPath.toAbsolutePath().toString()).build());
     } catch (IOException e) {
-      log.error("Error occurred while saving graph with patches: " + e.getMessage());
+      log.error("Error occurred while saving graph with patches: {}", e.getMessage());
     }
   }
 

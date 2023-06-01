@@ -1,17 +1,16 @@
 package pl.edu.agh.hiputs.model.car.driver;
 
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
-import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
-import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspectorImpl;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.Decision;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspectorImpl;
 import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.Idm;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IdmDecider;
@@ -19,7 +18,6 @@ import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionPro
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.JunctionDecision;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.TrailJunctionDecider;
-import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
@@ -53,18 +51,16 @@ public class Driver implements IDriver {
   public Decision makeDecision(CarReadable car, RoadStructureReader roadStructureReader) {
     // make local decision based on read only road structure (watch environment) and save it locally
 
-
-    log.debug("Car: " + car.getCarId() + ", lane: " + car.getLaneId() + ", position: " + car.getPositionOnLane()
-              + ", acc: " + car.getAcceleration() + ", speed: " + car.getSpeed()
-              + ", route0: " + car.getRouteOffsetLaneId(0) + ", route1: " + car.getRouteOffsetLaneId(1));
-
+    log.debug("Car: {}, lane: {}, position: {}, acc: {}, speed: {}, route0: {}, route1: {}", car.getCarId(),
+        car.getLaneId(), car.getPositionOnLane(), car.getAcceleration(), car.getSpeed(), car.getRouteOffsetLaneId(0),
+        car.getRouteOffsetLaneId(1));
 
     //First prepare CarEnvironment
 
     double acceleration;
     CarEnvironment environment = prospector.getPrecedingCarOrCrossroad(car, roadStructureReader);
 
-    log.trace("Car: " + car.getCarId() + ", environment: " + environment);
+    log.trace("Car: {}, environment: {}", car.getCarId(), environment);
 
     Optional<CrossroadDecisionProperties> crossroadDecisionProperties = Optional.empty();
     try {
@@ -80,7 +76,7 @@ public class Driver implements IDriver {
       StringWriter sw = new StringWriter();
       PrintWriter pw = new PrintWriter(sw);
       e.printStackTrace(pw);
-      log.error("Car: " + car.getCarId() + " caught error: \n" + e.getClass() + " : " + e.getMessage() + "\n" + sw.toString());
+      log.error("Car: {} caught error: \n{}:{}\n{}", car.getCarId(), e.getClass(), e.getMessage(), sw.toString());
       acceleration = 0.1; //set default acceleration to move car to prevent stand here for a long time with error.
       crossroadDecisionProperties = Optional.empty();
     }
@@ -129,8 +125,8 @@ public class Driver implements IDriver {
       currentLaneId = desiredLaneId.get();
       destinationCandidate = roadStructureReader.getLaneReadable(currentLaneId);
       if(destinationCandidate == null){
-        log.warn("Car: " + car.getCarId() + " Destination out of this node, positionRest: " + desiredPosition
-            + ", desiredLaneId: " + currentLaneId);
+        log.warn("Car: {} Destination out of this node, positionRest: {}, desiredLaneId: {}", car.getCarId(),
+            desiredPosition, currentLaneId);
         currentLaneId = null;
         break;
       }
@@ -141,15 +137,16 @@ public class Driver implements IDriver {
     if(offset > 0 && crossroadDecisionProperties.isPresent()){
       if(crossroadDecisionProperties.get().getMovePermanentLaneId().isPresent()){
         CarEnvironment precedingCarInfo = prospector.getPrecedingCar(car, roadStructureReader);
-        if(precedingCarInfo.getPrecedingCar().isPresent() && precedingCarInfo.getDistance() < (speed * speed / maxDeceleration / 2)){
+        if(precedingCarInfo.getPrecedingCar().isPresent() && precedingCarInfo.getDistance() < (speed * speed / maxDeceleration / 2)) {
           CarReadable precedingCar = precedingCarInfo.getPrecedingCar().get();
           speed = Math.min(speed, Math.max(precedingCar.getSpeed() - maxDeceleration, 0) * 0.8);
           desiredPosition = Math.min(desiredPosition,
               precedingCar.getPositionOnLane() - Math.min(0.1, precedingCar.getPositionOnLane() * 0.1));
-          log.trace("Car: " + car.getCarId() + " finish move permanent and limit speed to car: " + precedingCar.getCarId() + ", speed: " + precedingCar.getSpeed() + ", position: " + precedingCar.getPositionOnLane());
+          log.trace("Car: {} finish move permanent and limit speed to car: {}, speed: {}, position: {}", car.getCarId(),
+              precedingCar.getCarId(), precedingCar.getSpeed(), precedingCar.getPositionOnLane());
         }
         else{
-          log.trace("Car: " + car.getCarId() + " finish move permanent without preceding car");
+          log.trace("Car: {} finish move permanent without preceding car", car.getCarId());
         }
       }
     }
@@ -163,7 +160,7 @@ public class Driver implements IDriver {
         .crossroadDecisionProperties(crossroadDecisionProperties)
         .build();
 
-    log.debug("Car: " + car.getCarId() + ", decision: " + decision);
+    log.debug("Car: {}, decision: {}", car.getCarId(), decision);
 
     return decision;
   }

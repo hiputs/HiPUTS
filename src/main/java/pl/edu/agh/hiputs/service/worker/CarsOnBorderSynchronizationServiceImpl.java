@@ -122,7 +122,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
         consumedMessages += 1;
 
       } catch (InterruptedException e) {
-        log.error("Exception when waiting for cars: " + e);
+        log.error("Exception when waiting for cars: ", e);
         throw new RuntimeException(e);
       }
     }
@@ -180,7 +180,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
       try {
         messageSenderService.send(entry.getKey(), entry.getValue());
       } catch (IOException e) {
-        log.error("Error sending message BorderSynchronizationMessage to: " + entry.getKey(), e);
+        log.error("Error sending message BorderSynchronizationMessage to: {}", entry.getKey(), e);
       }
     });
   }

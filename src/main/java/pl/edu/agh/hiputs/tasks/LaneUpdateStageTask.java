@@ -61,7 +61,7 @@ public class LaneUpdateStageTask implements Runnable {
           //#TODO change log to warning when repair junction decider
           // log.trace("Car: " + car.getCarId() + " car remove from lane: " + laneId + " due incorrect laneId in decision: " + car.getDecision().getLaneId());
         } else {
-          log.warn("Car: " + car.getCarId() + " car remove from lane: " + laneId);
+          log.warn("Car: {} car remove from lane: {}", car.getCarId(), laneId);
         }
       }
     }catch (Exception e) {

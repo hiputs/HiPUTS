@@ -64,7 +64,7 @@ public class MessageSenderService implements Subscriber {
    * @throws IOException <p>Method send message to specific client</p>
    */
   public void send(MapFragmentId mapFragmentId, Message message) throws IOException {
-    log.debug("Worker send message to: " + mapFragmentId + " message type: " + message.getMessageType());
+    log.debug("Worker send message to: {} message type: {}", mapFragmentId, message.getMessageType());
 
     sentMessagesSize.addAndGet(neighbourRepository.get(mapFragmentId).send(message));
 
@@ -77,7 +77,7 @@ public class MessageSenderService implements Subscriber {
     if (serverConnection == null) {
       createServerConnection();
     }
-    log.debug("Worker send message to: SERVER message type: " + message.getMessageType());
+    log.debug("Worker send message to: SERVER message type: {}", message.getMessageType());
     sentMessagesSize.addAndGet(serverConnection.send(message));
     sentServerMessages.incrementAndGet();
   }

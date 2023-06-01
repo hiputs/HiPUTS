@@ -7,8 +7,8 @@ import java.util.Optional;
 import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarReadable;
-import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -62,16 +62,16 @@ public class TrailJunctionDecider implements JunctionDecider {
       AccelerationDecisionResult res =
           getCrossroadAccelerationDecisionResult(managedCar.getSpeed(), managedCar.getMaxSpeed(), precedingCarInfo);
       if (res.isLocked()) {
-        log.trace("Car: " + managedCar.getCarId() + " locked");
+        log.trace("Car: {} locked", managedCar.getCarId());
       }
       return new JunctionDecision(res.getAcceleration());
     }
 
     if(precedingCarInfo.getPrecedingCar().isPresent()){
-      log.trace("Car: " + managedCar.getCarId() + " found preceding car: " + precedingCarInfo);
+      log.trace("Car: {} found preceding car: {}", managedCar.getCarId(), precedingCarInfo);
     }
     else{
-      log.trace("Car: " + managedCar.getCarId() + " found no preceding car after crossroad");
+      log.trace("Car: {} found no preceding car after crossroad", managedCar.getCarId());
     }
 
     if(managedCar.getCrossRoadDecisionProperties().isPresent() && managedCar.getCrossRoadDecisionProperties().get().getGiveWayVehicleId().isPresent()){
@@ -339,30 +339,37 @@ public class TrailJunctionDecider implements JunctionDecider {
       return false;
     }
 
-    if(managedCarOutgoingLaneId.equals(conflictCar.getOutgoingLaneIdOptional().get())){
+    if (managedCarOutgoingLaneId.equals(conflictCar.getOutgoingLaneIdOptional().get())) {
       return true;
     }
 
-    if(leftLanes.stream().anyMatch(lane -> conflictCar.getIncomingLaneId().equals(lane.getLaneId()) && lane.getDirection().equals(
-        LaneDirection.INCOMING)) && leftLanes.stream().anyMatch(lane -> conflictCar.getOutgoingLaneIdOptional().get().equals(lane.getLaneId()) && lane.getDirection().equals(
-        LaneDirection.OUTGOING))){
+    if (leftLanes.stream()
+        .anyMatch(lane -> conflictCar.getIncomingLaneId().equals(lane.getLaneId()) && lane.getDirection()
+            .equals(LaneDirection.INCOMING)) && leftLanes.stream()
+        .anyMatch(lane -> conflictCar.getOutgoingLaneIdOptional().get().equals(lane.getLaneId()) && lane.getDirection()
+            .equals(LaneDirection.OUTGOING))) {
       return false;
     }
-    if(rightLanes.stream().anyMatch(lane -> conflictCar.getIncomingLaneId().equals(lane.getLaneId()) && lane.getDirection().equals(
-        LaneDirection.INCOMING)) && rightLanes.stream().anyMatch(lane -> conflictCar.getOutgoingLaneIdOptional().get().equals(lane.getLaneId()) && lane.getDirection().equals(
-        LaneDirection.OUTGOING))){
-      return false;
-    }
-
-    return true;
+    return rightLanes.stream()
+        .noneMatch(lane -> conflictCar.getIncomingLaneId().equals(lane.getLaneId()) && lane.getDirection()
+            .equals(LaneDirection.INCOMING)) || rightLanes.stream()
+        .noneMatch(lane -> conflictCar.getOutgoingLaneIdOptional().get().equals(lane.getLaneId()) && lane.getDirection()
+            .equals(LaneDirection.OUTGOING));
   }
 
-  private ConflictVehicleProperties getConflictProperties(CarReadable currentCar, CarTrailDeciderData conflictCar, double conflictAreaLength, LaneId outgoingLaneId){
-    boolean isCrossConflict = conflictCar.getOutgoingLaneIdOptional().isPresent() ? (!(conflictCar.getOutgoingLaneIdOptional().get().equals(outgoingLaneId))) : true;
+  private ConflictVehicleProperties getConflictProperties(CarReadable currentCar, CarTrailDeciderData conflictCar, double conflictAreaLength, LaneId outgoingLaneId) {
+    boolean isCrossConflict =
+        conflictCar.getOutgoingLaneIdOptional().isEmpty() || (!(conflictCar.getOutgoingLaneIdOptional()
+            .get()
+            .equals(outgoingLaneId)));
     double tte_a = calculateTimeToEnter(conflictCar, TimeCalculationOption.CurrentAcceleration);
     double tte_b = calculateTimeToEnter(conflictCar, TimeCalculationOption.BrakeAcceleration);
-    //double ttp_z = isCrossConflict ? calculateTimeToPassableCrossing(currentCar, conflictCar, conflictAreaLength, TimeCalculationOption.CurrentSpeed) : calculateTimeToPassableMerge(currentCar, conflictCar, TimeCalculationOption.CurrentSpeed);
-    double ttp_b = isCrossConflict ? calculateTimeToPassableCrossing(currentCar, conflictCar, conflictAreaLength, TimeCalculationOption.BrakeAcceleration) : calculateTimeToPassableMerge(currentCar, conflictCar, TimeCalculationOption.BrakeAcceleration);
+    //double ttp_z = isCrossConflict ? calculateTimeToPassableCrossing(currentCar, conflictCar, conflictAreaLength,
+    // TimeCalculationOption.CurrentSpeed) : calculateTimeToPassableMerge(currentCar, conflictCar,
+    // TimeCalculationOption.CurrentSpeed);
+    double ttp_b = isCrossConflict ? calculateTimeToPassableCrossing(currentCar, conflictCar, conflictAreaLength,
+        TimeCalculationOption.BrakeAcceleration)
+        : calculateTimeToPassableMerge(currentCar, conflictCar, TimeCalculationOption.BrakeAcceleration);
 
     return new ConflictVehicleProperties(isCrossConflict, tte_a, tte_b, ttp_b, conflictCar);
   }

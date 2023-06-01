@@ -1,6 +1,5 @@
 package pl.edu.agh.hiputs.communication.service.worker;
 
-import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 import java.io.DataInputStream;
@@ -54,7 +53,7 @@ public class MessageReceiverService {
   }
 
   public void propagateMessage(Message message) {
-    log.debug("Worker receive message: " + message.getMessageType());
+    log.debug("Worker receive message: {}", message.getMessageType());
     subscriberRepository.get(message.getMessageType()).forEach(subscriber -> subscriber.notify(message));
   }
 
@@ -123,7 +122,7 @@ public class MessageReceiverService {
       try {
         int length = dataInputStream.readInt();
         byte[] bytes = dataInputStream.readNBytes(length);
-        return  (Message) SerializationUtils.deserialize(bytes);
+        return SerializationUtils.deserialize(bytes);
       } catch (IOException | NullPointerException e) {
         log.error(e.getMessage());
         throw new RuntimeException(e);

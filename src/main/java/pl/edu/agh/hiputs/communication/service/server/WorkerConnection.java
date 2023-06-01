@@ -2,17 +2,14 @@ package pl.edu.agh.hiputs.communication.service.server;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
-
-import java.io.IOException;
-import java.net.Socket;
 
 @Slf4j
 public class WorkerConnection implements Runnable {
@@ -47,12 +44,12 @@ public class WorkerConnection implements Runnable {
             do {
                 int length = inputStream.readInt();
                 byte[] bytes = inputStream.readNBytes(length);
-                message = (Message) SerializationUtils.deserialize(bytes);
+                message = SerializationUtils.deserialize(bytes);
 
                 messagePropagationService.propagateMessage(message, workerId);
             } while (message.getMessageType() != MessagesTypeEnum.WorkerDisconnectMessage || message.getMessageType() == MessagesTypeEnum.ShutDownMessage);
         } catch (Exception e){
-            log.error("Fail messageHandler for worker id: " + workerId, e);
+            log.error("Fail messageHandler for worker id: {}", workerId, e);
         }
     }
 
@@ -65,7 +62,7 @@ public class WorkerConnection implements Runnable {
             outputStream.write(bytes);
             outputStream.flush();
         } catch (IOException e) {
-            log.error("Can not send message to workerId: " + workerId, e);
+            log.error("Can not send message to workerId: {}", workerId, e);
         }
     }
 }

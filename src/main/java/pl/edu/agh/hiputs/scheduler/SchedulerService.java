@@ -23,8 +23,8 @@ public class SchedulerService implements TaskExecutorService {
   public void init() {
     int cores = ConfigurationService.getConfiguration().getCoresPerWorkerCount(); //getFreeCores();
 
-    log.info("Cores available in this processor :" + Runtime.getRuntime().availableProcessors()
-        + ". Cores used by Scheduler: " + cores);
+    log.info("Cores available in this processor:{}. Cores used by Scheduler: {}",
+        Runtime.getRuntime().availableProcessors(), cores);
 
     if (cores <= 0) {
       throw new InsufficientSystemResourcesException("Insufficient number of cores");

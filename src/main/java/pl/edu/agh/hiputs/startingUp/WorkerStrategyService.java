@@ -100,7 +100,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       case ServerInitializationMessage -> handleInitializationMessage(
           (pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage) message);
       case ShutDownMessage -> shutDown();
-      default -> log.warn("Unhandled message " + message.getMessageType());
+      default -> log.warn("Unhandled message {}", message.getMessageType());
     }
   }
 

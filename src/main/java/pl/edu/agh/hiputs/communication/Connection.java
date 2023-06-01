@@ -42,7 +42,7 @@ public class Connection {
 
   public synchronized int send(Message message) throws IOException {
     if (Objects.isNull(output)) {
-      log.info("Connection with worker " + id + " not exist");
+      log.info("Connection with worker {} not exist", id);
       return 0;
     }
     byte[] bytes = SerializationUtils.serialize(message);

@@ -14,7 +14,6 @@ import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionPro
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Configurable
@@ -59,7 +58,7 @@ public class Car implements CarEditable {
   /**
    * Route that car will follow and its location on this route.
    */
-  private RouteWithLocation routeWithLocation;
+  private final RouteWithLocation routeWithLocation;
 
   /**
    * Current speed of car.
@@ -93,7 +92,7 @@ public class Car implements CarEditable {
   @Override
   public Optional<CarUpdateResult> update() {
     if(!this.routeWithLocation.moveForward(decision.getOffsetToMoveOnRoute()) || decision.getLaneId() == null) { // remove car from lane
-      log.warn("Car: " + this.getCarId() + " was removed due to finish his route");
+      log.warn("Car: {} was removed due to finish his route", this.getCarId());
       crossroadDecisionProperties = Optional.empty();
       return Optional.empty();
     }
@@ -104,20 +103,20 @@ public class Car implements CarEditable {
     this.laneId = decision.getLaneId();
     this.positionOnLane = decision.getPositionOnLane();
     if(decision.getCrossroadDecisionProperties() == null ){
-      log.trace("Car: " + this.getCarId() + " was removed due to decision null");
+      log.trace("Car: {} was removed due to decision null", this.getCarId());
       return Optional.empty();
     }
 
     Optional<CrossroadDecisionProperties> decisionProperties = decision.getCrossroadDecisionProperties();
     if(decision.getCrossroadDecisionProperties().isEmpty() && this.crossroadDecisionProperties.isPresent()){
       decisionProperties = Optional.empty();
-      log.trace("Car: " + carId + " reset crossroadDecisionProperties");
+      log.trace("Car: {} reset crossroadDecisionProperties", carId);
     }
     this.crossroadDecisionProperties = decisionProperties;
 
     Optional<LaneId> laneId = this.getRouteOffsetLaneId(0);
     if(laneId.isPresent() && !this.laneId.equals(laneId.get())){
-      log.warn("Car: " + this.getCarId() + " was removed due to lane offset error");
+      log.warn("Car: {} was removed due to lane offset error", this.getCarId());
       return Optional.empty();
     }
     return Optional.of(carUpdateResult);

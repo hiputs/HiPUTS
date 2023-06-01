@@ -43,7 +43,7 @@ public class ConnectionInitializationService {
         if (serverSocket.isClosed()) {
           log.error("Server fail");
         } else {
-          log.info("Server listening on port: " + serverSocket.getLocalPort());
+          log.info("Server listening on port: {}", serverSocket.getLocalPort());
         }
 
         while (true) {
@@ -71,8 +71,8 @@ public class ConnectionInitializationService {
     @Override
     public void run() {
       try {
-        log.info(String.format("New connection from: %s:%s", clientConnectionSocket.getInetAddress().getHostAddress(),
-            clientConnectionSocket.getPort()));
+        log.info("New connection from: {}:{}", clientConnectionSocket.getInetAddress().getHostAddress(),
+            clientConnectionSocket.getPort());
 
         DataInputStream input = new DataInputStream(clientConnectionSocket.getInputStream());
         WorkerConnectionMessage workerConnectionMessage = getWorkerConnectionMessage(input);
@@ -84,8 +84,8 @@ public class ConnectionInitializationService {
         workerRepository.addWorker(workerConnectionMessage.getWorkerId(), workerConnection);
         messagePropagationService.propagateMessage(workerConnectionMessage, workerConnectionMessage.getWorkerId());
       } catch (Exception exception) {
-        log.error(String.format("Error during initialization connection with: %s:%s",
-            clientConnectionSocket.getInetAddress().getHostAddress(), clientConnectionSocket.getPort()), exception);
+        log.error("Error during initialization connection with: {}:{}",
+            clientConnectionSocket.getInetAddress().getHostAddress(), clientConnectionSocket.getPort(), exception);
       }
     }
 

@@ -2,10 +2,10 @@ package pl.edu.agh.hiputs.model.car.driver.deciders.junction;
 
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
-import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -33,7 +33,7 @@ public class BasicJunctionDecider implements FunctionalDecider {
 
   public double makeDecision(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader) {
     double maxSpeed = environment.getDistance() < lineHeight * 8 ? crossroadMaxSpeed : car.getMaxSpeed();
-    log.warn("Car: " + car.getCarId() + " crossroad workaround remove when repair errors");
+    log.warn("Car: {} crossroad workaround remove when repair errors", car.getCarId());
     return followingModel.calculateAcceleration(car.getSpeed(), maxSpeed, Double.MAX_VALUE, 0);
 
     /*double minArriveTime = getClosestConflictVehicleArriveTime(car, environment, roadStructureReader);
