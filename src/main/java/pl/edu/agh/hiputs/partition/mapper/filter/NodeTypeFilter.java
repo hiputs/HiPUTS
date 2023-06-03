@@ -21,16 +21,16 @@ public class NodeTypeFilter implements Filter{
         .boxed()
         .collect(Collectors.toSet());
 
-    osmGraph.getNodes().removeAll(
+    return new OsmGraph(
         osmGraph.getNodes().stream()
-            .filter(osmNode -> !isAcceptable(nodesIdsFromWays, osmNode))
-            .toList()
+            .filter(osmNode -> isAcceptable(nodesIdsFromWays, osmNode))
+            .toList(),
+        osmGraph.getWays()
     );
-
-    return osmGraph;
   }
 
   private boolean isAcceptable(Set<Long> nodesIdsFromWays, OsmNode osmNode) {
+    // node type is determined by affiliation to road instead of tags
     return nodesIdsFromWays.contains(osmNode.getId());
   }
 }

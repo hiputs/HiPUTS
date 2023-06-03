@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.edu.agh.hiputs.partition.mapper.queue.CorrectorQueue;
+import pl.edu.agh.hiputs.partition.mapper.queue.DetectorQueue;
+import pl.edu.agh.hiputs.partition.mapper.queue.FilterQueue;
 import pl.edu.agh.hiputs.partition.mapper.util.sort.ByAngleEdgeSorter;
 import pl.edu.agh.hiputs.partition.mapper.util.successor.allocator.OnBendSuccessorAllocator;
 import pl.edu.agh.hiputs.partition.mapper.util.successor.allocator.OnCrossroadSuccessorAllocator;
@@ -58,7 +61,10 @@ public class BFSInRangeTest {
                   new ByAngleEdgeSorter()
               )
           ))
-      )
+      ),
+      new FilterQueue(List.of()),
+      new DetectorQueue(List.of()),
+      new CorrectorQueue(List.of())
   );
   private Graph<JunctionData, WayData> testGraph;
 

@@ -11,6 +11,9 @@ import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import pl.edu.agh.hiputs.partition.mapper.queue.CorrectorQueue;
+import pl.edu.agh.hiputs.partition.mapper.queue.DetectorQueue;
+import pl.edu.agh.hiputs.partition.mapper.queue.FilterQueue;
 import pl.edu.agh.hiputs.partition.mapper.util.sort.ByAngleEdgeSorter;
 import pl.edu.agh.hiputs.partition.mapper.util.successor.allocator.OnBendSuccessorAllocator;
 import pl.edu.agh.hiputs.partition.mapper.util.successor.allocator.OnCrossroadSuccessorAllocator;
@@ -61,7 +64,10 @@ public class HexagonGridPartitionerTest {
                   new ByAngleEdgeSorter()
               )
           ))
-      )
+      ),
+      new FilterQueue(List.of()),
+      new DetectorQueue(List.of()),
+      new CorrectorQueue(List.of())
   );
 
 

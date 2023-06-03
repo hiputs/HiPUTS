@@ -20,13 +20,10 @@ public class WayTypeFilter implements Filter{
 
   @Override
   public OsmGraph filter(OsmGraph osmGraph) {
-    osmGraph.getWays().removeAll(
+    return new OsmGraph(osmGraph.getNodes(),
         osmGraph.getWays().stream()
-            .filter(osmWay -> !isAcceptable(osmWay))
-            .toList()
-    );
-
-    return osmGraph;
+            .filter(this::isAcceptable)
+            .toList());
   }
 
   private boolean isAcceptable(OsmWay osmWay) {
