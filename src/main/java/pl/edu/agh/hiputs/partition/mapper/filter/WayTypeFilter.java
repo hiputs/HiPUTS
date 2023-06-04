@@ -2,35 +2,44 @@ package pl.edu.agh.hiputs.partition.mapper.filter;
 
 import de.topobyte.osm4j.core.model.iface.OsmWay;
 import de.topobyte.osm4j.core.model.util.OsmModelUtil;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.osm.OsmGraph;
+import pl.edu.agh.hiputs.service.ModelConfigurationService;
 
 @Service
 @Order(1)
+@RequiredArgsConstructor
 public class WayTypeFilter implements Filter{
   private final static String ROAD_KEY = "highway";
-  private final static Set<String> ROAD_LABELS = Set.of(
-      "motorway", "trunk", "motorway_link", "trunk_link", "primary", "secondary", "tertiary",
-      "unclassified", "primary_link", "secondary_link", "tertiary_link", "living_street",
-      "service", "bus_guideway", "busway", "escape", "raceway", "road", "residential"
-  );
+  private final ModelConfigurationService modelConfigService;
 
   @Override
   public OsmGraph filter(OsmGraph osmGraph) {
+    Set<String> roadLabels = Arrays.stream(modelConfigService.getModelConfig().getWayTypes())
+        .collect(Collectors.toSet());
+
     return new OsmGraph(osmGraph.getNodes(),
         osmGraph.getWays().stream()
-            .filter(this::isAcceptable)
+            .filter(osmWay -> isAcceptable(roadLabels, osmWay))
             .toList());
   }
 
-  private boolean isAcceptable(OsmWay osmWay) {
+  private boolean isAcceptable(Set<String> roadLabels, OsmWay osmWay) {
+    // empty set = no restrictions
+    if (roadLabels.isEmpty()) {
+      return true;
+    }
+
     Map<String, String> tags = OsmModelUtil.getTagsAsMap(osmWay);
 
     if (tags.containsKey(ROAD_KEY)) {
-      return ROAD_LABELS.contains(tags.get(ROAD_KEY));
+      return roadLabels.contains(tags.get(ROAD_KEY));
     } else {
       return false;
     }

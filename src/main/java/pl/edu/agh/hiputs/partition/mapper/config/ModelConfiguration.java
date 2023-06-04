@@ -1,0 +1,66 @@
+package pl.edu.agh.hiputs.partition.mapper.config;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ModelConfiguration {
+
+  /**
+   * All allowed types of ways to import from OSM
+   */
+  private String[] wayTypes;
+
+  /**
+   * Conditions which have to be met for all the ways during import
+   */
+  private DataConfiguration wayConditions;
+
+  /**
+   * Conditions which have to be met for all the nodes during import
+   */
+  private DataConfiguration nodeConditions;
+
+  @Getter
+  @Setter
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class DataConfiguration {
+
+    /**
+     * Mappings key->value, which should be present in tags map
+     */
+    private TagEntry[] mandatoryTagEntries;
+
+    /**
+     * Mappings key->value, which should not be present in tags map
+     */
+    private TagEntry[] prohibitedTagEntries;
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TagEntry{
+
+      /**
+       * Tag key
+       */
+      private String key;
+
+      /**
+       * Tag value
+       */
+      private String value;
+    }
+  }
+}
