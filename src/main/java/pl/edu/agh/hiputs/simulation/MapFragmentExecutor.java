@@ -15,6 +15,7 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.service.routegenerator.CarGeneratorService;
+import pl.edu.agh.hiputs.service.routegenerator.FileGeneratorService;
 import pl.edu.agh.hiputs.service.routegenerator.RandomCarGeneratorService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
@@ -38,6 +39,7 @@ public class MapFragmentExecutor {
   private final LoadBalancingService loadBalancingService;
   private final PatchTransferService patchTransferService;
   private final CarGeneratorService carGeneratorService;
+  private final FileGeneratorService fileGeneratorService;
   private final SimulationStatisticService simulationStatisticService;
 
   public void run(int step) {
@@ -106,6 +108,10 @@ public class MapFragmentExecutor {
 
       // 11. gen new car
       log.debug("Step 11 start");
+
+//      TODO: osobny job na generowanie?
+      if (step == 0)
+        fileGeneratorService.generateFiles(mapFragment);
 
       carGeneratorService.generateCars(mapFragment, step);
 

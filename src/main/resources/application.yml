@@ -2,4 +2,7 @@ carGenerator:
   generateFromFile: true
   filesPath: src/main/resources/generator/simple_map_1
 
+routeGenerator:
+  RoutePathFinder: random
+
 testMode: true

@@ -20,6 +20,9 @@ repositories {
     maven {
         url 'https://mvn.slimjars.com'
     }
+    maven {
+        url 'https://jitpack.io'
+    }
     mavenCentral()
 }
 
@@ -42,6 +45,8 @@ dependencies {
     implementation 'de.topobyte:osm4j-pbf:0.2.0'
     implementation 'de.topobyte:osm4j-tbo:0.1.0'
     implementation 'de.topobyte:osm4j-geometry:0.2.0'
+
+    implementation 'org.jgrapht:jgrapht-core:1.5.0'
 
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'

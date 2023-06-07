@@ -19,18 +19,21 @@ public class FileCarGenerator implements CarGenerator {
   private final RouteReader routeReader;
 
   @Override
-  public List<Car>  generateCars(Patch patch, int step) {
-    return routeReader.readNextRoutes(patch.getPatchId(), step).stream().map(route ->
-      Car.builder()
-        // randomowe wartosci - do zmiany
-        .length(4.5)
-        .maxSpeed(ConfigurationService.getConfiguration().getDefaultMaxSpeed())
-        .routeWithLocation(route)
-        .laneId(route.getRouteElements().get(0).getOutgoingLaneId())
-        .positionOnLane(0)
-        .speed(ConfigurationService.getConfiguration().getDefaultMaxSpeed())
-        .driver(new Driver(new DriverParameters(ConfigurationService.getConfiguration())))
-        .build()
+  public List<Car> generateCars(Patch patch, int step) {
+    return routeReader.readNextRoutes(patch.getPatchId(), step).stream().map(routeEntry ->
+      {
+        var route = routeEntry.getRoute();
+        var startLaneId = route.getRouteElements().get(0).getOutgoingLaneId();
+        return Car.builder()
+          .length(routeEntry.getCarLength())
+          .maxSpeed(routeEntry.getMaxSpeed())
+          .routeWithLocation(route)
+          .laneId(startLaneId)
+          .positionOnLane(0)
+          .speed(routeEntry.getSpeed())
+          .driver(new Driver(new DriverParameters(ConfigurationService.getConfiguration())))
+          .build();
+      }
     ).toList();
   }
 }

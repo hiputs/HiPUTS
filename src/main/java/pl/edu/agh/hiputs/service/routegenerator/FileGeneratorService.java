@@ -2,9 +2,7 @@ package pl.edu.agh.hiputs.service.routegenerator;
 
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 
-public interface CarGeneratorService {
+public interface FileGeneratorService {
 
-    void generateCars(MapFragment fragment, int step);
-
+  void generateFiles(MapFragment fragment);
 }
-
