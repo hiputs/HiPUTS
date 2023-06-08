@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 @ExtendWith(MockitoExtension.class)
-public class CHBidirectionalDijkstraTest {
+public class CHBidirectionalAStarTest {
 
     void comparePathWithRequest(MapFragment mapFragment, RouteWithLocation route, LaneId source, LaneId sink) {
         // checking start and end
@@ -46,10 +46,10 @@ public class CHBidirectionalDijkstraTest {
     void getPathCHDijkstra() {
         MapFragment mapFragment = ExampleMapFragmentProvider.getCircleMapWithCrossroad();
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-        CHBidirectionalDijkstra bidirectionalDijkstra = new CHBidirectionalDijkstra(mapFragment, executor);
+        CHBidirectionalAStar bidirectionalAStar = new CHBidirectionalAStar(mapFragment, executor);
 
         List<LaneId> list = mapFragment.getLocalLaneIds().stream().toList();
-        RouteWithLocation route = bidirectionalDijkstra.getPath(new Pair<>(list.get(1), list.get(6)));
+        RouteWithLocation route = bidirectionalAStar.getPath(new Pair<>(list.get(1), list.get(6)));
 
         comparePathWithRequest(mapFragment, route, list.get(1), list.get(6));
     }
@@ -58,15 +58,15 @@ public class CHBidirectionalDijkstraTest {
     void processRequests() {
         MapFragment mapFragment = ExampleMapFragmentProvider.getCircleMapWithCrossroad();
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-        CHBidirectionalDijkstra bidirectionalDijkstra = new CHBidirectionalDijkstra(mapFragment, executor);
+        CHBidirectionalAStar bidirectionalAStar = new CHBidirectionalAStar(mapFragment, executor);
         List<LaneId> list = mapFragment.getLocalLaneIds().stream().toList();
         List<Pair<LaneId, LaneId>> requests = List.of(
                 new Pair<>(list.get(1), list.get(6)),
                 new Pair<>(list.get(0), list.get(4))
         );
-        List<RouteWithLocation> routes = bidirectionalDijkstra.getPaths(requests);
+        List<RouteWithLocation> routes = bidirectionalAStar.getPaths(requests);
         for (int i=0; i<routes.size(); i++) {
-         comparePathWithRequest(mapFragment, routes.get(i), requests.get(i).getFirst(), requests.get(i).getSecond());
+            comparePathWithRequest(mapFragment, routes.get(i), requests.get(i).getFirst(), requests.get(i).getSecond());
         }
     }
 
@@ -74,13 +74,13 @@ public class CHBidirectionalDijkstraTest {
     void processRequestsWithExecutors() {
         MapFragment mapFragment = ExampleMapFragmentProvider.getCircleMapWithCrossroad();
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
-        CHBidirectionalDijkstra bidirectionalDijkstra = new CHBidirectionalDijkstra(mapFragment, executor);
+        CHBidirectionalAStar bidirectionalAStar = new CHBidirectionalAStar(mapFragment, executor);
         List<LaneId> list = mapFragment.getLocalLaneIds().stream().toList();
         List<Pair<LaneId, LaneId>> requests = List.of(
                 new Pair<>(list.get(1), list.get(6)),
                 new Pair<>(list.get(0), list.get(4))
         );
-        List<RouteWithLocation> routes = bidirectionalDijkstra.getPathsWithExecutor(requests, executor);
+        List<RouteWithLocation> routes = bidirectionalAStar.getPathsWithExecutor(requests, executor);
         for (int i=0; i<routes.size(); i++) {
             comparePathWithRequest(mapFragment, routes.get(i), requests.get(i).getFirst(), requests.get(i).getSecond());
         }
@@ -90,13 +90,13 @@ public class CHBidirectionalDijkstraTest {
     void processRequestsToRandomLocations() {
         MapFragment mapFragment = ExampleMapFragmentProvider.getCircleMapWithCrossroad();
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-        CHBidirectionalDijkstra bidirectionalDijkstra = new CHBidirectionalDijkstra(mapFragment, executor);
+        CHBidirectionalAStar bidirectionalAStar = new CHBidirectionalAStar(mapFragment, executor);
         List<LaneId> list = mapFragment.getLocalLaneIds().stream().toList();
         List<LaneId > requests = List.of(
                 list.get(1),
                 list.get(0)
         );
-        List<Pair<LaneId, RouteWithLocation>> routesAndStarts = bidirectionalDijkstra.getPathsToRandomSink(requests);
+        List<Pair<LaneId, RouteWithLocation>> routesAndStarts = bidirectionalAStar.getPathsToRandomSink(requests);
         for (int i=0; i<routesAndStarts.size(); i++) {
             comparePathWithRequest(mapFragment, routesAndStarts.get(i).getSecond(), requests.get(i), routesAndStarts.get(i).getFirst());
         }
@@ -106,13 +106,13 @@ public class CHBidirectionalDijkstraTest {
     void processRequestsToRandomLocationsWithExecutors() {
         MapFragment mapFragment = ExampleMapFragmentProvider.getCircleMapWithCrossroad();
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
-        CHBidirectionalDijkstra bidirectionalDijkstra = new CHBidirectionalDijkstra(mapFragment, executor);
+        CHBidirectionalAStar bidirectionalAStar = new CHBidirectionalAStar(mapFragment, executor);
         List<LaneId> list = mapFragment.getLocalLaneIds().stream().toList();
         List<LaneId > requests = List.of(
                 list.get(1),
                 list.get(0)
         );
-        List<Pair<LaneId, RouteWithLocation>> routesAndStarts = bidirectionalDijkstra.getPathsToRandomSinkWithExecutor(requests, executor);
+        List<Pair<LaneId, RouteWithLocation>> routesAndStarts = bidirectionalAStar.getPathsToRandomSinkWithExecutor(requests, executor);
         for (int i=0; i<routesAndStarts.size(); i++) {
             comparePathWithRequest(mapFragment, routesAndStarts.get(i).getSecond(), requests.get(i), routesAndStarts.get(i).getFirst());
         }
@@ -122,9 +122,9 @@ public class CHBidirectionalDijkstraTest {
     void processRandomRequests() {
         MapFragment mapFragment = ExampleMapFragmentProvider.getCircleMapWithCrossroad();
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-        CHBidirectionalDijkstra bidirectionalDijkstra = new CHBidirectionalDijkstra(mapFragment, executor);
+        CHBidirectionalAStar bidirectionalAStar = new CHBidirectionalAStar(mapFragment, executor);
 
-        List<Pair<Pair<LaneId, LaneId>, RouteWithLocation>> routesAndStarts = bidirectionalDijkstra.getRandomPaths(2);
+        List<Pair<Pair<LaneId, LaneId>, RouteWithLocation>> routesAndStarts = bidirectionalAStar.getRandomPaths(2);
         for (Pair<Pair<LaneId, LaneId>, RouteWithLocation> routesAndStart : routesAndStarts) {
             comparePathWithRequest(
                     mapFragment,
@@ -138,9 +138,9 @@ public class CHBidirectionalDijkstraTest {
     void processRandomRequestsWithExecutors() {
         MapFragment mapFragment = ExampleMapFragmentProvider.getCircleMapWithCrossroad();
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-        CHBidirectionalDijkstra bidirectionalDijkstra = new CHBidirectionalDijkstra(mapFragment, executor);
+        CHBidirectionalAStar bidirectionalAStar = new CHBidirectionalAStar(mapFragment, executor);
 
-        List<Pair<Pair<LaneId, LaneId>, RouteWithLocation>> routesAndStarts = bidirectionalDijkstra.getRandomPathsWithExecutor(2, executor);
+        List<Pair<Pair<LaneId, LaneId>, RouteWithLocation>> routesAndStarts = bidirectionalAStar.getRandomPathsWithExecutor(2, executor);
         for (Pair<Pair<LaneId, LaneId>, RouteWithLocation> routesAndStart : routesAndStarts) {
             comparePathWithRequest(
                     mapFragment,
