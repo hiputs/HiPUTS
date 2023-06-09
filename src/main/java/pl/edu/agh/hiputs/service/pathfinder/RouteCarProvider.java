@@ -17,10 +17,10 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
-public class CarProvider {
+public class RouteCarProvider {
     private final Configuration configuration;
 
-    public CarProvider() {
+    public RouteCarProvider() {
         this.configuration = ConfigurationService.getConfiguration();
     }
 

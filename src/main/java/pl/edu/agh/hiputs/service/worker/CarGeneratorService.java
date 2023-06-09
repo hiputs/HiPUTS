@@ -23,8 +23,10 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.service.pathfinder.CHBidirectionalAStar;
 import pl.edu.agh.hiputs.service.pathfinder.CHBidirectionalDijkstra;
-import pl.edu.agh.hiputs.service.pathfinder.CarProvider;
+import pl.edu.agh.hiputs.service.pathfinder.PathFinder;
+import pl.edu.agh.hiputs.service.pathfinder.RouteCarProvider;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @Slf4j
@@ -32,20 +34,20 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 @RequiredArgsConstructor
 public class CarGeneratorService implements Subscriber {
 
-  private static final int START_ADD_CAR = 0;
+  private static final int START_ADD_CAR = 5;
   private final MapRepository mapRepository;
   private final WorkerSubscriptionService subscriptionService;
+  private final Configuration configuration = ConfigurationService.getConfiguration();
   private boolean bigWorker = false;
   private int step = 0;
   private int totalPatch = -1;
 
 
-  ThreadPoolExecutor executors;
-  private CHBidirectionalDijkstra chBidirectionalDijkstra = null;
-  private final Configuration configuration = ConfigurationService.getConfiguration();
   private final Configuration.PathGeneratorConfiguration pathGeneratorConfiguration =
           configuration.getPathGeneratorConfiguration();
-  private final CarProvider carProvider = new CarProvider();
+
+  private PathFinder<LaneId> pathFinder = null;
+  ThreadPoolExecutor executors;
 
   @PostConstruct
   void init(){
@@ -58,28 +60,19 @@ public class CarGeneratorService implements Subscriber {
   }
 
   public void generateCars(MapFragment mapFragment) {
-    if(totalPatch == -1){
+    if(totalPatch == -1) {
       totalPatch = mapRepository.getAllPatches().size();
     }
-    if (chBidirectionalDijkstra == null) {
-      if (totalPatch > 0 && mapRepository.isReady()) {
-        chBidirectionalDijkstra = new CHBidirectionalDijkstra(mapRepository, executors);
-      }
-      else {
-        chBidirectionalDijkstra = new CHBidirectionalDijkstra(mapFragment, executors);
-      }
+
+    if (pathFinder == null && !pathGeneratorConfiguration.getGeneratorType().equals("random")) {
+      initPathFindingAlgorithm(mapFragment);
     }
 
-
-    if(configuration.getNewCars() == 0){
+    if(configuration.getNewCars() == 0) {
       return;
     }
-    System.out.println(configuration.getNewCars());
-    System.out.println(totalPatch);
-    System.out.println(mapFragment.getMyPatchCount());
-    System.out.println((configuration.getNewCars() / ((totalPatch+1) * 1.0)));
-    int targetCarMax = (int)(configuration.getNewCars() / ((totalPatch+1) * 1.0)* mapFragment.getMyPatchCount());
-    int targetCarMin = (int)(configuration.getMinCars() / ((totalPatch+1) * 1.0)* mapFragment.getMyPatchCount());
+    int targetCarMax = (int)(configuration.getNewCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
+    int targetCarMin = (int)(configuration.getMinCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
     if(targetCarMax <= targetCarMin){
       targetCarMax = targetCarMin + 1;
     }
@@ -89,14 +82,12 @@ public class CarGeneratorService implements Subscriber {
       return;
     }
 
-
-
     if(bigWorker){
       count = (count * 10);
     }
 
     List<Car> carsCreated;
-    if (pathGeneratorConfiguration.getGeneratorType().equals("random")) {
+    if (pathFinder == null) {
       List<LaneEditable> lanesEditable = mapFragment.getRandomLanesEditable(count);
       ExampleCarProvider carProvider = new ExampleCarProvider(mapFragment, mapRepository);
 
@@ -107,48 +98,65 @@ public class CarGeneratorService implements Subscriber {
           hops = 20;
         }
         Car car = carProvider.generateCar(lane.getLaneId(), hops);
-
-        if (car == null) {
-          return null;
-        }
         carProvider.limitSpeedPreventCollisionOnStart(car, lane);
-        lane.addNewCar(car);
-        return car;
+        return placeCarOnLane(lane, car);
       }).filter(Objects::nonNull).toList();
     } else {
+      RouteCarProvider carProvider = new RouteCarProvider();
       Set<LaneId> lanes = mapFragment.getLocalLaneIds();
       LaneId[] laneIds = lanes.toArray(new LaneId[0]);
 
-      List<LaneEditable> startLanes = new ArrayList<>();
       List<Pair<LaneId, LaneId>> requests = new ArrayList<>();
       for (int i=0; i<count; i++) {
-        startLanes.add(mapFragment.getLaneEditable(laneIds[ThreadLocalRandom.current().nextInt(0, laneIds.length)]));
         requests.add(new Pair<>(
-                startLanes.get(i).getLaneId(),
+                mapFragment.getLaneEditable(laneIds[ThreadLocalRandom.current().nextInt(0, laneIds.length)]).getLaneId(),
                 mapFragment.getLaneEditable(laneIds[ThreadLocalRandom.current().nextInt(0, laneIds.length)]).getLaneId()
         ));
       }
 
       List<RouteWithLocation> routeWithLocationList;
       if (pathGeneratorConfiguration.getThreadsForExecutors() == 0) {
-        routeWithLocationList = chBidirectionalDijkstra.getPaths(requests);
+        routeWithLocationList = pathFinder.getPaths(requests);
       }
       else {
-        routeWithLocationList = chBidirectionalDijkstra.getPathsWithExecutor(requests, executors);
+        routeWithLocationList = pathFinder.getPathsWithExecutor(requests, executors);
       }
 
-      carsCreated = new ArrayList<>();
-      for (int i = 0; i<requests.size(); i++) {
-        Car car = carProvider.generateCar(mapFragment, routeWithLocationList.get(i));
-
-        carProvider.limitSpeedPreventCollisionOnStart(car, startLanes.get(i));
-        startLanes.get(i).addNewCar(car);
-        carsCreated.add(car);
-      }
+      carsCreated = routeWithLocationList.stream().map(
+              routeWithLocation -> {
+                Car car = carProvider.generateCar(mapFragment, routeWithLocation);
+                LaneEditable startLine = mapFragment.getLaneEditable(car.getLaneId());
+                carProvider.limitSpeedPreventCollisionOnStart(car, startLine);
+                return placeCarOnLane(startLine, car);
+              }
+      ).filter(Objects::nonNull).toList();
     }
 
     log.info("Created cars {} with {}", carsCreated.size(), count);
+  }
 
+  private void initPathFindingAlgorithm(MapFragment mapFragment) {
+    if (pathGeneratorConfiguration.getGeneratorType().equals("cHBidirectionalDijkstra")) {
+      if (totalPatch > 0 && mapRepository.isReady()) {
+        pathFinder = new CHBidirectionalAStar(mapRepository, executors);
+      } else {
+        pathFinder = new CHBidirectionalAStar(mapFragment, executors);
+      }
+    } else if (pathGeneratorConfiguration.getGeneratorType().equals("cHBidirectionalAStar")) {
+      if (totalPatch > 0 && mapRepository.isReady()) {
+        pathFinder = new CHBidirectionalDijkstra(mapRepository, executors);
+      } else {
+        pathFinder = new CHBidirectionalDijkstra(mapFragment, executors);
+      }
+    }
+  }
+
+  private Car placeCarOnLane(LaneEditable lane, Car car) {
+    if (car == null) {
+      return null;
+    }
+    lane.addNewCar(car);
+    return car;
   }
 
   @Override
