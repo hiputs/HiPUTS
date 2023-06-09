@@ -149,18 +149,4 @@ public class CHBidirectionalDijkstraTest {
                     routesAndStart.getFirst().getSecond());
         }
     }
-
-    @Test
-    void serializing() {
-    }
-
-    @Test
-    void serializingAndDeserializing() {
-
-    }
-
-    @Test
-    void serializationCorrectness() {
-
-    }
 }
