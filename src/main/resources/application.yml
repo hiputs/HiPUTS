@@ -3,6 +3,6 @@ carGenerator:
   filesPath: src/main/resources/generator/simple_map_1
 
 routeGenerator:
-  RoutePathFinder: random
+  RoutePathFinder: dijkstra
 
 testMode: true

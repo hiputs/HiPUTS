@@ -7,6 +7,7 @@ import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
@@ -60,7 +61,7 @@ public class RandomRouteGenerator implements RouteGenerator{
   }
 
   @Override
-  public List<RouteWithLocation> generateRoutes(MapRepository mapRepository, Patch patch, int numberOfRoutes) {
+  public List<RouteWithLocation> generateRoutes(MapRepository mapRepository, Patch patch, int numberOfRoutes, MapFragment mapFragment) {
 
     List<RouteWithLocation> routes = new LinkedList<>();
     List<LaneId> lanes = patch.getLaneIds().stream().toList();

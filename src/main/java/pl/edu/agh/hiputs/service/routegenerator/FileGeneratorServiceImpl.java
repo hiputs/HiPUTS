@@ -9,6 +9,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.routegenerator.generator.FileInputGenerator;
 import pl.edu.agh.hiputs.service.routegenerator.generator.routegenerator.RouteFileEntry;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -26,14 +27,15 @@ public class FileGeneratorServiceImpl implements FileGeneratorService {
 
   private final FileInputGenerator fileGenerator;
   private final Random random = new Random();
+  private final MapRepository mapRepository;
 
 
   @Override
   public void generateFiles(MapFragment fragment) {
-    fragment.localPatches().forEach(this::generateFileForPatch);
+    fragment.localPatches().forEach(patch -> generateFileForPatch(patch, fragment));
   }
 
-  private void generateFileForPatch(Patch patch) {
+  private void generateFileForPatch(Patch patch, MapFragment mapFragment) {
 
 
     String directoryPath = "src/main/resources/generator/simple_map_1";
@@ -41,7 +43,7 @@ public class FileGeneratorServiceImpl implements FileGeneratorService {
 
 //    TODO: przemyśl parametry -> (może generowanie per step? wywołujemy po kolei dla kazdego stepu symulacji
 //     -> potrzbna ilośc stepów wiadoma)
-    List<RouteWithLocation> routes = fileGenerator.generateRouteFileInput(patch, null, null, null);
+    List<RouteWithLocation> routes = fileGenerator.generateRouteFileInput(patch, null, null, mapRepository, mapFragment);
 
     try (var fw = new FileWriter(filePath, true);
          var bw = new BufferedWriter(fw);

@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.service.routegenerator.generator;
 
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
@@ -17,6 +18,6 @@ public interface FileInputGenerator {
      * It returns name of file
      * @return
      */
-    List<RouteWithLocation> generateRouteFileInput(Patch patch, Timestamp startTime, Timestamp endTime, MapRepository mapRepository);
+    List<RouteWithLocation> generateRouteFileInput(Patch patch, Timestamp startTime, Timestamp endTime, MapRepository mapRepository, MapFragment mapFragment);
 
 }
