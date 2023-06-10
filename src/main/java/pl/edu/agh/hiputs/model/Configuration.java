@@ -167,7 +167,7 @@ public class Configuration {
 
   public static Configuration getDefault() {
     return Configuration.builder()
-        .testMode(true)
+        .testMode(false)
         .workerCount(1)
         .enableGUI(true)
         .statisticModeActive(false)
