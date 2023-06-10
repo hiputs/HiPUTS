@@ -82,7 +82,7 @@ public class TrailJunctionDecider implements JunctionDecider {
         .stream().sorted(Comparator.comparingDouble(ConflictVehicleProperties::getTte_a)).toList();
 
     if(conflictVehiclesProperties.isEmpty()){
-      log.trace("Car: " + managedCar.getCarId() + " found no conflict vehicles");
+      log.trace("Car: {} found no conflict vehicles", managedCar.getCarId());
       return getMoveOnJunctionDecision(managedCar, environment, roadStructureReader, precedingCarInfo);
     }
 
@@ -119,14 +119,14 @@ public class TrailJunctionDecider implements JunctionDecider {
             idmDelta));
         double tDeltaV = Math.max((firstConflictVehicle.getCar().getSpeed() - maxDeceleration * currentTtc - managedCar.getSpeed() - freeAcceleration * currentTtc) / maxDeceleration, 0);
         if(timeDelta * (tDeltaV + currentTtc) < firstConflictVehicle.getTte_b()){
-          log.trace("Car: " + managedCar.getCarId() + " accept merge conflict");
+          log.trace("Car: {} accept merge conflict", managedCar.getCarId());
           return getMoveOnJunctionDecision(managedCar, environment, roadStructureReader, precedingCarInfo);
         }
       }
       else{
         if(timeDelta * precedingTtpConstSpeed < firstConflictVehicle.getTte_a()
             && timeDelta * precedingTtpMaxBreak < firstConflictVehicle.getTte_b()){
-          log.trace("Car: " + managedCar.getCarId() + " accept cross conflict");
+          log.trace("Car: {} accept cross conflict", managedCar.getCarId());
           return getMoveOnJunctionDecision(managedCar, environment, roadStructureReader, precedingCarInfo);
         }
         /*else{
@@ -135,7 +135,7 @@ public class TrailJunctionDecider implements JunctionDecider {
       }
     }
 
-    log.trace("Car: " + managedCar.getCarId() + " reject conflicts");
+    log.trace("Car: {} reject conflicts", managedCar.getCarId());
     return getLockedJunctionDecision(managedCar, environment, roadStructureReader, precedingCarInfo, precedingTtpMaxBreak < Double.MAX_VALUE,
         firstConflictVehicle.getCar().getFirstCarOnIncomingLaneId());
   }
@@ -143,7 +143,7 @@ public class TrailJunctionDecider implements JunctionDecider {
   private JunctionDecision movePermanentResult(CarReadable managedCar, CarEnvironment environment) {
     CrossroadDecisionProperties lastProperties = managedCar.getCrossRoadDecisionProperties().get();
 
-    log.trace("Car:" + managedCar.getCarId() + " continue move permanent on lane: " + managedCar.getLaneId());
+    log.trace("Car:{} continue move permanent on lane: {}", managedCar.getCarId(), managedCar.getLaneId());
     return new JunctionDecision(getCrossroadAccelerationDecisionResult(managedCar.getSpeed(), managedCar.getMaxSpeed(),
         new CarEnvironment(Optional.empty(), Optional.empty(), environment.getDistance())).getAcceleration(), lastProperties);
   }
@@ -164,19 +164,19 @@ public class TrailJunctionDecider implements JunctionDecider {
             && (giveWayVehicle.getCrossRoadDecisionProperties().get().getGiveWayVehicleId().isPresent()
             /*|| !giveWayVehicle.getCrossRoadDecisionProperties().get().getIsAvailableSpaceAfterCrossroad()*/)) {
 
-        log.debug("Car:" + managedCar.getCarId() + " stop give way: " + lastProperties.getGiveWayVehicleId().get()
-                + ", space: " + giveWayVehicle.getCrossRoadDecisionProperties().get().getIsAvailableSpaceAfterCrossroad()
-                + ", give way free: " + giveWayVehicle.getCrossRoadDecisionProperties().get().getGiveWayVehicleId().isEmpty()
-            );
+        log.debug("Car: {} stop give way: {}, space: {}, give way free: {}", managedCar.getCarId(),
+            lastProperties.getGiveWayVehicleId().get(),
+            giveWayVehicle.getCrossRoadDecisionProperties().get().getIsAvailableSpaceAfterCrossroad(),
+            giveWayVehicle.getCrossRoadDecisionProperties().get().getGiveWayVehicleId().isEmpty());
         giveWayVehicleId = Optional.empty();
       }
       else{
-        log.trace("Car:" + managedCar.getCarId() + " continue give way: " + lastProperties.getGiveWayVehicleId().get());
+        log.trace("Car:{} continue give way: {}", managedCar.getCarId(), lastProperties.getGiveWayVehicleId().get());
         giveWayVehicleId = managedCar.getCrossRoadDecisionProperties().get().getGiveWayVehicleId();
       }
     }
     else{
-      log.debug("Car:" + managedCar.getCarId() + " finish give way: "+ lastProperties.getGiveWayVehicleId().get());
+      log.debug("Car:{} finish give way: {}", managedCar.getCarId(), lastProperties.getGiveWayVehicleId().get());
       giveWayVehicleId = Optional.empty();
     }
 
@@ -229,11 +229,16 @@ public class TrailJunctionDecider implements JunctionDecider {
           CarId blockingCarId = blockedCar.getCrossRoadDecisionProperties().get().getBlockingCarId();
           if(blockingCarId == managedCar.getCarId()){
             giveWayVehicleId = Optional.of(blockedCar.getCarId());
-            log.debug("Car: " + managedCar.getCarId() + " give way to: " + giveWayVehicleId.get());
+            log.debug("Car: {} give way to: {}", managedCar.getCarId(), giveWayVehicleId.get());
           }
-          else{
-            log.trace("Car: " + managedCar.getCarId() + " not needed give way but car: " + vehiclesWithSpaceAfterCrossroad.stream().findFirst().get().getCrossRoadDecisionProperties().get().getBlockingCarId()
-             + " for: " + vehiclesWithSpaceAfterCrossroad.stream().findFirst().get().getCarId());
+          else {
+            log.trace("Car: {} not needed give way but car: {} for: {}", managedCar.getCarId(),
+                vehiclesWithSpaceAfterCrossroad.stream()
+                    .findFirst()
+                    .get()
+                    .getCrossRoadDecisionProperties()
+                    .get()
+                    .getBlockingCarId(), vehiclesWithSpaceAfterCrossroad.stream().findFirst().get().getCarId());
           }
         }
         else{
@@ -246,14 +251,14 @@ public class TrailJunctionDecider implements JunctionDecider {
               CarId movePermanentCarId = movePermanentOptional.get().getCarId();
               if (managedCar.getCarId().equals(movePermanentCarId)) {
                 //Move with collision
-                log.debug("Car: " + managedCar.getCarId() + " move permanent on lane: " + managedCar.getLaneId());
+                log.debug("Car: {} move permanent on lane: {}", managedCar.getCarId(), managedCar.getLaneId());
                 isMovedPermanent = true;
               } else {
-                log.trace("Car: " + managedCar.getCarId() + " not need move permanent, but: " + movePermanentCarId);
+                log.trace("Car: {} not need move permanent, but: {}", managedCar.getCarId(), movePermanentCarId);
               }
             }
             else{
-              log.debug("Car: " + managedCar.getCarId() + " found no candidate for move permanent");
+              log.debug("Car: {} found no candidate for move permanent", managedCar.getCarId());
             }
           }
         }
@@ -261,7 +266,8 @@ public class TrailJunctionDecider implements JunctionDecider {
       else if(lockCounter > movePermanentWaitCycles && firstVehiclesOnJunction.stream().noneMatch(carReadable -> carReadable.getCarId().equals(managedCar.getCarId()))
               && firstVehiclesOnJunction.stream().filter(v -> v.getCrossRoadDecisionProperties().isPresent())
               .allMatch(v -> v.getCrossRoadDecisionProperties().get().getLockStepsCount() >= movePermanentWaitCycles)){
-        log.debug("Car: " + managedCar.getCarId() + " move permanent on lane: " + managedCar.getLaneId() + " cause wrong cars order on lane");
+        log.debug("Car: {} move permanent on lane: {} cause wrong cars order on lane", managedCar.getCarId(),
+            managedCar.getLaneId());
         isMovedPermanent = true;
       }
     }

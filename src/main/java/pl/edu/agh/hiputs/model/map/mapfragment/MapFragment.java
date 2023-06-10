@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -130,7 +131,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     do {
       PatchId patchId = (PatchId) array[ThreadLocalRandom.current().nextInt(0, array.length)];
       Patch patch = knownPatches.get(patchId);
-      lanes.addAll(patch.getLaneIds().parallelStream().map(patch::getLaneEditable).toList());
+      lanes.addAll(patch.getLaneIds().stream().map(patch::getLaneEditable).toList());
     } while (lanes.size() < count);
 
     return new ArrayList<>(lanes);
@@ -144,10 +145,8 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   @Override
   public Map<MapFragmentId, Set<CarEditable>> pollOutgoingCars() {
-    return mapFragmentIdToShadowPatchIds.entrySet()
-        .parallelStream()
-        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
-            .parallelStream()
+    return mapFragmentIdToShadowPatchIds.entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream()
             .map(knownPatches::get)
             .flatMap(Patch::streamLanesEditable)
             .flatMap(LaneEditable::pollIncomingCars)
@@ -156,15 +155,15 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   @Override
   public void acceptIncomingCars(Set<Car> incomingCars) {
-    incomingCars.parallelStream().peek(car -> {
+    incomingCars.forEach(car -> {
       LaneEditable lane = car.getDecision().getLaneId().getEditable(this);
       if (lane != null) {
         lane.addIncomingCar(car);
       } else {
-        // log.warn("Not found lane {}, patchId {}", car.getDecision().getLaneId(), DebugUtils.getMapRepository().getPatchIdByLaneId( car.getDecision().getLaneId()).getValue());
+        // log.warn("Not found lane {}, patchId {}", car.getDecision().getLaneId(), DebugUtils.getMapRepository()
+        // .getPatchIdByLaneId( car.getDecision().getLaneId()).getValue());
       }
-
-    }).toList();
+    });
   }
 
   @Override
@@ -287,9 +286,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     // log.debug("migrate to local patch {} from worker {}", patchId.getValue(), neighbourId.getId());
 
     // remove patches from border that have become internal after migration
-    List<PatchId> incomePatch =
-        patch.getNeighboringPatches()
-            .parallelStream()
+    List<PatchId> incomePatch = patch.getNeighboringPatches().stream()
             .filter(localPatchIds::contains)
             .filter(candidatePatchId -> {
                 Patch checkingNeighbour = knownPatches.get(candidatePatchId);
@@ -373,14 +370,13 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       return;
     }
 
-    final Set<PatchId> allPatchesNeighbouringWithShadowPatches = mapFragmentIdToShadowPatchIds.get(source)
-        .parallelStream()
+    final Set<PatchId> allPatchesNeighbouringWithShadowPatches = mapFragmentIdToShadowPatchIds.get(source).stream()
         .map(knownPatches::get)
         .flatMap(p -> p.getNeighboringPatches().stream())
         .collect(Collectors.toSet());
 
     final Set<PatchId> newBorderPatchesSet =
-        allPatchesNeighbouringWithShadowPatches.parallelStream().filter(this::isLocalPatch).collect(Collectors.toSet());
+        allPatchesNeighbouringWithShadowPatches.stream().filter(this::isLocalPatch).collect(Collectors.toSet());
 
     // log.info("****Add borderPatches**** {} { {} }", source.getId(),
     //     newBorderPatchesSet.stream().map(PatchId::getValue).collect(Collectors.joining(", ")));
@@ -533,7 +529,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   public static final class MapFragmentBuilder {
 
     private final MapFragmentId mapFragmentId;
-    private final Map<PatchId, Patch> knownPatches = new HashMap<>();
+    private final Map<PatchId, Patch> knownPatches = new ConcurrentHashMap<>();
     private final Set<PatchId> localPatchIds = new HashSet<>();
     private final Map<MapFragmentId, Set<PatchId>> shadowPatches = new HashMap<>();
     private final Map<PatchId, MapFragmentId> shadowPatchOwnership = new HashMap<>();

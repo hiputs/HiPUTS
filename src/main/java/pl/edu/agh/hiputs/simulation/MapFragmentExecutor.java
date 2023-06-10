@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
@@ -53,8 +54,7 @@ public class MapFragmentExecutor {
       log.info("Step 3 start");
       iterationStatisticsService.startStage(
           List.of(SimulationPoint.FULL_STEP, SimulationPoint.DECISION_STAGE, SimulationPoint.FIRST_ITERATION));
-      List<Runnable> decisionStageTasks = mapFragment.getLocalLaneIds()
-          .parallelStream()
+      List<Runnable> decisionStageTasks = mapFragment.getLocalLaneIds().stream()
           .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId))
           .collect(Collectors.toList());
       taskExecutor.executeBatch(decisionStageTasks);
@@ -64,7 +64,7 @@ public class MapFragmentExecutor {
       // 4. send incoming sets of cars to neighbours
       log.info("Step 4 start");
       iterationStatisticsService.startStage(SimulationPoint.SENDING_CARS);
-      int send_cars = carSynchronizationService.sendIncomingSetsOfCarsToNeighbours(mapFragment);
+      int sendCars = carSynchronizationService.sendIncomingSetsOfCarsToNeighbours(mapFragment);
       iterationStatisticsService.endStage(List.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SENDING_CARS));
 
       // 5. receive incoming sets of cars from neighbours
@@ -108,7 +108,8 @@ public class MapFragmentExecutor {
       // 9. send and receive remote patches (border patches)
       log.info("Step 9 start");
       iterationStatisticsService.startStage(SimulationPoint.SYNCHRONIZATION_AREA_SEND_PATCHES);
-      carsOnBorderSynchronizationService.sendCarsOnBorderToNeighbours(mapFragment);
+      List<Pair<String, Integer>> borderCars =
+          carsOnBorderSynchronizationService.sendCarsOnBorderToNeighbours(mapFragment);
       iterationStatisticsService.endStage(SimulationPoint.SYNCHRONIZATION_AREA_SEND_PATCHES);
       log.info("Step 9 - 1 start");
       iterationStatisticsService.startStage(SimulationPoint.WAITING_RECEIVING_PATCHES);
@@ -135,7 +136,10 @@ public class MapFragmentExecutor {
       iterationStatisticsService.setOutgoingMessagesInStep(messageSenderService.getSentMessages());
       iterationStatisticsService.setOutgoingMessagesToServerInStep(messageSenderService.getSentServerMessages());
       iterationStatisticsService.setOutgoingMessagesSize(messageSenderService.getSentMessagesSize());
-      iterationStatisticsService.setInfo(String.valueOf(send_cars));
+      String borderCarsInfo = borderCars.stream()
+          .map(pair -> pair.getLeft() + ":" + pair.getRight().toString() + ",")
+          .collect(Collectors.joining());
+      iterationStatisticsService.setInfo(sendCars + "," + borderCarsInfo);
       iterationStatisticsService.setMemoryUsage();
       iterationStatisticsService.endSimulationStep();
 

@@ -50,10 +50,10 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
 
   @Override
   public void readMapAndBuildModel() throws InterruptedException {
-    if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
+    if (ConfigurationService.getConfiguration().isReadFromOsmDirectly()) {
       waitForMapReadyToReadMessage();
     } else {
-      mapPackagePath = Path.of(configurationService.getConfiguration().getMapPath());
+      mapPackagePath = Path.of(ConfigurationService.getConfiguration().getMapPath());
     }
 
     // if (!configurationService.getConfiguration().isServerOnThisMachine()) {
@@ -103,8 +103,7 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
 
   @Override
   public PatchId getPatchIdByLaneId(LaneId laneId) {
-    return patches.values()
-        .parallelStream()
+    return patches.values().stream()
         .filter(p -> p.getLaneIds().contains(laneId))
         .findFirst()
         .get()

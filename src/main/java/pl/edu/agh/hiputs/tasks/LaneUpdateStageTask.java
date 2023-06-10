@@ -52,7 +52,9 @@ public class LaneUpdateStageTask implements Runnable {
   private void updateCarsOnLane(LaneEditable lane) {
     try {
       List<CarEditable> carsToRemove = lane.streamCarsFromExitEditable()
-          .filter(car -> !Objects.equals(car.getDecision().getLaneId(), laneId) || car.update().isEmpty())
+          .filter(
+              car -> Objects.isNull(laneId) || !Objects.equals(car.getDecision().getLaneId(), laneId) || car.update()
+                  .isEmpty())
           .toList();
       for (CarEditable car : carsToRemove) {
         lane.removeCar(car);
@@ -80,7 +82,7 @@ public class LaneUpdateStageTask implements Runnable {
         .forEach(currentCar -> {
           if (currentCar.update().isPresent()) {
             lane.addCarAtEntry(currentCar);
-            log.trace("Car: " + currentCar.getCarId() + " add at entry of lane: " + laneId);
+            log.trace("Car: {} add at entry of lane: {}", currentCar.getCarId(), laneId);
           }
         });
   }

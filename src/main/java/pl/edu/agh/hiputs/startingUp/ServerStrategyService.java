@@ -57,7 +57,6 @@ public class ServerStrategyService implements Strategy {
 
   private final WorkerSynchronisationService workerSynchronisationService;
   private final ConnectionInitializationService connectionInitializationService;
-  private final ConfigurationService configurationService;
   private final WorkerStrategyService workerStrategyService;
   private final MapFragmentPartitioner mapFragmentPartitioner;
   private final ExecutorService workerPrepareExecutor = newSingleThreadExecutor();
@@ -136,7 +135,7 @@ public class ServerStrategyService implements Strategy {
     }
 
     messageSenderServerService.broadcast(new ShutDownMessage());
-    Thread.sleep(1000);
+    Thread.sleep(500);
     shutDown();
 
   }
@@ -267,7 +266,7 @@ public class ServerStrategyService implements Strategy {
     @Override
     public void run() {
       try {
-        Thread.sleep(1000);
+        Thread.sleep(500);
         workerStrategyService.executeStrategy();
       } catch (InterruptedException e) {
         log.error("Worker not started", e);

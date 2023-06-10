@@ -43,7 +43,7 @@ public class SynchronizeShadowPatchState implements Runnable {
 
             if (newCarsOnOneLane != null) {
               Collections.reverse(newCarsOnOneLane);
-              newCarsOnOneLane.forEach(laneEditable::addCarAtEntry);
+              newCarsOnOneLane.forEach(car -> laneEditable.addCarAtEntry(car));
             }
           });
 

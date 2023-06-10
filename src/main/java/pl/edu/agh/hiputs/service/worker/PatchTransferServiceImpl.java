@@ -18,8 +18,8 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
-import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.loadbalancer.TicketService;
@@ -78,7 +78,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         .filter(Objects::nonNull)
         .toList();
 
-    List<ConnectionDto> neighbourConnectionDtos = patchIdWithMapFragmentId.parallelStream()
+    List<ConnectionDto> neighbourConnectionDtos = patchIdWithMapFragmentId.stream()
         .map(Pair::getRight)
         .distinct()
         .map(MapFragmentId::new)

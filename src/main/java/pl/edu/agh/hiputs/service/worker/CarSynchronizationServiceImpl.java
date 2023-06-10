@@ -52,9 +52,9 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   public int sendIncomingSetsOfCarsToNeighbours(TransferDataHandler mapFragment) {
     Map<MapFragmentId, List<SerializedCar>> serializedCarMap = mapFragment.pollOutgoingCars()
         .entrySet()
-        .parallelStream()
+        .stream()
         .collect(Collectors.toMap(Entry::getKey,
-            e -> e.getValue().parallelStream().map(SerializedCar::new).collect(Collectors.toList())));
+            e -> e.getValue().stream().map(SerializedCar::new).collect(Collectors.toList())));
 
     sendMessages(serializedCarMap);
     return serializedCarMap.values().stream().map(List::size).reduce(0, Integer::sum);
@@ -88,16 +88,16 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
     int countOfNeighbours = mapFragment.getNeighbors().size();
     List<Future<?>> injectIncomingCarFutures = new LinkedList<>();
     int consumedMessages = 0;
-    List<Runnable> injectIncomingCarTasks = new LinkedList<>();
+    // List<Runnable> injectIncomingCarTasks = new LinkedList<>();
 
     while (consumedMessages < countOfNeighbours) {
       try {
         CarTransferMessage msg = incomingMessages.take();
 
-        // List<Future<?>> f = taskExecutorService.executeBatchReturnFutures(
-        //     List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
-        // injectIncomingCarFutures.addAll(f);
-        injectIncomingCarTasks.addAll(List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
+        List<Future<?>> f = taskExecutorService.executeBatchReturnFutures(
+            List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
+        injectIncomingCarFutures.addAll(f);
+        // injectIncomingCarTasks.addAll(List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
         consumedMessages += 1;
 
       } catch (InterruptedException e) {
@@ -106,8 +106,8 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
       }
     }
 
-    // taskExecutorService.waitForAllTaskFinished(injectIncomingCarFutures);
-    taskExecutorService.executeBatch(injectIncomingCarTasks);
+    taskExecutorService.waitForAllTaskFinished(injectIncomingCarFutures);
+    // taskExecutorService.executeBatch(injectIncomingCarTasks);
     incomingMessages.clear();
     futureIncomingMessages.drainTo(incomingMessages);
   }

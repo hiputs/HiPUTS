@@ -32,6 +32,7 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.LaneSerializationTask;
 import pl.edu.agh.hiputs.scheduler.task.SynchronizeShadowPatchState;
@@ -60,7 +61,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   }
 
   @Override
-  public void sendCarsOnBorderToNeighbours(TransferDataHandler mapFragment) {
+  public List<Pair<String, Integer>> sendCarsOnBorderToNeighbours(TransferDataHandler mapFragment) {
     log.info("Step 9-0-1");
     iterationStatisticsService.startStage(SimulationPoint.PATCHES_SERIALIZATION);
     Set<Patch> distinctBorderPatches =
@@ -88,9 +89,14 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
 
     Map<MapFragmentId, BorderSynchronizationMessage> messages = mapFragment.getBorderPatches()
         .entrySet()
-        .parallelStream()
+        .stream()
         .map(entry -> new ImmutablePair<>(entry.getKey(), createMessageFrom(entry.getValue(), serializedBorderPatches)))
         .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
+
+    List<Pair<String, Integer>> sendCars = distinctBorderPatches.parallelStream().map(patch -> {
+      Integer cars = patch.streamLanesReadable().map(LaneReadable::numberOfCars).reduce(0, (e1, e2) -> e1 + e2);
+      return new ImmutablePair<>(patch.getPatchId().getValue(), cars);
+    }).collect(Collectors.toList());
 
     log.info("Step 9-0-2");
     iterationStatisticsService.endStage(SimulationPoint.PATCHES_SERIALIZATION);
@@ -100,6 +106,8 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     iterationStatisticsService.endStage(SimulationPoint.PATCHES_SENDING);
     // long time4 = System.currentTimeMillis();
     // log.info("Step 9 times: {}, {}; {}; {};", time1-time0,time2-time1, time3-time2, time4-time3);
+
+    return sendCars;
   }
 
   @Override
@@ -107,7 +115,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     int countOfNeighbours = mapFragment.getNeighbors().size();
     List<Future<?>> patchSynchronizationFutures = new LinkedList<>();
     int consumedMessages = 0;
-    List<Runnable> patchSynchronizationTasks = new LinkedList<>();
+    // List<Runnable> patchSynchronizationTasks = new LinkedList<>();
 
     while (consumedMessages < countOfNeighbours) {
       try {
@@ -119,8 +127,8 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
             .map(e -> new SynchronizeShadowPatchState(e.getKey(), e.getValue(), mapFragment))
             .collect(Collectors.toList());
 
-        // patchSynchronizationFutures.addAll(taskExecutorService.executeBatchReturnFutures(tasks));
-        patchSynchronizationTasks.addAll(tasks);
+        patchSynchronizationFutures.addAll(taskExecutorService.executeBatchReturnFutures(tasks));
+        // patchSynchronizationTasks.addAll(tasks);
         consumedMessages += 1;
 
       } catch (InterruptedException e) {
@@ -128,8 +136,8 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
         throw new RuntimeException(e);
       }
     }
-    taskExecutorService.executeBatch(patchSynchronizationTasks);
-    // taskExecutorService.waitForAllTaskFinished(patchSynchronizationFutures);
+    // taskExecutorService.executeBatch(patchSynchronizationTasks);
+    taskExecutorService.waitForAllTaskFinished(patchSynchronizationFutures);
 
     incomingMessages.clear();
     futureIncomingMessages.drainTo(incomingMessages);

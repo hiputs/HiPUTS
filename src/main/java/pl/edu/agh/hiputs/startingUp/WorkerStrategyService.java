@@ -45,7 +45,6 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final WorkerSubscriptionService subscriptionService;
   private final MapRepository mapRepository;
   private final MapFragmentExecutor mapFragmentExecutor;
-  private final ConfigurationService configurationService;
   private TrivialGraphBasedVisualizer graphBasedVisualizer;
   private final MessageSenderService messageSenderService;
   private final MessageReceiverService messageReceiverService;

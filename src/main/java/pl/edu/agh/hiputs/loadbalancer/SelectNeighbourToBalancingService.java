@@ -14,7 +14,6 @@ import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.messages.LoadInfoMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
-import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
@@ -60,8 +59,7 @@ public class SelectNeighbourToBalancingService implements Subscriber {
   }
 
   private ImmutablePair<MapFragmentId, Double> getLowesCost(TransferDataHandler transferDataHandler){
-    return transferDataHandler.getNeighbors()
-        .parallelStream()
+    return transferDataHandler.getNeighbors().stream()
         .filter(this::hasActualCostInfo)
         .filter(id -> !transferDataHandler.getBorderPatches().get(id).isEmpty())
         .map(id -> new ImmutablePair<MapFragmentId, Double>(id, calculateCost(id)))
