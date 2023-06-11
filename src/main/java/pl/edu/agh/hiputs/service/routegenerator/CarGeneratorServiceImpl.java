@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.service.routegenerator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.exception.EntityNotFoundException;
 import pl.edu.agh.hiputs.model.car.Car;
@@ -15,18 +16,18 @@ import static java.text.MessageFormat.format;
 @Slf4j
 @AllArgsConstructor
 @Service
-@ConditionalOnProperty(value = "car-generator.generate-from-file", havingValue = "true")
+@Primary
 public class CarGeneratorServiceImpl implements CarGeneratorService {
 
   private final CarGenerator carGenerator;
 
   @Override
   public void generateCars(MapFragment fragment, int step) {
-    fragment.localPatches().forEach(patch -> generateCarsForPatch(patch, step));
+    fragment.localPatches().forEach(patch -> generateCarsForPatch(patch, step, fragment));
   }
 
-  private void generateCarsForPatch(Patch patch, int step) {
-    var cars = carGenerator.generateCars(patch, step);
+  private void generateCarsForPatch(Patch patch, int step, MapFragment mapFragment){
+    var cars = carGenerator.generateCars(patch, step, mapFragment);
     cars.forEach(car -> placeCarOnPatch(car, patch));
   }
 

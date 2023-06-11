@@ -9,11 +9,13 @@ import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -22,12 +24,24 @@ import java.util.concurrent.ThreadLocalRandom;
 @ConditionalOnProperty(value = "route-generator.route-path-finder", havingValue = "random")
 public class RandomRouteGenerator implements RouteGenerator{
 
-  private JunctionId getOutgoingJunctionId(LaneId laneId, Patch patch){
-    return patch.getLaneReadable(laneId).getOutgoingJunctionId();
-  }
+  private final MapRepository mapRepository;
 
-  private List<LaneId> getOutgoingLaneIdList(JunctionId junctionId, Patch patch){
-    return patch.getJunctionReadable(junctionId).streamOutgoingLaneIds().toList();
+  @Override
+  public List<RouteWithLocation> generateRoutes(Patch patch, int numberOfRoutes, MapFragment mapFragment) {
+
+    List<RouteWithLocation> routes = new LinkedList<>();
+    List<LaneId> lanesIds = patch.getLaneIds().stream().toList();
+
+    if(!lanesIds.isEmpty()){
+      for (int routeNum = 0; routeNum < numberOfRoutes; routeNum++) {
+        LaneId startLaneId = lanesIds.get(ThreadLocalRandom.current().nextInt(lanesIds.size()));
+        int hops = ThreadLocalRandom.current().nextInt(2,8);
+//      Losowa wartość !!!
+        routes.add(generateRoute(patch, startLaneId, hops));
+      }
+    }
+
+    return routes;
   }
 
   private RouteWithLocation generateRoute(Patch patch, LaneId startLaneId, int hops) {
@@ -37,16 +51,19 @@ public class RandomRouteGenerator implements RouteGenerator{
     JunctionId startJunctionId = patch.getLaneReadable(startLaneId).getIncomingJunctionId();
     routeElements.add(new RouteElement(startJunctionId, startLaneId));
     LaneId nextLaneId, laneId = startLaneId;
-    JunctionId nextJunctionId , junctionId = startJunctionId;
+    var junctionId = startJunctionId;
+    var nextJunctionIdOpt = Optional.of(startJunctionId);
     for (int i = 0; i < hops; i++) {
-      nextJunctionId = getOutgoingJunctionId(laneId, patch);
-      if (nextJunctionId == null) {
+      nextJunctionIdOpt = getOutgoingJunctionId(laneId, patch);
+      if (nextJunctionIdOpt.isEmpty()) {
         break;
       }
+      var nextJunctionId = nextJunctionIdOpt.get();
       List<LaneId> junctionLaneIds = new LinkedList<>(getOutgoingLaneIdList(nextJunctionId, patch));
       if (!nextJunctionId.isCrossroad()) {
         for(LaneId nextCandidateLaneId : new LinkedList<>(junctionLaneIds)) {
-          if (getOutgoingJunctionId(nextCandidateLaneId, patch).equals(junctionId)) {
+          var junctionIdFinal = junctionId;
+          if (getOutgoingJunctionId(nextCandidateLaneId, patch).map(j -> j.equals(junctionIdFinal)).orElse(false)) {
             junctionLaneIds.remove(nextCandidateLaneId);
           }
         }
@@ -60,21 +77,11 @@ public class RandomRouteGenerator implements RouteGenerator{
     return new RouteWithLocation(routeElements, 0);
   }
 
-  @Override
-  public List<RouteWithLocation> generateRoutes(MapRepository mapRepository, Patch patch, int numberOfRoutes, MapFragment mapFragment) {
+  private Optional<JunctionId> getOutgoingJunctionId(LaneId laneId, Patch patch){
+    return Optional.ofNullable(patch.getLaneReadable(laneId)).map(LaneReadable::getOutgoingJunctionId);
+  }
 
-    List<RouteWithLocation> routes = new LinkedList<>();
-    List<LaneId> lanes = patch.getLaneIds().stream().toList();
-
-    if(!lanes.isEmpty()){
-      for (int routeNum = 0; routeNum < numberOfRoutes; routeNum++) {
-        LaneId startLaneId = lanes.get(ThreadLocalRandom.current().nextInt(lanes.size()));
-        int hops = ThreadLocalRandom.current().nextInt(2,8);
-//      Losowa wartość !!!
-        routes.add(generateRoute(patch, startLaneId, hops));
-      }
-    }
-
-    return routes;
+  private List<LaneId> getOutgoingLaneIdList(JunctionId junctionId, Patch patch){
+    return patch.getJunctionReadable(junctionId).streamOutgoingLaneIds().toList();
   }
 }

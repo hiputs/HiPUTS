@@ -18,6 +18,6 @@ public interface FileInputGenerator {
      * It returns name of file
      * @return
      */
-    List<RouteWithLocation> generateRouteFileInput(Patch patch, Timestamp startTime, Timestamp endTime, MapRepository mapRepository, MapFragment mapFragment);
+    List<RouteWithLocation> generateRouteFileInput(Patch patch, Timestamp startTime, Timestamp endTime, MapFragment mapFragment);
 
 }

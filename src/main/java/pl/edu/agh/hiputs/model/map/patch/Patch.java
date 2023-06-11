@@ -46,6 +46,14 @@ public class Patch implements PatchReader, PatchEditor {
   public final Map<LaneId, Lane> lanes;
 
   /**
+   * Total length of lanes
+   */
+
+  public double getLanesLength(){
+    return lanes.values().stream().mapToDouble(Lane::getLength).sum();
+  };
+
+  /**
    * Patches that are adjacent/neighbours to this patch
    */
   @Getter

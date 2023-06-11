@@ -161,6 +161,11 @@ public class Configuration {
   private boolean ticketActive;
 
   /**
+   * Path to configuration of time based car generation
+   */
+  private String timeBasedCarGenerationConfigPath;
+
+  /**
    * Unique worker id
    */
   private MapFragmentId mapFragmentId;
@@ -193,6 +198,7 @@ public class Configuration {
         .minCars(0)
         .ticketActive(false)
         .patchPartitionerConfiguration(PatchPartitionerConfiguration.getDefault())
+        .timeBasedCarGenerationConfigPath("timeBasedCarGenerationConfig.json")
         .build();
   }
 

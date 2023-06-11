@@ -30,5 +30,5 @@
   "newCars": 0,
   "minCars": 0,
   "ticketActive": false,
-  "generateCarsFromFile": true
+  "timeBasedCarGenerationConfigPath": "timeBasedCarGenerationConfig.json"
 }

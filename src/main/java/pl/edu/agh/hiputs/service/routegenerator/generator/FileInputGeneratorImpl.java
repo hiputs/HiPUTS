@@ -18,8 +18,8 @@ public class FileInputGeneratorImpl implements FileInputGenerator {
   RouteGenerator routeGenerator;
 
   @Override
-  public List<RouteWithLocation> generateRouteFileInput(Patch patch, Timestamp startTime, Timestamp endTime, MapRepository mapRepository, MapFragment mapFragment) {
+  public List<RouteWithLocation> generateRouteFileInput(Patch patch, Timestamp startTime, Timestamp endTime, MapFragment mapFragment) {
 //    TODO: na razie generujemy losowe trasy do pliku
-    return routeGenerator.generateRoutes(mapRepository,patch, 5, mapFragment);
+    return routeGenerator.generateRoutes(patch, 5, mapFragment);
   }
 }

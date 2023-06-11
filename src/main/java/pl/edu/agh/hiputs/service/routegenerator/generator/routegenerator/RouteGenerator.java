@@ -8,5 +8,5 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import java.util.List;
 
 public interface RouteGenerator {
-  List<RouteWithLocation> generateRoutes(MapRepository mapRepository, Patch patch, int numberOfRoutes, MapFragment mapFragment);
+  List<RouteWithLocation> generateRoutes(Patch patch, int numberOfRoutes, MapFragment mapFragment);
 }

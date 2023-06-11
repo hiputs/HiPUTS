@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;

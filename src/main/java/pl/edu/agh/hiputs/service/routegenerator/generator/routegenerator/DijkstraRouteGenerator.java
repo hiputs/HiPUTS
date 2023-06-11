@@ -24,6 +24,41 @@ import java.util.concurrent.*;
 @ConditionalOnProperty(value = "route-generator.route-path-finder", havingValue = "dijkstra")
 public class DijkstraRouteGenerator implements RouteGenerator{
 
+  private final MapRepository mapRepository;
+
+  @Override
+  public List<RouteWithLocation> generateRoutes(Patch startPatch, int numberOfRoutes, MapFragment mapFragment) {
+//    TODO: sprawdzić na mapie z nie pustym MapRepository
+    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+
+    CHBidirectionalDijkstra pathFinder = new CHBidirectionalDijkstra(mapFragment, executor);
+
+
+    List<RouteWithLocation> routes = new ArrayList<>();
+    for (int i=0;i < numberOfRoutes; i++){
+      try{
+        LaneId startLaneId = getRandomWeightedLaneId(startPatch);
+
+//        Patch endPatch = getEndingPatch(mapRepository);
+//        LaneId endLineId = getRandomWeightedLaneId(endPatch);
+
+        LaneId endLineId = startPatch.getJunctionReadable(startPatch.getLaneReadable(startLaneId).getIncomingJunctionId()).streamIncomingLaneIds().findAny().get();
+
+//        System.out.println(startLaneId + " end: " +  endLineId);
+        System.out.println(Pair.of(startLaneId, endLineId));
+
+        routes.add(pathFinder.getPath(Pair.of(startLaneId, endLineId)));
+
+      } catch (NoLaneFoundException e) {
+        log.error("Error while finding lane in patch: " + e.toString());
+      }
+      catch (NoPatchFoundException e) {
+        log.error("Error while finding patch in mapRepository");
+      }
+    }
+
+    return routes;
+  }
 
   private double patchLength(Patch patch){
 //    System.out.println(patch);
@@ -64,39 +99,5 @@ public class DijkstraRouteGenerator implements RouteGenerator{
 
     throw new NoPatchFoundException();
 
-  }
-
-  @Override
-  public List<RouteWithLocation> generateRoutes(MapRepository mapRepository, Patch startPatch, int numberOfRoutes, MapFragment mapFragment) {
-//    TODO: sprawdzić na mapie z nie pustym MapRepository
-    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-
-    CHBidirectionalDijkstra pathFinder = new CHBidirectionalDijkstra(mapFragment, executor);
-
-
-    List<RouteWithLocation> routes = new ArrayList<>();
-    for (int i=0;i < numberOfRoutes; i++){
-      try{
-        LaneId startLaneId = getRandomWeightedLaneId(startPatch);
-
-//        Patch endPatch = getEndingPatch(mapRepository);
-//        LaneId endLineId = getRandomWeightedLaneId(endPatch);
-
-        LaneId endLineId = startPatch.getJunctionReadable(startPatch.getLaneReadable(startLaneId).getIncomingJunctionId()).streamIncomingLaneIds().findAny().get();
-
-//        System.out.println(startLaneId + " end: " +  endLineId);
-        System.out.println(Pair.of(startLaneId, endLineId));
-
-        routes.add(pathFinder.getPath(Pair.of(startLaneId, endLineId)));
-
-      } catch (NoLaneFoundException e) {
-        log.error("Error while finding lane in patch: " + e.toString());
-      }
-      catch (NoPatchFoundException e) {
-        log.error("Error while finding patch in mapRepository");
-      }
-    }
-
-    return routes;
   }
 }

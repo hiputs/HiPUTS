@@ -1,8 +1,8 @@
 carGenerator:
-  generateFromFile: true
-  filesPath: src/main/resources/generator/simple_map_1
+  generatorSource: "live" # "live" or "file"
+  filesPath: src/main/resources/generator
 
 routeGenerator:
-  RoutePathFinder: dijkstra
+  RoutePathFinder: random
 
 testMode: true

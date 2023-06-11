@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.driver.Driver;
 import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 
@@ -13,13 +14,13 @@ import java.util.List;
 
 @Component
 @AllArgsConstructor
-@ConditionalOnProperty(value = "car-generator.generate-from-file", havingValue = "true")
+@ConditionalOnProperty(value = "car-generator.generatorSource", havingValue = "file")
 public class FileCarGenerator implements CarGenerator {
 
   private final RouteReader routeReader;
 
   @Override
-  public List<Car> generateCars(Patch patch, int step) {
+  public List<Car> generateCars(Patch patch, int step, MapFragment mapFragment) {
     return routeReader.readNextRoutes(patch.getPatchId(), step).stream().map(routeEntry ->
       {
         var route = routeEntry.getRoute();

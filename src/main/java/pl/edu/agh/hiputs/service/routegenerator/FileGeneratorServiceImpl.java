@@ -1,9 +1,10 @@
 package pl.edu.agh.hiputs.service.routegenerator;
 
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
@@ -11,17 +12,14 @@ import pl.edu.agh.hiputs.service.routegenerator.generator.FileInputGenerator;
 import pl.edu.agh.hiputs.service.routegenerator.generator.routegenerator.RouteFileEntry;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.List;
 import java.util.Random;
 
 import static java.text.MessageFormat.format;
 
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class FileGeneratorServiceImpl implements FileGeneratorService {
 
@@ -29,6 +27,8 @@ public class FileGeneratorServiceImpl implements FileGeneratorService {
   private final Random random = new Random();
   private final MapRepository mapRepository;
 
+  @Value("${carGenerator.filesPath}")
+  private String patchesPath;
 
   @Override
   public void generateFiles(MapFragment fragment) {
@@ -37,17 +37,16 @@ public class FileGeneratorServiceImpl implements FileGeneratorService {
 
   private void generateFileForPatch(Patch patch, MapFragment mapFragment) {
 
-
-    String directoryPath = "src/main/resources/generator/simple_map_1";
-    var filePath = format("{0}/patch_{1}", directoryPath, patch.getPatchId().getValue());
+    var filePath = format("{0}/patch_{1}", patchesPath, patch.getPatchId().getValue());
 
 //    TODO: przemyśl parametry -> (może generowanie per step? wywołujemy po kolei dla kazdego stepu symulacji
 //     -> potrzbna ilośc stepów wiadoma)
-    List<RouteWithLocation> routes = fileGenerator.generateRouteFileInput(patch, null, null, mapRepository, mapFragment);
 
-    try (var fw = new FileWriter(filePath, true);
+    try (var fw = new FileWriter(filePath, false);
          var bw = new BufferedWriter(fw);
          var out = new PrintWriter(bw)) {
+      new File(filePath).createNewFile();
+      List<RouteWithLocation> routes = fileGenerator.generateRouteFileInput(patch, null, null, mapFragment);
       for (RouteWithLocation route : routes) {
         if (!route.getRouteElements().isEmpty()) {
 //          TODO: tu np można by wstawić to generowanie ( i uzależnić w tym forze od stepu?)
@@ -60,7 +59,7 @@ public class FileGeneratorServiceImpl implements FileGeneratorService {
         }
       }
     } catch (IOException e) {
-      log.error(String.valueOf(e));
+      log.error(format("Cannot create file: {} Inner exception: {}", filePath, e.getMessage()));
     }
 
 
