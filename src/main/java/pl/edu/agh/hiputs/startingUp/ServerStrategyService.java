@@ -131,13 +131,16 @@ public class ServerStrategyService implements Strategy {
       workerSynchronisationService.waitForAllWorkers(FinishSimulationStatisticMessage);
       log.info("Start generating summary");
       statisticSummaryService.endStage(SimulationPoint.SERVER_APP);
+
+      long t0 = System.currentTimeMillis();
       generateReport();
+      long t1 = System.currentTimeMillis();
+      System.out.print(t1 - t0);
     }
 
     messageSenderServerService.broadcast(new ShutDownMessage());
     Thread.sleep(500);
     shutDown();
-
   }
 
   private void calculateAndDistributeConfiguration(Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents) {
@@ -266,10 +269,10 @@ public class ServerStrategyService implements Strategy {
     @Override
     public void run() {
       try {
-        Thread.sleep(500);
+        Thread.sleep(1);
         workerStrategyService.executeStrategy();
-      } catch (InterruptedException e) {
-        log.error("Worker not started", e);
+        // } catch (InterruptedException e) {
+        //   log.error("Worker not started", e);
       } catch (Exception e) {
         log.error("Unexpected exception occurred", e);
       }

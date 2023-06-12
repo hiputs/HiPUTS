@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
 @Getter
@@ -63,15 +61,17 @@ public class RouteWithLocation {
         .map(el -> " jun: "+ el.getJunctionId() + " lane: " + el.getOutgoingLaneId() + " -> ").toList();
   }
 
-  public int getRemainingRouteSize(){
+  public int getRemainingRouteSize() {
     return routeElements.size() - currentPosition - 1;
   }
 
-  public RouteElement getLastRouteElement(){
+  public RouteElement getLastRouteElement() {
     return routeElements.get(routeElements.size() - 1);
   }
 
-  public void addRouteElements(List<RouteElement> extension) {
+  public synchronized void addRouteElements(List<RouteElement> extension) {
+    routeElements.subList(0, currentPosition).clear();
+    currentPosition = 0;
     routeElements.addAll(extension);
   }
 }

@@ -85,7 +85,7 @@ public class IterationStatisticsServiceImpl implements IterationStatisticsServic
   }
 
   @Override
-  public void setOutgoingMessagesSize(long size) {
+  public void setOutgoingMessagesSize(String size) {
     iterationStatistics.get(step).setOutgoingMessagesSize(size);
   }
 
@@ -149,7 +149,7 @@ public class IterationStatisticsServiceImpl implements IterationStatisticsServic
     private long carCountAfterStep;
     private int outgoingMessagesToServer;
     private int outgoingMessages;
-    private long outgoingMessagesSize;
+    private String outgoingMessagesSize;
     private long usedHeapMemory;
     private long usedNoHeapMemory;
     private long maxHeapMemory;

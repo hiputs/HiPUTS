@@ -3,10 +3,12 @@ package pl.edu.agh.hiputs.communication.service.worker;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -14,6 +16,8 @@ import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import pl.edu.agh.hiputs.HiPUTS;
@@ -45,7 +49,7 @@ public class MessageSenderService implements Subscriber {
   private AtomicLong sentMessagesSize;
   private AtomicInteger sentServerMessages;
   private AtomicInteger sentMessages;
-  private List<String> sentMessagesType;
+  private Queue<Pair<MessagesTypeEnum, Integer>> sentMessagesTypeDict;
 
   @PostConstruct
   void init() {
@@ -55,6 +59,7 @@ public class MessageSenderService implements Subscriber {
     sentMessagesSize = new AtomicLong(0);
     sentServerMessages = new AtomicInteger(0);
     sentMessages = new AtomicInteger(0);
+    sentMessagesTypeDict = new ConcurrentLinkedQueue<>();
   }
 
   /**
@@ -66,8 +71,10 @@ public class MessageSenderService implements Subscriber {
   public void send(MapFragmentId mapFragmentId, Message message) throws IOException {
     log.debug("Worker send message to: {} message type: {}", mapFragmentId, message.getMessageType());
 
-    sentMessagesSize.addAndGet(neighbourRepository.get(mapFragmentId).send(message));
+    // sentMessagesSize.addAndGet(neighbourRepository.get(mapFragmentId).send(message));
 
+    sentMessagesTypeDict.add(
+        new ImmutablePair<>(message.getMessageType(), neighbourRepository.get(mapFragmentId).send(message)));
     sentMessages.incrementAndGet();
     // sentMessagesType.add(message.getMessageType().name());
 
@@ -119,7 +126,6 @@ public class MessageSenderService implements Subscriber {
       case PatchTransferMessage -> handlePatchTransferMessage(message);
       case PatchTransferNotificationMessage -> handlePatchTransferNotificationMessage(message);
     }
-
   }
 
   public int getSentMessages() {
@@ -130,8 +136,19 @@ public class MessageSenderService implements Subscriber {
     return sentServerMessages.getAndSet(0);
   }
 
-  public long getSentMessagesSize() {
-    return sentMessagesSize.getAndSet(0);
+  public synchronized String getSentMessagesSize() {
+    // return sentMessagesSize.getAndSet(0);
+
+    String result = sentMessagesTypeDict.stream()
+        .collect(Collectors.groupingBy(Pair::getLeft, Collectors.summingInt(Pair::getRight)))
+        .entrySet()
+        .stream()
+        .sorted(Entry.comparingByKey())
+        .map(val -> val.getKey().toString() + ":" + val.getValue().toString() + ",")
+        .reduce("", (res, val) -> res + val);
+    sentMessagesTypeDict.clear();
+    return result;
+
   }
 
   private void handlePatchTransferNotificationMessage(Message message) {

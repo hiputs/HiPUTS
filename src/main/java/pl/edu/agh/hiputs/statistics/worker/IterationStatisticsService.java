@@ -18,7 +18,7 @@ public interface IterationStatisticsService extends StageTimeService {
 
   void setOutgoingMessagesInStep(int messages);
 
-  void setOutgoingMessagesSize(long size);
+  void setOutgoingMessagesSize(String size);
 
   void setMemoryUsage();
 
