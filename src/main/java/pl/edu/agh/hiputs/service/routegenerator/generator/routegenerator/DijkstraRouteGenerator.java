@@ -24,28 +24,45 @@ import java.util.concurrent.*;
 @ConditionalOnProperty(value = "route-generator.route-path-finder", havingValue = "dijkstra")
 public class DijkstraRouteGenerator implements RouteGenerator{
 
-  private final MapRepository mapRepository;
-
   @Override
-  public List<RouteWithLocation> generateRoutes(Patch startPatch, int numberOfRoutes, MapFragment mapFragment) {
-//    TODO: sprawdzić na mapie z nie pustym MapRepository
+  public List<RouteWithLocation> generateRoutesFromMapFragment(Patch startPatch, int numberOfRoutes, MapFragment mapFragment) {
     ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+
+//    List<List<LaneId>> laneIds = mapFragment.localPatches().stream().map(patch -> patch.streamLanesReadable()
+//      .filter(laneReadable -> patch.getJunctionReadable(laneReadable.getIncomingJunctionId()) == null)
+//      .map(LaneReadable::getLaneId).toList()).toList();
+//
+//    System.out.println(laneIds);
 
     CHBidirectionalDijkstra pathFinder = new CHBidirectionalDijkstra(mapFragment, executor);
 
+    return generateRoutes(startPatch, numberOfRoutes, mapFragment.localPatches(), pathFinder);
+  }
 
+  @Override
+  public List<RouteWithLocation> genrateRoutesFromMapRepository(Patch startPatch, int numberOfRoutes, MapRepository mapRepository) {
+    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+
+
+//    List<List<LaneId>> laneIds = mapRepository.getAllPatches().stream().map(patch -> patch.streamLanesReadable()
+//        .filter(laneReadable -> patch.getJunctionReadable(laneReadable.getIncomingJunctionId()) == null)
+//        .map(LaneReadable::getLaneId).toList()).toList();
+//
+//    System.out.println(laneIds);
+
+    CHBidirectionalDijkstra pathFinder = new CHBidirectionalDijkstra(mapRepository, executor);
+
+    return generateRoutes(startPatch, numberOfRoutes, mapRepository.getAllPatches(), pathFinder);
+  }
+
+  private List<RouteWithLocation> generateRoutes(Patch startPatch, int numberOfRoutes, List<Patch> patches, PathFinder pathFinder){
     List<RouteWithLocation> routes = new ArrayList<>();
     for (int i=0;i < numberOfRoutes; i++){
       try{
         LaneId startLaneId = getRandomWeightedLaneId(startPatch);
 
-//        Patch endPatch = getEndingPatch(mapRepository);
-//        LaneId endLineId = getRandomWeightedLaneId(endPatch);
-
-        LaneId endLineId = startPatch.getJunctionReadable(startPatch.getLaneReadable(startLaneId).getIncomingJunctionId()).streamIncomingLaneIds().findAny().get();
-
-//        System.out.println(startLaneId + " end: " +  endLineId);
-        System.out.println(Pair.of(startLaneId, endLineId));
+        Patch endPatch = getEndingPatch(patches);
+        LaneId endLineId = getRandomWeightedLaneId(endPatch);
 
         routes.add(pathFinder.getPath(Pair.of(startLaneId, endLineId)));
 
@@ -60,15 +77,9 @@ public class DijkstraRouteGenerator implements RouteGenerator{
     return routes;
   }
 
-  private double patchLength(Patch patch){
-//    System.out.println(patch);
-//    System.out.println(patch.streamLanesReadable().findAny().get().getLength());
-    System.out.println(patch.streamLanesReadable().map(LaneReadable::getLength).reduce(0.0, Double::sum));
-    return patch.streamLanesReadable().map(LaneReadable::getLength).reduce(0.0, Double::sum);
-  }
 
   private LaneId getRandomWeightedLaneId(Patch patch){
-    double totalLength = patchLength(patch);
+    double totalLength = patch.getLanesLength();
     double startingPoint = ThreadLocalRandom.current().nextDouble(totalLength);
 
     for(LaneId laneId : patch.getLaneIds()) {
@@ -81,23 +92,18 @@ public class DijkstraRouteGenerator implements RouteGenerator{
     throw new NoLaneFoundException(patch.getPatchId().getValue());
   }
 
-  private Patch getEndingPatch(MapRepository mapRepository){
-    System.out.println("rozmiar1:" + mapRepository.getAllPatches().size());
-    System.out.println("rozmiar2: " + mapRepository.getAllPatches().stream().map(patch -> patchLength(patch)).count());
-    double totalLength = mapRepository.getAllPatches().stream().map(patch -> patchLength(patch)).reduce(0.0, Double::sum);
+  private Patch getEndingPatch(List<Patch> patches){
+    double totalLength = patches.stream().map(Patch::getLanesLength).reduce(0.0, Double::sum);
 
-
-    System.out.println(totalLength);
     double startingPoint = ThreadLocalRandom.current().nextDouble(totalLength);
 
-    for(Patch patch : mapRepository.getAllPatches()) {
-      startingPoint -= patchLength(patch);
+    for(Patch patch : patches) {
+      startingPoint -= patch.getLanesLength();
       if (startingPoint <= 0){
         return patch;
       }
     }
 
     throw new NoPatchFoundException();
-
   }
 }

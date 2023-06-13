@@ -166,6 +166,11 @@ public class Configuration {
   private String timeBasedCarGenerationConfigPath;
 
   /**
+   * Number of steps to generate to file
+   */
+  private int fileGenerationSteps;
+
+  /**
    * Unique worker id
    */
   private MapFragmentId mapFragmentId;

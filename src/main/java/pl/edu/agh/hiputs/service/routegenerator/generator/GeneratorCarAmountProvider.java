@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class LiveGeneratorCarAmountProvider {
+public class GeneratorCarAmountProvider {
 
   private final TimeBasedCarGeneratorConfig timeBasedCarGeneratorConfig;
 

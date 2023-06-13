@@ -14,7 +14,7 @@ import java.util.List;
 
 @Component
 @AllArgsConstructor
-@ConditionalOnProperty(value = "car-generator.generatorSource", havingValue = "file")
+@ConditionalOnProperty(value = "car-generator.generator-source", havingValue = "file")
 public class FileCarGenerator implements CarGenerator {
 
   private final RouteReader routeReader;
