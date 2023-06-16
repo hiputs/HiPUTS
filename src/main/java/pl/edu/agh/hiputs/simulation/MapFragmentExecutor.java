@@ -110,7 +110,7 @@ public class MapFragmentExecutor {
       log.debug("Step 11 start");
 
 //      TODO: osobny job na generowanie?
-      if (step == 0)
+      if (step == -1)
         fileGeneratorService.generateFiles(mapFragment);
 
       carGeneratorService.generateCars(mapFragment, step);

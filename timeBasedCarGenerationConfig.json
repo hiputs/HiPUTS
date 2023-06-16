@@ -12,6 +12,6 @@
   {
     "startStep": 200,
     "endStep": 300,
-    "carsPerKmLane": 7
+    "carsPerKmLane": 1
   }
 ]

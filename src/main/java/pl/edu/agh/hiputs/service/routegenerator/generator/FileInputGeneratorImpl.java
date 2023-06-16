@@ -25,7 +25,7 @@ public class FileInputGeneratorImpl implements FileInputGenerator {
     List<Pair<RouteWithLocation, Integer>> routesWithStep = new ArrayList<>();
     for(int step = startStep; step <= endStep; step ++){
       var carsAmountToGenerate = carAmountProvider.getCarsToGenerateAmountAtStep(step, patchTotalLaneLength);
-      List<RouteWithLocation> newRoutes = Boolean.TRUE.equals(fromMapFragment) ?
+      List<RouteWithLocation> newRoutes = fromMapFragment ?
         routeGenerator.generateRoutesFromMapFragment(patch, carsAmountToGenerate, mapFragment) :
         routeGenerator.genrateRoutesFromMapRepository(patch, carsAmountToGenerate, mapRepository);
       for(RouteWithLocation route : newRoutes){

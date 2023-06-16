@@ -12,6 +12,7 @@ import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.routegenerator.generator.routegenerator.RouteFileEntry;
 
+import javax.swing.text.html.Option;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -58,11 +59,13 @@ public class RouteReader {
     try (Stream<String> lines = Files.lines(Paths.get(filePath))) {
       var lineNumber = Optional.ofNullable(fileCursors.get(patchId));
       if (lineNumber.isPresent()) {
-        lines.skip(lineNumber.get()).takeWhile(line -> !isRouteFuture(line, step)).forEach(line -> {
-          updateFileCursor(patchId);
-          var parsed = getFileEntry(line, step);
-          parsed.ifPresent(nextRoutes::add);
-        });
+        lines.skip(lineNumber.get())
+          .dropWhile(line -> isAlreadyGenerated(line, step, patchId))
+          .takeWhile(line -> isCurrentStep(line, step))
+          .forEach(line -> {
+            safelyParseFileEntry(line).ifPresent(nextRoutes::add);
+            updateFileCursor(patchId);
+          });
       } else {
         removeFileCursor(patchId);
       }
@@ -73,59 +76,48 @@ public class RouteReader {
     }
   }
 
-  private Optional<RouteFileEntry> parseFileEntry(String line, int step) {
-    var tokens = line.split(";");
-    var creationTimeMs = Long.parseLong(tokens[0]);
-    var carLength = Double.parseDouble(tokens[1]);
-    var maxSpeed = Double.parseDouble(tokens[2]);
-    var speed = Double.parseDouble(tokens[3]);
-    var routeUUID = Stream.of(tokens[4].split(",")).toList();
-    var routeElements = new ArrayList<RouteElement>();
-    return optionalWhen(isReadyToBeCreated(creationTimeMs, step), () -> {
-      for (int i = 0; i < routeUUID.size(); i += 2) {
-        var junctionId = new JunctionId(routeUUID.get(i), JunctionType.CROSSROAD);
-        var laneID = new LaneId(routeUUID.get(i + 1));
-        // arbitralnie crossroad, trzeba sie zastanowic, jak to ogarnac
-        routeElements.add(new RouteElement(junctionId, laneID));
-      }
-      return new RouteFileEntry(
-        creationTimeMs,
-        new RouteWithLocation(routeElements, 0),
-        carLength,
-        maxSpeed,
-        speed
-      );
-    });
-  }
-
-  /**
-   * this method doesn't log error becouse we want to actualy skip incorect line and find last that is there to be
-   * read.The error will be logged in getRoute function, and this line will not be taken as route to generate car
-   */
-  private Boolean isRouteFuture(String line, int step) {
-    try {
-      Optional<RouteFileEntry> parsed = parseFileEntry(line, step);
-      if (parsed.isPresent()) {
-        return false;
-      }
-    } catch (IllegalArgumentException e) {
-      return false;
-    }
-    return true;
-  }
-
-
-  private Optional<RouteFileEntry> getFileEntry(String line, int step) {
-    try {
-      return parseFileEntry(line, step);
-    } catch (IllegalArgumentException e) {
-      log.error("Error while parsing line: " + line, e);
+  private Optional<RouteFileEntry> safelyParseFileEntry(String line){
+    try{
+      return Optional.of(parseFileEntry(line));
+    } catch (NumberFormatException e){
+      log.error("Error while parsing file entry: " + line, e.getMessage());
       return Optional.empty();
     }
   }
 
-  private boolean isReadyToBeCreated(long creationTimeMs, int step) {
-    return (long) step * stepTimeMs >= creationTimeMs;
+  private RouteFileEntry parseFileEntry(String line) throws NumberFormatException {
+    var tokens = line.split(";");
+    var creationStep = Long.parseLong(tokens[0]);
+    var carLength = Double.parseDouble(tokens[1]);
+    var maxSpeed = Double.parseDouble(tokens[2]);
+    var speed = Double.parseDouble(tokens[3]);
+    var routeUUIDs = Stream.of(tokens[4].split(",")).toList();
+    var routeElements = new ArrayList<RouteElement>();
+    for (int i = 0; i < routeUUIDs.size(); i += 2) {
+      var junctionId = new JunctionId(routeUUIDs.get(i), JunctionType.CROSSROAD);
+      var laneID = new LaneId(routeUUIDs.get(i + 1));
+      // arbitralnie crossroad, trzeba sie zastanowic, jak to ogarnac
+      routeElements.add(new RouteElement(junctionId, laneID));
+    }
+    return new RouteFileEntry(
+      creationStep,
+      new RouteWithLocation(routeElements, 0),
+      carLength,
+      maxSpeed,
+      speed
+    );
+  }
+
+  private boolean isCurrentStep(String lineStr, long step) {
+    return safelyParseFileEntry(lineStr).map(entry -> entry.getStep() == step).orElse(true);
+  }
+
+  private boolean isAlreadyGenerated(String lineStr, long step, PatchId patchId) {
+    var alreadyGenerated =  safelyParseFileEntry(lineStr).map(entry -> entry.getStep() < step).orElse(true);
+    if (alreadyGenerated) {
+      updateFileCursor(patchId);
+    }
+    return alreadyGenerated;
   }
 
   private void updateFileCursor(PatchId patchId) {

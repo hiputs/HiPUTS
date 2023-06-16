@@ -23,7 +23,7 @@ public class SingleWorkStrategyService implements Strategy {
   @Override
   public void executeStrategy() throws InterruptedException {
     log.info("Start work in single mode");
-    mapFragmentExecutor.setMapFragment(ExampleMapFragmentProvider.getSimpleLongerMapForOvertaking());
+    mapFragmentExecutor.setMapFragment(ExampleMapFragmentProvider.getSimpleMap4(false));
     monitorLocalService.init(mapFragmentExecutor.getMapFragment());
 
     TrivialGraphBasedVisualizer graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment(), null);

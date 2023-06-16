@@ -31,7 +31,7 @@ public class LiveCarGenerator implements CarGenerator {
   public List<Car> generateCars(Patch patch, int step, MapFragment mapFragment) {
     var patchTotalLaneLength = patch.getLanesLength();
     var carsAmountToGenerate = carAmountProvider.getCarsToGenerateAmountAtStep(step, patchTotalLaneLength);
-    List<RouteWithLocation> routes = Boolean.TRUE.equals(ConfigurationService.getConfiguration().isTestMode()) ?
+    List<RouteWithLocation> routes = ConfigurationService.getConfiguration().isTestMode() ?
       routeGenerator.generateRoutesFromMapFragment(patch, carsAmountToGenerate, mapFragment) :
       routeGenerator.genrateRoutesFromMapRepository(patch, carsAmountToGenerate, mapRepository);
 

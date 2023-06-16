@@ -44,10 +44,6 @@ public class FileGeneratorServiceImpl implements FileGeneratorService {
 
     var filePath = format("{0}/patch_{1}", patchesPath, patch.getPatchId().getValue());
 
-
-
-
-
     try (var fw = new FileWriter(filePath, false);
          var bw = new BufferedWriter(fw);
          var out = new PrintWriter(bw)) {
