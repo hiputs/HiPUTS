@@ -1,10 +1,10 @@
 {
-  "testMode": true,
+  "testMode": false,
   "workerCount": 1,
   "enableGUI": true,
   "statisticModeActive": false,
   "simulationStep": 1000,
-  "mapPath": "/Users/mstencel/Studia/Semestr 8/Miss/HiPUTS/data/map.osm",
+  "mapPath": "/Users/Konrad/Desktop/Studia/2022.2023/2Semestr/MISS/HiPUTS/data/map.osm",
   "serverAddress": "localhost",
   "serverPort": 8081,
   "localHostMode": false,
@@ -30,5 +30,6 @@
   "newCars": 0,
   "minCars": 0,
   "ticketActive": false,
-  "timeBasedCarGenerationConfigPath": "timeBasedCarGenerationConfig.json"
+  "timeBasedCarGenerationConfigPath": "timeBasedCarGenerationConfig.json",
+  "fileGenerationSteps": 1000
 }

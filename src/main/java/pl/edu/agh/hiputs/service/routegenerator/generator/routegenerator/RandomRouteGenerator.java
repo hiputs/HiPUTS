@@ -27,8 +27,16 @@ public class RandomRouteGenerator implements RouteGenerator{
   private final MapRepository mapRepository;
 
   @Override
-  public List<RouteWithLocation> generateRoutes(Patch patch, int numberOfRoutes, MapFragment mapFragment) {
+  public List<RouteWithLocation> generateRoutesFromMapFragment(Patch patch, int numberOfRoutes, MapFragment mapFragment) {
+    return generateRandomRoutes(patch, numberOfRoutes);
+  }
 
+  @Override
+  public List<RouteWithLocation> genrateRoutesFromMapRepository(Patch patch, int numberOfRoutes, MapRepository mapRepository) {
+    return generateRandomRoutes(patch, numberOfRoutes);
+  }
+
+  private List<RouteWithLocation> generateRandomRoutes(Patch patch, int numberOfRoutes){
     List<RouteWithLocation> routes = new LinkedList<>();
     List<LaneId> lanesIds = patch.getLaneIds().stream().toList();
 

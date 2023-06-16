@@ -1,11 +1,11 @@
 package pl.edu.agh.hiputs.service.routegenerator.generator;
 
+import org.jgrapht.alg.util.Pair;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 public interface FileInputGenerator {
@@ -18,6 +18,6 @@ public interface FileInputGenerator {
      * It returns name of file
      * @return
      */
-    List<RouteWithLocation> generateRouteFileInput(Patch patch, Timestamp startTime, Timestamp endTime, MapFragment mapFragment);
+    List<Pair<RouteWithLocation, Integer>> generateRouteFileInput(Patch patch, int startStep, int endStep, MapFragment mapFragment, MapRepository mapRepository, Boolean fromMapFragment);
 
 }
