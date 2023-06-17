@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.successor.allocator;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.allocator;
 
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.partition.mapper.util.sort.ByAngleEdgeSorter;
-import pl.edu.agh.hiputs.partition.mapper.util.successor.pairing.DefaultPairingIncomingWithOutgoings;
+import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.pairing.DefaultPairingIncomingWithOutgoings;
 import pl.edu.agh.hiputs.partition.mapper.util.turn.mapper.FixedAngleRangeTurnMapper;
 import pl.edu.agh.hiputs.partition.mapper.util.turn.processor.StandardOsmTurnProcessor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;

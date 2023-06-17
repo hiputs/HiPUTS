@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.successor.pairing;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.pairing;
 
 import java.util.List;
 import pl.edu.agh.hiputs.partition.model.JunctionData;

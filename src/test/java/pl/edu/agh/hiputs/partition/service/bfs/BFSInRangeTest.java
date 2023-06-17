@@ -13,22 +13,10 @@ import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.partition.mapper.queue.CorrectorQueue;
 import pl.edu.agh.hiputs.partition.mapper.queue.DetectorQueue;
 import pl.edu.agh.hiputs.partition.mapper.queue.FilterQueue;
-import pl.edu.agh.hiputs.partition.mapper.util.sort.ByAngleEdgeSorter;
-import pl.edu.agh.hiputs.partition.mapper.util.successor.allocator.OnBendSuccessorAllocator;
-import pl.edu.agh.hiputs.partition.mapper.util.successor.allocator.OnCrossroadSuccessorAllocator;
-import pl.edu.agh.hiputs.partition.mapper.util.successor.pairing.DefaultPairingIncomingWithOutgoings;
-import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphCrossroadDeterminer;
-import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphLanesCreator;
 import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphLengthFiller;
-import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphMaxSpeedFiller;
-import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphNextLanesAllocator;
-import pl.edu.agh.hiputs.partition.mapper.util.transformer.GraphReverseRoadsCreator;
-import pl.edu.agh.hiputs.partition.mapper.util.transformer.LargestCCSelector;
 import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapper;
 import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapperImpl;
 import pl.edu.agh.hiputs.partition.mapper.util.oneway.StandardOsmAndRoundaboutOnewayProcessor;
-import pl.edu.agh.hiputs.partition.mapper.util.turn.mapper.FixedAngleRangeTurnMapper;
-import pl.edu.agh.hiputs.partition.mapper.util.turn.processor.StandardOsmTurnProcessor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -45,23 +33,7 @@ public class BFSInRangeTest {
 
   private final Osm2InternalModelMapper osm2InternalModelMapper = new Osm2InternalModelMapperImpl(
       new StandardOsmAndRoundaboutOnewayProcessor(),
-      List.of(
-          new LargestCCSelector(),
-          new GraphMaxSpeedFiller(),
-          new GraphLengthFiller(),
-          new GraphReverseRoadsCreator(),
-          new GraphCrossroadDeterminer(),
-          new GraphLanesCreator(new StandardOsmAndRoundaboutOnewayProcessor()),
-          new GraphNextLanesAllocator(List.of(
-              new OnBendSuccessorAllocator(new StandardOsmTurnProcessor()),
-              new OnCrossroadSuccessorAllocator(
-                  new DefaultPairingIncomingWithOutgoings(),
-                  new StandardOsmTurnProcessor(),
-                  new FixedAngleRangeTurnMapper(),
-                  new ByAngleEdgeSorter()
-              )
-          ))
-      ),
+      List.of(new GraphLengthFiller()),
       new FilterQueue(List.of()),
       new DetectorQueue(List.of()),
       new CorrectorQueue(List.of())

@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.successor.allocator;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.allocator;
 
 import java.util.ArrayList;
 import java.util.List;

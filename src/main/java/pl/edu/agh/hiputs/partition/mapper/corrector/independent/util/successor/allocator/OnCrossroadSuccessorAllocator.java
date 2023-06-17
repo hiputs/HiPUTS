@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.successor.allocator;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.allocator;
 
 import java.util.List;
 import java.util.Map;
@@ -8,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.pairing.PairingIncomingWithOutgoings;
 import pl.edu.agh.hiputs.partition.mapper.util.sort.EdgeSorter;
-import pl.edu.agh.hiputs.partition.mapper.util.successor.pairing.PairingIncomingWithOutgoings;
 import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnDirection;
 import pl.edu.agh.hiputs.partition.mapper.util.turn.mapper.TurnMapper;
 import pl.edu.agh.hiputs.partition.mapper.util.turn.processor.TurnProcessor;

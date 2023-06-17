@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.transformer;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.lanes;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -10,33 +10,21 @@ import pl.edu.agh.hiputs.partition.mapper.util.oneway.StandardOsmAndRoundaboutOn
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
-import pl.edu.agh.hiputs.partition.model.graph.Graph;
-import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
-import pl.edu.agh.hiputs.partition.model.graph.Node;
 
-public class GraphLanesCreatorTest {
-  private final GraphLanesCreator creator = new GraphLanesCreator(new StandardOsmAndRoundaboutOnewayProcessor());
+public class StandardLanesCreatorTest {
+  private final StandardLanesCreator creator = new StandardLanesCreator(new StandardOsmAndRoundaboutOnewayProcessor());
 
   @ParameterizedTest
   @MethodSource("provideParamsForLaneNoChecking")
   public void checkNumberOfLanes(Map<String, String> tags, boolean oppositeMeaning, int resultNumber) {
     // given
-    Node<JunctionData, WayData> node1 = new Node<>("1", JunctionData.builder().build());
-    Node<JunctionData, WayData> node2 = new Node<>("2", JunctionData.builder().build());
     Edge<JunctionData, WayData> edge = new Edge<>("12", WayData.builder()
         .tags(tags)
         .tagsInOppositeMeaning(oppositeMeaning)
         .build());
-    edge.setSource(node1);
-    edge.setTarget(node2);
-    Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>()
-        .addNode(node1)
-        .addNode(node2)
-        .addEdge(edge)
-        .build();
 
     // when
-    creator.transform(graph);
+    creator.deduceAndCreate(edge);
 
     // then
     Assertions.assertEquals(resultNumber, edge.getData().getLanes().size());
