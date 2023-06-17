@@ -30,7 +30,8 @@ public class ByAngleEdgeSorterTest {
   private final static Edge<JunctionData, WayData> secondEdge = new Edge<>("02", WayData.builder().build());
   private final static Edge<JunctionData, WayData> thirdEdge = new Edge<>("03", WayData.builder().build());
 
-  private final static Edge<JunctionData, WayData> refEdge = new Edge<>("10", WayData.builder().build());
+  private final static Edge<JunctionData, WayData> refEdge = new Edge<>("01", WayData.builder().build());
+  private final static Edge<JunctionData, WayData> refEdgeReverse = new Edge<>("10", WayData.builder().build());
 
   private final static Edge<JunctionData, WayData> reverseFirstEdge = new Edge<>("10", WayData.builder().build());
   private final static Edge<JunctionData, WayData> reverseSecondEdge = new Edge<>("20", WayData.builder().build());
@@ -38,8 +39,10 @@ public class ByAngleEdgeSorterTest {
 
   @BeforeAll
   public static void initAll() {
-    refEdge.setSource(firstNode);
-    refEdge.setTarget(crossroad);
+    refEdge.setSource(crossroad);
+    refEdge.setTarget(firstNode);
+    refEdgeReverse.setSource(firstNode);
+    refEdgeReverse.setTarget(crossroad);
     firstEdge.setSource(crossroad);
     firstEdge.setTarget(firstNode);
     secondEdge.setSource(crossroad);
@@ -59,11 +62,13 @@ public class ByAngleEdgeSorterTest {
   public void sortEdges(
       List<Edge<JunctionData, WayData>> edges,
       List<Edge<JunctionData, WayData>> sorted,
-      Function<Edge<JunctionData, WayData>, JunctionData> nodeGetter) {
+      Edge<JunctionData, WayData> ref,
+      Function<Edge<JunctionData, WayData>, JunctionData> nodeGetter,
+      Function<Edge<JunctionData, WayData>, JunctionData> centerGetter) {
     // given
 
     // when
-    List<Edge<JunctionData, WayData>> sortedEdges = sorter.getSorted(edges, refEdge, nodeGetter);
+    List<Edge<JunctionData, WayData>> sortedEdges = sorter.getSorted(edges, ref, nodeGetter, centerGetter);
 
     // then
     Assertions.assertEquals(sorted.size(), sortedEdges.size());
@@ -76,16 +81,31 @@ public class ByAngleEdgeSorterTest {
     Function<Edge<JunctionData, WayData>, JunctionData> sourceGetter = edge -> edge.getSource().getData();
 
     return Stream.of(
-        Arguments.of(List.of(firstEdge, secondEdge, thirdEdge), List.of(firstEdge, secondEdge, thirdEdge), targetGetter),
-        Arguments.of(List.of(secondEdge, thirdEdge, firstEdge), List.of(firstEdge, secondEdge, thirdEdge), targetGetter),
-        Arguments.of(List.of(firstEdge), List.of(firstEdge), targetGetter),
-        Arguments.of(List.of(), List.of(), targetGetter),
-        Arguments.of(List.of(reverseFirstEdge, reverseSecondEdge, reverseThirdEdge),
-            List.of(reverseFirstEdge, reverseSecondEdge, reverseThirdEdge), sourceGetter),
-        Arguments.of(List.of(reverseSecondEdge, reverseThirdEdge, reverseFirstEdge),
-            List.of(reverseFirstEdge, reverseSecondEdge, reverseThirdEdge), sourceGetter),
-        Arguments.of(List.of(reverseFirstEdge), List.of(reverseFirstEdge), sourceGetter),
-        Arguments.of(List.of(), List.of(), sourceGetter)
+        Arguments.of(
+            List.of(firstEdge, secondEdge, thirdEdge),
+            List.of(firstEdge, secondEdge, thirdEdge),
+            refEdge, targetGetter, sourceGetter),
+        Arguments.of(
+            List.of(secondEdge, thirdEdge, firstEdge),
+            List.of(firstEdge, secondEdge, thirdEdge),
+            refEdge, targetGetter, sourceGetter),
+        Arguments.of(List.of(firstEdge), List.of(firstEdge),
+            refEdge, targetGetter, sourceGetter),
+        Arguments.of(List.of(), List.of(),
+            refEdge, targetGetter, sourceGetter),
+        Arguments.of(
+            List.of(reverseFirstEdge, reverseSecondEdge, reverseThirdEdge),
+            List.of(reverseFirstEdge, reverseSecondEdge, reverseThirdEdge),
+            refEdgeReverse, sourceGetter, targetGetter),
+        Arguments.of(
+            List.of(reverseSecondEdge, reverseThirdEdge, reverseFirstEdge),
+            List.of(reverseFirstEdge, reverseSecondEdge, reverseThirdEdge),
+            refEdgeReverse, sourceGetter, targetGetter),
+        Arguments.of(
+            List.of(reverseFirstEdge),
+            List.of(reverseFirstEdge),
+            refEdgeReverse, sourceGetter, targetGetter),
+        Arguments.of(List.of(), List.of(), refEdgeReverse, sourceGetter, targetGetter)
     );
   }
 }

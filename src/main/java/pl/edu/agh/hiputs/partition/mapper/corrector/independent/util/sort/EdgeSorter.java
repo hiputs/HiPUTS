@@ -11,6 +11,7 @@ public interface EdgeSorter {
   List<Edge<JunctionData, WayData>> getSorted(
       List<Edge<JunctionData, WayData>> edgesToSort,
       Edge<JunctionData, WayData> refEdge,
-      Function<Edge<JunctionData, WayData>, JunctionData> appropriateNodeGetter
+      Function<Edge<JunctionData, WayData>, JunctionData> appropriateNodeGetter,
+      Function<Edge<JunctionData, WayData>, JunctionData> centerNodeGetter
   );
 }

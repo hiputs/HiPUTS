@@ -20,7 +20,8 @@ public class ByAngleEdgeSorter implements EdgeSorter{
   public List<Edge<JunctionData, WayData>> getSorted(
       List<Edge<JunctionData, WayData>> edgesToSort,
       Edge<JunctionData, WayData> refEdge,
-      Function<Edge<JunctionData, WayData>, JunctionData> appropriateNodeGetter
+      Function<Edge<JunctionData, WayData>, JunctionData> appropriateNodeGetter,
+      Function<Edge<JunctionData, WayData>, JunctionData> centerNodeGetter
   ) {
     List<Pair<Point, Edge<JunctionData, WayData>>> dataToSort = edgesToSort.stream()
         .map(edge -> Pair.of(Point.convertFromCoords(appropriateNodeGetter.apply(edge)), edge))
@@ -28,8 +29,8 @@ public class ByAngleEdgeSorter implements EdgeSorter{
 
     edgeSorter.sortByPointsWithRef(
         dataToSort,
-        Point.convertFromCoords(refEdge.getTarget().getData()),
-        Point.convertFromCoords(refEdge.getSource().getData())
+        Point.convertFromCoords(centerNodeGetter.apply(refEdge)),
+        Point.convertFromCoords(appropriateNodeGetter.apply(refEdge))
     );
 
     return dataToSort.stream()

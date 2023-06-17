@@ -38,7 +38,10 @@ public class OnCrossroadSuccessorAllocator implements SuccessorAllocator{
   private void allocateOnCrossroad(Node<JunctionData, WayData> crossroad) {
     crossroad.getIncomingEdges().forEach(incomingEdge -> {
       List<Edge<JunctionData, WayData>> sortedOutgoings = edgeSorter.getSorted(
-          crossroad.getOutgoingEdges(), incomingEdge, edge -> edge.getTarget().getData());
+          crossroad.getOutgoingEdges(),
+          createReversedRefEdge(incomingEdge),
+          edge -> edge.getTarget().getData(),
+          edge -> edge.getSource().getData());
       List<List<TurnDirection>> availableTurns = turnProcessor.getTurnDirectionsFromTags(incomingEdge.getData());
 
       Optional.of(availableTurns)
@@ -79,5 +82,13 @@ public class OnCrossroadSuccessorAllocator implements SuccessorAllocator{
             }
           }, () -> defaultAllocator.pair(incomingEdge.getData(), sortedOutgoings));
     });
+  }
+
+  private Edge<JunctionData, WayData> createReversedRefEdge(Edge<JunctionData, WayData> refEdge){
+    Edge<JunctionData, WayData> reversedRefEdge = new Edge<>("", WayData.builder().build());
+    reversedRefEdge.setSource(refEdge.getTarget());
+    reversedRefEdge.setTarget(refEdge.getSource());
+
+    return reversedRefEdge;
   }
 }

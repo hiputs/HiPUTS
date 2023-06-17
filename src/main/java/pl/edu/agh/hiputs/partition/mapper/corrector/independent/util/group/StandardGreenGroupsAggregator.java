@@ -30,7 +30,10 @@ public class StandardGreenGroupsAggregator implements GreenGroupsAggregator{
 
   private void createGreenColorGroupsForJunction(Node<JunctionData, WayData> junction) {
     List<Edge<JunctionData, WayData>> sortedIncomingEdges = edgeSorter.getSorted(
-        junction.getIncomingEdges(), junction.getIncomingEdges().get(0), edge -> edge.getSource().getData());
+        junction.getIncomingEdges(),
+        junction.getIncomingEdges().get(0),
+        edge -> edge.getSource().getData(),
+        edge -> edge.getTarget().getData());
 
     junction.getData().getSignalsControlCenter().ifPresent(signalsControlCenter ->
         signalsControlCenter.getGreenColorGroups().addAll(
