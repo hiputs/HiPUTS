@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.turn;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.turn;
 
 public enum TurnDirection {
   REVERSE, SHARP_LEFT, LEFT, SLIGHT_LEFT,

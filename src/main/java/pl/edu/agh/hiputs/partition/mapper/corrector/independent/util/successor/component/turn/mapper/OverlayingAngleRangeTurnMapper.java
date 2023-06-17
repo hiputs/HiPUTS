@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.turn.mapper;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.turn.mapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnDirection;
+import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.turn.TurnDirection;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.geom.Point;

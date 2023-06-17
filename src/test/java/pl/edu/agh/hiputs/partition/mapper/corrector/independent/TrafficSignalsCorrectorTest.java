@@ -17,7 +17,7 @@ import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.indicator.S
 import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.indicator.component.TIOnCrossroadProcessor;
 import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.indicator.component.TIOnRoadProcessor;
 import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.indicator.component.helper.SimulationTimeStepGetter;
-import pl.edu.agh.hiputs.partition.mapper.util.sort.ByAngleEdgeSorter;
+import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.sort.ByAngleEdgeSorter;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;

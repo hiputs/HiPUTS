@@ -1,11 +1,11 @@
-package pl.edu.agh.hiputs.partition.mapper.util.turn.mapper;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.turn.mapper;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnDirection;
+import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.turn.TurnDirection;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -23,9 +23,9 @@ public class OverlayingAngleRangeTurnMapperTest {
   private final Node<JunctionData, WayData> rightSiblingNode = new Node<>("2",
       JunctionData.builder().lat(50.0852747).lon(19.8913083).build());
 
-  private Edge<JunctionData, WayData> refEdge = new Edge<>("ref", WayData.builder().build());
-  private Edge<JunctionData, WayData> nextEdge1 = new Edge<>("n1", WayData.builder().build());
-  private Edge<JunctionData, WayData> nextEdge2 = new Edge<>("n2", WayData.builder().build());
+  private final Edge<JunctionData, WayData> refEdge = new Edge<>("ref", WayData.builder().build());
+  private final Edge<JunctionData, WayData> nextEdge1 = new Edge<>("n1", WayData.builder().build());
+  private final Edge<JunctionData, WayData> nextEdge2 = new Edge<>("n2", WayData.builder().build());
 
   @Test
   public void oneOutgoingInEveryAngleRangeBeforeFlatMap() {

@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.pairing;
 
 import java.util.Collections;
 import java.util.List;

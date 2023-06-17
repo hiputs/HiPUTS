@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.sort;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.sort;
 
 import java.util.List;
 import java.util.function.Function;

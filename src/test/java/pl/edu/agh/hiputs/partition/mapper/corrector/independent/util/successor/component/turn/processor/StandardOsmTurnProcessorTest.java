@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.turn.processor;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.turn.processor;
 
 import java.util.Collections;
 import java.util.List;
@@ -14,7 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnDirection;
+import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.turn.TurnDirection;
 import pl.edu.agh.hiputs.partition.model.WayData;
 
 @ExtendWith(MockitoExtension.class)

@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.pairing;
 
 import java.util.List;
 import org.junit.jupiter.api.Assertions;

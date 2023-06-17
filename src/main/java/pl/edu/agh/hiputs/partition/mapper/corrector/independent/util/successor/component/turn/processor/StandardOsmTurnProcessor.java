@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.turn.processor;
+package pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.turn.processor;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.partition.mapper.util.turn.TurnDirection;
+import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.turn.TurnDirection;
 import pl.edu.agh.hiputs.partition.model.WayData;
 
 @Service
