@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.model.map.roadstructure;
 
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Set;
@@ -32,7 +33,7 @@ public class Lane implements LaneEditable {
    * Collection of cars traveling on this lane.
    */
   @Builder.Default
-  private final Deque<CarEditable> cars = new LinkedList<>();
+  private Deque<CarEditable> cars = new LinkedList<>();
 
   /**
    * Reference to lane that is on the left side of this one, for now it should be in opposite direction.
@@ -206,6 +207,19 @@ public class Lane implements LaneEditable {
   @Override
   public boolean removeCar(CarEditable car) {
     return this.cars.remove(car);
+  }
+
+  @Override
+  public synchronized void placeCarInQueueMiddle(CarEditable car) {
+    LinkedList<CarEditable> carsList = (LinkedList<CarEditable>) cars;
+    Iterator<CarEditable> iterCars = cars.iterator();
+    int idx = 0;
+
+    while (iterCars.hasNext() && iterCars.next().getPositionOnLane() < car.getPositionOnLane()) {
+      idx += 1;
+    }
+    carsList.add(idx, car);
+    cars = carsList;
   }
 
   @Override

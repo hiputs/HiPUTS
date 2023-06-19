@@ -20,6 +20,7 @@ import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.PatchEditor;
@@ -110,31 +111,40 @@ public class CarGeneratorService implements Subscriber {
         .collect(Collectors.toList());
   }
 
-  public void extendCarsRoutes(int step){
-    if(configuration.isExtendCarRouteWhenItEnds()){
-
-      List<Runnable> extendRoutes = mapFragment.getLocalLaneIds()
-          .stream()
-          .map(laneId -> new CarRouteExtendTask(carProvider, mapFragment, laneId, configuration.getSimulationStep() - step))
-          .collect(Collectors.toList());
-      taskExecutor.executeBatch(extendRoutes);
+  public void manageCars(int step, MapFragment mapFragment) {
+    if (configuration.isExtendCarRouteWhenItEnds()) {
+      extendCarsRoutes(step);
+    } else if (configuration.getNewCars() > 0) {
+      generateCarsAfterStep(mapFragment);
     }
   }
 
-  public void generateCarsAfterStep(MapFragment mapFragment) {
+  public Car replaceCar(CarReadable car) {
+    Car newCar = carProvider.generateCar(car.getPositionOnLane(), car.getLaneId(), car.getSpeed());
+    LaneEditable lane = mapFragment.getLaneEditable(newCar.getLaneId());
+    lane.placeCarInQueueMiddle(newCar);
+    return newCar;
+  }
+
+  private void extendCarsRoutes(int step) {
+    List<Runnable> extendRoutes = mapFragment.getLocalLaneIds()
+        .stream()
+        .map(laneId -> new CarRouteExtendTask(carProvider, mapFragment, laneId,
+            configuration.getSimulationStep() - step))
+        .collect(Collectors.toList());
+    taskExecutor.executeBatch(extendRoutes);
+  }
+
+  private void generateCarsAfterStep(MapFragment mapFragment) {
     // Configuration configuration = configurationService.getConfiguration();
 
-    if(totalPatch == -1){
+    if (totalPatch == -1) {
       totalPatch = mapRepository.getAllPatches().size();
     }
 
-    if(configuration.getNewCars() == 0){
-      return;
-    }
-
-    int targetCarMax = (int)(configuration.getNewCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
-    int targetCarMin = (int)(configuration.getMinCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
-    if(targetCarMax <= targetCarMin){
+    int targetCarMax = (int) (configuration.getNewCars() / (totalPatch * 1.0) * mapFragment.getMyPatchCount());
+    int targetCarMin = (int) (configuration.getMinCars() / (totalPatch * 1.0) * mapFragment.getMyPatchCount());
+    if (targetCarMax <= targetCarMin) {
       targetCarMax = targetCarMin + 1;
     }
     int count = ThreadLocalRandom.current().nextInt(targetCarMin, targetCarMax);

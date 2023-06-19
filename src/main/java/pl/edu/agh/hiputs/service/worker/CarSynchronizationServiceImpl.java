@@ -7,12 +7,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
@@ -26,9 +28,9 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
+import pl.edu.agh.hiputs.scheduler.task.LaneSerializationTask;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.utils.DebugUtils;
 
@@ -61,14 +63,12 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   }
 
   @Override
-  public List<SerializedCar> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
+  public List<byte[]> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
     Patch patch = transferDataHandler.getPatchById(patchId);
+    List<Callable<?>> tasks = patch.streamLanesEditable().map(LaneSerializationTask::new).collect(Collectors.toList());
 
-    return patch.getLaneIds()
-        .parallelStream()
-        .map(patch::getLaneEditable)
-        .flatMap(LaneEditable::pollIncomingCars)
-        .map(SerializedCar::new)
+    return ((List<Pair<LaneId, byte[]>>) taskExecutorService.executeCallableBatch(tasks)).stream()
+        .map(Pair::getRight)
         .collect(Collectors.toList());
   }
 

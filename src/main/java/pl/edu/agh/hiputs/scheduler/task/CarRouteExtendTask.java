@@ -30,7 +30,7 @@ public class CarRouteExtendTask implements Runnable{
           .forEach(car -> {
             List<RouteElement> newRoute =
                 carProvider.generateRouteElements(car.getRouteWithLocation().getLastRouteElement().getOutgoingLaneId(),
-                    remainingTimeSteps / remainingTimeSteps + ROUTE_ELEMENTS_THRESHOLD);
+                    remainingTimeSteps / 40 + ROUTE_ELEMENTS_THRESHOLD);
             log.debug("Extending car's:"+ car.getCarId()+" route. Current route size:"+car.getRouteWithLocation().getRemainingRouteSize()+". Adding "+(newRoute.size()-1)+" elements.");
 
             car.extendRouteWithLocation(newRoute.subList(1, newRoute.size()));

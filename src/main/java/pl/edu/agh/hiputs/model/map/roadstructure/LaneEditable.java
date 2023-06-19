@@ -63,4 +63,11 @@ public interface LaneEditable extends LaneReadable {
    * Updates attributes related to speed metrics
    */
   void updateCarSpeedMetrics();
+
+  /**
+   * Places a Car in Lane's list of cars based on defined Car's position
+   *
+   * @param car
+   */
+  void placeCarInQueueMiddle(CarEditable car);
 }

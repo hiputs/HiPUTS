@@ -94,7 +94,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
         .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
 
     List<Pair<String, Integer>> sendCars = distinctBorderPatches.parallelStream().map(patch -> {
-      Integer cars = patch.streamLanesReadable().map(LaneReadable::numberOfCars).reduce(0, (e1, e2) -> e1 + e2);
+      Integer cars = patch.streamLanesReadable().map(LaneReadable::numberOfCars).reduce(0, Integer::sum);
       return new ImmutablePair<>(patch.getPatchId().getValue(), cars);
     }).collect(Collectors.toList());
 

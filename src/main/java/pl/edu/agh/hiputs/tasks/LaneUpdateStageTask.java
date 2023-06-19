@@ -51,6 +51,7 @@ public class LaneUpdateStageTask implements Runnable {
    */
   private void updateCarsOnLane(LaneEditable lane) {
     try {
+
       List<CarEditable> carsToRemove = lane.streamCarsFromExitEditable()
           .filter(
               car -> Objects.isNull(laneId) || !Objects.equals(car.getDecision().getLaneId(), laneId) || car.update()
@@ -58,6 +59,7 @@ public class LaneUpdateStageTask implements Runnable {
           .toList();
       for (CarEditable car : carsToRemove) {
         lane.removeCar(car);
+        log.debug("Car {} was removed.", car.getCarId());
         //If remove instance which stay on old lane draw warning
         if (!Objects.equals(car.getDecision().getLaneId(), laneId)) {
           //#TODO change log to warning when repair junction decider
@@ -67,8 +69,8 @@ public class LaneUpdateStageTask implements Runnable {
         }
       }
     }catch (Exception e) {
-      log.warn("Error update lane - incorrect map error");
-      }
+      log.warn("Error update lane - incorrect map error", e);
+    }
   }
 
   /**

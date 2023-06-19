@@ -181,6 +181,12 @@ public class Configuration {
    */
   private boolean extendCarRouteWhenItEnds;
 
+  /**
+   * Create new car in place of a car which ended his journey. Can be used to maintain constant number of cars in
+   * simulation.
+   */
+  private boolean replaceCarWithFinishedRoute;
+
   public static Configuration getDefault() {
     return Configuration.builder()
         .testMode(true)
