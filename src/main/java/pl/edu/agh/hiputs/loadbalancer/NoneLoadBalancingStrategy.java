@@ -19,7 +19,7 @@ public class NoneLoadBalancingStrategy implements LoadBalancingStrategy{
     loadBalancingDecision.setAge(actualStep);
     loadBalancingDecision.setLoadBalancingRecommended(false);
 
-    LoadBalancingHistoryInfo info = localLoadMonitorService.getMyLastLoad(actualStep - 1);
+    LoadBalancingHistoryInfo info = localLoadMonitorService.getMyLastLoad(actualStep);
     double myCost = MapFragmentCostCalculatorUtil.calculateCost(info);
 
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, actualStep,

@@ -162,7 +162,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       int n = configuration.getSimulationStep();
 
       for (i = 0; i < n; i++) {
-        log.info("Start iteration no. {}/{}", i + 1, n);
+        log.info("Start iteration no. {}/{}", i, n);
         mapFragmentExecutor.run(i);
 
         if (configuration.isEnableGUI()) {

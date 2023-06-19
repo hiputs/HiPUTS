@@ -31,7 +31,6 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
 
   private final Map<PatchId, Patch> patches = new HashMap<>();
 
-  private final ConfigurationService configurationService;
   private final WorkerSubscriptionService subscriptionService;
 
   private final PatchesGraphReader patchesGraphReader;

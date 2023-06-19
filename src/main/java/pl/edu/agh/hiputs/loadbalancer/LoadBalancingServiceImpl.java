@@ -63,13 +63,17 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
     if (ConfigurationService.getConfiguration().getWorkerCount() == 1) {
       return null;
     }
-    actualStep++;
+
+    List<MapFragmentId> neighboursToNotify = List.copyOf(transferDataHandler.getNeighbors());
+
+    log.debug("neighboursToNotify {}", neighboursToNotify);
     balance(transferDataHandler);
-
     if (!ConfigurationService.getConfiguration().getBalancingMode().equals(BalancingMode.NONE)) {
-      synchronizedWithNeighbour(List.copyOf(transferDataHandler.getNeighbors()));
+      synchronizedWithNeighbour(neighboursToNotify);
     }
+    log.debug("neighboursToNotify after balance {}", neighboursToNotify);
 
+    actualStep++;
     return lastLoadBalancingCandidate;
   }
 
@@ -82,7 +86,8 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
       return;
     }
 
-    log.info("Start loadbalancing worker id: {} with {}", transferDataHandler.getMe(), loadBalancingDecision.getSelectedNeighbour().getId());
+    log.info("Start loadbalancing worker id: {} with {}", transferDataHandler.getMe().getId(),
+        loadBalancingDecision.getSelectedNeighbour().getId());
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
     lastLoadBalancingCandidate = recipient;
     long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
@@ -93,6 +98,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
     long transferCars = 0;
     List<SerializedPatchTransfer> serializedPatchTransfers = new ArrayList<>();
+    transferDataHandler.clearMapOfSentPatches();
 
     do {
       ImmutablePair<PatchBalancingInfo, Double> patchInfo =
@@ -109,7 +115,12 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
           patchTransferService.prepareSinglePatchItemAndNotifyNeighbour(recipient, patchInfo.getLeft().getPatchId(),
               transferDataHandler));
 
+      transferDataHandler.updateMapOfSentPatches(patchInfo.getLeft().getPatchId(), recipient);
       transferCars += patchInfo.getLeft().getCountOfVehicle();
+      log.debug(
+          "LB loop - extremelyLB: {}, transferedCars: {}, targetCarsToTransfer: {}, number of patches to transfer: {},"
+              + "number of left local patches: {}", loadBalancingDecision.isExtremelyLoadBalancing(), transferCars,
+          targetBalanceCars, serializedPatchTransfers.size(), transferDataHandler.getLocalPatchesSize());
     } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9 && serializedPatchTransfers.size() < MAX_PATCH_EXCHANGE && transferDataHandler.getLocalPatchesSize() >= 5);
 
     patchTransferService.sendPatchMessage(recipient, serializedPatchTransfers);
@@ -121,14 +132,14 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
       try {
         messageSenderService.send(id, new LoadSynchronizationMessage());
       } catch (IOException e) {
-        log.error("Error util send synchronization message");
+        log.error("Error util send synchronization message", e);
       }
     });
     while (synchronizationLoadBalancingList.size() < neighboursToNotify.size()) {
       try {
-        this.wait(500);
+        this.wait(10);
       } catch (InterruptedException e) {
-        log.error("error until wait for loadbalancing synchronization");
+        log.error("error until wait for loadbalancing synchronization", e);
       }
     }
 
@@ -159,7 +170,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
     ImmutablePair<PatchBalancingInfo, Double> selectedCandidate =
         findFirstCandidateNotLossGraphCoherence(orderCandidates, transferDataHandler, recipient);
 
-    log.debug("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId(),
+    log.debug("Select candidate id {} with cost {}", selectedCandidate.getLeft().getPatchId().getValue(),
         selectedCandidate.getRight());
 
     return selectedCandidate;

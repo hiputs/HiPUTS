@@ -16,6 +16,7 @@ import pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
+import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.CarGeneratorService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationService;
@@ -54,8 +55,10 @@ public class MapFragmentExecutor {
       log.info("Step 3 start");
       iterationStatisticsService.startStage(
           List.of(SimulationPoint.FULL_STEP, SimulationPoint.DECISION_STAGE, SimulationPoint.FIRST_ITERATION));
-      List<Runnable> decisionStageTasks = mapFragment.getLocalLaneIds().stream()
-          .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId))
+      List<Runnable> decisionStageTasks = mapFragment.getLocalLaneIds()
+          .stream()
+          .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId, carGeneratorService,
+              ConfigurationService.getConfiguration().isReplaceCarWithFinishedRoute()))
           .collect(Collectors.toList());
       taskExecutor.executeBatch(decisionStageTasks);
 
@@ -97,6 +100,7 @@ public class MapFragmentExecutor {
       MapFragmentId lastLoadBalancingCandidate = loadBalancingService.startLoadBalancing(mapFragment);
       iterationStatisticsService.endStage(SimulationPoint.LOAD_BALANCING_START);
 
+      log.info("Step 8 - 1 start");
       iterationStatisticsService.startStage(SimulationPoint.LOAD_BALANCING_NOTIFICATIONS);
       patchTransferService.retransmitNotification(lastLoadBalancingCandidate);
       patchTransferService.handleReceivedPatch(mapFragment);
@@ -118,16 +122,15 @@ public class MapFragmentExecutor {
 
       // 10. save statistic
       log.info("Step 10 start");
-      if (step % 10 == 0) {
+      // if (step % 10 == 0) {
         simulationStatisticService.saveMapStatistic(mapFragment.getMapStatistic(step));
-      }
+      // }
 
       // 11. gen new car
       log.info("Step 11 start");
 
       iterationStatisticsService.startStage(SimulationPoint.MANAGE_CARS);
-      carGeneratorService.generateCarsAfterStep(mapFragment);
-      carGeneratorService.extendCarsRoutes(step);
+      carGeneratorService.manageCars(step, mapFragment);
       iterationStatisticsService.endStage(SimulationPoint.MANAGE_CARS);
 
       // mapFragment.printFullStatistic();

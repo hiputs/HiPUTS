@@ -65,7 +65,8 @@ public interface TransferDataHandler {
 
   void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId, TicketService ticketService);
 
-  void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository, List<ImmutablePair<PatchId, MapFragmentId>> patchIdWithMapFragmentId, TicketService ticketService);
+  void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository,
+      List<ImmutablePair<PatchId, MapFragmentId>> neighbourPatchIdsWithMapFragmentId, TicketService ticketService);
 
   MapFragmentId getMapFragmentIdByPatchId(PatchId patchId);
 
@@ -85,4 +86,15 @@ public interface TransferDataHandler {
   void printStaistic();
 
   int getLocalPatchesSize();
+
+  /**
+   * Map of patches sent to neighbours during Load Balancing
+   *
+   * @param patchReceiver
+   * @param mapReceiver
+   */
+  void updateMapOfSentPatches(PatchId patchReceiver, MapFragmentId mapReceiver);
+
+  void clearMapOfSentPatches();
+
 }

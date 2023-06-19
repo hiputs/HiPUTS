@@ -27,10 +27,10 @@ public class SimplyLoadBalancingStrategy implements LoadBalancingStrategy {
     int age = actualStep;
     loadBalancingDecision.setAge(age);
 
-    LoadBalancingHistoryInfo info = localLoadMonitorService.getMyLastLoad(actualStep - 1);
+    LoadBalancingHistoryInfo info = localLoadMonitorService.getMyLastLoad(actualStep);
     double myCost = MapFragmentCostCalculatorUtil.calculateCost(info);
 
-    simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, age - 1,
+    simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, age,
         info.getWaitingTime());
     age++;
 

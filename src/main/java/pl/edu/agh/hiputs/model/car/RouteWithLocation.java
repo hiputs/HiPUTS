@@ -40,8 +40,9 @@ public class RouteWithLocation {
   public Optional<LaneId> getOffsetLaneId(int offset) {
     if (currentPosition + offset >= this.routeElements.size() || currentPosition + offset < 0) {
       return Optional.empty();
+    } else {
+      return Optional.of(this.routeElements.get(currentPosition + offset).getOutgoingLaneId());
     }
-    return Optional.of(this.routeElements.get(currentPosition + offset).getOutgoingLaneId());
   }
  
   /**
@@ -49,11 +50,12 @@ public class RouteWithLocation {
    */
   public boolean moveForward(int hops) {
     int futurePosition = currentPosition + hops;
-    if (futurePosition >= routeElements.size() || futurePosition < 0)
+    if (futurePosition >= routeElements.size() || futurePosition < 0) {
       return false;
-    
-    this.currentPosition = futurePosition;
-    return true;
+    } else {
+      this.currentPosition = futurePosition;
+      return true;
+    }
   }
 
   public String toString(){
@@ -70,8 +72,6 @@ public class RouteWithLocation {
   }
 
   public synchronized void addRouteElements(List<RouteElement> extension) {
-    routeElements.subList(0, currentPosition).clear();
-    currentPosition = 0;
     routeElements.addAll(extension);
   }
 }

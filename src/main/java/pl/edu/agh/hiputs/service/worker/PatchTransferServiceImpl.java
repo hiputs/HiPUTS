@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -19,16 +20,18 @@ import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
-import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.loadbalancer.TicketService;
+import pl.edu.agh.hiputs.model.car.Car;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
-import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
@@ -56,27 +59,23 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   }
 
   @Override
-  public SerializedPatchTransfer prepareSinglePatchItemAndNotifyNeighbour(MapFragmentId receiver, PatchId patchId,
+  public SerializedPatchTransfer prepareSinglePatchItemAndNotifyNeighbour(MapFragmentId receiver, PatchId patchToSendId,
       TransferDataHandler transferDataHandler) {
 
-    Patch patch = transferDataHandler.getPatchById(patchId);
+    Patch patchToSend = transferDataHandler.getPatchById(patchToSendId);
 
-    List<SerializedCar> cars = carSynchronizedService.getSerializedCarByPatch(transferDataHandler, patch.getPatchId());
-
-    List<ImmutablePair<String, String>> patchIdWithMapFragmentId = patch.getNeighboringPatches()
-        .stream()
-        .filter(id -> !patchId.equals(id))
-        .map(id -> {
-          try{
-            return new ImmutablePair<>(id.getValue(),
-                transferDataHandler.getMapFragmentIdByPatchId(id).getId());
-          } catch (NullPointerException e){
+    List<ImmutablePair<String, String>> patchIdWithMapFragmentId =
+        patchToSend.getNeighboringPatches().stream().filter(id -> !patchToSendId.equals(id)).map(id -> {
+          try {
+            return new ImmutablePair<>(id.getValue(), transferDataHandler.getMapFragmentIdByPatchId(id).getId());
+          } catch (NullPointerException e) {
             log.error("Not found mapFragmentId for {}", id.getValue());
-            return  null;
+            return null;
           }
-        } )
-        .filter(Objects::nonNull)
-        .toList();
+        }).filter(Objects::nonNull).toList();
+
+    log.debug("Patch to send: {}; Patch owner: {}, neighbours {}", patchToSendId.getValue(),
+        transferDataHandler.getMapFragmentIdByPatchId(patchToSendId).getId(), patchIdWithMapFragmentId);
 
     List<ConnectionDto> neighbourConnectionDtos = patchIdWithMapFragmentId.stream()
         .map(Pair::getRight)
@@ -85,15 +84,15 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
         .filter(mapFragmentId -> !receiver.equals(mapFragmentId) && !transferDataHandler.getMe().equals(mapFragmentId))
         .map(mapFragmentId -> messageSenderService.getConnectionDtoMap().get(mapFragmentId))
         .toList();
+    log.debug("neighbourConnectionDtos {}", neighbourConnectionDtos);
 
-    transferDataHandler.migratePatchToNeighbour(patch, receiver, ticketService);
+    transferDataHandler.migratePatchToNeighbour(patchToSend, receiver, ticketService);
 
-    PatchTransferNotificationMessage patchTransferNotificationMessage = PatchTransferNotificationMessage.builder()
-        .transferPatchId(patch.getPatchId().getValue())
+    PatchTransferNotificationMessage patchTransferNotificationMessage =
+        PatchTransferNotificationMessage.builder().transferPatchId(patchToSend.getPatchId().getValue())
         .receiverId(receiver.getId())
         .senderId(transferDataHandler.getMe().getId())
-        .connectionDto(messageSenderService.getConnectionDtoMap().get(receiver))
-        .build();
+        .connectionDto(messageSenderService.getConnectionDtoMap().get(receiver)).build();
 
     neighbourConnectionDtos.forEach(connectionDto -> {
       try {
@@ -103,17 +102,20 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
       }
     });
 
-    List<byte[]> serializedCars = cars
-        .parallelStream()
-        .map(SerializationUtils::serialize)
-        .toList();
+    List<byte[]> serializedLanes =
+        carSynchronizedService.getSerializedCarByPatch(transferDataHandler, patchToSend.getPatchId());
+
+    // List<byte[]> serializedCars = serializedLanes
+    //     .parallelStream()
+    //     .map(SerializationUtils::serialize)
+    //     .toList();
 
     return SerializedPatchTransfer.builder()
-        .patchId(patch.getPatchId().getValue())
+        .patchId(patchToSend.getPatchId().getValue())
         .neighbourConnectionMessage(neighbourConnectionDtos)
         .mapFragmentId(transferDataHandler.getMe().getId())
         .patchIdWithMapFragmentId(patchIdWithMapFragmentId)
-        .cars(serializedCars)
+        .serializedLanes(serializedLanes)
         .build();
   }
 
@@ -145,14 +147,25 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     transferDataHandler.migratePatchToMe(new PatchId(message.getPatchId()),
         new MapFragmentId(message.getMapFragmentId()), mapRepository, pairs, ticketService);
 
-    List<SerializedCar> cars = message.getCars()
+    Patch insertedPatch = transferDataHandler.getPatchById(new PatchId(message.getPatchId()));
+
+    message.getSerializedLanes()
         .parallelStream()
-        .map(c -> (SerializedCar) SerializationUtils.deserialize(c))
-        .toList();
+        .map(s -> (SerializedLane) SerializationUtils.deserialize(s))
+        .forEach(deserializedLane -> {
+          List<Car> cars = deserializedLane.toRealObject();
+          LaneEditable patchLane = insertedPatch.getLaneEditable(new LaneId(deserializedLane.getLaneId()));
 
-    InjectIncomingCarsTask task = new InjectIncomingCarsTask(cars, transferDataHandler);
-
-    taskExecutorService.executeBatch(List.of(task));
+          patchLane.removeAllCars();
+          Collections.reverse(cars);
+          cars.forEach(patchLane::addCarAtEntry);
+          log.debug("Patch {} Line {} cars {}", insertedPatch.getPatchId().getValue(), deserializedLane.getLaneId(),
+              cars.size());
+        });
+    log.debug("Patch {} inserted", message.getPatchId());
+    // InjectIncomingCarsTask task = new InjectIncomingCarsTask(cars, transferDataHandler);
+    //
+    // taskExecutorService.executeBatch(List.of(task));
   }
 
   @Override
