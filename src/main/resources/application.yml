@@ -1,0 +1,8 @@
+carGenerator:
+  generatorSource: "live" # "live" or "file"
+  filesPath: src/main/resources/generator
+
+routeGenerator:
+  RoutePathFinder: random # dijkstra or random
+
+testMode: true

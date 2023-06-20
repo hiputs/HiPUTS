@@ -161,13 +161,18 @@ public class Configuration {
   private boolean ticketActive;
 
   /**
+   * Path to configuration of time based car generation
+   */
+  private String timeBasedCarGenerationConfigPath;
+
+  /**
    * Unique worker id
    */
   private MapFragmentId mapFragmentId;
 
   public static Configuration getDefault() {
     return Configuration.builder()
-        .testMode(true)
+        .testMode(false)
         .workerCount(1)
         .enableGUI(true)
         .statisticModeActive(false)
@@ -193,6 +198,7 @@ public class Configuration {
         .minCars(0)
         .ticketActive(false)
         .patchPartitionerConfiguration(PatchPartitionerConfiguration.getDefault())
+        .timeBasedCarGenerationConfigPath("timeBasedCarGenerationConfig.json")
         .build();
   }
 

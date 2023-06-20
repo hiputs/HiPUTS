@@ -27,11 +27,13 @@ public class SingleWorkStrategyService implements Strategy {
 
     graphBasedVisualizer.showGui();
     sleep(1000);
+    execute(graphBasedVisualizer, -1);
+  }
 
-    while (true) {
-      mapFragmentExecutor.run(-1);
-      graphBasedVisualizer.redrawCars();
-      sleep(5);
-    }
+  private void execute(TrivialGraphBasedVisualizer graphBasedVisualizer, int step) throws InterruptedException {
+    mapFragmentExecutor.run(step);
+    graphBasedVisualizer.redrawCars();
+    sleep(5);
+    execute(graphBasedVisualizer, step + 1);
   }
 }
