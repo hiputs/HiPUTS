@@ -14,6 +14,16 @@ import lombok.Setter;
 public class ModelConfiguration {
 
   /**
+   * Default speed limit for all roads where no implemented conditions were met
+   */
+  private Integer defaultMaxSpeed;
+
+  /**
+   * A path to file containing speed limits for all types of road and countries
+   */
+  private String speedLimitsFilePath;
+
+  /**
    * All allowed types of ways to import from OSM
    */
   private String[] wayTypes;
