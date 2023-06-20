@@ -8,7 +8,9 @@ import org.jgrapht.alg.util.Pair;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
+import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
+import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
@@ -43,7 +45,7 @@ public abstract class CHPathFinder implements PathFinder<LaneId> {
         Graph<JunctionReadable, LaneReadable> graph = new SimpleDirectedWeightedGraph<>(LaneReadable.class);
         List<Patch> patches = mapRepository.getAllPatches();
         for (Patch patch: patches) {
-            addPatchDataToGraph(patch, graph);
+            addPatchDataToGraph(patch, graph, mapRepository);
         }
         return graph;
     }
@@ -58,23 +60,55 @@ public abstract class CHPathFinder implements PathFinder<LaneId> {
     }
 
     void addPatchDataToGraph(PatchReader patch, Graph<JunctionReadable, LaneReadable> graph) {
-        patch.getLaneIds();
         for (LaneId laneId: patch.getLaneIds()) {
             LaneReadable laneReadable = patch.getLaneReadable(laneId);
 
             JunctionReadable incomingJunction = patch.getJunctionReadable(laneReadable.getIncomingJunctionId());
             JunctionReadable outgoingJunction = patch.getJunctionReadable(laneReadable.getOutgoingJunctionId());
-            laneToJunctionsMapping.put(laneId, new Pair<>(incomingJunction, outgoingJunction));
-            if (!graph.containsVertex(incomingJunction)) {
-                graph.addVertex(incomingJunction);
+            putLaneAndJunctionsOnGraph(graph, laneReadable, laneId, incomingJunction, outgoingJunction);
+        }
+    }
+
+    void addPatchDataToGraph(Patch patch, Graph<JunctionReadable, LaneReadable> graph, MapRepository mapRepository) {
+        for (LaneId laneId: patch.getLaneIds()) {
+            LaneReadable laneReadable = patch.getLaneReadable(laneId);
+
+            JunctionReadable incomingJunction = getJunction(laneReadable.getIncomingJunctionId(), patch, mapRepository);
+            JunctionReadable outgoingJunction = getJunction(laneReadable.getOutgoingJunctionId(), patch, mapRepository);
+
+            putLaneAndJunctionsOnGraph(graph, laneReadable, laneId, incomingJunction, outgoingJunction);
+        }
+    }
+
+    JunctionReadable getJunction(JunctionId junctionId, Patch patch, MapRepository mapRepository) {
+        JunctionReadable junction = patch.getJunctionReadable(junctionId);
+        if (junction == null) {
+            for (PatchId neighbourPathId: patch.getNeighboringPatches()) {
+                Patch neighbourPath = mapRepository.getPatch(neighbourPathId);
+                junction = neighbourPath.getJunctionReadable(junctionId);
+                if (junction != null) {
+                    break;
+                }
             }
-            if (!graph.containsVertex(outgoingJunction)) {
-                graph.addVertex(outgoingJunction);
-            }
-            if (!graph.containsEdge(laneReadable)) {
-                graph.addEdge(incomingJunction, outgoingJunction, laneReadable);
-                graph.setEdgeWeight(laneReadable, laneReadable.getLength());
-            }
+        }
+        return junction;
+    }
+
+    void putLaneAndJunctionsOnGraph(Graph<JunctionReadable, LaneReadable> graph,
+                                    LaneReadable laneReadable,
+                                    LaneId laneId,
+                                    JunctionReadable incomingJunction,
+                                    JunctionReadable outgoingJunction) {
+        laneToJunctionsMapping.put(laneId, new Pair<>(incomingJunction, outgoingJunction));
+        if (!graph.containsVertex(incomingJunction)) {
+            graph.addVertex(incomingJunction);
+        }
+        if (!graph.containsVertex(outgoingJunction)) {
+            graph.addVertex(outgoingJunction);
+        }
+        if (!graph.containsEdge(laneReadable)) {
+            graph.addEdge(incomingJunction, outgoingJunction, laneReadable);
+            graph.setEdgeWeight(laneReadable, laneReadable.getLength());
         }
     }
 
@@ -84,7 +118,6 @@ public abstract class CHPathFinder implements PathFinder<LaneId> {
 
     @Override
     public List<RouteWithLocation> getPaths(List<Pair<LaneId, LaneId>> requests) {
-        System.out.println("In getPath");
         List<RouteWithLocation> routeWithLocationList = new ArrayList<>();
         for (Pair<LaneId, LaneId> request: requests) {
             routeWithLocationList.add(getPath(request));
@@ -94,7 +127,6 @@ public abstract class CHPathFinder implements PathFinder<LaneId> {
 
     @Override
     public List<RouteWithLocation> getPathsWithExecutor(List<Pair<LaneId, LaneId>> requests, ThreadPoolExecutor executor) {
-        System.out.println("In getPath executors");
         List<RouteWithLocation> routeWithLocationList = new ArrayList<>();
         List<Future<RouteWithLocation>> futureRoutesWithLocation = new ArrayList<>();
         for (Pair<LaneId, LaneId> request: requests) {

@@ -12,7 +12,7 @@ public class AStarHeuristicForJunction implements AStarAdmissibleHeuristic<Junct
         }
         double latitudeDiff = source.getLatitude() - sink.getLatitude();
         double longitudeDiff = source.getLongitude() - sink.getLongitude();
-        return Math.sqrt(latitudeDiff*latitudeDiff + longitudeDiff*latitudeDiff);
+        return Math.sqrt(latitudeDiff*latitudeDiff + longitudeDiff*longitudeDiff);
     }
 
     @Override

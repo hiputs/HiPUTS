@@ -138,15 +138,15 @@ public class CarGeneratorService implements Subscriber {
   private void initPathFindingAlgorithm(MapFragment mapFragment) {
     if (pathGeneratorConfiguration.getGeneratorType().equals("cHBidirectionalDijkstra")) {
       if (totalPatch > 0 && mapRepository.isReady()) {
-        pathFinder = new CHBidirectionalAStar(mapRepository, executors);
-      } else {
-        pathFinder = new CHBidirectionalAStar(mapFragment, executors);
-      }
-    } else if (pathGeneratorConfiguration.getGeneratorType().equals("cHBidirectionalAStar")) {
-      if (totalPatch > 0 && mapRepository.isReady()) {
         pathFinder = new CHBidirectionalDijkstra(mapRepository, executors);
       } else {
         pathFinder = new CHBidirectionalDijkstra(mapFragment, executors);
+      }
+    } else if (pathGeneratorConfiguration.getGeneratorType().equals("cHBidirectionalAStar")) {
+      if (totalPatch > 0 && mapRepository.isReady()) {
+        pathFinder = new CHBidirectionalAStar(mapRepository, executors);
+      } else {
+        pathFinder = new CHBidirectionalAStar(mapFragment, executors);
       }
     }
   }

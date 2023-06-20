@@ -10,9 +10,9 @@ public class GetPathCallable implements Callable<RouteWithLocation> {
     Pair<LaneId, LaneId> request;
     CHPathFinder pathFinder;
 
-    public GetPathCallable(Pair<LaneId, LaneId> request, CHPathFinder chBidirectionalDijkstra) {
+    public GetPathCallable(Pair<LaneId, LaneId> request, CHPathFinder pathFinder) {
         this.request = request;
-        this.pathFinder = chBidirectionalDijkstra;
+        this.pathFinder = pathFinder;
     }
 
     public RouteWithLocation call() {
