@@ -102,6 +102,15 @@ public class ExampleMapFragmentProvider {
     return fromStringRepresentation(mapStructure, laneLengths, withCars ? 10 : 0);
   }
 
+  public static MapFragment getCircleMapWithCrossroad() {
+    String mapStructure = "(1->2) (2->3) (3->4) (4->1) (4->5) (5->6) (6->1)";
+    Map<String, Double> laneLengths = Stream.of(new String[][] {{"1->2", "200.0"},
+            {"6->1", "100.0"}, {"4->1", "100.0"}, {"2->3", "20.0"},
+             {"3->4", "50.0"}, {"4->5", "1000.0"}, {"5->6", "100.0"}})
+            .collect(Collectors.toMap(data -> data[0], data -> Double.parseDouble(data[1])));
+    return fromStringRepresentation(mapStructure, laneLengths, 0);
+  }
+
   /**
    * Simple scenario for overtaking with two lanes, without cars
    * crossable only from lane1: <br />
@@ -136,8 +145,7 @@ public class ExampleMapFragmentProvider {
     stringLaneMap.forEach((edge, laneUnderConstruction) -> putOnMap(edge, laneUnderConstruction, stringJunctionMap));
 
     Patch patch = createPatch(stringLaneMap, stringJunctionMap);
-    MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
-    return mapFragment;
+    return MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
   }
 
   /**
