@@ -21,7 +21,6 @@ import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @Slf4j
@@ -33,7 +32,7 @@ public class RandomCarGeneratorService implements Subscriber, CarGeneratorServic
   private static final int START_ADD_CAR = 5;
   private final MapRepository mapRepository;
   private final WorkerSubscriptionService subscriptionService;
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
   private boolean bigWorker = false;
   private int step = 0;
   private int totalPatch = -1;
@@ -45,7 +44,6 @@ public class RandomCarGeneratorService implements Subscriber, CarGeneratorServic
 
   @Override
   public void generateCars(MapFragment mapFragment, int step) {
-    Configuration configuration = configurationService.getConfiguration();
 
     if (totalPatch == -1) {
       totalPatch = mapRepository.getAllPatches().size();

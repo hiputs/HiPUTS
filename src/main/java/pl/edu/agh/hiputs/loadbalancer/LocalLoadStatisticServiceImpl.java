@@ -13,8 +13,8 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 import pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint;
 import pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil;
+import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.LoadBalancingCostStatistic;
 
 @Service
@@ -26,7 +26,7 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
   private static final Set<SimulationPoint> WAITING_TIME =
       Set.of(SimulationPoint.WAITING_FOR_FIRST_ITERATION, SimulationPoint.WAITING_FOR_SECOND_ITERATION);
   private static final int MOVING_AVERAGE = 50;
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
   private List<IterationInfo> iterationInfo;
 
   @Getter
@@ -38,7 +38,7 @@ public class LocalLoadStatisticServiceImpl implements LocalLoadStatisticService,
 
   @Override
   public void init(TransferDataHandler transferDataHandler) {
-    iterationInfo = new ArrayList<>(configurationService.getConfiguration().getSimulationStep());
+    iterationInfo = new ArrayList<>(configuration.getSimulationStep());
     this.transferDataHandler = transferDataHandler;
   }
 

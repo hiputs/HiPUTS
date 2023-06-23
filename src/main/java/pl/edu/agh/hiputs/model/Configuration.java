@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.partition.service.HexagonsPartitioner.BorderEdgesHandlingStrategy;
@@ -14,6 +16,8 @@ import pl.edu.agh.hiputs.partition.service.HexagonsPartitioner.BorderEdgesHandli
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Component
+@ConfigurationProperties()
 public class Configuration {
 
   /**
@@ -144,7 +148,7 @@ public class Configuration {
   /**
    * Properties related only for patch partitioning process.
    */
-  private PatchPartitionerConfiguration patchPartitionerConfiguration;
+  private PatchPartitionerConfiguration patchPartitioner;
 
   /**
    * Max new cars create after every step
@@ -197,7 +201,7 @@ public class Configuration {
         .newCars(15)
         .minCars(0)
         .ticketActive(false)
-        .patchPartitionerConfiguration(PatchPartitionerConfiguration.getDefault())
+        .patchPartitioner(PatchPartitionerConfiguration.getDefault())
         .timeBasedCarGenerationConfigPath("timeBasedCarGenerationConfig.json")
         .build();
   }
@@ -207,6 +211,8 @@ public class Configuration {
   @Builder
   @NoArgsConstructor
   @AllArgsConstructor
+  @org.springframework.context.annotation.Configuration
+  @ConfigurationProperties(prefix = "patch-partitioner")
   public static class PatchPartitionerConfiguration {
 
     /**

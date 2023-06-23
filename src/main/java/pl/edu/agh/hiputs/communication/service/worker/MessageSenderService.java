@@ -25,7 +25,6 @@ import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Service
@@ -35,7 +34,7 @@ public class MessageSenderService implements Subscriber {
   private final Map<MapFragmentId, Connection> neighbourRepository = new HashMap<>();
   @Getter
   private final Map<MapFragmentId, ConnectionDto> connectionDtoMap = new HashMap<>();
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
   private Connection serverConnection;
   private final WorkerSubscriptionService subscriptionService;
 
@@ -66,7 +65,6 @@ public class MessageSenderService implements Subscriber {
   }
 
   private void createServerConnection() {
-    Configuration configuration = configurationService.getConfiguration();
     String ip = CollectionUtils.isEmpty(HiPUTS.globalInitArgs) ? "127.0.0.1" : HiPUTS.globalInitArgs.get(0);
     log.info("Server address {}:{}", ip, configuration.getServerPort());
     ConnectionDto connectionDto = ConnectionDto.builder()

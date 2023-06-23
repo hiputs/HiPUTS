@@ -4,8 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.model.Configuration;
 
 import javax.annotation.PostConstruct;
 import java.io.FileNotFoundException;
@@ -15,7 +16,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class TimeBasedCarGeneratorConfig {
+
+  private final Configuration configuration;
 
   private List<TimeBasedCarGeneratorConfigEntry> configEntries;
 
@@ -32,7 +36,7 @@ public class TimeBasedCarGeneratorConfig {
 
   @PostConstruct
   public void init() throws FileNotFoundException {
-    var reader = new FileReader(ConfigurationService.getConfiguration().getTimeBasedCarGenerationConfigPath());
+    var reader = new FileReader(configuration.getTimeBasedCarGenerationConfigPath());
     var gson = new Gson();
     var configEntryType = new TypeToken<List<TimeBasedCarGeneratorConfigEntry>>() {}.getType();
     this.configEntries = gson.fromJson(reader, configEntryType);

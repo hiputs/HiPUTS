@@ -13,6 +13,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
+import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
@@ -21,7 +22,6 @@ import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.persistance.PatchesGraphReader;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
 
@@ -31,7 +31,7 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
 
   private final Map<PatchId, Patch> patches = new HashMap<>();
 
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
   private final WorkerSubscriptionService subscriptionService;
 
   private final PatchesGraphReader patchesGraphReader;
@@ -50,13 +50,13 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
 
   @Override
   public void readMapAndBuildModel() throws InterruptedException {
-    if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
+    if (configuration.isReadFromOsmDirectly()) {
       waitForMapReadyToReadMessage();
     } else {
-      mapPackagePath = Path.of(configurationService.getConfiguration().getMapPath());
+      mapPackagePath = Path.of(configuration.getMapPath());
     }
 
-    // if (!configurationService.getConfiguration().isServerOnThisMachine()) {
+    // if (!configuration.isServerOnThisMachine()) {
       this.patchesGraph = patchesGraphReader.readGraphWithPatches(mapPackagePath);
     // }
 

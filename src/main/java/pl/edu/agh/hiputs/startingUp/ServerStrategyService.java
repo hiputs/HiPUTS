@@ -36,6 +36,7 @@ import pl.edu.agh.hiputs.communication.service.server.ConnectionInitializationSe
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
 import pl.edu.agh.hiputs.communication.service.server.WorkerRepository;
 import pl.edu.agh.hiputs.loadbalancer.utils.GraphCoherencyUtil;
+import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
@@ -44,7 +45,6 @@ import pl.edu.agh.hiputs.partition.persistance.PatchesGraphReader;
 import pl.edu.agh.hiputs.partition.persistance.PatchesGraphWriter;
 import pl.edu.agh.hiputs.partition.service.MapFragmentPartitioner;
 import pl.edu.agh.hiputs.partition.service.MapStructureLoader;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.server.WorkerSynchronisationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
@@ -56,7 +56,7 @@ public class ServerStrategyService implements Strategy {
 
   private final WorkerSynchronisationService workerSynchronisationService;
   private final ConnectionInitializationService connectionInitializationService;
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
   private final WorkerStrategyService workerStrategyService;
   private final MapFragmentPartitioner mapFragmentPartitioner;
   private final ExecutorService workerPrepareExecutor = newSingleThreadExecutor();
@@ -80,11 +80,11 @@ public class ServerStrategyService implements Strategy {
     connectionInitializationService.init();
     workerPrepareExecutor.submit(new PrepareWorkerTask());
 
-    Path mapPackagePath = configurationService.getConfiguration().isReadFromOsmDirectly()
-        ? generateDeploymentPackageName(Path.of(configurationService.getConfiguration().getMapPath()))
-        : Path.of(configurationService.getConfiguration().getMapPath());
+    Path mapPackagePath = configuration.isReadFromOsmDirectly()
+        ? generateDeploymentPackageName(Path.of(configuration.getMapPath()))
+        : Path.of(configuration.getMapPath());
 
-    Graph<PatchData, PatchConnectionData> patchesGraph = configurationService.getConfiguration().isReadFromOsmDirectly()
+    Graph<PatchData, PatchConnectionData> patchesGraph = configuration.isReadFromOsmDirectly()
         ? createAndSavePatchesPackage(mapPackagePath)
         : patchesGraphReader.readGraphWithPatches(mapPackagePath);
 
@@ -94,7 +94,7 @@ public class ServerStrategyService implements Strategy {
     workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
 
 
-    if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
+    if (configuration.isReadFromOsmDirectly()) {
       messageSenderServerService.broadcast(MapReadyToReadMessage.builder().mapPackagePath(mapPackagePath.toString()).build());
     }
 
@@ -118,7 +118,7 @@ public class ServerStrategyService implements Strategy {
     workerSynchronisationService.waitForAllWorkers(FinishSimulationMessage);
     log.info("Simulation finished");
 
-    if (configurationService.getConfiguration().isStatisticModeActive()) {
+    if (configuration.isStatisticModeActive()) {
       workerSynchronisationService.waitForAllWorkers(FinishSimulationStatisticMessage);
       log.info("Start generating summary");
       generateReport();
@@ -212,9 +212,9 @@ public class ServerStrategyService implements Strategy {
   private Graph<PatchData, PatchConnectionData> createAndSavePatchesPackage(Path mapPackagePath) {
     log.info("Start reading map");
     Graph<PatchData, PatchConnectionData> patchesGraph;
-    if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
+    if (configuration.isReadFromOsmDirectly()) {
       log.info("Reading map from osm file");
-      patchesGraph = mapStructureLoader.loadFromOsmFile(Path.of(configurationService.getConfiguration().getMapPath()));
+      patchesGraph = mapStructureLoader.loadFromOsmFile(Path.of(configuration.getMapPath()));
 
       log.info("Writing map with patches");
       createDeploymentPackageDir(mapPackagePath);
@@ -223,7 +223,7 @@ public class ServerStrategyService implements Strategy {
     } else {
       //read existing map
       log.info("Reading map from import package - patch partition skipped");
-      patchesGraph = mapStructureLoader.loadFromCsvImportPackage(Path.of(configurationService.getConfiguration().getMapPath()));
+      patchesGraph = mapStructureLoader.loadFromCsvImportPackage(Path.of(configuration.getMapPath()));
     }
 
     log.info("Reading map finished successfully");

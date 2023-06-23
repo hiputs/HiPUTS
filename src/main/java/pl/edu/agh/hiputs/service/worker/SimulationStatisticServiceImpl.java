@@ -18,8 +18,8 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationStatisticMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.loadbalancer.LocalLoadStatisticService;
+import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 
 @Slf4j
@@ -27,7 +27,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 @RequiredArgsConstructor
 public class SimulationStatisticServiceImpl implements SimulationStatisticService {
 
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
 
   private final MessageSenderService messageSenderService;
 
@@ -42,7 +42,7 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
 
   @PostConstruct
   void init() {
-    enableLogs = configurationService.getConfiguration().isStatisticModeActive();
+    enableLogs = configuration.isStatisticModeActive();
   }
 
   @Override

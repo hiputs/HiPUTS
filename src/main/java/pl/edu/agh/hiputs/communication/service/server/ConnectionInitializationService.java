@@ -1,24 +1,21 @@
 package pl.edu.agh.hiputs.communication.service.server;
 
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
+import pl.edu.agh.hiputs.model.Configuration;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-import javax.annotation.PostConstruct;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
-import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.communication.model.messages.Message;
-import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
-import pl.edu.agh.hiputs.service.ConfigurationService;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 /**
  * Socket where all messages addressed to the given client are received.
@@ -31,7 +28,7 @@ public class ConnectionInitializationService {
   private final ExecutorService listenerExecutor = newSingleThreadExecutor();
   private final MessagePropagationService messagePropagationService;
   private final WorkerRepository workerRepository;
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
 
   public void init() {
     listenerExecutor.submit(new Listener());
@@ -43,7 +40,7 @@ public class ConnectionInitializationService {
     public void run() {
       try {
         ThreadPoolExecutor connectionExecutor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-        ServerSocket serverSocket = new ServerSocket(configurationService.getConfiguration().getServerPort());
+        ServerSocket serverSocket = new ServerSocket(configuration.getServerPort());
         if (serverSocket.isClosed()) {
           log.error("Server fail");
         } else {

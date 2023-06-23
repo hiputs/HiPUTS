@@ -9,7 +9,6 @@ import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.routegenerator.generator.FileInputGenerator;
 import pl.edu.agh.hiputs.service.routegenerator.generator.TimeBasedCarGeneratorConfig;
 import pl.edu.agh.hiputs.service.routegenerator.generator.routegenerator.RouteFileEntry;
@@ -26,6 +25,7 @@ import static java.text.MessageFormat.format;
 @Service
 public class FileGeneratorServiceImpl implements FileGeneratorService {
 
+  private final Configuration configuration;
   private final TimeBasedCarGeneratorConfig timeBasedCarGeneratorConfig;
   private final FileInputGenerator fileGenerator;
   private final Random random = new Random();
@@ -49,7 +49,7 @@ public class FileGeneratorServiceImpl implements FileGeneratorService {
          var bw = new BufferedWriter(fw);
          var out = new PrintWriter(bw)) {
       new File(filePath).createNewFile();
-      List<Pair<RouteWithLocation, Integer>> routesWithStep = fileGenerator.generateRouteFileInput(patch, startStep, endstep, mapFragment, mapRepository, ConfigurationService.getConfiguration().isTestMode());
+      List<Pair<RouteWithLocation, Integer>> routesWithStep = fileGenerator.generateRouteFileInput(patch, startStep, endstep, mapFragment, mapRepository, configuration.isTestMode());
       for (Pair<RouteWithLocation, Integer> pair : routesWithStep) {
         RouteWithLocation route = pair.getFirst();
         int step = pair.getSecond();

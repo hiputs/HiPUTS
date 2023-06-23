@@ -10,7 +10,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.HiPUTS;
 import pl.edu.agh.hiputs.model.Configuration;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Service
@@ -22,12 +21,11 @@ public class StrategySelectionService {
   private final SingleWorkStrategyService singleWorkStrategyService;
   private final WorkerStrategyService workerStrategyService;
   private final ServerStrategyService serverStrategyService;
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
 
   @EventListener(ApplicationReadyEvent.class)
   public void selectModeAndStartSimulation() {
     System.setProperty("java.awt.headless", "false");
-    Configuration configuration = configurationService.getConfiguration();
 
     try {
       if (configuration.isTestMode()) {
@@ -54,7 +52,7 @@ public class StrategySelectionService {
   private boolean isServerRunning() throws IOException {
     File serverLock = new File(SERVER_LOCK);
     if (serverLock.createNewFile()) {
-      configurationService.getConfiguration().setServerOnThisMachine(true);
+      configuration.setServerOnThisMachine(true);
       return false;
     }
     return true;
@@ -62,7 +60,7 @@ public class StrategySelectionService {
 
   @PreDestroy
   public void onExit() {
-    if (configurationService.getConfiguration().isServerOnThisMachine()) {
+    if (configuration.isServerOnThisMachine()) {
       File serverLock = new File(SERVER_LOCK);
       serverLock.deleteOnExit();
     }
