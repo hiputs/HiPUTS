@@ -6,18 +6,25 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.mapper.config.ModelConfiguration;
 import pl.edu.agh.hiputs.partition.mapper.config.ModelConfiguration.DataConfiguration;
 import pl.edu.agh.hiputs.partition.mapper.config.ModelConfiguration.DataConfiguration.TagEntry;
+import pl.edu.agh.hiputs.partition.mapper.config.ModelConfiguration.DetectorStrategy;
 
 @Service
 public class ModelConfigurationService {
   private final static String SETTINGS_PATH = "model_settings.json";
   private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+  @Getter
+  private Map<String, String> detector2Strategy;
   @Getter
   private ModelConfiguration modelConfig;
 
@@ -31,9 +38,19 @@ public class ModelConfigurationService {
       } else {
         modelConfig = createDefaultConfig();
       }
+
+      detector2Strategy = createDetector2StrategyMap();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private Map<String, String> createDetector2StrategyMap() {
+    return Arrays.stream(modelConfig.getDetectorStrategies())
+        .collect(Collectors.toMap(
+            detectorStrategy -> StringUtils.capitalize(detectorStrategy.getDetectorName()),
+            DetectorStrategy::getStrategyName)
+        );
   }
 
   private ModelConfiguration createDefaultConfig() {
@@ -50,6 +67,11 @@ public class ModelConfigurationService {
             .mandatoryTagEntries(new TagEntry[]{})
             .prohibitedTagEntries(new TagEntry[]{})
             .build())
+        .defaultMaxSpeed(50)
+        .speedLimitsFilePath("data/speedLimits.csv")
+        .detectorStrategies(new DetectorStrategy[]{
+            new DetectorStrategy("tagIncorrectnessDetector", "reportBothAndDelegateDS")
+        })
         .build();
   }
 

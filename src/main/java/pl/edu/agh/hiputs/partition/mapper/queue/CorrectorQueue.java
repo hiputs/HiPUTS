@@ -16,7 +16,7 @@ public class CorrectorQueue implements EditableQueue<Corrector>,
 
   @Override
   public void registerService(Corrector service) {
-    correctors.add(service);
+    correctors.add(0, service);
   }
 
   @Override

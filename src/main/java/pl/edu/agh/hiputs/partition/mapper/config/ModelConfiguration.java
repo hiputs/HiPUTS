@@ -14,16 +14,6 @@ import lombok.Setter;
 public class ModelConfiguration {
 
   /**
-   * Default speed limit for all roads where no implemented conditions were met
-   */
-  private Integer defaultMaxSpeed;
-
-  /**
-   * A path to file containing speed limits for all types of road and countries
-   */
-  private String speedLimitsFilePath;
-
-  /**
    * All allowed types of ways to import from OSM
    */
   private String[] wayTypes;
@@ -72,5 +62,38 @@ public class ModelConfiguration {
        */
       private String value;
     }
+  }
+
+  /**
+   * Default speed limit for all roads where no implemented conditions were met
+   */
+  private Integer defaultMaxSpeed;
+
+  /**
+   * A path to file containing speed limits for all types of road and countries
+   */
+  private String speedLimitsFilePath;
+
+  /**
+   * Names mappings of detector -> strategy
+   */
+  private DetectorStrategy[] detectorStrategies;
+
+  @Getter
+  @Setter
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class DetectorStrategy{
+
+    /**
+     * Name of detector to which we assign strategy
+     */
+    private String detectorName;
+
+    /**
+     * Name of strategy used for detector with provided name
+     */
+    private String strategyName;
   }
 }
