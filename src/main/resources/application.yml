@@ -1,17 +1,18 @@
 carGenerator:
   generatorSource: file # "live" or "file"
   filesPath: src/main/resources/generator
+  generateRouteFiles: false
 
 routeGenerator:
   RouteGeneratorType: random # shortest_path or random
 
-testMode: false
+testMode: true
 workerCount: 1
 enableGUI: true
 statisticModeActive: false
 simulationStep: 1000
 readFromOsmDirectly: true
-mapPath: C:\Users\Konrad\Desktop\Studia\2022.2023\2Semestr\MiSS\HiPUTS\data\map.osm
+mapPath:
 serverAddress: localhost
 serverPort: 8081
 localHostMode: false

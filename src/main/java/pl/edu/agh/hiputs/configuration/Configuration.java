@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.model;
+package pl.edu.agh.hiputs.configuration;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -190,6 +190,11 @@ public class Configuration {
   private int carUpMaxSpeedBoundaryInMetersPerSecond;
 
   /**
+   * Configuration of car generator
+   */
+  private CarGeneratorConfiguration carGenerator;
+
+  /**
    * Unique worker id
    */
   private MapFragmentId mapFragmentId;
@@ -230,37 +235,4 @@ public class Configuration {
         .build();
   }
 
-  @Getter
-  @Setter
-  @Builder
-  @NoArgsConstructor
-  @AllArgsConstructor
-  @org.springframework.context.annotation.Configuration
-  @ConfigurationProperties(prefix = "patch-partitioner")
-  public static class PatchPartitionerConfiguration {
-
-    /**
-     * Patch partitioner name. Supported partitioners are "trivial", "hexagon", "growing"
-     */
-    private String partitionerType;
-
-    /**
-     * Arbitrary maximum distance in meters at which the car should be able to retrieve all necessary information
-     * required by decision process
-     */
-    private double carViewRange;
-
-    /**
-     * Property related only for "hexagon" patch partitioner.
-     */
-    private BorderEdgesHandlingStrategy borderHandlingStrategy;
-
-    public static PatchPartitionerConfiguration getDefault() {
-      return PatchPartitionerConfiguration.builder()
-          .partitionerType("hexagon")
-          .carViewRange(100.0)
-          .borderHandlingStrategy(BorderEdgesHandlingStrategy.maxLaneLengthBuffer)
-          .build();
-    }
-  }
 }

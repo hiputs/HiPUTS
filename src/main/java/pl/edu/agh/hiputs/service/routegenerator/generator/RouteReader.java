@@ -1,8 +1,10 @@
 package pl.edu.agh.hiputs.service.routegenerator.generator;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.JunctionId;
@@ -22,24 +24,13 @@ import static java.text.MessageFormat.format;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class RouteReader {
 
-  private final String directoryPath;
-  private final Map<PatchId, Integer> fileCursors = new HashMap<>();
+  private final Configuration configuration;
 
-  public RouteReader(@Value("${carGenerator.filesPath}") String directoryPath) {
-    this.directoryPath = directoryPath;
-    File directory = new File(directoryPath);
-    File[] files = directory.listFiles();
-    if (files != null) {
-      for (File file : files) {
-        if (file.isFile() && file.getName().startsWith("patch_")) {
-          String patchIdString = file.getName().substring(6);
-          fileCursors.put(new PatchId(patchIdString), 0);
-        }
-      }
-    }
-  }
+  private final Map<PatchId, Integer> fileCursors = new HashMap<>();
+  private boolean initializedFileCursors = false;
 
   /**
    * This method reads next line from file which holds routes for certain patch
@@ -47,8 +38,11 @@ public class RouteReader {
    * it is used to generate route for generated car in simulation
    */
   List<RouteFileEntry> readNextRoutes(PatchId patchId, int step) {
+    if(!initializedFileCursors)
+      initializeFileCursors();
     List<RouteFileEntry> nextRoutes = new ArrayList<>();
-    var filePath = format("{0}/patch_{1}", directoryPath, patchId.getValue());
+    var patchesDirectoryPath = configuration.getCarGenerator().getFilesPath();
+    var filePath = format("{0}/patch_{1}", patchesDirectoryPath, patchId.getValue());
     try (Stream<String> lines = Files.lines(Paths.get(filePath))) {
       var lineNumber = Optional.ofNullable(fileCursors.get(patchId));
       if (lineNumber.isPresent()) {
@@ -66,6 +60,20 @@ public class RouteReader {
     } catch (IOException e) {
       log.error("Error while reading file: " + filePath, e);
       return nextRoutes;
+    }
+  }
+
+  private void initializeFileCursors(){
+    var patchesDirectoryPath = configuration.getCarGenerator().getFilesPath();
+    File directory = new File(patchesDirectoryPath);
+    File[] files = directory.listFiles();
+    if (files != null) {
+      for (File file : files) {
+        if (file.isFile() && file.getName().startsWith("patch_")) {
+          String patchIdString = file.getName().substring(6);
+          fileCursors.put(new PatchId(patchIdString), 0);
+        }
+      }
     }
   }
 

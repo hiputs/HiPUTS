@@ -36,7 +36,7 @@ import pl.edu.agh.hiputs.communication.service.server.ConnectionInitializationSe
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
 import pl.edu.agh.hiputs.communication.service.server.WorkerRepository;
 import pl.edu.agh.hiputs.loadbalancer.utils.GraphCoherencyUtil;
-import pl.edu.agh.hiputs.model.Configuration;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;

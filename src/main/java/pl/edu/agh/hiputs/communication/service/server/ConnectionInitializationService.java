@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
-import pl.edu.agh.hiputs.model.Configuration;
+import pl.edu.agh.hiputs.configuration.Configuration;
 
 import java.io.DataInputStream;
 import java.io.IOException;

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingService;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.loadbalancer.model.SimulationPoint;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
@@ -31,6 +32,7 @@ public class MapFragmentExecutor {
   @Setter
   @Getter
   private MapFragment mapFragment;
+  private final Configuration configuration;
   private final TaskExecutorService taskExecutor;
   private final CarSynchronizationService carSynchronizationService;
   private final CarsOnBorderSynchronizationService carsOnBorderSynchronizationService;
@@ -98,8 +100,17 @@ public class MapFragmentExecutor {
       // 11. gen new car
       log.debug("Step 11 start");
 
-//    TODO: create separate main class for generating route files
-      if (step < 1)
+      /**
+       * TODO: Create separate main class for generating route files - Currently this `if` is a workaround.
+       * To achieve that `SingleWorkStrategyService` and `SingleWorkStrategyService` need same source of data.
+       * Currently `SingleWorkStrategyService` uses `MapFragment` directly with empty `MapRepository`
+       * Possible fix:
+       * - Create `SingleMapFragmentMapRepository` that would extend `MapRepository` and load directly from map fragment
+       *     in memory (instead of files on disk)
+       * - Conditionally create either `SingleMapFragmentMapRepository` or `MapRepositoryImpl` based on `testMode` flag
+       * - Create separate main class for generating route files
+       */
+      if (step < 1 && configuration.getCarGenerator().isGenerateRouteFiles())
         fileGeneratorService.generateFiles(mapFragment);
 
       carGeneratorService.generateCars(mapFragment, step);
