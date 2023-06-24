@@ -54,9 +54,9 @@ public class FileGeneratorServiceImpl implements FileGeneratorService {
         RouteWithLocation route = pair.getFirst();
         int step = pair.getSecond();
         if (!route.getRouteElements().isEmpty()) {
-          var carLength = random.nextDouble(3.0, 5.0);
-          var speed = random.nextDouble(0, 100);
-          var maxSpeed = random.nextDouble(speed, speed + 20.0);
+          var carLength = random.nextDouble(configuration.getCarMinLengthInMeters(), configuration.getCarMaxLengthInMeters());
+          var speed = random.nextDouble(0, configuration.getCarUpSpeedBoundaryInMetersPerSecond());
+          var maxSpeed = random.nextDouble(speed, configuration.getCarUpMaxSpeedBoundaryInMetersPerSecond());
           var fileEntry = new RouteFileEntry(step, route, carLength, maxSpeed, speed);
           out.println(fileEntry.toFileLine());
         }

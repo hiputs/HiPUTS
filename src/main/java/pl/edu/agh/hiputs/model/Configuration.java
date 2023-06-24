@@ -170,6 +170,26 @@ public class Configuration {
   private String timeBasedCarGenerationConfigPath;
 
   /**
+   * Minimum length of generated car
+   */
+  private double carMinLengthInMeters;
+
+  /**
+   * Maximum length of generated car
+   */
+  private double carMaxLengthInMeters;
+
+  /**
+   * Up Boundary of speed that car has when it starts
+   */
+  private int carUpSpeedBoundaryInMetersPerSecond;
+
+  /**
+   * Up Boundary of max speed that car can have
+   */
+  private int carUpMaxSpeedBoundaryInMetersPerSecond;
+
+  /**
    * Unique worker id
    */
   private MapFragmentId mapFragmentId;
@@ -203,6 +223,10 @@ public class Configuration {
         .ticketActive(false)
         .patchPartitioner(PatchPartitionerConfiguration.getDefault())
         .timeBasedCarGenerationConfigPath("timeBasedCarGenerationConfig.json")
+        .carMinLengthInMeters(3.0)
+        .carMaxLengthInMeters(5.0)
+        .carUpSpeedBoundaryInMetersPerSecond(28)
+        .carUpMaxSpeedBoundaryInMetersPerSecond(38)
         .build();
   }
 

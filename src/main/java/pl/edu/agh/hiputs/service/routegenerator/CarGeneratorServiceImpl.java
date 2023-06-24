@@ -28,6 +28,7 @@ public class CarGeneratorServiceImpl implements CarGeneratorService {
 
   private void generateCarsForPatch(Patch patch, int step, MapFragment mapFragment){
     var cars = carGenerator.generateCars(patch, step, mapFragment);
+    log.debug("{} cars are being placed on patch {} in {} step", cars.size(), patch, step);
     cars.forEach(car -> placeCarOnPatch(car, patch));
   }
 

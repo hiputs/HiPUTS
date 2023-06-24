@@ -33,7 +33,7 @@ public class SingleWorkStrategyService implements Strategy {
   private void execute(TrivialGraphBasedVisualizer graphBasedVisualizer, int step) throws InterruptedException {
     mapFragmentExecutor.run(step);
     graphBasedVisualizer.redrawCars();
-    sleep(5);
+    sleep(100);
     execute(graphBasedVisualizer, step + 1);
   }
 }

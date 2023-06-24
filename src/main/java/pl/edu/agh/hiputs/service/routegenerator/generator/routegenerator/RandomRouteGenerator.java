@@ -20,7 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 @AllArgsConstructor
-@ConditionalOnProperty(value = "route-generator.route-path-finder", havingValue = "random")
+@ConditionalOnProperty(value = "route-generator.route-generator-type", havingValue = "random")
 public class RandomRouteGenerator implements RouteGenerator{
 
   @Override

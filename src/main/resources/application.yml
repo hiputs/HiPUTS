@@ -1,22 +1,23 @@
 carGenerator:
-  generatorSource: live # "live" or "file"
+  generatorSource: file # "live" or "file"
   filesPath: src/main/resources/generator
 
 routeGenerator:
-  RoutePathFinder: random # dijkstra or random
+  RouteGeneratorType: random # shortest_path or random
 
-testMode: true
-workerCount: 3
+testMode: false
+workerCount: 1
 enableGUI: true
 statisticModeActive: false
 simulationStep: 1000
-mapPath: /Users/mstencel/Studia/Semestr 8/Miss/HiPUTS/data/map.osm
+readFromOsmDirectly: true
+mapPath: C:\Users\Konrad\Desktop\Studia\2022.2023\2Semestr\MiSS\HiPUTS\data\map.osm
 serverAddress: localhost
 serverPort: 8081
 localHostMode: false
 balancingMode: NONE
 initialNumberOfCarsPerLane: 0
-pauseAfterStep: 200
+pauseAfterStep: 500
 carViewRange: 300
 defaultMaxSpeed: 20.0
 maxAcceleration: 2.0
@@ -32,7 +33,10 @@ newCars: 15
 minCars: 0
 ticketActive: false
 timeBasedCarGenerationConfigPath: src/main/resources/timeBasedCarGenerationConfig.json
-readFromOsmDirectly: true
+carMinLengthInMeters: 3.0
+carMaxLengthInMeters: 5.0
+carUpSpeedBoundaryInMetersPerSecond: 28
+carUpMaxSpeedBoundaryInMetersPerSecond: 38 # bigger then previous
 patchPartitioner:
   partitionerType: hexagon
   carViewRange: 100.0

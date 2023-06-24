@@ -37,9 +37,9 @@ public class LiveCarGenerator implements CarGenerator {
       routeGenerator.generateRoutesFromMapRepository(patch, carsAmountToGenerate, mapRepository);
 
     return routes.stream().map(route -> {
-      var speed = random.nextDouble(0, 100);
-      var carLength = random.nextDouble(3.0, 5.0);
-      var maxSpeed = random.nextDouble(speed, speed + 20.0);
+      var carLength = random.nextDouble(configuration.getCarMinLengthInMeters(), configuration.getCarMaxLengthInMeters());
+      var speed = random.nextDouble(0, configuration.getCarUpSpeedBoundaryInMetersPerSecond());
+      var maxSpeed = random.nextDouble(speed, configuration.getCarUpMaxSpeedBoundaryInMetersPerSecond());
       return Car.builder()
         .length(carLength)
         .speed(speed)

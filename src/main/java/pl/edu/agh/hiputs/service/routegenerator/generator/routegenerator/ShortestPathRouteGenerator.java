@@ -9,7 +9,6 @@ import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.service.pathfinder.CHBidirectionalDijkstra;
 import pl.edu.agh.hiputs.service.pathfinder.PathFinder;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
@@ -21,8 +20,8 @@ import java.util.concurrent.*;
 @Slf4j
 @Component
 @AllArgsConstructor
-@ConditionalOnProperty(value = "route-generator.route-path-finder", havingValue = "dijkstra")
-public class DijkstraRouteGenerator implements RouteGenerator{
+@ConditionalOnProperty(value = "route-generator.route-generator-type", havingValue = "shortest_path")
+public class ShortestPathRouteGenerator implements RouteGenerator{
 
   private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
 
@@ -34,6 +33,7 @@ public class DijkstraRouteGenerator implements RouteGenerator{
 
   @Override
   public List<RouteWithLocation> generateRoutesFromMapRepository(Patch startPatch, int numberOfRoutes, MapRepository mapRepository) {
+//    TODO: consider adding property for which type of path finder you want to use, when different path finder implementation will be provided
     CHBidirectionalDijkstra pathFinder = new CHBidirectionalDijkstra(mapRepository, executor);
     return generateRoutes(startPatch, numberOfRoutes, mapRepository.getAllPatches(), pathFinder);
   }
