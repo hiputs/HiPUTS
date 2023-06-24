@@ -16,19 +16,26 @@ import java.util.List;
 @AllArgsConstructor
 public class FileInputGeneratorImpl implements FileInputGenerator {
 
-  RouteGenerator routeGenerator;
-  GeneratorCarAmountProvider carAmountProvider;
+  private final RouteGenerator routeGenerator;
+  private final GeneratorCarAmountProvider carAmountProvider;
 
   @Override
-  public List<Pair<RouteWithLocation, Integer>> generateRouteFileInput(Patch patch, int startStep, int endStep, MapFragment mapFragment, MapRepository mapRepository, Boolean fromMapFragment) {
+  public List<Pair<RouteWithLocation, Integer>> generateRouteFileInput(
+    Patch patch,
+    int startStep,
+    int endStep,
+    MapFragment mapFragment,
+    MapRepository mapRepository,
+    Boolean fromMapFragment
+  ) {
     var patchTotalLaneLength = patch.getLanesLength();
     List<Pair<RouteWithLocation, Integer>> routesWithStep = new ArrayList<>();
-    for(int step = startStep; step <= endStep; step ++){
+    for (int step = startStep; step <= endStep; step++) {
       var carsAmountToGenerate = carAmountProvider.getCarsToGenerateAmountAtStep(step, patchTotalLaneLength);
       List<RouteWithLocation> newRoutes = fromMapFragment ?
         routeGenerator.generateRoutesFromMapFragment(patch, carsAmountToGenerate, mapFragment) :
         routeGenerator.generateRoutesFromMapRepository(patch, carsAmountToGenerate, mapRepository);
-      for(RouteWithLocation route : newRoutes){
+      for (RouteWithLocation route : newRoutes) {
         routesWithStep.add(Pair.of(route, step));
       }
     }

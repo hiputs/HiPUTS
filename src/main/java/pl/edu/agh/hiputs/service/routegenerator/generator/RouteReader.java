@@ -71,7 +71,8 @@ public class RouteReader {
       for (File file : files) {
         if (file.isFile() && file.getName().startsWith("patch_")) {
           String patchIdString = file.getName().substring(6);
-          fileCursors.put(new PatchId(patchIdString), 0);
+          // skipping first line with header
+          fileCursors.put(new PatchId(patchIdString), 1);
         }
       }
     }
@@ -102,10 +103,10 @@ public class RouteReader {
     }
     return new RouteFileEntry(
       creationStep,
-      new RouteWithLocation(routeElements, 0),
       carLength,
       maxSpeed,
-      speed
+      speed,
+      new RouteWithLocation(routeElements, 0)
     );
   }
 

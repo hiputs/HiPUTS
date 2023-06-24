@@ -12,10 +12,10 @@ public class RouteFileEntry {
   private final static String COMMA = ",";
 
   private final long step;
-  private final RouteWithLocation route;
   private final double carLength;
   private final double maxSpeed;
   private final double speed;
+  private final RouteWithLocation route;
 
   public String toFileLine() {
     return concatenate(

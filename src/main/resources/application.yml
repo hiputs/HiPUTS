@@ -1,7 +1,7 @@
 carGenerator:
   generatorSource: file # "live" or "file"
   filesPath: src/main/resources/generator
-  generateRouteFiles: false
+  generateRouteFiles: true
 
 routeGenerator:
   RouteGeneratorType: random # shortest_path or random

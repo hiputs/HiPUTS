@@ -49,22 +49,32 @@ public class FileGeneratorServiceImpl implements FileGeneratorService {
          var bw = new BufferedWriter(fw);
          var out = new PrintWriter(bw)) {
       new File(filePath).createNewFile();
-      List<Pair<RouteWithLocation, Integer>> routesWithStep = fileGenerator.generateRouteFileInput(patch, startStep, endstep, mapFragment, mapRepository, configuration.isTestMode());
-      for (Pair<RouteWithLocation, Integer> pair : routesWithStep) {
-        RouteWithLocation route = pair.getFirst();
-        int step = pair.getSecond();
-        if (!route.getRouteElements().isEmpty()) {
-          var carLength = random.nextDouble(configuration.getCarMinLengthInMeters(), configuration.getCarMaxLengthInMeters());
-          var speed = random.nextDouble(0, configuration.getCarUpSpeedBoundaryInMetersPerSecond());
-          var maxSpeed = random.nextDouble(speed, configuration.getCarUpMaxSpeedBoundaryInMetersPerSecond());
-          var fileEntry = new RouteFileEntry(step, route, carLength, maxSpeed, speed);
-          out.println(fileEntry.toFileLine());
-        }
-      }
+      writeHeaderToFile(out);
+      writeRoutesToFile(patch, startStep, endstep, mapFragment, out);
     } catch (IOException e) {
       log.error(format("Cannot create file: {} Inner exception: {}", filePath, e.getMessage()));
     }
 
+  }
 
+  private void writeHeaderToFile(PrintWriter out) {
+    var headerNames = List.of("step", "carLength", "maxSpeed", "speed", "route");
+    out.println(String.join(";", headerNames));
+  }
+
+  private void writeRoutesToFile(Patch patch, int startStep, int endstep, MapFragment mapFragment, PrintWriter out) {
+    List<Pair<RouteWithLocation, Integer>> routesWithStep = fileGenerator.generateRouteFileInput(
+      patch, startStep, endstep, mapFragment, mapRepository, configuration.isTestMode());
+    for (Pair<RouteWithLocation, Integer> pair : routesWithStep) {
+      RouteWithLocation route = pair.getFirst();
+      int step = pair.getSecond();
+      if (!route.getRouteElements().isEmpty()) {
+        var carLength = random.nextDouble(configuration.getCarMinLengthInMeters(), configuration.getCarMaxLengthInMeters());
+        var speed = random.nextDouble(0, configuration.getCarUpSpeedBoundaryInMetersPerSecond());
+        var maxSpeed = random.nextDouble(speed, configuration.getCarUpMaxSpeedBoundaryInMetersPerSecond());
+        var fileEntry = new RouteFileEntry(step, carLength, maxSpeed, speed, route);
+        out.println(fileEntry.toFileLine());
+      }
+    }
   }
 }
