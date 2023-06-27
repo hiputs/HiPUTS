@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.helper;
+package pl.edu.agh.hiputs.partition.mapper.helper.service.edge;
 
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -7,8 +7,9 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 
 @Service
-public class EdgeExtractor {
+public class StandardEdgeExtractor implements EdgeExtractor{
 
+  @Override
   public Optional<Edge<JunctionData, WayData>> getPredecessorWithKey(Edge<JunctionData, WayData> edge, String key) {
     return edge.getSource().getIncomingEdges().stream()
         .filter(candidate -> candidate.getData().getTags().containsKey(key))
@@ -16,6 +17,7 @@ public class EdgeExtractor {
         .findAny();
   }
 
+  @Override
   public Optional<Edge<JunctionData, WayData>> getSuccessorWithKey(Edge<JunctionData, WayData> edge, String key) {
     return edge.getTarget().getOutgoingEdges().stream()
         .filter(candidate -> candidate.getData().getTags().containsKey(key))

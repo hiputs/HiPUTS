@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.partition.mapper.helper.EdgeExtractor;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.EdgeExtractor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;

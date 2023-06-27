@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import pl.edu.agh.hiputs.partition.mapper.helper.EdgeExtractor;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.StandardEdgeExtractor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -18,7 +18,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 public class CountryEdgeIssuesFinderTest {
-  private final CountryEdgeIssuesFinder finder = new CountryEdgeIssuesFinder(new EdgeExtractor());
+  private final CountryEdgeIssuesFinder finder = new CountryEdgeIssuesFinder(new StandardEdgeExtractor());
 
   @Test
   public void noEdgesFoundOnEmptyGraph() {

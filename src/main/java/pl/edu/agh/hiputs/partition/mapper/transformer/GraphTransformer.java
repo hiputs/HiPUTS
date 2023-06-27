@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.transformer;
+package pl.edu.agh.hiputs.partition.mapper.transformer;
 
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;

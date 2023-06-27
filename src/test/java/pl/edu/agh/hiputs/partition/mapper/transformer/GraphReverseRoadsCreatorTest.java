@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.util.transformer;
+package pl.edu.agh.hiputs.partition.mapper.transformer;
 
 import java.util.List;
 import java.util.Map;

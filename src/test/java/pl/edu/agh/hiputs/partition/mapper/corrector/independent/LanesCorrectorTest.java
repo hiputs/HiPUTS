@@ -8,7 +8,7 @@ import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.lanes.Stand
 import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.OnBendSuccessorAllocator;
 import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.OnCrossroadSuccessorAllocator;
 import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.pairing.DefaultPairingIncomingWithOutgoings;
-import pl.edu.agh.hiputs.partition.mapper.util.oneway.StandardOsmAndRoundaboutOnewayProcessor;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.oneway.StandardOsmAndRoundaboutOnewayProcessor;
 import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.sort.ByAngleEdgeSorter;
 import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.turn.mapper.FixedAngleRangeTurnMapper;
 import pl.edu.agh.hiputs.partition.mapper.corrector.independent.util.successor.component.turn.processor.StandardOsmTurnProcessor;

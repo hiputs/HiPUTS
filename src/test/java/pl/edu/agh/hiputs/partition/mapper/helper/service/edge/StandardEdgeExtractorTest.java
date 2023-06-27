@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.helper;
+package pl.edu.agh.hiputs.partition.mapper.helper.service.edge;
 
 import java.util.List;
 import java.util.Map;
@@ -13,8 +13,8 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
-public class EdgeExtractorTest {
-  private final EdgeExtractor extractor = new EdgeExtractor();
+public class StandardEdgeExtractorTest {
+  private final StandardEdgeExtractor extractor = new StandardEdgeExtractor();
 
   private final static Edge<JunctionData, WayData> edge1 = new Edge<>("1", WayData.builder()
       .tags(Map.of("name", "Walking")).build());

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.partition.mapper.util.oneway.OneWayProcessor;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.oneway.OneWayProcessor;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.LaneData;
 import pl.edu.agh.hiputs.partition.model.WayData;
