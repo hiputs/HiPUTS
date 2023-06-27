@@ -1,10 +1,12 @@
-package pl.edu.agh.hiputs.model;
+package pl.edu.agh.hiputs.configuration;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.partition.service.HexagonsPartitioner.BorderEdgesHandlingStrategy;
@@ -14,6 +16,8 @@ import pl.edu.agh.hiputs.partition.service.HexagonsPartitioner.BorderEdgesHandli
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Component
+@ConfigurationProperties()
 public class Configuration {
 
   /**
@@ -149,7 +153,7 @@ public class Configuration {
   /**
    * Properties related only for patch partitioning process.
    */
-  private PatchPartitionerConfiguration patchPartitionerConfiguration;
+  private PatchPartitionerConfiguration patchPartitioner;
 
   /**
    * Max new cars create after every step
@@ -166,13 +170,43 @@ public class Configuration {
   private boolean ticketActive;
 
   /**
+   * Path to configuration of time based car generation
+   */
+  private String timeBasedCarGenerationConfigPath;
+
+  /**
+   * Minimum length of generated car
+   */
+  private double carMinLengthInMeters;
+
+  /**
+   * Maximum length of generated car
+   */
+  private double carMaxLengthInMeters;
+
+  /**
+   * Up Boundary of speed that car has when it starts
+   */
+  private int carUpSpeedBoundaryInMetersPerSecond;
+
+  /**
+   * Up Boundary of max speed that car can have
+   */
+  private int carUpMaxSpeedBoundaryInMetersPerSecond;
+
+  /**
+   * Configuration of car generator
+   */
+  private CarGeneratorConfiguration carGenerator;
+
+  /**
    * Unique worker id
    */
   private MapFragmentId mapFragmentId;
 
   public static Configuration getDefault() {
     return Configuration.builder()
-        .testMode(true)
+        .testMode(false)
         .workerCount(1)
         .enableGUI(true)
         .enableVisualization(false)
@@ -198,39 +232,12 @@ public class Configuration {
         .newCars(15)
         .minCars(0)
         .ticketActive(false)
-        .patchPartitionerConfiguration(PatchPartitionerConfiguration.getDefault())
+        .patchPartitioner(PatchPartitionerConfiguration.getDefault())
+        .timeBasedCarGenerationConfigPath("timeBasedCarGenerationConfig.json")
+        .carMinLengthInMeters(3.0)
+        .carMaxLengthInMeters(5.0)
+        .carUpSpeedBoundaryInMetersPerSecond(28)
+        .carUpMaxSpeedBoundaryInMetersPerSecond(38)
         .build();
-  }
-
-  @Getter
-  @Setter
-  @Builder
-  @NoArgsConstructor
-  @AllArgsConstructor
-  public static class PatchPartitionerConfiguration {
-
-    /**
-     * Patch partitioner name. Supported partitioners are "trivial", "hexagon", "growing"
-     */
-    private String partitionerType;
-
-    /**
-     * Arbitrary maximum distance in meters at which the car should be able to retrieve all necessary information
-     * required by decision process
-     */
-    private double carViewRange;
-
-    /**
-     * Property related only for "hexagon" patch partitioner.
-     */
-    private BorderEdgesHandlingStrategy borderHandlingStrategy;
-
-    public static PatchPartitionerConfiguration getDefault() {
-      return PatchPartitionerConfiguration.builder()
-          .partitionerType("hexagon")
-          .carViewRange(100.0)
-          .borderHandlingStrategy(BorderEdgesHandlingStrategy.maxLaneLengthBuffer)
-          .build();
-    }
   }
 }

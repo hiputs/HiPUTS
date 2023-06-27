@@ -1,0 +1,17 @@
+[
+  {
+    "startStep": 0,
+    "endStep": 100,
+    "carsPerKmLane": 100
+  },
+  {
+    "startStep": 100,
+    "endStep": 200,
+    "carsPerKmLane": 1
+  },
+  {
+    "startStep": 200,
+    "endStep": 300,
+    "carsPerKmLane": 300
+  }
+]

@@ -29,7 +29,7 @@ public class CarProspectorImpl implements CarProspector {
 
   private double getViewRange(){
     return viewRange;
-    //return configurationService.getConfiguration().getCarViewRange();
+    //return configuration.getCarViewRange();
   }
 
   public CarEnvironment getPrecedingCar(CarReadable currentCar, RoadStructureReader roadStructureReader) {

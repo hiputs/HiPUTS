@@ -10,23 +10,23 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Service
 @RequiredArgsConstructor
 public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
 
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
 
   @Override
   public Collection<Graph<PatchData, PatchConnectionData>> partition(Graph<PatchData, PatchConnectionData> graph) {
-    return partition(graph, configurationService.getConfiguration().getWorkerCount());
+    return partition(graph, configuration.getWorkerCount());
   }
 
   private Collection<Graph<PatchData, PatchConnectionData>> partition(Graph<PatchData, PatchConnectionData> graph, int partsCount) {

@@ -2,14 +2,8 @@ package pl.edu.agh.hiputs.model.map.mapfragment;
 
 import static java.lang.Math.min;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,7 +28,6 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.MapStatistic;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
-import pl.edu.agh.hiputs.utils.DebugUtils;
 
 /**
  * <p>This class uses the following naming convention for Patches and their status
@@ -90,6 +83,10 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   public static MapFragmentBuilder builder(MapFragmentId mapFragmentId) {
     return new MapFragmentBuilder(mapFragmentId);
+  }
+
+  public List<Patch> localPatches() {
+    return knownPatches.values().stream().toList();
   }
 
   @Override

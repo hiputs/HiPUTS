@@ -1,11 +1,13 @@
-package pl.edu.agh.hiputs.service.worker;
+package pl.edu.agh.hiputs.service.routegenerator;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
@@ -13,45 +15,45 @@ import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
-import pl.edu.agh.hiputs.model.Configuration;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CarGeneratorService implements Subscriber {
+@ConditionalOnProperty(value = "car-generator.generate-from-file", havingValue = "false")
+public class RandomCarGeneratorService implements Subscriber, CarGeneratorService {
 
   private static final int START_ADD_CAR = 5;
   private final MapRepository mapRepository;
   private final WorkerSubscriptionService subscriptionService;
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
   private boolean bigWorker = false;
   private int step = 0;
   private int totalPatch = -1;
 
   @PostConstruct
-  void init(){
+  void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
   }
 
-  public void generateCars(MapFragment mapFragment) {
-    Configuration configuration = configurationService.getConfiguration();
+  @Override
+  public void generateCars(MapFragment mapFragment, int step) {
 
-    if(totalPatch == -1){
+    if (totalPatch == -1) {
       totalPatch = mapRepository.getAllPatches().size();
     }
 
-    if(configuration.getNewCars() == 0){
+    if (configuration.getNewCars() == 0) {
       return;
     }
 
-    int targetCarMax = (int)(configuration.getNewCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
-    int targetCarMin = (int)(configuration.getMinCars() / (totalPatch * 1.0)* mapFragment.getMyPatchCount());
-    if(targetCarMax <= targetCarMin){
+    int targetCarMax = (int) (configuration.getNewCars() / (totalPatch * 1.0) * mapFragment.getMyPatchCount());
+    int targetCarMin = (int) (configuration.getMinCars() / (totalPatch * 1.0) * mapFragment.getMyPatchCount());
+    if (targetCarMax <= targetCarMin) {
       targetCarMax = targetCarMin + 1;
     }
     int count = ThreadLocalRandom.current().nextInt(targetCarMin, targetCarMax);
@@ -60,10 +62,10 @@ public class CarGeneratorService implements Subscriber {
       return;
     }
 
-    if(bigWorker){
+    if (bigWorker) {
       count = (int) (count * 10);
     }
-    
+
     List<LaneEditable> lanesEditable = mapFragment.getRandomLanesEditable(count);
     ExampleCarProvider carProvider = new ExampleCarProvider(mapFragment, mapRepository);
 

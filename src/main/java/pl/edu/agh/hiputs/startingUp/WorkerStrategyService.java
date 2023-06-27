@@ -35,13 +35,12 @@ import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
-import pl.edu.agh.hiputs.model.Configuration;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
@@ -60,11 +59,10 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final WorkerSubscriptionService subscriptionService;
   private final MapRepository mapRepository;
   private final MapFragmentExecutor mapFragmentExecutor;
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
   private TrivialGraphBasedVisualizer graphBasedVisualizer;
   private final MessageSenderService messageSenderService;
   private final MessageReceiverService messageReceiverService;
-  private Configuration configuration;
   private final MapFragmentCreator mapFragmentCreator;
   private final SimulationStatisticService simulationStatisticService;
   private final ExecutorService simulationExecutor = newSingleThreadExecutor();
@@ -91,7 +89,6 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   @Override
   public void executeStrategy() {
     try {
-      configuration = configurationService.getConfiguration();
       configuration.setMapFragmentId(mapFragmentId);
       messageSenderService.sendServerMessage(
           new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));

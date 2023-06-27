@@ -24,6 +24,9 @@ repositories {
     maven {
         url 'https://packages.confluent.io/maven'
     }
+    maven {
+        url 'https://jitpack.io'
+    }
     mavenCentral()
 }
 
@@ -51,6 +54,11 @@ dependencies {
     implementation 'de.topobyte:osm4j-geometry:0.2.0'
 
     implementation group: 'io.confluent', name: 'kafka-protobuf-serializer', version: '7.1.1'
+
+    implementation 'org.jgrapht:jgrapht-core:1.5.1'
+
+    implementation 'co.datadome:jgrapht-core:1.5.1.1'
+    implementation 'co.datadome:jgrapht-io:1.5.1.1'
 
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
