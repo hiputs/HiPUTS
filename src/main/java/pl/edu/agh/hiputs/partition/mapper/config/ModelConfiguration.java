@@ -96,4 +96,26 @@ public class ModelConfiguration {
      */
     private String strategyName;
   }
+
+  /**
+   * Names mappings of corrector -> strategy
+   */
+  private CorrectorStrategy[] correctorStrategies;
+
+  @Getter
+  @Setter
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class CorrectorStrategy{
+    /**
+     * Name of corrector to which we assign strategy
+     */
+    private String correctorName;
+
+    /**
+     * Name of strategy used for corrector with provided name
+     */
+    private String strategyName;
+  }
 }

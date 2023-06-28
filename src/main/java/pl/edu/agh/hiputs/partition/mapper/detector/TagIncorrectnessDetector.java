@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.partition.mapper.detector;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.TagCorrector;
 import pl.edu.agh.hiputs.partition.mapper.detector.strategy.context.StandardDetectorContext;
@@ -16,6 +17,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 @Service
+@Order(1)
 @RequiredArgsConstructor
 public class TagIncorrectnessDetector implements Detector{
   private final DetectorStrategyExecutor detectorStrategyExecutor;

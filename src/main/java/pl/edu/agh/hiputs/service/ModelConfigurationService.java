@@ -15,6 +15,7 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.mapper.config.ModelConfiguration;
+import pl.edu.agh.hiputs.partition.mapper.config.ModelConfiguration.CorrectorStrategy;
 import pl.edu.agh.hiputs.partition.mapper.config.ModelConfiguration.DataConfiguration;
 import pl.edu.agh.hiputs.partition.mapper.config.ModelConfiguration.DataConfiguration.TagEntry;
 import pl.edu.agh.hiputs.partition.mapper.config.ModelConfiguration.DetectorStrategy;
@@ -25,6 +26,8 @@ public class ModelConfigurationService {
   private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
   @Getter
   private Map<String, String> detector2Strategy;
+  @Getter
+  private Map<String, String> corrector2Strategy;
   @Getter
   private ModelConfiguration modelConfig;
 
@@ -40,6 +43,7 @@ public class ModelConfigurationService {
       }
 
       detector2Strategy = createDetector2StrategyMap();
+      corrector2Strategy = createCorrector2StrategyMap();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -50,6 +54,14 @@ public class ModelConfigurationService {
         .collect(Collectors.toMap(
             detectorStrategy -> StringUtils.capitalize(detectorStrategy.getDetectorName()),
             DetectorStrategy::getStrategyName)
+        );
+  }
+
+  private Map<String, String> createCorrector2StrategyMap() {
+    return Arrays.stream(modelConfig.getCorrectorStrategies())
+        .collect(Collectors.toMap(
+            correctorStrategy -> StringUtils.capitalize(correctorStrategy.getCorrectorName()),
+            CorrectorStrategy::getStrategyName)
         );
   }
 
@@ -70,7 +82,11 @@ public class ModelConfigurationService {
         .defaultMaxSpeed(50)
         .speedLimitsFilePath("data/speedLimits.csv")
         .detectorStrategies(new DetectorStrategy[]{
-            new DetectorStrategy("tagIncorrectnessDetector", "reportBothAndDelegateDS")
+            new DetectorStrategy("tagIncorrectnessDetector", "reportBothAndDelegateDS"),
+            new DetectorStrategy("mapDisConnectivityDetector", "reportBothAndDelegateDS")
+        })
+        .correctorStrategies(new CorrectorStrategy[]{
+            new CorrectorStrategy("mapConnectivityCorrector", "undirectedBridgesCreator")
         })
         .build();
   }
