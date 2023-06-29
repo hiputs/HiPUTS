@@ -83,10 +83,12 @@ public class ModelConfigurationService {
         .speedLimitsFilePath("data/speedLimits.csv")
         .detectorStrategies(new DetectorStrategy[]{
             new DetectorStrategy("tagIncorrectnessDetector", "reportBothAndDelegateDS"),
-            new DetectorStrategy("mapDisConnectivityDetector", "reportBothAndDelegateDS")
+            new DetectorStrategy("mapDisConnectivityDetector", "reportBothAndDelegateDS"),
+            new DetectorStrategy("deadEndsDetector", "reportBothAndDelegateDS")
         })
         .correctorStrategies(new CorrectorStrategy[]{
-            new CorrectorStrategy("mapConnectivityCorrector", "undirectedBridgesCreator")
+            new CorrectorStrategy("mapConnectivityCorrector", "undirectedBridgesCreator"),
+            new CorrectorStrategy("deadEndsCorrector", "addReversesOnDeadEndsFixer")
         })
         .build();
   }
