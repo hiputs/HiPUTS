@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.end.AddReversesOnDeadEndsFixer;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.end.RemoveDeadEndsFixer;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.end.DeadEnd;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -115,12 +116,13 @@ public class DeadEndsCorrectorTest {
         .addEdge(edge5)
         .build();
     List<DeadEnd> deadEnds = List.of(new DeadEnd(nodeB, List.of(edge1)));
-    DeadEndsCorrector corrector = new DeadEndsCorrector(deadEnds, new RemoveDeadEndsFixer());
+    DeadEndsCorrector corrector = new DeadEndsCorrector(deadEnds, new AddReversesOnDeadEndsFixer());
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
-    Assertions.assertEquals(4, newGraph.getNodes().size());
-    Assertions.assertEquals(4, newGraph.getEdges().size());
-    Assertions.assertEquals(1, nodeA.getOutgoingEdges().size());
+    Assertions.assertEquals(5, newGraph.getNodes().size());
+    Assertions.assertEquals(6, newGraph.getEdges().size());
+    Assertions.assertEquals(2, nodeA.getOutgoingEdges().size());
+    Assertions.assertTrue(nodeA.getData().isCrossroad());
   }
 }

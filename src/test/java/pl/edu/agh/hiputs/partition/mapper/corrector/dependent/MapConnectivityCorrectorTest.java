@@ -65,6 +65,7 @@ public class MapConnectivityCorrectorTest {
     sCC3.getNodesIds().add(nodeD.getId());
     sCC3.getExternalEdgesIds().add(edge4.getId());
     MapConnectivityCorrector corrector = new MapConnectivityCorrector(List.of(sCC1, sCC2, sCC3), List.of(), creator);
+    Mockito.when(creator.createBetweenCCsOnGraph(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(graph);
 
     //then
     corrector.correct(graph);
@@ -79,6 +80,8 @@ public class MapConnectivityCorrectorTest {
     Edge<JunctionData, WayData> edge1 = new Edge<>("A->B", WayData.builder().tags(new HashMap<>()).build());
     Edge<JunctionData, WayData> edge2 = new Edge<>("C->D", WayData.builder().tags(new HashMap<>()).build());
     Edge<JunctionData, WayData> edge3 = new Edge<>("D->C", WayData.builder().tags(new HashMap<>()).build());
+    Edge<JunctionData, WayData> edge4 = new Edge<>("C->E", WayData.builder().tags(new HashMap<>()).build());
+    Edge<JunctionData, WayData> edge5 = new Edge<>("E->C", WayData.builder().tags(new HashMap<>()).build());
     Node<JunctionData, WayData> nodeA = new Node<>("A", JunctionData.builder()
         .lon(50.1254876).lat(19.9106595).build());
     Node<JunctionData, WayData> nodeB = new Node<>("B", JunctionData.builder()
@@ -87,6 +90,8 @@ public class MapConnectivityCorrectorTest {
         .lon(50.1275802).lat(19.9123953).build());
     Node<JunctionData, WayData> nodeD = new Node<>("D", JunctionData.builder()
         .lon(50.1274453).lat(19.9121929).build());
+    Node<JunctionData, WayData> nodeE = new Node<>("E", JunctionData.builder()
+        .lon(50.1276259).lat(19.9128388).build());
     StronglyConnectedComponent sCC1 = new StronglyConnectedComponent();
     StronglyConnectedComponent sCC2 = new StronglyConnectedComponent();
     StronglyConnectedComponent sCC3 = new StronglyConnectedComponent();
@@ -100,28 +105,37 @@ public class MapConnectivityCorrectorTest {
     edge2.setTarget(nodeD);
     edge3.setSource(nodeD);
     edge3.setTarget(nodeC);
+    edge4.setSource(nodeD);
+    edge4.setTarget(nodeE);
+    edge5.setSource(nodeE);
+    edge5.setTarget(nodeD);
     nodeA.getOutgoingEdges().add(edge1);
     nodeB.getIncomingEdges().add(edge1);
     nodeC.getOutgoingEdges().add(edge2);
     nodeC.getIncomingEdges().add(edge3);
-    nodeD.getOutgoingEdges().add(edge3);
-    nodeD.getIncomingEdges().add(edge2);
+    nodeD.getOutgoingEdges().addAll(List.of(edge3, edge4));
+    nodeD.getIncomingEdges().addAll(List.of(edge2, edge5));
+    nodeE.getOutgoingEdges().add(edge5);
+    nodeE.getIncomingEdges().add(edge4);
     Graph<JunctionData, WayData> graph = new Graph.GraphBuilder<JunctionData, WayData>()
         .addNode(nodeA)
         .addNode(nodeB)
         .addNode(nodeC)
         .addNode(nodeD)
+        .addNode(nodeE)
         .addEdge(edge1)
         .addEdge(edge2)
         .addEdge(edge3)
+        .addEdge(edge4)
+        .addEdge(edge5)
         .build();
     sCC1.getNodesIds().add(nodeA.getId());
     sCC2.getNodesIds().add(nodeB.getId());
     sCC2.getExternalEdgesIds().add(edge1.getId());
-    sCC3.getNodesIds().addAll(List.of(nodeC.getId(), nodeD.getId()));
-    sCC3.getExternalEdgesIds().addAll(List.of(edge2.getId(), edge3.getId()));
+    sCC3.getNodesIds().addAll(List.of(nodeC.getId(), nodeD.getId(), nodeE.getId()));
+    sCC3.getExternalEdgesIds().addAll(List.of(edge2.getId(), edge3.getId(), edge4.getId(), edge5.getId()));
     wCC1.getNodesIds().addAll(List.of(nodeA.getId(), nodeB.getId()));
-    wCC2.getNodesIds().addAll(List.of(nodeC.getId(), nodeD.getId()));
+    wCC2.getNodesIds().addAll(List.of(nodeC.getId(), nodeD.getId(), nodeE.getId()));
     MapConnectivityCorrector corrector = new MapConnectivityCorrector(
         List.of(sCC1, sCC2, sCC3), List.of(wCC1, wCC2),
         new AllBridgesCreator(new DirectedBridgesCreator(), new UndirectedBridgesCreator())
@@ -132,7 +146,8 @@ public class MapConnectivityCorrectorTest {
     Assertions.assertEquals(2, nodeB.getIncomingEdges().size());
     Assertions.assertEquals(2, nodeB.getOutgoingEdges().size());
     Assertions.assertEquals(1, nodeA.getIncomingEdges().size());
-    Assertions.assertEquals(2, nodeD.getIncomingEdges().size());
-    Assertions.assertEquals(2, nodeD.getOutgoingEdges().size());
+    Assertions.assertEquals(3, nodeD.getIncomingEdges().size());
+    Assertions.assertEquals(3, nodeD.getOutgoingEdges().size());
+    Assertions.assertTrue(nodeD.getData().isCrossroad());
   }
 }
