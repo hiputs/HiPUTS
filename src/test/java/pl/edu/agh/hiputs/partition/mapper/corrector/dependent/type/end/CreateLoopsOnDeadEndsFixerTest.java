@@ -1,11 +1,13 @@
-package pl.edu.agh.hiputs.partition.mapper.transformer;
+package pl.edu.agh.hiputs.partition.mapper.corrector.dependent.type.end;
 
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.end.CreateLoopsOnDeadEndsFixer;
 import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.StandardEdgeReflector;
+import pl.edu.agh.hiputs.partition.mapper.helper.structure.end.DeadEnd;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -13,8 +15,8 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
-public class GraphReverseRoadsCreatorTest {
-  private final GraphReverseRoadsCreator creator = new GraphReverseRoadsCreator(new StandardEdgeReflector());
+public class CreateLoopsOnDeadEndsFixerTest {
+  private final CreateLoopsOnDeadEndsFixer fixer = new CreateLoopsOnDeadEndsFixer(new StandardEdgeReflector());
   private final Map<String, String> tags = Map.of("lanes", "1");
   private final Node<JunctionData, WayData> center = new Node<>("0", JunctionData.builder().build());
   private final Node<JunctionData, WayData> node1 = new Node<>("1", JunctionData.builder().build());
@@ -35,7 +37,7 @@ public class GraphReverseRoadsCreatorTest {
   }
 
   @Test
-  public void createOnDeadEnds() {
+  public void createOnNotReachableBeginnings() {
     // given
     Edge<JunctionData, WayData> edge1 = new Edge<>("10", wayData);
     Edge<JunctionData, WayData> edge2 = new Edge<>("02", WayData.builder().build());
@@ -56,9 +58,10 @@ public class GraphReverseRoadsCreatorTest {
         .addEdge(edge2)
         .addEdge(edgeBack)
         .build();
+    DeadEnd deadEnd = new DeadEnd(node1, List.of(edge1));
 
     // when
-    creator.transform(graph);
+    fixer.fixFoundDeadEnds(List.of(deadEnd), graph);
 
     // then
     Assertions.assertEquals(2, center.getOutgoingEdges().size());
@@ -78,7 +81,7 @@ public class GraphReverseRoadsCreatorTest {
   }
 
   @Test
-  public void createOnNotReachableBeginnings() {
+  public void createOnDeadEnds() {
     // given
     Edge<JunctionData, WayData> edge1 = new Edge<>("10", WayData.builder().build());
     Edge<JunctionData, WayData> edge2 = new Edge<>("02", wayData);
@@ -99,9 +102,10 @@ public class GraphReverseRoadsCreatorTest {
         .addEdge(edge2)
         .addEdge(edgeBack)
         .build();
+    DeadEnd deadEnd = new DeadEnd(node2, List.of(edge2));
 
     // when
-    creator.transform(graph);
+    fixer.fixFoundDeadEnds(List.of(deadEnd), graph);
 
     // then
     Assertions.assertEquals(2, center.getIncomingEdges().size());
