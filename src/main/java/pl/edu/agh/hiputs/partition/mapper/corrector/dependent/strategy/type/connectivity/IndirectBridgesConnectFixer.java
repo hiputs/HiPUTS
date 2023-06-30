@@ -23,7 +23,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 @Service
-public class UndirectedBridgesCreator implements BridgesCreator{
+public class IndirectBridgesConnectFixer implements ConnectFixer {
 
   @Override
   public Graph<JunctionData, WayData> createBetweenCCsOnGraph(
@@ -45,7 +45,7 @@ public class UndirectedBridgesCreator implements BridgesCreator{
           .map(nodesPair -> createBothEdgesBetweenNodes(nodesPair.getLeft(), nodesPair.getRight()))
           .flatMap(edgePair -> Stream.of(edgePair.getLeft(), edgePair.getRight()))
           .forEach(edge -> {
-            if (!graph.getEdges().containsKey(edge.getId())) {
+            if (checkAdditionPossibility(edge, graph)) {
               graph.addEdge(edge);
             }
           });
@@ -137,5 +137,11 @@ public class UndirectedBridgesCreator implements BridgesCreator{
         .entrySet().stream()
         .max(Comparator.comparingLong(Entry::getValue))
         .map(Entry::getKey);
+  }
+
+  private boolean checkAdditionPossibility(Edge<JunctionData, WayData> edge, Graph<JunctionData, WayData> graph) {
+    return !graph.getEdges().containsKey(edge.getId()) &&
+        graph.getNodes().containsKey(edge.getSource().getId()) &&
+        graph.getNodes().containsKey(edge.getTarget().getId());
   }
 }

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.UndirectedBridgesCreator;
+import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.IndirectBridgesConnectFixer;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.WeaklyConnectedComponent;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
@@ -12,8 +12,8 @@ import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
-public class UndirectedBridgesCreatorTest {
-  private final UndirectedBridgesCreator creator = new UndirectedBridgesCreator();
+public class IndirectBridgesConnectFixerTest {
+  private final IndirectBridgesConnectFixer creator = new IndirectBridgesConnectFixer();
 
   @Test
   public void oneWCC() {

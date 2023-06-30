@@ -20,7 +20,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 
 @Service
 @RequiredArgsConstructor
-public class DirectedBridgesCreator implements BridgesCreator{
+public class DirectBridgesConnectFixer implements ConnectFixer {
   private final EdgeReflector edgeReflector;
 
   @Override
@@ -31,7 +31,7 @@ public class DirectedBridgesCreator implements BridgesCreator{
   ) {
     if (sCCs.size() > 1) {
       createDirectedBridgesOnGraph(sCCs, graph).forEach(edge -> {
-        if (!graph.getEdges().containsKey(edge.getId())) {
+        if (checkAdditionPossibility(edge, graph)) {
           graph.addEdge(edge);
         }
       });
@@ -86,5 +86,11 @@ public class DirectedBridgesCreator implements BridgesCreator{
         .map(edgeId -> graph.getEdges().get(edgeId))
         .min(Comparator.comparingDouble(edge -> edge.getData().getLength()))
         .map(Edge::getId);
+  }
+
+  private boolean checkAdditionPossibility(Edge<JunctionData, WayData> edge, Graph<JunctionData, WayData> graph) {
+    return !graph.getEdges().containsKey(edge.getId()) &&
+        graph.getNodes().containsKey(edge.getSource().getId()) &&
+        graph.getNodes().containsKey(edge.getTarget().getId());
   }
 }

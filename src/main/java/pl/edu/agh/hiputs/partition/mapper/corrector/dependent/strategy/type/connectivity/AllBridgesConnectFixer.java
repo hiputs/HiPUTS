@@ -11,9 +11,9 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 
 @Service
 @RequiredArgsConstructor
-public class AllBridgesCreator implements BridgesCreator{
-  private final DirectedBridgesCreator directedBridgesCreator;
-  private final UndirectedBridgesCreator undirectedBridgesCreator;
+public class AllBridgesConnectFixer implements ConnectFixer {
+  private final DirectBridgesConnectFixer directedBridgesCreator;
+  private final IndirectBridgesConnectFixer undirectedBridgesCreator;
 
   @Override
   public Graph<JunctionData, WayData> createBetweenCCsOnGraph(

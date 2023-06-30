@@ -7,7 +7,7 @@ import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 
-public interface BridgesCreator {
+public interface ConnectFixer {
 
   Graph<JunctionData, WayData> createBetweenCCsOnGraph(
       List<StronglyConnectedComponent> sCCs,

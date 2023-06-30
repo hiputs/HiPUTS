@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.MapConnectivityCorrector;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.factory.CorrectorStrategyFactory;
-import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.BridgesCreator;
+import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.ConnectFixer;
 import pl.edu.agh.hiputs.partition.mapper.detector.strategy.context.StandardDetectorContext;
 import pl.edu.agh.hiputs.partition.mapper.detector.strategy.executor.DetectorStrategyExecutor;
 import pl.edu.agh.hiputs.partition.mapper.detector.util.connectivity.CCFinder;
@@ -22,7 +22,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 @Order(2)
 @RequiredArgsConstructor
 public class MapDisConnectivityDetector implements Detector {
-  private final CorrectorStrategyFactory<MapConnectivityCorrector, BridgesCreator> strategyFactory;
+  private final CorrectorStrategyFactory<MapConnectivityCorrector, ConnectFixer> strategyFactory;
   private final DetectorStrategyExecutor detectorStrategyExecutor;
   private final CCFinder<StronglyConnectedComponent> sCCFinder;
   private final CCFinder<WeaklyConnectedComponent> wCCFinder;

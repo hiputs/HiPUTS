@@ -9,7 +9,7 @@ import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.factory.ConnectivityCorrectorStrategyFactory;
-import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.DirectedBridgesCreator;
+import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.DirectBridgesConnectFixer;
 import pl.edu.agh.hiputs.partition.mapper.detector.strategy.context.StandardDetectorContext;
 import pl.edu.agh.hiputs.partition.mapper.detector.strategy.executor.StandardDetectorStrategyExecutor;
 import pl.edu.agh.hiputs.partition.mapper.detector.util.connectivity.CCFinder;
@@ -71,7 +71,7 @@ public class MapDisConnectivityDetectorTest {
         .addEdge(edge3)
         .build();
     Mockito.when(connectivityCorrectorStrategyFactory.getFromConfiguration()).thenReturn(
-        new DirectedBridgesCreator(new StandardEdgeReflector()));
+        new DirectBridgesConnectFixer(new StandardEdgeReflector()));
 
     // then
     mapDisConnectivityDetector.detect(graph);

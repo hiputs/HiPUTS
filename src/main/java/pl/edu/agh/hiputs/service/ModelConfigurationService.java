@@ -87,7 +87,7 @@ public class ModelConfigurationService {
             new DetectorStrategy("deadEndsDetector", "reportBothAndDelegateDS")
         })
         .correctorStrategies(new CorrectorStrategy[]{
-            new CorrectorStrategy("mapConnectivityCorrector", "undirectedBridgesCreator"),
+            new CorrectorStrategy("mapConnectivityCorrector", "indirectBridgesConnectFixer"),
             new CorrectorStrategy("deadEndsCorrector", "addReversesOnDeadEndsFixer")
         })
         .build();

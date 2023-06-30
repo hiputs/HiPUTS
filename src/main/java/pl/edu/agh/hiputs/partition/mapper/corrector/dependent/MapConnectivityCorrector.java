@@ -3,7 +3,7 @@ package pl.edu.agh.hiputs.partition.mapper.corrector.dependent;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.partition.mapper.corrector.Corrector;
-import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.BridgesCreator;
+import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.ConnectFixer;
 import pl.edu.agh.hiputs.partition.mapper.helper.service.crossroad.StandardCrossroadDeterminer;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.StronglyConnectedComponent;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.WeaklyConnectedComponent;
@@ -18,14 +18,14 @@ public class MapConnectivityCorrector implements Corrector {
       new GraphCrossroadDeterminer(new StandardCrossroadDeterminer());
   private final List<StronglyConnectedComponent> sCCs;
   private final List<WeaklyConnectedComponent> wCCs;
-  private final BridgesCreator bridgesCreator;
+  private final ConnectFixer connectFixer;
 
   @Override
   public Graph<JunctionData, WayData> correct(Graph<JunctionData, WayData> graph) {
     cleanUpSCCsUsingGraph(graph);
 
     return graphCrossroadDeterminer.transform(
-        bridgesCreator.createBetweenCCsOnGraph(sCCs, wCCs, graph));
+        connectFixer.createBetweenCCsOnGraph(sCCs, wCCs, graph));
   }
 
   private void cleanUpSCCsUsingGraph(Graph<JunctionData, WayData> graph) {

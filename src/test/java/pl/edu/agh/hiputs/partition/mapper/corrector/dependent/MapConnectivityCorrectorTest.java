@@ -5,9 +5,9 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.AllBridgesCreator;
-import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.DirectedBridgesCreator;
-import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.UndirectedBridgesCreator;
+import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.AllBridgesConnectFixer;
+import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.DirectBridgesConnectFixer;
+import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.IndirectBridgesConnectFixer;
 import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.StandardEdgeReflector;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.StronglyConnectedComponent;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.WeaklyConnectedComponent;
@@ -33,7 +33,7 @@ public class MapConnectivityCorrectorTest {
     StronglyConnectedComponent sCC1 = new StronglyConnectedComponent();
     StronglyConnectedComponent sCC2 = new StronglyConnectedComponent();
     StronglyConnectedComponent sCC3 = new StronglyConnectedComponent();
-    AllBridgesCreator creator = Mockito.mock(AllBridgesCreator.class);
+    AllBridgesConnectFixer creator = Mockito.mock(AllBridgesConnectFixer.class);
 
     // when
     edge1.setSource(nodeA);
@@ -139,7 +139,7 @@ public class MapConnectivityCorrectorTest {
     wCC2.getNodesIds().addAll(List.of(nodeC.getId(), nodeD.getId(), nodeE.getId()));
     MapConnectivityCorrector corrector = new MapConnectivityCorrector(
         List.of(sCC1, sCC2, sCC3), List.of(wCC1, wCC2),
-        new AllBridgesCreator(new DirectedBridgesCreator(new StandardEdgeReflector()), new UndirectedBridgesCreator())
+        new AllBridgesConnectFixer(new DirectBridgesConnectFixer(new StandardEdgeReflector()), new IndirectBridgesConnectFixer())
     );
 
     //then

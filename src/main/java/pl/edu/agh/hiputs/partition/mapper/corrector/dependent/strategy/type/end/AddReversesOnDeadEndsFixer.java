@@ -7,6 +7,7 @@ import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.EdgeRefl
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.end.DeadEnd;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
+import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 
 @Service
@@ -20,11 +21,17 @@ public class AddReversesOnDeadEndsFixer implements DeadEndsFixer{
         deadEnd.getConnectingEdges().stream()
             .map(edgeReflector::reverseEdge)
             .forEach(edge -> {
-              if (!graph.getEdges().containsKey(edge.getId())) {
+              if (checkAdditionPossibility(edge, graph)) {
                 graph.addEdge(edge);
               }
             }));
 
     return graph;
+  }
+
+  private boolean checkAdditionPossibility(Edge<JunctionData, WayData> edge, Graph<JunctionData, WayData> graph) {
+    return !graph.getEdges().containsKey(edge.getId()) &&
+        graph.getNodes().containsKey(edge.getSource().getId()) &&
+        graph.getNodes().containsKey(edge.getTarget().getId());
   }
 }
