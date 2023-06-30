@@ -18,6 +18,7 @@ import pl.edu.agh.hiputs.partition.mapper.detector.strategy.executor.StandardDet
 import pl.edu.agh.hiputs.partition.mapper.detector.util.end.ByIncomingDeadEndsFinder;
 import pl.edu.agh.hiputs.partition.mapper.detector.util.end.ByOutgoingDeadEndsFinder;
 import pl.edu.agh.hiputs.partition.mapper.detector.util.end.DeadEndsFinder;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.StandardEdgeReflector;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -87,7 +88,8 @@ public class DeadEndsDetectorTest {
         .addEdge(edge4)
         .addEdge(edge5)
         .build();
-    Mockito.when(deadEndsCorrectorStrategyFactory.getFromConfiguration()).thenReturn(new AddReversesOnDeadEndsFixer());
+    Mockito.when(deadEndsCorrectorStrategyFactory.getFromConfiguration()).thenReturn(
+        new AddReversesOnDeadEndsFixer(new StandardEdgeReflector()));
 
     // then
     detector.detect(graph);

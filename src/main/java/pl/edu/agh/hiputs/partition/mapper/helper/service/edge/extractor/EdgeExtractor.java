@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.partition.mapper.helper.service.edge;
+package pl.edu.agh.hiputs.partition.mapper.helper.service.edge.extractor;
 
 import java.util.Optional;
 import pl.edu.agh.hiputs.partition.model.JunctionData;

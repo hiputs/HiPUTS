@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.AllBridgesCreator;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.DirectedBridgesCreator;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.UndirectedBridgesCreator;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.StandardEdgeReflector;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.StronglyConnectedComponent;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.WeaklyConnectedComponent;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -17,7 +18,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 public class AllBridgesCreatorTest {
   private final AllBridgesCreator creator = new AllBridgesCreator(
-      new DirectedBridgesCreator(), new UndirectedBridgesCreator()
+      new DirectedBridgesCreator(new StandardEdgeReflector()), new UndirectedBridgesCreator()
   );
 
   @Test

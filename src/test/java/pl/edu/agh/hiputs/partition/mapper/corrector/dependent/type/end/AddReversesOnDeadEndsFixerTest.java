@@ -5,6 +5,7 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.end.AddReversesOnDeadEndsFixer;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.StandardEdgeReflector;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.end.DeadEnd;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
@@ -13,7 +14,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 public class AddReversesOnDeadEndsFixerTest {
-  private final AddReversesOnDeadEndsFixer fixer = new AddReversesOnDeadEndsFixer();
+  private final AddReversesOnDeadEndsFixer fixer = new AddReversesOnDeadEndsFixer(new StandardEdgeReflector());
 
   @Test
   public void singleNodeGraphWithOneDeadEndWithoutEdges() {

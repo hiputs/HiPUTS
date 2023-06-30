@@ -44,7 +44,11 @@ public class UndirectedBridgesCreator implements BridgesCreator{
       nodesToConnect.stream()
           .map(nodesPair -> createBothEdgesBetweenNodes(nodesPair.getLeft(), nodesPair.getRight()))
           .flatMap(edgePair -> Stream.of(edgePair.getLeft(), edgePair.getRight()))
-          .forEach(graph::addEdge);
+          .forEach(edge -> {
+            if (!graph.getEdges().containsKey(edge.getId())) {
+              graph.addEdge(edge);
+            }
+          });
     }
 
     return graph;

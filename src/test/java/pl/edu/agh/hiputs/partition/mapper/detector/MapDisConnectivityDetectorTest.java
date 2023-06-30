@@ -15,6 +15,7 @@ import pl.edu.agh.hiputs.partition.mapper.detector.strategy.executor.StandardDet
 import pl.edu.agh.hiputs.partition.mapper.detector.util.connectivity.CCFinder;
 import pl.edu.agh.hiputs.partition.mapper.detector.util.connectivity.KosarajuSCCFinder;
 import pl.edu.agh.hiputs.partition.mapper.detector.util.connectivity.TypicalWCCFinder;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.StandardEdgeReflector;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.StronglyConnectedComponent;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.WeaklyConnectedComponent;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -69,7 +70,8 @@ public class MapDisConnectivityDetectorTest {
         .addEdge(edge2)
         .addEdge(edge3)
         .build();
-    Mockito.when(connectivityCorrectorStrategyFactory.getFromConfiguration()).thenReturn(new DirectedBridgesCreator());
+    Mockito.when(connectivityCorrectorStrategyFactory.getFromConfiguration()).thenReturn(
+        new DirectedBridgesCreator(new StandardEdgeReflector()));
 
     // then
     mapDisConnectivityDetector.detect(graph);

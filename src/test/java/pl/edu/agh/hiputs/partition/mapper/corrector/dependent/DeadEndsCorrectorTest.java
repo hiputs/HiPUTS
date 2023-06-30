@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.end.AddReversesOnDeadEndsFixer;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.end.RemoveDeadEndsFixer;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.StandardEdgeReflector;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.end.DeadEnd;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
@@ -116,7 +117,8 @@ public class DeadEndsCorrectorTest {
         .addEdge(edge5)
         .build();
     List<DeadEnd> deadEnds = List.of(new DeadEnd(nodeB, List.of(edge1)));
-    DeadEndsCorrector corrector = new DeadEndsCorrector(deadEnds, new AddReversesOnDeadEndsFixer());
+    DeadEndsCorrector corrector = new DeadEndsCorrector(deadEnds,
+        new AddReversesOnDeadEndsFixer(new StandardEdgeReflector()));
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);

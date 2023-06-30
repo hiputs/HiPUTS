@@ -5,6 +5,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.StandardEdgeReflector;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -13,7 +14,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 public class GraphReverseRoadsCreatorTest {
-  private final GraphReverseRoadsCreator creator = new GraphReverseRoadsCreator();
+  private final GraphReverseRoadsCreator creator = new GraphReverseRoadsCreator(new StandardEdgeReflector());
   private final Map<String, String> tags = Map.of("lanes", "1");
   private final Node<JunctionData, WayData> center = new Node<>("0", JunctionData.builder().build());
   private final Node<JunctionData, WayData> node1 = new Node<>("1", JunctionData.builder().build());

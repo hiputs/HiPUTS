@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.AllBridgesCreator;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.DirectedBridgesCreator;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.UndirectedBridgesCreator;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.StandardEdgeReflector;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.StronglyConnectedComponent;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.WeaklyConnectedComponent;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -138,7 +139,7 @@ public class MapConnectivityCorrectorTest {
     wCC2.getNodesIds().addAll(List.of(nodeC.getId(), nodeD.getId(), nodeE.getId()));
     MapConnectivityCorrector corrector = new MapConnectivityCorrector(
         List.of(sCC1, sCC2, sCC3), List.of(wCC1, wCC2),
-        new AllBridgesCreator(new DirectedBridgesCreator(), new UndirectedBridgesCreator())
+        new AllBridgesCreator(new DirectedBridgesCreator(new StandardEdgeReflector()), new UndirectedBridgesCreator())
     );
 
     //then

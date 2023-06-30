@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
@@ -33,10 +34,10 @@ public class BFSInRangeTest {
 
   private final Osm2InternalModelMapper osm2InternalModelMapper = new Osm2InternalModelMapperImpl(
       new StandardOsmAndRoundaboutOnewayProcessor(),
-      List.of(new GraphLengthFiller()),
-      new FilterQueue(List.of()),
-      new DetectorQueue(List.of()),
-      new CorrectorQueue(List.of())
+      new ArrayList<>(List.of(new GraphLengthFiller())),
+      new FilterQueue(new ArrayList<>()),
+      new DetectorQueue(new ArrayList<>()),
+      new CorrectorQueue(new ArrayList<>())
   );
   private Graph<JunctionData, WayData> testGraph;
 

@@ -7,8 +7,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.EdgeReflector;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.StronglyConnectedComponent;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.WeaklyConnectedComponent;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -17,7 +19,9 @@ import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 
 @Service
+@RequiredArgsConstructor
 public class DirectedBridgesCreator implements BridgesCreator{
+  private final EdgeReflector edgeReflector;
 
   @Override
   public Graph<JunctionData, WayData> createBetweenCCsOnGraph(
@@ -26,7 +30,11 @@ public class DirectedBridgesCreator implements BridgesCreator{
       Graph<JunctionData, WayData> graph
   ) {
     if (sCCs.size() > 1) {
-      createDirectedBridgesOnGraph(sCCs, graph).forEach(graph::addEdge);
+      createDirectedBridgesOnGraph(sCCs, graph).forEach(edge -> {
+        if (!graph.getEdges().containsKey(edge.getId())) {
+          graph.addEdge(edge);
+        }
+      });
     }
 
     return graph;
@@ -53,7 +61,7 @@ public class DirectedBridgesCreator implements BridgesCreator{
         .filter(scc -> !scc.getExternalEdgesIds().isEmpty())
         .flatMap(scc -> uniqueMinExternalEdges(scc.getExternalEdgesIds(), externalEdgesIds2PointingSCC, graph))
         .map(externalEdgeId -> graph.getEdges().get(externalEdgeId))
-        .map(this::reverseEdge)
+        .map(edgeReflector::reverseEdge)
         .collect(Collectors.toList());
   }
 
@@ -78,22 +86,5 @@ public class DirectedBridgesCreator implements BridgesCreator{
         .map(edgeId -> graph.getEdges().get(edgeId))
         .min(Comparator.comparingDouble(edge -> edge.getData().getLength()))
         .map(Edge::getId);
-  }
-
-  private Edge<JunctionData, WayData> reverseEdge(Edge<JunctionData, WayData> edge) {
-    // creating reverse road from found edge (as a new bridge)
-    Edge<JunctionData, WayData> reverseEdge = new Edge<>(
-        edge.getTarget().getId() + "->" + edge.getSource().getId(),
-        WayData.builder()
-            .tags(edge.getData().getTags())
-            .tagsInOppositeMeaning(!edge.getData().isTagsInOppositeMeaning())
-            .isOneWay(true)
-            .length(edge.getData().getLength())
-            .build());
-
-    reverseEdge.setSource(edge.getTarget());
-    reverseEdge.setTarget(edge.getSource());
-
-    return reverseEdge;
   }
 }
