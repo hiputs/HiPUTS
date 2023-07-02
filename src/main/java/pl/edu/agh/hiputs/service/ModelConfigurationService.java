@@ -81,10 +81,12 @@ public class ModelConfigurationService {
             .build())
         .defaultMaxSpeed(50)
         .speedLimitsFilePath("data/speedLimits.csv")
+        .crossroadMinDistance(10.0)
         .detectorStrategies(new DetectorStrategy[]{
             new DetectorStrategy("tagIncorrectnessDetector", "reportBothAndDelegateDS"),
             new DetectorStrategy("mapDisConnectivityDetector", "reportBothAndDelegateDS"),
-            new DetectorStrategy("deadEndsDetector", "reportBothAndDelegateDS")
+            new DetectorStrategy("deadEndsDetector", "reportBothAndDelegateDS"),
+            new DetectorStrategy("complexCrossroadsDetector", "reportBothAndDelegateDS")
         })
         .correctorStrategies(new CorrectorStrategy[]{
             new CorrectorStrategy("mapConnectivityCorrector", "indirectBridgesConnectFixer"),

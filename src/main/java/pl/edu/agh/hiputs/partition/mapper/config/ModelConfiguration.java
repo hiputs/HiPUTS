@@ -75,6 +75,11 @@ public class ModelConfiguration {
   private String speedLimitsFilePath;
 
   /**
+   * Default speed limit for all roads where no implemented conditions were met
+   */
+  private Double crossroadMinDistance;
+
+  /**
    * Names mappings of detector -> strategy
    */
   private DetectorStrategy[] detectorStrategies;
