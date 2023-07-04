@@ -13,6 +13,8 @@ class ExportDescriptor {
 
   private static final String patchesFileName = "patches.csv";
 
+  private static final String restrictionsFileName = "restrictions.csv";
+
   private static final String signalGroupsFileName = "signal_groups.csv";
 
   private static final String signalCentersFileName = "signal_centers.csv";
@@ -33,6 +35,10 @@ class ExportDescriptor {
 
   public String getPatchesFilePath() {
     return exportDirAbsolutePath + "/" + patchesFileName;
+  }
+
+  public String getRestrictionsFilePath() {
+    return exportDirAbsolutePath + "/" + restrictionsFileName;
   }
 
   public String getSignalGroupsFilePath() {

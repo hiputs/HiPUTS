@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.partition.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.Builder;
@@ -8,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 import pl.edu.agh.hiputs.partition.model.graph.NodeData;
 import pl.edu.agh.hiputs.partition.model.lights.control.SignalsControlCenter;
+import pl.edu.agh.hiputs.partition.model.relation.Restriction;
 
 @Getter
 @Builder
@@ -26,6 +29,8 @@ public class JunctionData implements NodeData {
   @Setter
   @Builder.Default
   private Optional<SignalsControlCenter> signalsControlCenter = Optional.empty();
+  @Builder.Default
+  private List<Restriction> restrictions = new ArrayList<>();
 
   @Override
   public void merge(NodeData other) {
