@@ -86,11 +86,13 @@ public class ModelConfigurationService {
             new DetectorStrategy("tagIncorrectnessDetector", "reportBothAndDelegateDS"),
             new DetectorStrategy("mapDisConnectivityDetector", "reportBothAndDelegateDS"),
             new DetectorStrategy("deadEndsDetector", "reportBothAndDelegateDS"),
-            new DetectorStrategy("complexCrossroadsDetector", "reportBothAndDelegateDS")
+            new DetectorStrategy("complexCrossroadsDetector", "reportBothAndDelegateDS"),
+            new DetectorStrategy("wrongConnectionsDetector", "reportBothAndDelegateDS"),
         })
         .correctorStrategies(new CorrectorStrategy[]{
             new CorrectorStrategy("mapConnectivityCorrector", "indirectBridgesConnectFixer"),
-            new CorrectorStrategy("deadEndsCorrector", "addReversesOnDeadEndsFixer")
+            new CorrectorStrategy("deadEndsCorrector", "addReversesOnDeadEndsFixer"),
+            new CorrectorStrategy("wrongConnectionsCorrector", "changeTypesFixer")
         })
         .build();
   }
