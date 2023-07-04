@@ -51,7 +51,7 @@ public class SelectionFilter implements Filter{
         filteredNodes
     );
 
-    return new OsmGraph(filteredNodes, filteredWays);
+    return new OsmGraph(filteredNodes, filteredWays, osmGraph.getRelations());
   }
 
   private <T extends OsmEntity> List<T> getRequestedEntities(Map<String, String> tagEntries, List<T> entities) {

@@ -25,7 +25,8 @@ public class NodeTypeFilter implements Filter{
         osmGraph.getNodes().stream()
             .filter(osmNode -> isAcceptable(nodesIdsFromWays, osmNode))
             .toList(),
-        osmGraph.getWays()
+        osmGraph.getWays(),
+        osmGraph.getRelations()
     );
   }
 

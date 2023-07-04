@@ -36,6 +36,6 @@ public class CompletenessFilter implements Filter{
         .filter(osmNode -> nodesOccurrences.contains(osmNode.getId()))
         .collect(Collectors.toList());
 
-    return new OsmGraph(processingNodes, processingWays);
+    return new OsmGraph(processingNodes, processingWays, osmGraph.getRelations());
   }
 }

@@ -43,7 +43,7 @@ public class DuplicatesFilter implements Filter{
         .filter(osmNode -> nodeId2Occurrences.containsKey(osmNode.getId()))
         .collect(Collectors.toList());
 
-    return new OsmGraph(processingNodes.stream().toList(), processingWays.stream().toList());
+    return new OsmGraph(processingNodes.stream().toList(), processingWays.stream().toList(), osmGraph.getRelations());
   }
 
   private Collection<OsmNode> collectOrMergeNodesByLocation(Collection<OsmNode> nodes) {

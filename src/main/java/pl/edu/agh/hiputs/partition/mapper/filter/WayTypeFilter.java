@@ -27,7 +27,8 @@ public class WayTypeFilter implements Filter{
     return new OsmGraph(osmGraph.getNodes(),
         osmGraph.getWays().stream()
             .filter(osmWay -> isAcceptable(roadLabels, osmWay))
-            .toList());
+            .toList(),
+        osmGraph.getRelations());
   }
 
   private boolean isAcceptable(Set<String> roadLabels, OsmWay osmWay) {
