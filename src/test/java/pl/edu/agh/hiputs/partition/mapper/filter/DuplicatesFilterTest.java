@@ -35,7 +35,8 @@ public class DuplicatesFilterTest {
         List.of(
             new Way(10L, new TLongArrayList(new long[]{1L, 3L}), List.of(), Mockito.mock(Metadata.class)),
             new Way(20L, new TLongArrayList(new long[]{2L, 3L}), List.of(), Mockito.mock(Metadata.class))
-        ));
+        ),
+        List.of());
 
     // when
     Mockito.when(metadata1.getTimestamp()).thenReturn(1L);
@@ -73,7 +74,8 @@ public class DuplicatesFilterTest {
         List.of(
             new Way(10L, new TLongArrayList(new long[]{1L, 3L}), List.of(), Mockito.mock(Metadata.class)),
             new Way(20L, new TLongArrayList(new long[]{2L, 3L}), List.of(), Mockito.mock(Metadata.class))
-        ));
+        ),
+        List.of());
 
     // when
     Mockito.when(metadata1.getTimestamp()).thenReturn(2L);
@@ -109,7 +111,8 @@ public class DuplicatesFilterTest {
         List.of(
             new Way(10L, new TLongArrayList(new long[]{1L, 2L}), List.of(osmTag1), metadata1),
             new Way(20L, new TLongArrayList(new long[]{1L, 2L}), List.of(osmTag2), metadata2)
-        ));
+        ),
+        List.of());
 
     // when
     Mockito.when(metadata1.getTimestamp()).thenReturn(1L);
@@ -141,7 +144,8 @@ public class DuplicatesFilterTest {
         List.of(
             new Way(10L, new TLongArrayList(new long[]{1L, 2L}), List.of(osmTag1), metadata1),
             new Way(20L, new TLongArrayList(new long[]{1L, 2L}), List.of(osmTag2, osmTag3), metadata2)
-        ));
+        ),
+        List.of());
 
     // when
     Mockito.when(metadata1.getTimestamp()).thenReturn(2L);
@@ -173,7 +177,8 @@ public class DuplicatesFilterTest {
         List.of(
             new Way(10L, new TLongArrayList(new long[]{1L, 3L}), List.of(), Mockito.mock(Metadata.class)),
             new Way(20L, new TLongArrayList(new long[]{1L, 3L}), List.of(), Mockito.mock(Metadata.class))
-        ));
+        ),
+        List.of());
 
     // when
     Mockito.when(metadata1.getTimestamp()).thenReturn(1L);
@@ -211,7 +216,8 @@ public class DuplicatesFilterTest {
         List.of(
             new Way(10L, new TLongArrayList(new long[]{1L, 3L}), List.of(), Mockito.mock(Metadata.class)),
             new Way(20L, new TLongArrayList(new long[]{1L, 3L}), List.of(), Mockito.mock(Metadata.class))
-        ));
+        ),
+        List.of());
 
     // when
     Mockito.when(metadata1.getTimestamp()).thenReturn(2L);
@@ -249,7 +255,8 @@ public class DuplicatesFilterTest {
             new Way(10L, new TLongArrayList(new long[]{3L, 4L}), List.of(), metadata2),
             new Way(30L, new TLongArrayList(new long[]{1L, 3L}), List.of(), Mockito.mock(Metadata.class)),
             new Way(40L, new TLongArrayList(new long[]{2L, 4L}), List.of(), Mockito.mock(Metadata.class))
-        ));
+        ),
+        List.of());
 
     // when
     Mockito.when(metadata1.getTimestamp()).thenReturn(1L);
@@ -283,7 +290,8 @@ public class DuplicatesFilterTest {
         List.of(
             new Way(10L, new TLongArrayList(new long[]{1L, 2L}), List.of(), metadata1),
             new Way(10L, new TLongArrayList(new long[]{3L, 4L}), List.of(), metadata2)
-        ));
+        ),
+        List.of());
 
     // when
     Mockito.when(metadata1.getTimestamp()).thenReturn(1L);

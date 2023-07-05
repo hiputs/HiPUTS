@@ -17,7 +17,7 @@ public class CompletenessFilterTest {
     // given
     OsmGraph osmGraph = new OsmGraph(List.of(
         new Node(1L, 1, 1)
-    ), List.of());
+    ), List.of(), List.of());
 
     // when
     OsmGraph resultOsmGraph = filter.filter(osmGraph);
@@ -34,7 +34,7 @@ public class CompletenessFilterTest {
         new Node(2L, 2, 2)
     ), List.of(
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}))
-    ));
+    ), List.of());
 
     // when
     OsmGraph resultOsmGraph = filter.filter(osmGraph);
@@ -52,7 +52,7 @@ public class CompletenessFilterTest {
         new Node(2L, 2, 2)
     ), List.of(
         new Way(1L, new TLongArrayList(new long[]{1L}))
-    ));
+    ), List.of());
 
     // when
     OsmGraph resultOsmGraph = filter.filter(osmGraph);
@@ -70,7 +70,7 @@ public class CompletenessFilterTest {
         new Node(2L, 2, 2)
     ), List.of(
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}), List.of(new Tag("highway", "primary")))
-    ));
+    ), List.of());
 
     // when
     OsmGraph resultOsmGraph = filter.filter(osmGraph);

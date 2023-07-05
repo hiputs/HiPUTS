@@ -21,7 +21,7 @@ public class WayTypeFilterTest {
   @Test
   public void filterWhenZeroWaysProvided() {
     // given
-    OsmGraph osmGraph = new OsmGraph(List.of(), List.of());
+    OsmGraph osmGraph = new OsmGraph(List.of(), List.of(), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayTypes()).thenReturn(new String[]{"primary"});
@@ -35,7 +35,7 @@ public class WayTypeFilterTest {
   public void filterZeroWhenSomeWaysProvided() {
     // given
     OsmGraph osmGraph = new OsmGraph(List.of(),
-        List.of(new Way(1L, new TLongArrayList(), List.of(new Tag("highway", "primary")))));
+        List.of(new Way(1L, new TLongArrayList(), List.of(new Tag("highway", "primary")))), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayTypes()).thenReturn(new String[]{"primary"});    OsmGraph resultOsmGraph = filter.filter(osmGraph);
@@ -50,7 +50,7 @@ public class WayTypeFilterTest {
     OsmGraph osmGraph = new OsmGraph(List.of(), List.of(
         new Way(1L, new TLongArrayList(), List.of(new Tag("highway", "primary"))),
         new Way(1L, new TLongArrayList(), List.of(new Tag("highway", "pedestrian")))
-    ));
+    ), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayTypes()).thenReturn(new String[]{"primary"});    OsmGraph resultOsmGraph = filter.filter(osmGraph);
@@ -65,7 +65,7 @@ public class WayTypeFilterTest {
     OsmGraph osmGraph = new OsmGraph(List.of(), List.of(
         new Way(1L, new TLongArrayList(), List.of(new Tag("highway", "primary"))),
         new Way(1L, new TLongArrayList(), List.of(new Tag("highway", "pedestrian")))
-    ));
+    ), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayTypes()).thenReturn(new String[]{});

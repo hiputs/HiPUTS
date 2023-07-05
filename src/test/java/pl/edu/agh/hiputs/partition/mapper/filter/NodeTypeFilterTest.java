@@ -14,7 +14,7 @@ public class NodeTypeFilterTest {
   @Test
   public void filterWhenZeroNodesProvided() {
     // given
-    OsmGraph osmGraph = new OsmGraph(List.of(), List.of());
+    OsmGraph osmGraph = new OsmGraph(List.of(), List.of(), List.of());
 
     // when
     OsmGraph resultOsmGraph = filter.filter(osmGraph);
@@ -28,7 +28,7 @@ public class NodeTypeFilterTest {
     // given
     OsmGraph osmGraph = new OsmGraph(List.of(
         new Node(1L, 1, 1)
-    ), List.of());
+    ), List.of(), List.of());
 
     // when
     OsmGraph resultOsmGraph = filter.filter(osmGraph);
@@ -45,7 +45,7 @@ public class NodeTypeFilterTest {
         new Node(2L, 2, 2)
     ), List.of(
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}))
-    ));
+    ), List.of());
 
     // when
     OsmGraph resultOsmGraph = filter.filter(osmGraph);

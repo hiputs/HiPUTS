@@ -23,7 +23,7 @@ public class SelectionFilterTest {
   @Test
   public void filterZeroWhenEmptyMapsAndGraph() {
     // given
-    OsmGraph osmGraph = new OsmGraph(List.of(), List.of());
+    OsmGraph osmGraph = new OsmGraph(List.of(), List.of(), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayConditions().getMandatoryTagEntries())
@@ -48,7 +48,7 @@ public class SelectionFilterTest {
         new Node(1L, 1, 1)
     ), List.of(
         new Way(1L, new TLongArrayList(new long[]{1L}))
-    ));
+    ), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayConditions().getMandatoryTagEntries())
@@ -69,7 +69,7 @@ public class SelectionFilterTest {
   @Test
   public void filterZeroWhenEmptyGraphOnly() {
     // given
-    OsmGraph osmGraph = new OsmGraph(List.of(), List.of());
+    OsmGraph osmGraph = new OsmGraph(List.of(), List.of(), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayConditions().getMandatoryTagEntries())
@@ -97,7 +97,7 @@ public class SelectionFilterTest {
     ), List.of(
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}), List.of(new Tag("maxspeed", "50"))),
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}), List.of(new Tag("country", "Poland")))
-    ));
+    ), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayConditions().getMandatoryTagEntries())
@@ -124,7 +124,7 @@ public class SelectionFilterTest {
     ), List.of(
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}), List.of(new Tag("maxspeed", "40"))),
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}), List.of(new Tag("country", "Poland")))
-    ));
+    ), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayConditions().getMandatoryTagEntries())
@@ -151,7 +151,7 @@ public class SelectionFilterTest {
     ), List.of(
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}), List.of(new Tag("maxspeed", "50"))),
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}), List.of(new Tag("country", "Poland")))
-    ));
+    ), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayConditions().getMandatoryTagEntries())
@@ -178,7 +178,7 @@ public class SelectionFilterTest {
     ), List.of(
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}), List.of(new Tag("maxspeed", "50"))),
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}), List.of(new Tag("country", "Poland")))
-    ));
+    ), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayConditions().getMandatoryTagEntries())
@@ -202,7 +202,8 @@ public class SelectionFilterTest {
     OsmGraph osmGraph = new OsmGraph(List.of(new Node(1L, 1, 1, List.of(new Tag("highway", "barrier"))),
         new Node(2L, 2, 2, List.of(new Tag("name", "entry")))),
         List.of(new Way(1L, new TLongArrayList(new long[] {1L, 2L}), List.of(new Tag("maxspeed", "40"))),
-            new Way(1L, new TLongArrayList(new long[] {1L, 2L}), List.of(new Tag("country", "Poland")))));
+            new Way(1L, new TLongArrayList(new long[] {1L, 2L}), List.of(new Tag("country", "Poland")))),
+        List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayConditions().getMandatoryTagEntries())
@@ -229,7 +230,7 @@ public class SelectionFilterTest {
     ), List.of(
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}), List.of(new Tag("maxspeed", "50"), new Tag("name", "road"))),
         new Way(1L, new TLongArrayList(new long[]{1L, 2L}), List.of(new Tag("country", "Poland")))
-    ));
+    ), List.of());
 
     // when
     Mockito.when(modelConfigService.getModelConfig().getWayConditions().getMandatoryTagEntries())
