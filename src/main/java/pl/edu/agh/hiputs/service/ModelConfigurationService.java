@@ -88,6 +88,7 @@ public class ModelConfigurationService {
             new DetectorStrategy("deadEndsDetector", "reportBothAndDelegateDS"),
             new DetectorStrategy("complexCrossroadsDetector", "reportBothAndDelegateDS"),
             new DetectorStrategy("wrongConnectionsDetector", "reportBothAndDelegateDS"),
+            new DetectorStrategy("restrictionsDetector", "reportBothAndDelegateDS")
         })
         .correctorStrategies(new CorrectorStrategy[]{
             new CorrectorStrategy("mapConnectivityCorrector", "indirectBridgesConnectFixer"),

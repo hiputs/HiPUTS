@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -43,14 +44,27 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
     osmGraph = filterQueue.executeAll(osmGraph);
 
     log.info("Mapping osmGraph to model graph");
+    // preparing
+    Map<String, List<Edge<JunctionData, WayData>>> osmWayId2Edges = new HashMap<>();
     Graph.GraphBuilder<JunctionData, WayData> graphBuilder = new Graph.GraphBuilder<>();
-    osmGraph.getNodes().stream().map(this::osmToInternal).forEach(graphBuilder::addNode);
-    osmGraph.getWays().stream().flatMap(osmWay -> osmToInternal(osmWay).stream()).forEach(graphBuilder::addEdge);
-    Graph<JunctionData, WayData> graph = graphBuilder.build();
 
-    Map<String, Node<JunctionData, WayData>> nodes = graph.getNodes();
-    osmGraph.getRelations().stream()
+    // nodes
+    osmGraph.getNodes().stream()
         .map(this::osmToInternal)
+        .forEach(graphBuilder::addNode);
+
+    // ways
+    osmGraph.getWays().stream()
+        .flatMap(osmWay -> flatMapOsmWayToEdges(osmWay, osmWayId2Edges))
+        .forEach(graphBuilder::addEdge);
+
+    // building
+    Graph<JunctionData, WayData> graph = graphBuilder.build();
+    Map<String, Node<JunctionData, WayData>> nodes = graph.getNodes();
+
+    // relations
+    osmGraph.getRelations().stream()
+        .map(relation -> osmToInternal(relation, osmWayId2Edges))
         .filter(this::isComplete)
         .forEach(restriction -> nodes.get(restriction.getViaNodeId()).getData().getRestrictions().add(restriction));
 
@@ -109,31 +123,59 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
     return edges;
   }
 
-  private Restriction osmToInternal(OsmRelation osmRelation) {
+  private Restriction osmToInternal(OsmRelation osmRelation, Map<String, List<Edge<JunctionData, WayData>>> osmWayId2Ends) {
     List<OsmRelationMember> members = OsmModelUtil.membersAsList(osmRelation);
     Map<String, String> tags = getTags(osmRelation);
 
     Restriction.RestrictionBuilder restrictionBuilder = Restriction.builder();
 
+    // type
     Optional.of(tags)
         .filter(map -> map.containsKey("restriction"))
         .map(map -> map.get("restriction"))
-        .ifPresent(type -> restrictionBuilder.type(RestrictionType.valueOf(type.toUpperCase())));
+        .ifPresent(type -> {
+          try {
+            restrictionBuilder.type(RestrictionType.valueOf(type.toUpperCase()));
+          } catch(IllegalArgumentException ignored) {}  // no type => filtering out
+        });
 
-    members.stream()
+    // via node
+    String viaNodeId = members.stream()
         .filter(member -> member.getRole().equals("via"))
         .findFirst()
-        .ifPresent(member -> restrictionBuilder.viaNodeId(String.valueOf(member.getId())));
+        .map(OsmRelationMember::getId)
+        .map(String::valueOf)
+        .orElse(null);
 
-    members.stream()
-        .filter(member -> member.getRole().equals("to"))
-        .findFirst()
-        .ifPresent(member -> restrictionBuilder.toEdgeId(String.valueOf(member.getId())));
+    if (viaNodeId != null) {
+      restrictionBuilder.viaNodeId(viaNodeId);
 
-    members.stream()
-        .filter(member -> member.getRole().equals("from"))
-        .findFirst()
-        .ifPresent(member -> restrictionBuilder.fromEdgeId(String.valueOf(member.getId())));
+      // to edge
+      members.stream()
+          .filter(member -> member.getRole().equals("to"))
+          .findFirst()
+          .ifPresent(member -> {
+            if (osmWayId2Ends.containsKey(String.valueOf(member.getId()))) {
+              osmWayId2Ends.get(String.valueOf(member.getId())).stream()
+                  .filter(edge -> edge.getSource().getId().equals(viaNodeId))
+                  .findFirst()
+                  .ifPresent(foundToEdge -> restrictionBuilder.toEdgeId(foundToEdge.getId()));
+            }
+          });
+
+      // from edge
+      members.stream()
+          .filter(member -> member.getRole().equals("from"))
+          .findFirst()
+          .ifPresent(member -> {
+            if (osmWayId2Ends.containsKey(String.valueOf(member.getId()))) {
+              osmWayId2Ends.get(String.valueOf(member.getId())).stream()
+                  .filter(edge -> edge.getTarget().getId().equals(viaNodeId))
+                  .findFirst()
+                  .ifPresent(foundFromEdge -> restrictionBuilder.fromEdgeId(foundFromEdge.getId()));
+            }
+          });
+    }
 
     return restrictionBuilder.build();
   }
@@ -144,6 +186,15 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
         StringUtils.isNotBlank(restriction.getFromEdgeId()) &&
         StringUtils.isNotBlank(restriction.getToEdgeId()) &&
         Objects.nonNull(restriction.getType());
+  }
+
+  private Stream<Edge<JunctionData, WayData>> flatMapOsmWayToEdges(
+      OsmWay osmWay, Map<String, List<Edge<JunctionData, WayData>>> osmWayId2Edges
+  ) {
+    List<Edge<JunctionData, WayData>> edges = osmToInternal(osmWay);
+    osmWayId2Edges.put(String.valueOf(osmWay.getId()), edges);
+
+    return edges.stream();
   }
 
   private Map<String, String> getTags(OsmEntity osmEntity) {
