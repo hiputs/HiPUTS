@@ -7,4 +7,6 @@ public interface DetectorStrategyExecutor {
 
   void followAppropriateStrategy(Class<? extends Detector> determiner, DetectorContext detectorContext);
 
+  boolean isNotExpectedToStart(Class<? extends Detector> determiner);
+
 }

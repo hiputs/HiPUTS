@@ -26,6 +26,10 @@ public class TagIncorrectnessDetector implements Detector{
 
   @Override
   public void detect(Graph<JunctionData, WayData> graph) {
+    if (detectorStrategyExecutor.isNotExpectedToStart(this.getClass())) {
+      return;
+    }
+
     List<Pair<String, List<Edge<JunctionData, WayData>>>> edgeFindersResult = edgeFinders.stream()
         .map(edgeFinder -> edgeFinder.lookup(graph))
         .filter(pair -> !pair.getRight().isEmpty())

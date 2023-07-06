@@ -26,6 +26,10 @@ public class DeadEndsDetector implements Detector{
 
   @Override
   public void detect(Graph<JunctionData, WayData> graph) {
+    if (detectorStrategyExecutor.isNotExpectedToStart(this.getClass())) {
+      return;
+    }
+
     List<DeadEnd> deadEndsFound = deadEndsFinders.stream()
         .flatMap(finder -> finder.lookup(graph).stream())
         .toList();

@@ -23,6 +23,10 @@ public class RestrictionsDetector implements Detector{
 
   @Override
   public void detect(Graph<JunctionData, WayData> graph) {
+    if (detectorStrategyExecutor.isNotExpectedToStart(this.getClass())) {
+      return;
+    }
+
     Set<Restriction> foundRestrictions = graph.getNodes().values().stream()
         .flatMap(node -> node.getData().getRestrictions().stream())
         .collect(Collectors.toSet());

@@ -25,6 +25,10 @@ public class WrongConnectionsDetector implements Detector{
 
   @Override
   public void detect(Graph<JunctionData, WayData> graph) {
+    if (detectorStrategyExecutor.isNotExpectedToStart(this.getClass())) {
+      return;
+    }
+
     List<TypeIncompatibility> typesIncompatibilities = incompatibilityFinders.stream()
         .flatMap(incompatibilityFinder -> incompatibilityFinder.lookup(graph).stream())
         .toList();

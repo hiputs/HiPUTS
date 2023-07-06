@@ -22,6 +22,10 @@ public class ComplexCrossroadsDetector implements Detector{
 
   @Override
   public void detect(Graph<JunctionData, WayData> graph) {
+    if (detectorStrategyExecutor.isNotExpectedToStart(this.getClass())) {
+      return;
+    }
+
     List<ComplexCrossroad> complexCrossroads = complexityFinders.stream()
         .flatMap(finder -> finder.lookup(graph).stream())
         .toList();

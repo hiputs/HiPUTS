@@ -28,6 +28,10 @@ public class MapDisConnectivityDetector implements Detector {
 
   @Override
   public void detect(Graph<JunctionData, WayData> graph) {
+    if (detectorStrategyExecutor.isNotExpectedToStart(this.getClass())) {
+      return;
+    }
+
     List<StronglyConnectedComponent> sCCsFound = sCCFinder.lookup(graph);
     List<WeaklyConnectedComponent> wCCsFound = wCCFinder.lookup(graph);
 
