@@ -29,7 +29,7 @@ public class RestrictionsDetector implements Detector{
 
     StandardDetectorContext context = new StandardDetectorContext();
     if (!foundRestrictions.isEmpty()) {
-      context.setDetectionReport(String.format("========== %s - found issues ========== \n%s",
+      context.setDetectionReport(String.format("%s - found restrictions:\n%s",
           getClass().getSimpleName(), formatReportForRestrictions(foundRestrictions)));
 
       context.setPreparedCorrector(new RestrictionsCorrector(foundRestrictions, restrictionAware));
@@ -48,6 +48,6 @@ public class RestrictionsDetector implements Detector{
             restriction.getType()
         )));
 
-    return String.format("<<<FOUND RESTRICTIONS>>>\n[\n%s]\n", restrictionsStringBuilder);
+    return String.format("[\n%s]\n", restrictionsStringBuilder);
   }
 }

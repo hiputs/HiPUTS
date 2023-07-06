@@ -38,7 +38,7 @@ public class TagIncorrectnessDetector implements Detector{
 
     StandardDetectorContext context = new StandardDetectorContext();
     if (!edgeFindersResult.isEmpty() || !nodeFindersResult.isEmpty()) {
-      context.setDetectionReport(String.format("========== %s - found issues ========== \n%s\n%s",
+      context.setDetectionReport(String.format("%s - found tagging issues:\n%s\n%s",
           getClass().getSimpleName(),
           formatReportForEdges(edgeFindersResult),
           formatReportForNodes(nodeFindersResult)));
@@ -58,7 +58,7 @@ public class TagIncorrectnessDetector implements Detector{
             .reduce("", (current, next) -> current + String.format("\t%s,\n", next))
     )));
 
-    return String.format("<<<EDGES>>>\n%s", edgesReportBuilder);
+    return String.format("Edges:\n%s", edgesReportBuilder);
   }
 
   private String formatReportForNodes(List<Pair<String, List<Node<JunctionData, WayData>>>> nodeFindersResult) {
@@ -70,6 +70,6 @@ public class TagIncorrectnessDetector implements Detector{
             .reduce("", (current, next) -> current + String.format("\t%s,\n", next))
     )));
 
-    return String.format("<<<NODES>>>\n%s", nodesReportBuilder);
+    return String.format("Nodes:\n%s", nodesReportBuilder);
   }
 }

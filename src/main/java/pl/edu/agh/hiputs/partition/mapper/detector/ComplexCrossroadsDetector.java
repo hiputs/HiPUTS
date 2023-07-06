@@ -28,7 +28,7 @@ public class ComplexCrossroadsDetector implements Detector{
 
     StandardDetectorContext context = new StandardDetectorContext();
     if (!complexCrossroads.isEmpty()) {
-      context.setDetectionReport(String.format("========== %s - found issues ========== \n%s",
+      context.setDetectionReport(String.format("%s - found complex crossroads:\n%s",
           getClass().getSimpleName(), formatReportForComplexCrossroads(complexCrossroads)));
 
       context.setPreparedCorrector(new ComplexCrossroadsCorrector(complexCrossroads));
@@ -45,6 +45,6 @@ public class ComplexCrossroadsDetector implements Detector{
                 next : current + String.format(", %s", next))
     )));
 
-    return String.format("<<<FOUND COMPLEX CROSSROADS>>>\n[\n%s]\n", complexCrossroadsStringBuilder);
+    return String.format("[\n%s]\n", complexCrossroadsStringBuilder);
   }
 }

@@ -32,7 +32,7 @@ public class DeadEndsDetector implements Detector{
 
     StandardDetectorContext context = new StandardDetectorContext();
     if (deadEndsFound.size() > 0) {
-      context.setDetectionReport(String.format("========== %s - found issues ========== \n%s",
+      context.setDetectionReport(String.format("%s - found dead ends:\n%s",
           getClass().getSimpleName(), formatReportForDeadEnds(deadEndsFound)));
 
       context.setPreparedCorrector(new DeadEndsCorrector(deadEndsFound, strategyFactory.getFromConfiguration()));
@@ -44,7 +44,7 @@ public class DeadEndsDetector implements Detector{
   private String formatReportForDeadEnds(List<DeadEnd> deadEnds) {
     StringBuilder deadEndsStringBuilder = new StringBuilder();
     deadEnds.forEach(deadEnd -> deadEndsStringBuilder.append(
-        String.format("\t{startingNode=%s, connectingEdges=[%s]},\n",
+        String.format("\t{node=%s, edges=[%s]},\n",
             deadEnd.getNodeStarting().getId(),
             deadEnd.getConnectingEdges().stream()
                 .map(Edge::getId)
@@ -52,6 +52,6 @@ public class DeadEndsDetector implements Detector{
                     next : current + String.format(", %s", next))
         )));
 
-    return String.format("<<<FOUND DEAD ENDS>>>\n[\n%s]\n", deadEndsStringBuilder);
+    return String.format("[\n%s]\n", deadEndsStringBuilder);
   }
 }

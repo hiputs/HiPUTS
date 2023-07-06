@@ -31,7 +31,7 @@ public class WrongConnectionsDetector implements Detector{
 
     StandardDetectorContext context = new StandardDetectorContext();
     if (!typesIncompatibilities.isEmpty()) {
-      context.setDetectionReport(String.format("========== %s - found issues ========== \n%s",
+      context.setDetectionReport(String.format("%s - found wrong connections:\n%s",
           getClass().getSimpleName(), formatReportForIncompatibilities(typesIncompatibilities)));
 
       context.setPreparedCorrector(new WrongConnectionsCorrector(
@@ -44,11 +44,11 @@ public class WrongConnectionsDetector implements Detector{
   private String formatReportForIncompatibilities(List<TypeIncompatibility> incompatibilities) {
     StringBuilder incompatibilitiesStringBuilder = new StringBuilder();
     incompatibilities.forEach(incompatibility -> incompatibilitiesStringBuilder.append(
-        String.format("\t{type=%s, impactedEdge=%s},\n",
+        String.format("\t{type=%s, edge=%s},\n",
             incompatibility.getRequiredType(),
             incompatibility.getImpactedEdge().getId()
         )));
 
-    return String.format("<<<FOUND TYPES INCOMPATIBILITIES>>>\n[\n%s]\n", incompatibilitiesStringBuilder);
+    return String.format("[\n%s]\n", incompatibilitiesStringBuilder);
   }
 }

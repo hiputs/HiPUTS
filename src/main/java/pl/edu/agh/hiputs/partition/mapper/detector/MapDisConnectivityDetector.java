@@ -2,7 +2,6 @@ package pl.edu.agh.hiputs.partition.mapper.detector;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.MapConnectivityCorrector;
@@ -34,7 +33,7 @@ public class MapDisConnectivityDetector implements Detector {
 
     StandardDetectorContext context = new StandardDetectorContext();
     if (sCCsFound.size() > 1 || wCCsFound.size() > 1) {
-      context.setDetectionReport(String.format("========== %s - found issues ========== \n%s\n%s",
+      context.setDetectionReport(String.format("%s - found connected components:\n%s\n%s",
           getClass().getSimpleName(),
           formatReportForCCs(sCCsFound, StronglyConnectedComponent.class),
           formatReportForCCs(wCCsFound, WeaklyConnectedComponent.class)));
@@ -54,6 +53,6 @@ public class MapDisConnectivityDetector implements Detector {
         cc.getNodesIds().stream().reduce("", (current, next) -> current.isBlank() ?
             next : current + String.format(", %s", next)))));
 
-    return String.format("<<<FOUND %sS>>>\n[\n%s]\n", StringUtils.upperCase(ccClass.getSimpleName()), ccsStringBuilder);
+    return String.format("%ss:\n[\n%s]\n", ccClass.getSimpleName(), ccsStringBuilder);
   }
 }
