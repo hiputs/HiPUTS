@@ -9,10 +9,12 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.mapper.config.ModelConfiguration;
 import pl.edu.agh.hiputs.partition.mapper.config.ModelConfiguration.CorrectorStrategy;
@@ -29,6 +31,8 @@ public class ModelConfigurationService {
   @Getter
   private Map<String, String> corrector2Strategy;
   @Getter
+  private Map<String, Integer> wayTypesPriority;
+  @Getter
   private ModelConfiguration modelConfig;
 
   @PostConstruct
@@ -44,6 +48,7 @@ public class ModelConfigurationService {
 
       detector2Strategy = createDetector2StrategyMap();
       corrector2Strategy = createCorrector2StrategyMap();
+      wayTypesPriority = createWayTypesPriorityMap();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -63,6 +68,12 @@ public class ModelConfigurationService {
             correctorStrategy -> StringUtils.capitalize(correctorStrategy.getCorrectorName()),
             CorrectorStrategy::getStrategyName)
         );
+  }
+
+  private Map<String, Integer> createWayTypesPriorityMap() {
+    return IntStream.range(0, modelConfig.getWayTypesPriority().length)
+        .mapToObj(index -> Pair.of(modelConfig.getWayTypesPriority()[index], modelConfig.getWayTypesPriority().length - index))
+        .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
   }
 
   private ModelConfiguration createDefaultConfig() {
@@ -94,6 +105,10 @@ public class ModelConfigurationService {
             new CorrectorStrategy("mapConnectivityCorrector", "indirectBridgesConnectFixer"),
             new CorrectorStrategy("deadEndsCorrector", "addReversesOnDeadEndsFixer"),
             new CorrectorStrategy("wrongConnectionsCorrector", "changeTypesFixer")
+        })
+        .wayTypesPriority(new String[]{
+            "motorway", "trunk", "primary", "secondary", "tertiary",
+            "motorway_link", "trunk_link","primary_link", "secondary_link", "tertiary_link"
         })
         .build();
   }

@@ -123,4 +123,9 @@ public class ModelConfiguration {
      */
     private String strategyName;
   }
+
+  /**
+   * Priority order for types of ways
+   */
+  private String[] wayTypesPriority;
 }
