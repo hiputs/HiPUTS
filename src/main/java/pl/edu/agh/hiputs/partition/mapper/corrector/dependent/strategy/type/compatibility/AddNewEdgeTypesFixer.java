@@ -17,7 +17,7 @@ public class AddNewEdgeTypesFixer implements TypesFixer{
   private final static String highwayKey = "highway";
 
   @Override
-  public Graph<JunctionData, WayData> fixFoundTypesIncompatibilities(List<TypeIncompatibility> typeIncompatibilities,
+  public Graph<JunctionData, WayData> fixFoundIncompatibilities(List<TypeIncompatibility> typeIncompatibilities,
       Graph<JunctionData, WayData> graph) {
     typeIncompatibilities.stream()
         .filter(typeIncompatibility -> graph.getEdges().containsKey(typeIncompatibility.getImpactedEdge().getId()))

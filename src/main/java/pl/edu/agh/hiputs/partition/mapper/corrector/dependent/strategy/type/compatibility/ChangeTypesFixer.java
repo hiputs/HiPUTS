@@ -12,7 +12,7 @@ public class ChangeTypesFixer implements TypesFixer{
   private final static String highwayKey = "highway";
 
   @Override
-  public Graph<JunctionData, WayData> fixFoundTypesIncompatibilities(
+  public Graph<JunctionData, WayData> fixFoundIncompatibilities(
       List<TypeIncompatibility> typeIncompatibilities, Graph<JunctionData, WayData> graph
   ) {
     typeIncompatibilities.stream()

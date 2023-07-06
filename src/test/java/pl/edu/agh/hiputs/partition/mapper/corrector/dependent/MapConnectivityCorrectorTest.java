@@ -66,7 +66,7 @@ public class MapConnectivityCorrectorTest {
     sCC3.getNodesIds().add(nodeD.getId());
     sCC3.getExternalEdgesIds().add(edge4.getId());
     MapConnectivityCorrector corrector = new MapConnectivityCorrector(List.of(sCC1, sCC2, sCC3), List.of(), creator);
-    Mockito.when(creator.createBetweenCCsOnGraph(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(graph);
+    Mockito.when(creator.fixFoundDisconnections(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(graph);
 
     //then
     corrector.correct(graph);

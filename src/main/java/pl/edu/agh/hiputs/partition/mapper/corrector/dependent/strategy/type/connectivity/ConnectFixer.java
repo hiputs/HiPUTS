@@ -9,7 +9,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 
 public interface ConnectFixer {
 
-  Graph<JunctionData, WayData> createBetweenCCsOnGraph(
+  Graph<JunctionData, WayData> fixFoundDisconnections(
       List<StronglyConnectedComponent> sCCs,
       List<WeaklyConnectedComponent> wCCs,
       Graph<JunctionData, WayData> graph

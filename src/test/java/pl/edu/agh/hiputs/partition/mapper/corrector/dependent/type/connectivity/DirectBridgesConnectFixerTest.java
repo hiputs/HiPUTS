@@ -43,7 +43,7 @@ public class DirectBridgesConnectFixerTest {
     sCC1.getNodesIds().addAll(List.of(nodeA.getId(), nodeB.getId()));
 
     // then
-    creator.createBetweenCCsOnGraph(List.of(sCC1), List.of(), graph);
+    creator.fixFoundDisconnections(List.of(sCC1), List.of(), graph);
     Assertions.assertEquals(2, graph.getNodes().size());
     Assertions.assertEquals(2, graph.getEdges().size());
     Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getOutgoingEdges().size() == 1));
@@ -67,7 +67,7 @@ public class DirectBridgesConnectFixerTest {
     sCC2.getNodesIds().add(nodeB.getId());
 
     // then
-    creator.createBetweenCCsOnGraph(List.of(sCC1, sCC2), List.of(), graph);
+    creator.fixFoundDisconnections(List.of(sCC1, sCC2), List.of(), graph);
     Assertions.assertEquals(2, graph.getNodes().size());
     Assertions.assertEquals(0, graph.getEdges().size());
     Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getOutgoingEdges().isEmpty()));
@@ -98,7 +98,7 @@ public class DirectBridgesConnectFixerTest {
     sCC2.getExternalEdgesIds().add(edge1.getId());
 
     // then
-    creator.createBetweenCCsOnGraph(List.of(sCC1, sCC2), List.of(), graph);
+    creator.fixFoundDisconnections(List.of(sCC1, sCC2), List.of(), graph);
     Assertions.assertEquals(2, graph.getNodes().size());
     Assertions.assertEquals(2, graph.getEdges().size());
     Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getOutgoingEdges().size() == 1));
@@ -159,7 +159,7 @@ public class DirectBridgesConnectFixerTest {
     sCC2.getExternalEdgesIds().addAll(List.of(edge5.getId(), edge6.getId()));
 
     // then
-    creator.createBetweenCCsOnGraph(List.of(sCC1, sCC2), List.of(), graph);
+    creator.fixFoundDisconnections(List.of(sCC1, sCC2), List.of(), graph);
     Assertions.assertEquals(4, graph.getNodes().size());
     Assertions.assertEquals(7, graph.getEdges().size());
     Assertions.assertEquals(2, nodeC.getOutgoingEdges().size());
@@ -207,7 +207,7 @@ public class DirectBridgesConnectFixerTest {
     sCC3.getExternalEdgesIds().addAll(List.of(edge2.getId(), edge3.getId()));
 
     // then
-    creator.createBetweenCCsOnGraph(List.of(sCC1, sCC2, sCC3), List.of(), graph);
+    creator.fixFoundDisconnections(List.of(sCC1, sCC2, sCC3), List.of(), graph);
     Assertions.assertEquals(3, graph.getNodes().size());
     Assertions.assertEquals(6, graph.getEdges().size());
     Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getOutgoingEdges().size() == 2));

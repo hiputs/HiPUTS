@@ -8,7 +8,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 
 public interface TypesFixer {
 
-  Graph<JunctionData, WayData> fixFoundTypesIncompatibilities(
+  Graph<JunctionData, WayData> fixFoundIncompatibilities(
       List<TypeIncompatibility> typeIncompatibilities,
       Graph<JunctionData, WayData> graph
   );

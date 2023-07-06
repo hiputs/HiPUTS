@@ -26,7 +26,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 public class IndirectBridgesConnectFixer implements ConnectFixer {
 
   @Override
-  public Graph<JunctionData, WayData> createBetweenCCsOnGraph(
+  public Graph<JunctionData, WayData> fixFoundDisconnections(
       List<StronglyConnectedComponent> sCCs,
       List<WeaklyConnectedComponent> wCCs,
       Graph<JunctionData, WayData> graph

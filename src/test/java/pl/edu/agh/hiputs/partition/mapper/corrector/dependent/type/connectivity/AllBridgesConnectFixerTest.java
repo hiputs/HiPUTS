@@ -71,7 +71,7 @@ public class AllBridgesConnectFixerTest {
     wCC2.getNodesIds().addAll(List.of(nodeC.getId(), nodeD.getId()));
 
     // then
-    creator.createBetweenCCsOnGraph(
+    creator.fixFoundDisconnections(
         List.of(sCC1, sCC2, sCC3), List.of(wCC1, wCC2), graph
     );
     Assertions.assertEquals(2, nodeB.getIncomingEdges().size());

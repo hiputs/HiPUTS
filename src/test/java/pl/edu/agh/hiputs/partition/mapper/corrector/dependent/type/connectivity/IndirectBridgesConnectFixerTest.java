@@ -42,7 +42,7 @@ public class IndirectBridgesConnectFixerTest {
     wCC1.getNodesIds().addAll(List.of(nodeA.getId(), nodeB.getId()));
 
     // then
-    creator.createBetweenCCsOnGraph(List.of(), List.of(wCC1), graph);
+    creator.fixFoundDisconnections(List.of(), List.of(wCC1), graph);
     Assertions.assertEquals(2, graph.getNodes().size());
     Assertions.assertEquals(2, graph.getEdges().size());
     Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getOutgoingEdges().size() == 1));
@@ -65,7 +65,7 @@ public class IndirectBridgesConnectFixerTest {
     wCC1.getNodesIds().add(nodeA.getId());
 
     // then
-    creator.createBetweenCCsOnGraph(List.of(), List.of(wCC1, wCC2), graph);
+    creator.fixFoundDisconnections(List.of(), List.of(wCC1, wCC2), graph);
     Assertions.assertEquals(2, graph.getNodes().size());
     Assertions.assertEquals(0, graph.getEdges().size());
     Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getOutgoingEdges().isEmpty()));
@@ -91,7 +91,7 @@ public class IndirectBridgesConnectFixerTest {
     wCC2.getNodesIds().add(nodeB.getId());
 
     // then
-    creator.createBetweenCCsOnGraph(List.of(), List.of(wCC1, wCC2), graph);
+    creator.fixFoundDisconnections(List.of(), List.of(wCC1, wCC2), graph);
     Assertions.assertEquals(2, graph.getNodes().size());
     Assertions.assertEquals(2, graph.getEdges().size());
     Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getOutgoingEdges().size() == 1));
@@ -143,7 +143,7 @@ public class IndirectBridgesConnectFixerTest {
     wCC2.getNodesIds().add(nodeB.getId());
 
     // then
-    creator.createBetweenCCsOnGraph(List.of(), List.of(wCC1, wCC2), graph);
+    creator.fixFoundDisconnections(List.of(), List.of(wCC1, wCC2), graph);
     Assertions.assertEquals(5, graph.getNodes().size());
     Assertions.assertEquals(5, graph.getEdges().size());
     Assertions.assertEquals(1, nodeA.getOutgoingEdges().size());
@@ -193,7 +193,7 @@ public class IndirectBridgesConnectFixerTest {
     wCC2.getNodesIds().addAll(List.of(nodeC.getId(), nodeD.getId()));
 
     // then
-    creator.createBetweenCCsOnGraph(List.of(), List.of(wCC1, wCC2), graph);
+    creator.fixFoundDisconnections(List.of(), List.of(wCC1, wCC2), graph);
     Assertions.assertEquals(4, graph.getNodes().size());
     Assertions.assertEquals(4, graph.getEdges().size());
     Assertions.assertEquals(2, nodeB.getIncomingEdges().size());
@@ -226,7 +226,7 @@ public class IndirectBridgesConnectFixerTest {
     wCC3.getNodesIds().add(nodeC.getId());
 
     // then
-    creator.createBetweenCCsOnGraph(List.of(), List.of(wCC1, wCC2, wCC3), graph);
+    creator.fixFoundDisconnections(List.of(), List.of(wCC1, wCC2, wCC3), graph);
     Assertions.assertEquals(3, graph.getNodes().size());
     Assertions.assertEquals(6, graph.getEdges().size());
     Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getOutgoingEdges().size() == 2));

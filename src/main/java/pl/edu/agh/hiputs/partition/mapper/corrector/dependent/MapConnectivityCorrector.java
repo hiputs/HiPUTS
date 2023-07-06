@@ -25,7 +25,7 @@ public class MapConnectivityCorrector implements Corrector {
     cleanUpSCCsUsingGraph(graph);
 
     return graphCrossroadDeterminer.transform(
-        connectFixer.createBetweenCCsOnGraph(sCCs, wCCs, graph));
+        connectFixer.fixFoundDisconnections(sCCs, wCCs, graph));
   }
 
   private void cleanUpSCCsUsingGraph(Graph<JunctionData, WayData> graph) {

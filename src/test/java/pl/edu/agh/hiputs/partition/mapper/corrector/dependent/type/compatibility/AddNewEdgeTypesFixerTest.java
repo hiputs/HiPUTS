@@ -24,7 +24,7 @@ public class AddNewEdgeTypesFixerTest {
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>().build();
 
     // then
-    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundTypesIncompatibilities(List.of(), graph);
+    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundIncompatibilities(List.of(), graph);
     Assertions.assertTrue(resultGraph.getNodes().isEmpty());
     Assertions.assertTrue(resultGraph.getEdges().isEmpty());
   }
@@ -46,7 +46,7 @@ public class AddNewEdgeTypesFixerTest {
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>().build();
 
     // then
-    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundTypesIncompatibilities(List.of(typeIncompatibility), graph);
+    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundIncompatibilities(List.of(typeIncompatibility), graph);
     Assertions.assertTrue(resultGraph.getNodes().isEmpty());
     Assertions.assertTrue(resultGraph.getEdges().isEmpty());
   }
@@ -71,7 +71,7 @@ public class AddNewEdgeTypesFixerTest {
         .build();
 
     // then
-    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundTypesIncompatibilities(List.of(), graph);
+    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundIncompatibilities(List.of(), graph);
     Assertions.assertEquals(2, resultGraph.getNodes().size());
     Assertions.assertEquals(1, resultGraph.getEdges().size());
     Assertions.assertEquals("motorway", edge1.getData().getTags().get("highway"));
@@ -100,7 +100,7 @@ public class AddNewEdgeTypesFixerTest {
         .build();
 
     // then
-    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundTypesIncompatibilities(List.of(typeIncompatibility), graph);
+    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundIncompatibilities(List.of(typeIncompatibility), graph);
     Assertions.assertEquals(2, resultGraph.getNodes().size());
     Assertions.assertEquals(1, resultGraph.getEdges().size());
     Assertions.assertEquals("primary", edge1.getData().getTags().get("highway"));
@@ -133,7 +133,7 @@ public class AddNewEdgeTypesFixerTest {
         .build();
 
     // then
-    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundTypesIncompatibilities(List.of(typeIncompatibility), graph);
+    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundIncompatibilities(List.of(typeIncompatibility), graph);
     Assertions.assertEquals(2, resultGraph.getNodes().size());
     Assertions.assertEquals(1, resultGraph.getEdges().size());
     Assertions.assertEquals("primary", edge1.getData().getTags().get("highway"));
@@ -184,7 +184,7 @@ public class AddNewEdgeTypesFixerTest {
         .build();
 
     // then
-    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundTypesIncompatibilities(
+    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundIncompatibilities(
         List.of(typeIncompatibility1, typeIncompatibility2), graph);
     Assertions.assertEquals(6, resultGraph.getNodes().size());
     Assertions.assertEquals(5, resultGraph.getEdges().size());
@@ -241,7 +241,7 @@ public class AddNewEdgeTypesFixerTest {
         .build();
 
     // then
-    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundTypesIncompatibilities(
+    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundIncompatibilities(
         List.of(typeIncompatibility1, typeIncompatibility2), graph);
     Assertions.assertEquals(6, resultGraph.getNodes().size());
     Assertions.assertEquals(5, resultGraph.getEdges().size());
@@ -295,7 +295,7 @@ public class AddNewEdgeTypesFixerTest {
         .build();
 
     // then
-    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundTypesIncompatibilities(
+    Graph<JunctionData, WayData> resultGraph = fixer.fixFoundIncompatibilities(
         List.of(typeIncompatibility1, typeIncompatibility2, typeIncompatibility3), graph);
     Assertions.assertEquals(4, resultGraph.getNodes().size());
     Assertions.assertEquals(3, resultGraph.getEdges().size());

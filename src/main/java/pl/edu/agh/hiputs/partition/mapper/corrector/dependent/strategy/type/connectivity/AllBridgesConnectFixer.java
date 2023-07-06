@@ -16,14 +16,14 @@ public class AllBridgesConnectFixer implements ConnectFixer {
   private final IndirectBridgesConnectFixer undirectedBridgesCreator;
 
   @Override
-  public Graph<JunctionData, WayData> createBetweenCCsOnGraph(
+  public Graph<JunctionData, WayData> fixFoundDisconnections(
       List<StronglyConnectedComponent> sCCs,
       List<WeaklyConnectedComponent> wCCs,
       Graph<JunctionData, WayData> graph) {
     Graph<JunctionData, WayData> newGraph;
 
-    newGraph = directedBridgesCreator.createBetweenCCsOnGraph(sCCs, wCCs, graph);
-    newGraph = undirectedBridgesCreator.createBetweenCCsOnGraph(sCCs, wCCs, newGraph);
+    newGraph = directedBridgesCreator.fixFoundDisconnections(sCCs, wCCs, graph);
+    newGraph = undirectedBridgesCreator.fixFoundDisconnections(sCCs, wCCs, newGraph);
 
     return newGraph;
   }

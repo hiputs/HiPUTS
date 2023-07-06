@@ -16,7 +16,7 @@ public class WrongConnectionsCorrector implements Corrector {
 
   @Override
   public Graph<JunctionData, WayData> correct(Graph<JunctionData, WayData> graph) {
-    fixer.fixFoundTypesIncompatibilities(typeIncompatibilities, graph);
+    fixer.fixFoundIncompatibilities(typeIncompatibilities, graph);
 
     return graph;
   }

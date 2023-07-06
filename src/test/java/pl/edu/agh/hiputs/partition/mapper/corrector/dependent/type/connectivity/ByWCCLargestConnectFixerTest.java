@@ -23,7 +23,7 @@ public class ByWCCLargestConnectFixerTest {
     Graph<JunctionData, WayData> graph = new Graph.GraphBuilder<JunctionData, WayData>().build();
 
     // then
-    Graph<JunctionData, WayData> result = fixer.createBetweenCCsOnGraph(List.of(), List.of(), graph);
+    Graph<JunctionData, WayData> result = fixer.fixFoundDisconnections(List.of(), List.of(), graph);
     Assertions.assertEquals(result, graph);
   }
 
@@ -40,7 +40,7 @@ public class ByWCCLargestConnectFixerTest {
     wCC1.addNode(nodeA.getId());
 
     // then
-    Graph<JunctionData, WayData> result = fixer.createBetweenCCsOnGraph(List.of(), List.of(wCC1), graph);
+    Graph<JunctionData, WayData> result = fixer.fixFoundDisconnections(List.of(), List.of(wCC1), graph);
     Assertions.assertEquals(1, result.getNodes().size());
   }
 
@@ -66,7 +66,7 @@ public class ByWCCLargestConnectFixerTest {
     wCC1.addNode(nodeB.getId());
 
     // then
-    Graph<JunctionData, WayData> result = fixer.createBetweenCCsOnGraph(List.of(), List.of(wCC1), graph);
+    Graph<JunctionData, WayData> result = fixer.fixFoundDisconnections(List.of(), List.of(wCC1), graph);
     Assertions.assertEquals(2, result.getNodes().size());
     Assertions.assertEquals(1, result.getEdges().size());
   }
@@ -97,7 +97,7 @@ public class ByWCCLargestConnectFixerTest {
     wCC2.addNode(nodeC.getId());
 
     // then
-    Graph<JunctionData, WayData> result = fixer.createBetweenCCsOnGraph(List.of(), List.of(wCC1), graph);
+    Graph<JunctionData, WayData> result = fixer.fixFoundDisconnections(List.of(), List.of(wCC1), graph);
     Assertions.assertEquals(2, result.getNodes().size());
     Assertions.assertEquals(1, result.getEdges().size());
   }
@@ -156,7 +156,7 @@ public class ByWCCLargestConnectFixerTest {
     wCC3.addNode(nodeF.getId());
 
     // then
-    Graph<JunctionData, WayData> result = fixer.createBetweenCCsOnGraph(List.of(), List.of(wCC1, wCC2, wCC3), graph);
+    Graph<JunctionData, WayData> result = fixer.fixFoundDisconnections(List.of(), List.of(wCC1, wCC2, wCC3), graph);
     Assertions.assertEquals(3, result.getNodes().size());
     Assertions.assertEquals(3, result.getEdges().size());
   }
@@ -207,7 +207,7 @@ public class ByWCCLargestConnectFixerTest {
     wCC2.addNode(nodeD.getId());
 
     // then
-    Graph<JunctionData, WayData> result = fixer.createBetweenCCsOnGraph(List.of(), List.of(wCC1, wCC2), graph);
+    Graph<JunctionData, WayData> result = fixer.fixFoundDisconnections(List.of(), List.of(wCC1, wCC2), graph);
     Assertions.assertEquals(3, result.getNodes().size());
     Assertions.assertEquals(3, result.getEdges().size());
   }
