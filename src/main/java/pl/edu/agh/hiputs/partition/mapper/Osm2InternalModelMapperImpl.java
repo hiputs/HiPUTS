@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.mapper.queue.ServiceQueue;
 import pl.edu.agh.hiputs.partition.mapper.helper.service.oneway.OneWayProcessor;
 import pl.edu.agh.hiputs.partition.mapper.transformer.GraphTransformer;
+import pl.edu.agh.hiputs.partition.mapper.verifier.RequirementsVerifier;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
@@ -38,6 +39,7 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
   private final ServiceQueue<OsmGraph, OsmGraph> filterQueue;
   private final ServiceQueue<Graph<JunctionData, WayData>, Void> detectorQueue;
   private final ServiceQueue<Graph<JunctionData, WayData>, Graph<JunctionData, WayData>> correctorQueue;
+  private final RequirementsVerifier requirementsVerifier;
 
   public Graph<JunctionData, WayData> mapToInternalModel(OsmGraph osmGraph) {
     log.info("Filtering osmGraph");
@@ -77,7 +79,12 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
     detectorQueue.executeAll(graph);
 
     log.info("Correcting graph");
-    return correctorQueue.executeAll(graph);
+    graph = correctorQueue.executeAll(graph);
+
+    log.info("Verifying requirements on graph");
+    requirementsVerifier.verifyAll(graph);
+
+    return graph;
   }
 
   private Node<JunctionData, WayData> osmToInternal(OsmNode osmNode) {

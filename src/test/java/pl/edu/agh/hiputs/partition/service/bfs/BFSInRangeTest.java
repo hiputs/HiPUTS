@@ -18,6 +18,7 @@ import pl.edu.agh.hiputs.partition.mapper.transformer.GraphLengthFiller;
 import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapper;
 import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapperImpl;
 import pl.edu.agh.hiputs.partition.mapper.helper.service.oneway.StandardOsmAndRoundaboutOnewayProcessor;
+import pl.edu.agh.hiputs.partition.mapper.verifier.StandardRequirementsVerifier;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -37,7 +38,8 @@ public class BFSInRangeTest {
       new ArrayList<>(List.of(new GraphLengthFiller())),
       new FilterQueue(new ArrayList<>()),
       new DetectorQueue(new ArrayList<>()),
-      new CorrectorQueue(new ArrayList<>())
+      new CorrectorQueue(new ArrayList<>()),
+      new StandardRequirementsVerifier(List.of())
   );
   private Graph<JunctionData, WayData> testGraph;
 

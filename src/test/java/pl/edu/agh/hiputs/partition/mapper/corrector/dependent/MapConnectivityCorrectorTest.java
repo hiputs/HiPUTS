@@ -139,7 +139,9 @@ public class MapConnectivityCorrectorTest {
     wCC2.getNodesIds().addAll(List.of(nodeC.getId(), nodeD.getId(), nodeE.getId()));
     MapConnectivityCorrector corrector = new MapConnectivityCorrector(
         List.of(sCC1, sCC2, sCC3), List.of(wCC1, wCC2),
-        new AllBridgesConnectFixer(new DirectBridgesConnectFixer(new StandardEdgeReflector()), new IndirectBridgesConnectFixer())
+        new AllBridgesConnectFixer(
+            new DirectBridgesConnectFixer(new StandardEdgeReflector()),
+            new IndirectBridgesConnectFixer(nodes -> {}))
     );
 
     //then
