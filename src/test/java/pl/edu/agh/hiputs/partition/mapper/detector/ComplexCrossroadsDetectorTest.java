@@ -16,6 +16,7 @@ import pl.edu.agh.hiputs.partition.mapper.detector.strategy.executor.StandardDet
 import pl.edu.agh.hiputs.partition.mapper.detector.util.complex.ComplexCrossroadsFinder;
 import pl.edu.agh.hiputs.partition.mapper.detector.util.complex.ComplexRoundaboutFinder;
 import pl.edu.agh.hiputs.partition.mapper.detector.util.complex.ComplexityFinder;
+import pl.edu.agh.hiputs.partition.mapper.helper.structure.complex.ComplexCrossroadsRepositoryImpl;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
@@ -30,8 +31,10 @@ public class ComplexCrossroadsDetectorTest {
   private final StandardDetectorStrategyExecutor standardDetectorStrategyExecutor =
       Mockito.mock(StandardDetectorStrategyExecutor.class);
   private final List<ComplexityFinder> finders = new ArrayList<>();
+  private final ComplexCrossroadsRepositoryImpl wrapper =
+      Mockito.mock(ComplexCrossroadsRepositoryImpl.class);
   private final ComplexCrossroadsDetector detector = new ComplexCrossroadsDetector(
-      standardDetectorStrategyExecutor, finders);
+      standardDetectorStrategyExecutor, finders, wrapper);
   @Captor
   private ArgumentCaptor<StandardDetectorContext> contextCaptor;
 

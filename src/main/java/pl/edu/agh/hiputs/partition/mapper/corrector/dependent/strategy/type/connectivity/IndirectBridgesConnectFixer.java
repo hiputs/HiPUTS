@@ -11,8 +11,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.complex.ComplexCrossroadsUpdater;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.StronglyConnectedComponent;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.WeaklyConnectedComponent;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -23,7 +25,9 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 @Service
+@RequiredArgsConstructor
 public class IndirectBridgesConnectFixer implements ConnectFixer {
+  private final ComplexCrossroadsUpdater complexCrossroadsUpdater;
 
   @Override
   public Graph<JunctionData, WayData> fixFoundDisconnections(
@@ -49,6 +53,11 @@ public class IndirectBridgesConnectFixer implements ConnectFixer {
               graph.addEdge(edge);
             }
           });
+
+      // triggering update process for earlier found complex crossroads (observer pattern)
+      complexCrossroadsUpdater.extendWithNodes(nodesToConnect.stream()
+          .flatMap(pair -> Stream.of(pair.getLeft(), pair.getRight()))
+          .collect(Collectors.toSet()));
     }
 
     return graph;

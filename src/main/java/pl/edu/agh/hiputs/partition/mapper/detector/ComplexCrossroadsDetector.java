@@ -8,6 +8,7 @@ import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.ComplexCrossroadsC
 import pl.edu.agh.hiputs.partition.mapper.detector.strategy.context.StandardDetectorContext;
 import pl.edu.agh.hiputs.partition.mapper.detector.strategy.executor.DetectorStrategyExecutor;
 import pl.edu.agh.hiputs.partition.mapper.detector.util.complex.ComplexityFinder;
+import pl.edu.agh.hiputs.partition.mapper.helper.structure.complex.ComplexCrossroadsRepository;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.complex.ComplexCrossroad;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
@@ -19,6 +20,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 public class ComplexCrossroadsDetector implements Detector{
   private final DetectorStrategyExecutor detectorStrategyExecutor;
   private final List<ComplexityFinder> complexityFinders;
+  private final ComplexCrossroadsRepository complexCrossroadsRepository;
 
   @Override
   public void detect(Graph<JunctionData, WayData> graph) {
@@ -35,7 +37,8 @@ public class ComplexCrossroadsDetector implements Detector{
       context.setDetectionReport(String.format("%s - found complex crossroads:\n%s",
           getClass().getSimpleName(), formatReportForComplexCrossroads(complexCrossroads)));
 
-      context.setPreparedCorrector(new ComplexCrossroadsCorrector(complexCrossroads));
+      complexCrossroadsRepository.getComplexCrossroads().addAll(complexCrossroads);
+      context.setPreparedCorrector(new ComplexCrossroadsCorrector(complexCrossroadsRepository));
     }
 
     detectorStrategyExecutor.followAppropriateStrategy(this.getClass(), context);

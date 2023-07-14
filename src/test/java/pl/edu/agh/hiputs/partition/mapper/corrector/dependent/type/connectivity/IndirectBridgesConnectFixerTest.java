@@ -4,7 +4,10 @@ import java.util.HashMap;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.IndirectBridgesConnectFixer;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.complex.ComplexCrossroadsUpdater;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.complex.StandardComplexCrossroadsUpdater;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.WeaklyConnectedComponent;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
@@ -13,7 +16,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 public class IndirectBridgesConnectFixerTest {
-  private final IndirectBridgesConnectFixer creator = new IndirectBridgesConnectFixer();
+  private final IndirectBridgesConnectFixer creator = new IndirectBridgesConnectFixer(nodes -> {});
 
   @Test
   public void oneWCC() {
@@ -231,5 +234,63 @@ public class IndirectBridgesConnectFixerTest {
     Assertions.assertEquals(6, graph.getEdges().size());
     Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getOutgoingEdges().size() == 2));
     Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getIncomingEdges().size() == 2));
+  }
+
+  @Test
+  public void notTriggeringUpdate() {
+    // given
+    Edge<JunctionData, WayData> edge1 = new Edge<>("1", WayData.builder().tags(new HashMap<>()).build());
+    Edge<JunctionData, WayData> edge2 = new Edge<>("2", WayData.builder().tags(new HashMap<>()).build());
+    Node<JunctionData, WayData> nodeA = new Node<>("A", JunctionData.builder().build());
+    Node<JunctionData, WayData> nodeB = new Node<>("B", JunctionData.builder().build());
+    WeaklyConnectedComponent wCC1 = new WeaklyConnectedComponent();
+
+    // when
+    edge1.setSource(nodeA);
+    edge1.setTarget(nodeB);
+    edge2.setSource(nodeB);
+    edge2.setTarget(nodeA);
+    nodeA.getIncomingEdges().add(edge2);
+    nodeA.getOutgoingEdges().add(edge1);
+    nodeB.getIncomingEdges().add(edge1);
+    nodeB.getOutgoingEdges().add(edge2);
+    Graph<JunctionData, WayData> graph = new Graph.GraphBuilder<JunctionData, WayData>()
+        .addNode(nodeA)
+        .addNode(nodeB)
+        .addEdge(edge1)
+        .addEdge(edge2)
+        .build();
+    wCC1.getNodesIds().addAll(List.of(nodeA.getId(), nodeB.getId()));
+    ComplexCrossroadsUpdater complexCrossroadsUpdater = Mockito.mock(StandardComplexCrossroadsUpdater.class);
+    IndirectBridgesConnectFixer fixer = new IndirectBridgesConnectFixer(complexCrossroadsUpdater);
+
+    // then
+    fixer.fixFoundDisconnections(List.of(), List.of(wCC1), graph);
+    Mockito.verify(complexCrossroadsUpdater, Mockito.times((0))).extendWithNodes(Mockito.any());
+  }
+
+  @Test
+  public void triggeringUpdate() {
+    // given
+    Node<JunctionData, WayData> nodeA = new Node<>("A", JunctionData.builder()
+        .lon(50.1254876).lat(19.9106595).build());
+    Node<JunctionData, WayData> nodeB = new Node<>("B", JunctionData.builder()
+        .lon(50.1257849).lat(19.9104581).build());
+    WeaklyConnectedComponent wCC1 = new WeaklyConnectedComponent();
+    WeaklyConnectedComponent wCC2 = new WeaklyConnectedComponent();
+
+    // when
+    Graph<JunctionData, WayData> graph = new Graph.GraphBuilder<JunctionData, WayData>()
+        .addNode(nodeA)
+        .addNode(nodeB)
+        .build();
+    wCC1.getNodesIds().add(nodeA.getId());
+    wCC2.getNodesIds().add(nodeB.getId());
+    ComplexCrossroadsUpdater complexCrossroadsUpdater = Mockito.mock(StandardComplexCrossroadsUpdater.class);
+    IndirectBridgesConnectFixer fixer = new IndirectBridgesConnectFixer(complexCrossroadsUpdater);
+
+    // then
+    fixer.fixFoundDisconnections(List.of(), List.of(wCC1, wCC2), graph);
+    Mockito.verify(complexCrossroadsUpdater, Mockito.times((1))).extendWithNodes(Mockito.any());
   }
 }

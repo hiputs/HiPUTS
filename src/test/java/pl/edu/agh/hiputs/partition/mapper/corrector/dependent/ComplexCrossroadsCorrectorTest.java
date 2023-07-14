@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import pl.edu.agh.hiputs.partition.mapper.helper.structure.complex.ComplexCrossroadsRepositoryImpl;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.complex.ComplexCrossroad;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
@@ -20,7 +21,7 @@ public class ComplexCrossroadsCorrectorTest {
 
     // when
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>().build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of());
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(new ComplexCrossroadsRepositoryImpl());
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
@@ -34,12 +35,14 @@ public class ComplexCrossroadsCorrectorTest {
     Node<JunctionData, WayData> nodeA = new Node<>("A", JunctionData.builder().build());
     Node<JunctionData, WayData> nodeB = new Node<>("B", JunctionData.builder().build());
     ComplexCrossroad complexCrossroad = new ComplexCrossroad();
+    ComplexCrossroadsRepositoryImpl complexCrossroadsRepository = new ComplexCrossroadsRepositoryImpl();
 
     // when
     complexCrossroad.addNode(nodeA.getId());
     complexCrossroad.addNode(nodeB.getId());
+    complexCrossroadsRepository.getComplexCrossroads().add(complexCrossroad);
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>().build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of(complexCrossroad));
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(complexCrossroadsRepository);
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
@@ -64,7 +67,7 @@ public class ComplexCrossroadsCorrectorTest {
         .addNode(nodeB)
         .addEdge(edge1)
         .build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of());
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(new ComplexCrossroadsRepositoryImpl());
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
@@ -81,13 +84,15 @@ public class ComplexCrossroadsCorrectorTest {
         .lon(30.0)
         .build());
     ComplexCrossroad complexCrossroad = new ComplexCrossroad();
+    ComplexCrossroadsRepositoryImpl complexCrossroadsRepository = new ComplexCrossroadsRepositoryImpl();
 
     // when
     complexCrossroad.addNode(nodeA.getId());
+    complexCrossroadsRepository.getComplexCrossroads().add(complexCrossroad);
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>()
         .addNode(nodeA)
         .build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of(complexCrossroad));
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(complexCrossroadsRepository);
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
@@ -111,15 +116,17 @@ public class ComplexCrossroadsCorrectorTest {
         .build());
     ComplexCrossroad complexCrossroad1 = new ComplexCrossroad();
     ComplexCrossroad complexCrossroad2 = new ComplexCrossroad();
+    ComplexCrossroadsRepositoryImpl complexCrossroadsRepository = new ComplexCrossroadsRepositoryImpl();
 
     // when
     complexCrossroad1.addNode(nodeA.getId());
     complexCrossroad2.addNode(nodeB.getId());
+    complexCrossroadsRepository.getComplexCrossroads().addAll(List.of(complexCrossroad1, complexCrossroad2));
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>()
         .addNode(nodeA)
         .addNode(nodeB)
         .build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of(complexCrossroad1, complexCrossroad2));
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(complexCrossroadsRepository);
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
@@ -144,6 +151,7 @@ public class ComplexCrossroadsCorrectorTest {
         .lon(31.0)
         .build());
     ComplexCrossroad complexCrossroad1 = new ComplexCrossroad();
+    ComplexCrossroadsRepositoryImpl complexCrossroadsRepository = new ComplexCrossroadsRepositoryImpl();
 
     // when
     edge1.setSource(nodeA);
@@ -152,12 +160,13 @@ public class ComplexCrossroadsCorrectorTest {
     nodeB.getIncomingEdges().add(edge1);
     complexCrossroad1.addNode(nodeA.getId());
     complexCrossroad1.addNode(nodeB.getId());
+    complexCrossroadsRepository.getComplexCrossroads().add(complexCrossroad1);
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>()
         .addNode(nodeA)
         .addNode(nodeB)
         .addEdge(edge1)
         .build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of(complexCrossroad1));
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(complexCrossroadsRepository);
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
@@ -182,6 +191,7 @@ public class ComplexCrossroadsCorrectorTest {
         .lon(31.0)
         .build());
     ComplexCrossroad complexCrossroad1 = new ComplexCrossroad();
+    ComplexCrossroadsRepositoryImpl complexCrossroadsRepository = new ComplexCrossroadsRepositoryImpl();
 
     // when
     edge1.setSource(nodeA);
@@ -189,12 +199,13 @@ public class ComplexCrossroadsCorrectorTest {
     nodeA.getOutgoingEdges().add(edge1);
     nodeB.getIncomingEdges().add(edge1);
     complexCrossroad1.addNode(nodeA.getId());
+    complexCrossroadsRepository.getComplexCrossroads().add(complexCrossroad1);
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>()
         .addNode(nodeA)
         .addNode(nodeB)
         .addEdge(edge1)
         .build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of(complexCrossroad1));
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(complexCrossroadsRepository);
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
@@ -220,6 +231,7 @@ public class ComplexCrossroadsCorrectorTest {
         .build());
     ComplexCrossroad complexCrossroad1 = new ComplexCrossroad();
     ComplexCrossroad complexCrossroad2 = new ComplexCrossroad();
+    ComplexCrossroadsRepositoryImpl complexCrossroadsRepository = new ComplexCrossroadsRepositoryImpl();
 
     // when
     edge1.setSource(nodeA);
@@ -228,12 +240,13 @@ public class ComplexCrossroadsCorrectorTest {
     nodeB.getIncomingEdges().add(edge1);
     complexCrossroad1.addNode(nodeA.getId());
     complexCrossroad2.addNode(nodeB.getId());
+    complexCrossroadsRepository.getComplexCrossroads().addAll(List.of(complexCrossroad1, complexCrossroad2));
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>()
         .addNode(nodeA)
         .addNode(nodeB)
         .addEdge(edge1)
         .build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of(complexCrossroad1, complexCrossroad2));
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(complexCrossroadsRepository);
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
@@ -265,6 +278,7 @@ public class ComplexCrossroadsCorrectorTest {
         .build());
     ComplexCrossroad complexCrossroad1 = new ComplexCrossroad();
     ComplexCrossroad complexCrossroad2 = new ComplexCrossroad();
+    ComplexCrossroadsRepositoryImpl complexCrossroadsRepository = new ComplexCrossroadsRepositoryImpl();
 
     // when
     edge1.setSource(nodeA);
@@ -277,6 +291,7 @@ public class ComplexCrossroadsCorrectorTest {
     nodeB.getIncomingEdges().add(edge2);
     complexCrossroad1.addNode(nodeA.getId());
     complexCrossroad2.addNode(nodeC.getId());
+    complexCrossroadsRepository.getComplexCrossroads().addAll(List.of(complexCrossroad1, complexCrossroad2));
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>()
         .addNode(nodeA)
         .addNode(nodeB)
@@ -284,7 +299,7 @@ public class ComplexCrossroadsCorrectorTest {
         .addEdge(edge1)
         .addEdge(edge2)
         .build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of(complexCrossroad1, complexCrossroad2));
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(complexCrossroadsRepository);
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
@@ -317,6 +332,7 @@ public class ComplexCrossroadsCorrectorTest {
         .build());
     ComplexCrossroad complexCrossroad1 = new ComplexCrossroad();
     ComplexCrossroad complexCrossroad2 = new ComplexCrossroad();
+    ComplexCrossroadsRepositoryImpl complexCrossroadsRepository = new ComplexCrossroadsRepositoryImpl();
 
     // when
     edge1.setSource(nodeA);
@@ -330,6 +346,7 @@ public class ComplexCrossroadsCorrectorTest {
     complexCrossroad1.addNode(nodeA.getId());
     complexCrossroad1.addNode(nodeB.getId());
     complexCrossroad2.addNode(nodeC.getId());
+    complexCrossroadsRepository.getComplexCrossroads().addAll(List.of(complexCrossroad1, complexCrossroad2));
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>()
         .addNode(nodeA)
         .addNode(nodeB)
@@ -337,7 +354,7 @@ public class ComplexCrossroadsCorrectorTest {
         .addEdge(edge1)
         .addEdge(edge2)
         .build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of(complexCrossroad1, complexCrossroad2));
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(complexCrossroadsRepository);
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
@@ -383,6 +400,7 @@ public class ComplexCrossroadsCorrectorTest {
         .build());
     ComplexCrossroad complexCrossroad1 = new ComplexCrossroad();
     ComplexCrossroad complexCrossroad2 = new ComplexCrossroad();
+    ComplexCrossroadsRepositoryImpl complexCrossroadsRepository = new ComplexCrossroadsRepositoryImpl();
 
     // when
     edge1.setSource(nodeA);
@@ -407,6 +425,7 @@ public class ComplexCrossroadsCorrectorTest {
     complexCrossroad1.addNode(nodeB.getId());
     complexCrossroad2.addNode(nodeC.getId());
     complexCrossroad2.addNode(nodeD.getId());
+    complexCrossroadsRepository.getComplexCrossroads().addAll(List.of(complexCrossroad1, complexCrossroad2));
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>()
         .addNode(nodeA)
         .addNode(nodeB)
@@ -419,7 +438,7 @@ public class ComplexCrossroadsCorrectorTest {
         .addEdge(edge4)
         .addEdge(edge5)
         .build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of(complexCrossroad1, complexCrossroad2));
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(complexCrossroadsRepository);
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);
@@ -454,6 +473,7 @@ public class ComplexCrossroadsCorrectorTest {
     Node<JunctionData, WayData> nodeD = new Node<>("D", JunctionData.builder()
         .tags(new HashMap<>()).lat(50.0956796).lon(19.8784069).build());
     ComplexCrossroad complexCrossroad = new ComplexCrossroad();
+    ComplexCrossroadsRepositoryImpl complexCrossroadsRepository = new ComplexCrossroadsRepositoryImpl();
 
     // when
     edge1.setSource(nodeA);
@@ -486,6 +506,7 @@ public class ComplexCrossroadsCorrectorTest {
     nodeD.getOutgoingEdges().addAll(List.of(edge8, edge10));
     complexCrossroad.addNode(nodeA.getId());
     complexCrossroad.addNode(nodeB.getId());
+    complexCrossroadsRepository.getComplexCrossroads().add(complexCrossroad);
     Graph<JunctionData, WayData> graph = new Graph.GraphBuilder<JunctionData, WayData>()
         .addNode(nodeA)
         .addNode(nodeB)
@@ -502,7 +523,7 @@ public class ComplexCrossroadsCorrectorTest {
         .addEdge(edge9)
         .addEdge(edge10)
         .build();
-    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(List.of(complexCrossroad));
+    ComplexCrossroadsCorrector corrector = new ComplexCrossroadsCorrector(complexCrossroadsRepository);
 
     // then
     Graph<JunctionData, WayData> newGraph = corrector.correct(graph);

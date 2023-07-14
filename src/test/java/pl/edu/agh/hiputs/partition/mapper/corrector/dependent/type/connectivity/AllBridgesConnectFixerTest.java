@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.AllBridgesConnectFixer;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.DirectBridgesConnectFixer;
 import pl.edu.agh.hiputs.partition.mapper.corrector.dependent.strategy.type.connectivity.IndirectBridgesConnectFixer;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.complex.StandardComplexCrossroadsUpdater;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.crossroad.StandardCrossroadDeterminer;
+import pl.edu.agh.hiputs.partition.mapper.helper.structure.complex.ComplexCrossroadsRepositoryImpl;
 import pl.edu.agh.hiputs.partition.mapper.helper.service.edge.reflector.StandardEdgeReflector;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.StronglyConnectedComponent;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.WeaklyConnectedComponent;
@@ -15,10 +18,15 @@ import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
+import pl.edu.agh.hiputs.service.ModelConfigurationService;
 
 public class AllBridgesConnectFixerTest {
   private final AllBridgesConnectFixer creator = new AllBridgesConnectFixer(
-      new DirectBridgesConnectFixer(new StandardEdgeReflector()), new IndirectBridgesConnectFixer()
+      new DirectBridgesConnectFixer(new StandardEdgeReflector()),
+      new IndirectBridgesConnectFixer(new StandardComplexCrossroadsUpdater(
+          new StandardCrossroadDeterminer(),
+          new ComplexCrossroadsRepositoryImpl(),
+          new ModelConfigurationService()))
   );
 
   @Test

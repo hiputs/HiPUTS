@@ -13,7 +13,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.partition.mapper.corrector.Corrector;
+import pl.edu.agh.hiputs.partition.mapper.helper.structure.complex.ComplexCrossroadsRepository;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.crossroad.StandardCrossroadDeterminer;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.complex.ComplexCrossroad;
+import pl.edu.agh.hiputs.partition.mapper.transformer.GraphCrossroadDeterminer;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
 import pl.edu.agh.hiputs.partition.model.geom.Point;
@@ -24,12 +27,14 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 @RequiredArgsConstructor
 public class ComplexCrossroadsCorrector implements Corrector {
-  private final List<ComplexCrossroad> complexCrossroads;
+  private final GraphCrossroadDeterminer graphCrossroadDeterminer =
+      new GraphCrossroadDeterminer(new StandardCrossroadDeterminer());
+  private final ComplexCrossroadsRepository complexCrossroadsRepository;
 
   @Override
   public Graph<JunctionData, WayData> correct(Graph<JunctionData, WayData> graph) {
     // starting transformation - external edges extraction and new node instead of old nodes group creation
-    List<CrossroadTransformation> preparedTransformations = complexCrossroads.stream()
+    List<CrossroadTransformation> preparedTransformations = complexCrossroadsRepository.getComplexCrossroads().stream()
         .filter(crossroad -> crossroad.getNodesIdsIn().stream().allMatch(nodeId -> graph.getNodes().containsKey(nodeId)))
         .map(crossroad -> transform(crossroad, graph))
         .toList();
@@ -78,7 +83,7 @@ public class ComplexCrossroadsCorrector implements Corrector {
           .forEach(graphBuilder::addEdge);
     });
 
-    return graphBuilder.build();
+    return graphCrossroadDeterminer.transform(graphBuilder.build());
   }
 
   private CrossroadTransformation transform(ComplexCrossroad complexCrossroad, Graph<JunctionData, WayData> graph) {
