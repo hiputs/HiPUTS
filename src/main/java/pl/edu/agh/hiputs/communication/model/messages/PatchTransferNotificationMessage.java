@@ -1,7 +1,9 @@
 package pl.edu.agh.hiputs.communication.model.messages;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 
@@ -10,9 +12,11 @@ import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 public class PatchTransferNotificationMessage implements Message {
 
   private final String senderId;
-  private final String receiverId;
-  private final String transferPatchId;
-  private final ConnectionDto connectionDto;
+  private final List<String> transferredPatchesList;
+  @Setter
+  private String receiverId;
+  @Setter
+  private ConnectionDto connectionDto;
 
   @Override
   public MessagesTypeEnum getMessageType() {

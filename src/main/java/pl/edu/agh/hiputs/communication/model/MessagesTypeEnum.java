@@ -55,6 +55,11 @@ public enum MessagesTypeEnum {
   PatchTransferNotificationMessage,
 
   /**
+   * Pack of notifications informing adjacent areas to upload the patch
+   */
+  GroupOfPatchTransferNotificationMessage,
+
+  /**
    * Info adjacent areas about load
    */
   LoadInfo,

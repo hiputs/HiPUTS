@@ -70,7 +70,8 @@ public interface TransferDataHandler {
 
   MapFragmentId getMapFragmentIdByPatchId(PatchId patchId);
 
-  void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId source, MapFragmentId destination, TicketService ticketService);
+  void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId destination, MapFragmentId source,
+      TicketService ticketService);
 
   Patch getPatchById(PatchId patchId);
 
@@ -96,5 +97,7 @@ public interface TransferDataHandler {
   void updateMapOfSentPatches(PatchId patchReceiver, MapFragmentId mapReceiver);
 
   void clearMapOfSentPatches();
+
+  Map<PatchId, MapFragmentId> getMapOfSentPatches();
 
 }

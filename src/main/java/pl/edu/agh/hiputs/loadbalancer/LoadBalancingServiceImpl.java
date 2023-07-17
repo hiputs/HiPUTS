@@ -8,8 +8,12 @@ import static pl.edu.agh.hiputs.loadbalancer.utils.PatchConnectionSearchUtil.fin
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +21,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
-import pl.edu.agh.hiputs.communication.model.messages.LoadSynchronizationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
+import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
@@ -44,9 +48,10 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   private final SimulationStatisticService simulationStatisticService;
   private final WorkerSubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
-  private final List<Message> synchronizationLoadBalancingList = new ArrayList<>();
+  private final AtomicInteger synchronizationLoadBalancingCounter = new AtomicInteger();
   private final LocalLoadMonitorService localLoadMonitorService;
   private final SelectNeighbourToBalancingService selectNeighbourToBalancingService;
+  private final Map<MapFragmentId, PatchTransferNotificationMessage> notifications = new HashMap<>();
 
   private LoadBalancingStrategy strategy;
   private MapFragmentId lastLoadBalancingCandidate = null; //We must repete their neighbourTransferMessage
@@ -54,7 +59,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
   @PostConstruct
   void init() {
-    subscriptionService.subscribe(this, MessagesTypeEnum.LoadSynchronizationMessage);
+    subscriptionService.subscribe(this, MessagesTypeEnum.PatchTransferNotificationMessage);
     strategy = getStrategyByMode();
   }
 
@@ -63,15 +68,25 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
     if (ConfigurationService.getConfiguration().getWorkerCount() == 1) {
       return null;
     }
+    transferDataHandler.clearMapOfSentPatches();
+    log.debug("MapOfSentPatches content: {}",
+        transferDataHandler.getMapOfSentPatches().entrySet().stream().map(a -> a.getKey() + ":" + a.getValue()));
 
-    List<MapFragmentId> neighboursToNotify = List.copyOf(transferDataHandler.getNeighbors());
-
-    log.debug("neighboursToNotify {}", neighboursToNotify);
+    notifications.clear();
+    transferDataHandler.getNeighbors()
+        .forEach(neigh -> notifications.put(neigh, PatchTransferNotificationMessage.builder()
+            .senderId(transferDataHandler.getMe().getId())
+            .receiverId(null)
+            .transferredPatchesList(new LinkedList<>())
+            .connectionDto(null)
+            .build()));
+    log.debug("neighbours: {}, {}", transferDataHandler.getNeighbors().size(), transferDataHandler.getNeighbors());
+    log.debug("neighboursToNotify {}", notifications.keySet());
     balance(transferDataHandler);
+    log.debug("after balance {} ", notifications.keySet());
     if (!ConfigurationService.getConfiguration().getBalancingMode().equals(BalancingMode.NONE)) {
-      synchronizedWithNeighbour(neighboursToNotify);
+      sendNotificationsAndSynchronizeWithNeighbours();
     }
-    log.debug("neighboursToNotify after balance {}", neighboursToNotify);
 
     actualStep++;
     return lastLoadBalancingCandidate;
@@ -95,55 +110,76 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
     if (targetBalanceCars == 0) {
       return;
     }
-
     long transferCars = 0;
+
     List<SerializedPatchTransfer> serializedPatchTransfers = new ArrayList<>();
-    transferDataHandler.clearMapOfSentPatches();
+    notifications.forEach((k, v) -> {
+      if (!k.equals(recipient)) { // for each neighbour besides the one chosed for LB
+        v.setConnectionDto(messageSenderService.getConnectionDtoMap().get(recipient));
+        v.setReceiverId(recipient.getId());
+      }
+    });
 
     do {
-      ImmutablePair<PatchBalancingInfo, Double> patchInfo =
+      ImmutablePair<PatchBalancingInfo, Double> candidatePatchInfo =
           findPatchesToSend(recipient, transferDataHandler, targetBalanceCars);
 
-      if (patchInfo == null) {
+      if (candidatePatchInfo == null) {
         break;
       }
 
-      simulationStatisticService.saveLoadBalancingDecision(true, patchInfo.getLeft().getPatchId().getValue(),
-          recipient.getId(), patchInfo.getRight(), loadBalancingDecision.getAge());
+      simulationStatisticService.saveLoadBalancingDecision(true, candidatePatchInfo.getLeft().getPatchId().getValue(),
+          recipient.getId(), candidatePatchInfo.getRight(), loadBalancingDecision.getAge());
+
+      patchTransferService.neighboursToNotify(recipient, candidatePatchInfo.getLeft().getPatchId(), transferDataHandler)
+          .forEach(key -> {
+            notifications.get(key)
+                .getTransferredPatchesList()
+                .add(candidatePatchInfo.getLeft().getPatchId().getValue());
+            log.debug("Notification to {} added to map, patch {}, notifications{}", key,
+                candidatePatchInfo.getLeft().getPatchId(), notifications.get(key).getTransferredPatchesList());
+          });
 
       serializedPatchTransfers.add(
-          patchTransferService.prepareSinglePatchItemAndNotifyNeighbour(recipient, patchInfo.getLeft().getPatchId(),
+          patchTransferService.prepareSinglePatchItem(recipient, candidatePatchInfo.getLeft().getPatchId(),
               transferDataHandler));
 
-      transferDataHandler.updateMapOfSentPatches(patchInfo.getLeft().getPatchId(), recipient);
-      transferCars += patchInfo.getLeft().getCountOfVehicle();
+      transferDataHandler.updateMapOfSentPatches(candidatePatchInfo.getLeft().getPatchId(), recipient);
+      transferCars += candidatePatchInfo.getLeft().getCountOfVehicle();
       log.debug(
           "LB loop - extremelyLB: {}, transferedCars: {}, targetCarsToTransfer: {}, number of patches to transfer: {},"
               + "number of left local patches: {}", loadBalancingDecision.isExtremelyLoadBalancing(), transferCars,
           targetBalanceCars, serializedPatchTransfers.size(), transferDataHandler.getLocalPatchesSize());
-    } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9 && serializedPatchTransfers.size() < MAX_PATCH_EXCHANGE && transferDataHandler.getLocalPatchesSize() >= 5);
+    } while (loadBalancingDecision.isExtremelyLoadBalancing() && transferCars <= targetBalanceCars * 0.9
+        && serializedPatchTransfers.size() < MAX_PATCH_EXCHANGE && transferDataHandler.getLocalPatchesSize() >= 5);
 
-    patchTransferService.sendPatchMessage(recipient, serializedPatchTransfers);
+    log.debug("Recipient {}, from {}", recipient.getId(), transferDataHandler.getMe().getId());
+    log.debug("MapOfSentPatches content: {}",
+        transferDataHandler.getMapOfSentPatches().entrySet().stream().map(a -> a.getKey() + ":" + a.getValue()));
+    patchTransferService.sendPatchMessage(transferDataHandler.getMe(), recipient, serializedPatchTransfers);
   }
 
-  private synchronized void synchronizedWithNeighbour(List<MapFragmentId> neighboursToNotify) {
+  private synchronized void sendNotificationsAndSynchronizeWithNeighbours() {
+    // sends messages to all neighbours - 1st purpose: synchronization after LB (sends empty msg when no notification
+    // should be )
+    // 2nd purpose - notify neighbours about changes in their shadow patches
 
-    neighboursToNotify.forEach(id -> {
+    notifications.forEach((mapId, msg) -> {
       try {
-        messageSenderService.send(id, new LoadSynchronizationMessage());
+        messageSenderService.send(mapId, msg);
+        log.debug("Notification to {} - transferred patches {} ", mapId.getId(), msg.getTransferredPatchesList());
       } catch (IOException e) {
         log.error("Error util send synchronization message", e);
       }
     });
-    while (synchronizationLoadBalancingList.size() < neighboursToNotify.size()) {
+    while (synchronizationLoadBalancingCounter.get() < notifications.keySet().size()) {
       try {
         this.wait(10);
       } catch (InterruptedException e) {
         log.error("error until wait for loadbalancing synchronization", e);
       }
     }
-
-    synchronizationLoadBalancingList.clear();
+    synchronizationLoadBalancingCounter.set(0);
   }
 
   private ImmutablePair<PatchBalancingInfo, Double> findPatchesToSend(MapFragmentId recipient,
@@ -185,6 +221,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
       if (isCoherency(transferDataHandler, orderCandidate.getLeft().getPatchId(), targetMapFragmentId)) {
         return orderCandidate;
       }
+      log.debug("Patch candidate {} is not coherent", orderCandidate.getLeft().getPatchId());
 
       if (attempt++ == 5) {
         return orderCandidates.get(0);
@@ -226,7 +263,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
   @Override
   public synchronized void notify(Message message) {
-    synchronizationLoadBalancingList.add(message);
+    synchronizationLoadBalancingCounter.incrementAndGet();
     this.notifyAll();
   }
 }

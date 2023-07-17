@@ -8,6 +8,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 public class PatchTransferMessage implements Message{
 
   List<SerializedPatchTransfer> serializedPatchTransferList;
+  String mapFragmentId;
 
   @Override
   public MessagesTypeEnum getMessageType() {

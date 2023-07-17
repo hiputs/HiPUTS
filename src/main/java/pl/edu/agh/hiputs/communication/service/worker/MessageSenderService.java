@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +25,7 @@ import pl.edu.agh.hiputs.HiPUTS;
 import pl.edu.agh.hiputs.communication.Connection;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
+import pl.edu.agh.hiputs.communication.model.messages.GroupOfPatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
@@ -43,7 +45,6 @@ public class MessageSenderService implements Subscriber {
   private final Map<MapFragmentId, Connection> neighbourRepository = new ConcurrentHashMap<>();
   @Getter
   private final Map<MapFragmentId, ConnectionDto> connectionDtoMap = new HashMap<>();
-  private final ConfigurationService configurationService;
   private Connection serverConnection;
   private final WorkerSubscriptionService subscriptionService;
   private AtomicLong sentMessagesSize;
@@ -70,14 +71,14 @@ public class MessageSenderService implements Subscriber {
    */
   public void send(MapFragmentId mapFragmentId, Message message) throws IOException {
     log.debug("Worker send message to: {} message type: {}", mapFragmentId, message.getMessageType());
-
-    // sentMessagesSize.addAndGet(neighbourRepository.get(mapFragmentId).send(message));
+    log.debug("neigh repo sed {}\n {} {}, {} {} {}", neighbourRepository.keySet().stream().map(a -> a.getId()).toList(),
+        neighbourRepository.keySet().stream().map(a -> a.hashCode()).toList(),
+        neighbourRepository.keySet().stream().map(a -> Objects.equals(mapFragmentId, a)).toList(), mapFragmentId,
+        mapFragmentId.getId(), mapFragmentId.hashCode());
 
     sentMessagesTypeDict.add(
         new ImmutablePair<>(message.getMessageType(), neighbourRepository.get(mapFragmentId).send(message)));
     sentMessages.incrementAndGet();
-    // sentMessagesType.add(message.getMessageType().name());
-
   }
 
   public void sendServerMessage(Message message) throws IOException {
@@ -125,6 +126,7 @@ public class MessageSenderService implements Subscriber {
       case ServerInitializationMessage -> handleWorkerConnectionMessage(message);
       case PatchTransferMessage -> handlePatchTransferMessage(message);
       case PatchTransferNotificationMessage -> handlePatchTransferNotificationMessage(message);
+      case GroupOfPatchTransferNotificationMessage -> handleGroupOfPatchTransferNotificationMessage(message);
     }
   }
 
@@ -153,21 +155,35 @@ public class MessageSenderService implements Subscriber {
 
   private void handlePatchTransferNotificationMessage(Message message) {
     PatchTransferNotificationMessage patchTransferNotificationMessage = (PatchTransferNotificationMessage) message;
+    MapFragmentId newMapId = new MapFragmentId(patchTransferNotificationMessage.getReceiverId());
 
-    if (neighbourRepository.containsKey(new MapFragmentId(patchTransferNotificationMessage.getReceiverId()))) {
+    // long receiverInRepoCount = neighbourRepository.keySet().stream().filter(key -> key.getId().equals
+    // (patchTransferNotificationMessage.getReceiverId())).count();
+    if (patchTransferNotificationMessage.getReceiverId() == null || neighbourRepository.containsKey(newMapId)) {
+      log.debug("receiverId == null or neighbourRepository contains key for {}",
+          patchTransferNotificationMessage.getReceiverId());
       return;
     }
 
+    log.debug("neighbourRepository NOT contain key for {}", patchTransferNotificationMessage.getReceiverId());
     Connection connection = new Connection(patchTransferNotificationMessage.getConnectionDto());
-    connectionDtoMap.put(new MapFragmentId(patchTransferNotificationMessage.getReceiverId()),
-        patchTransferNotificationMessage.getConnectionDto());
-    neighbourRepository.put(new MapFragmentId(patchTransferNotificationMessage.getReceiverId()), connection);
+    connectionDtoMap.put(newMapId, patchTransferNotificationMessage.getConnectionDto());
+    neighbourRepository.put(newMapId, connection);
+  }
+
+  private void handleGroupOfPatchTransferNotificationMessage(Message message) {
+    GroupOfPatchTransferNotificationMessage groupPatchTransferNotificationMessage =
+        (GroupOfPatchTransferNotificationMessage) message;
+    if (!groupPatchTransferNotificationMessage.getPatchTransferNotificationMessages().isEmpty()) {
+      log.debug("Gather group of notifications which is not empty - processing");
+      groupPatchTransferNotificationMessage.getPatchTransferNotificationMessages()
+          .forEach(this::handleGroupOfPatchTransferNotificationMessage);
+    }
   }
 
   private void handlePatchTransferMessage(Message message) {
     PatchTransferMessage patchTransferMessage = (PatchTransferMessage) message;
-    Set<ConnectionDto> workerConnectionMessages = patchTransferMessage
-        .getSerializedPatchTransferList()
+    Set<ConnectionDto> workerConnectionMessages = patchTransferMessage.getSerializedPatchTransferList()
         .stream()
         .map(SerializedPatchTransfer::getNeighbourConnectionMessage)
         .flatMap(Collection::stream)
@@ -175,12 +191,17 @@ public class MessageSenderService implements Subscriber {
 
     workerConnectionMessages
         .forEach(c -> {
-          if(c == null || neighbourRepository.containsKey(new MapFragmentId(c.getId()))){
+          log.debug("handlePatchMessage from {}", c.getId());
+          MapFragmentId newMapId = new MapFragmentId(c.getId());
+          // long mapIdInRepoCount = neighbourRepository.keySet().stream().filter(key -> key.getId().equals(c.getId()
+          // )).count();
+          if (c == null || neighbourRepository.containsKey(newMapId)) {
             return;
           }
+          log.debug("Processing patch transfer message - adding new neighbour {}", c.getId());
           Connection connection = new Connection(c);
-          connectionDtoMap.put(new MapFragmentId(c.getId()), c);
-          neighbourRepository.put(new MapFragmentId(c.getId()), connection);
+          connectionDtoMap.put(newMapId, c);
+          neighbourRepository.put(newMapId, connection);
         });
   }
 
@@ -191,8 +212,13 @@ public class MessageSenderService implements Subscriber {
         .map(WorkerDataDto::getConnectionData)
         .forEach(c -> {
           Connection connection = new Connection(c);
-          connectionDtoMap.put(new MapFragmentId(c.getId()), c);
-          neighbourRepository.put(new MapFragmentId(c.getId()), connection);
+          MapFragmentId newMapId = new MapFragmentId(c.getId());
+          connectionDtoMap.put(newMapId, c);
+          neighbourRepository.put(newMapId, connection);
+
+          // MapFragmentId a = new MapFragmentId(c.getId());
+          // log.debug("Add neigh {} {} - {}, {}, {}", newMapId, newMapId.hashCode(), neighbourRepository.keySet(),
+          //     neighbourRepository.get(a), a.hashCode());
         });
   }
 
