@@ -274,12 +274,13 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     //         .collect(Collectors.joining(", ")));
 
     shadowPatchesToRemove.forEach(this::removePatch);
+    mapFragmentIdToShadowPatchIds.forEach((key, value) -> shadowPatchesToRemove.forEach(value::remove));
+
     if (isEndPatch) {
       log.debug("Patch is an end patch - will be fully removed from know patches");
       removePatch(patch.getPatchId());
     }
 
-    mapFragmentIdToShadowPatchIds.forEach((key, value) -> shadowPatchesToRemove.forEach(value::remove));
     removeEmptyNeighbours(ticketService);
   }
 

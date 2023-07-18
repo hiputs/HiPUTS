@@ -102,12 +102,32 @@ public class MapFragmentExecutor {
 
       log.info("Step 8 - 1 start");
       iterationStatisticsService.startStage(SimulationPoint.LOAD_BALANCING_NOTIFICATIONS);
-      patchTransferService.retransmitNotification(lastLoadBalancingCandidate);
+      patchTransferService.retransmitNotification(lastLoadBalancingCandidate, mapFragment);
+      iterationStatisticsService.startStage(SimulationPoint.WAITING_RECEIVING_RETRANSMISSIONS);
+      patchTransferService.synchronizedGetRetransmittedNotification(mapFragment);
+      iterationStatisticsService.endStage(SimulationPoint.WAITING_RECEIVING_RETRANSMISSIONS);
       patchTransferService.handleReceivedPatch(mapFragment);
       patchTransferService.handleNotificationPatch(mapFragment);
 
       iterationStatisticsService.endStage(
           List.of(SimulationPoint.LOAD_BALANCING_NOTIFICATIONS, SimulationPoint.LOAD_BALANCING));
+
+      log.debug("Worker: {}, ShadowPatches: {}", mapFragment.getMe().getId(), mapFragment.getShadowPatchesReadable()
+          .stream()
+          .map(patch -> patch.getPatchId().getValue())
+          .collect(Collectors.joining(",")));
+      log.debug("Worker: {}, LocalPatches: {}", mapFragment.getMe().getId(), mapFragment.getLocalPatchesEditable()
+          .stream()
+          .map(patch -> patch.getPatchId().getValue())
+          .collect(Collectors.joining(",")));
+      log.debug("Worker: {}, BorderPatches: {}", mapFragment.getMe().getId(), mapFragment.getBorderPatches()
+          .entrySet()
+          .stream()
+          .map(entry -> entry.getKey().getId() + entry.getValue()
+              .stream()
+              .map(patch -> patch.getPatchId().getValue())
+              .collect(Collectors.joining(",")))
+          .collect(Collectors.joining(",")));
 
       // 9. send and receive remote patches (border patches)
       log.info("Step 9 start");
@@ -135,6 +155,22 @@ public class MapFragmentExecutor {
 
       // mapFragment.printFullStatistic();
 
+      log.debug("Worker: {}, ShadowPatches: {}", mapFragment.getMe().getId(), mapFragment.getShadowPatchesReadable()
+          .stream()
+          .map(patch -> patch.getPatchId().getValue())
+          .collect(Collectors.joining(",")));
+      log.debug("Worker: {}, LocalPatches: {}", mapFragment.getMe().getId(), mapFragment.getLocalPatchesEditable()
+          .stream()
+          .map(patch -> patch.getPatchId().getValue())
+          .collect(Collectors.joining(",")));
+      log.debug("Worker: {}, BorderPatches: {}", mapFragment.getMe().getId(), mapFragment.getBorderPatches()
+          .entrySet()
+          .stream()
+          .map(entry -> entry.getKey().getId() + entry.getValue()
+              .stream()
+              .map(patch -> patch.getPatchId().getValue())
+              .collect(Collectors.joining(",")))
+          .collect(Collectors.joining(",")));
       iterationStatisticsService.endStage(SimulationPoint.FULL_STEP);
       iterationStatisticsService.setOutgoingMessagesInStep(messageSenderService.getSentMessages());
       iterationStatisticsService.setOutgoingMessagesToServerInStep(messageSenderService.getSentServerMessages());

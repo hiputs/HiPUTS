@@ -104,12 +104,14 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
     log.info("Start loadbalancing worker id: {} with {}", transferDataHandler.getMe().getId(),
         loadBalancingDecision.getSelectedNeighbour().getId());
     MapFragmentId recipient = loadBalancingDecision.getSelectedNeighbour();
-    lastLoadBalancingCandidate = recipient;
     long targetBalanceCars = loadBalancingDecision.getCarImbalanceRate();
+    lastLoadBalancingCandidate = recipient;
 
     if (targetBalanceCars == 0) {
+      lastLoadBalancingCandidate = null;
       return;
     }
+    lastLoadBalancingCandidate = recipient;
     long transferCars = 0;
 
     List<SerializedPatchTransfer> serializedPatchTransfers = new ArrayList<>();

@@ -2,13 +2,12 @@ package pl.edu.agh.hiputs.model.id;
 
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @AllArgsConstructor
 @Getter
-@EqualsAndHashCode
+// @EqualsAndHashCode
 @Slf4j
 public class MapFragmentId {
 

@@ -22,4 +22,6 @@ public interface PatchTransferService {
 
   List<MapFragmentId> neighboursToNotify(MapFragmentId receiver, PatchId patchToSendId,
       TransferDataHandler transferDataHandler);
+
+  void synchronizedGetRetransmittedNotification(TransferDataHandler transferDataHandler);
 }

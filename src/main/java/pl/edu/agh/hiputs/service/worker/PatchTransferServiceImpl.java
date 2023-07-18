@@ -78,7 +78,6 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
 
     log.debug("neighPatchIdWithMapFragmentId {}",
         neighPatchIdWithMapFragmentId.stream().map(a -> a.getLeft() + ":" + a.getRight()));
-
     log.debug("Patch to send: {}; Patch owner: {}, neighbours {}", patchToSendId.getValue(),
         transferDataHandler.getMapFragmentIdByPatchId(patchToSendId).getId(), neighPatchIdWithMapFragmentId);
 
@@ -179,8 +178,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
   }
 
   @Override
-  public synchronized void retransmitNotification(MapFragmentId selectedCandidate,
-      TransferDataHandler transferDataHandler) {
+  public synchronized void retransmitNotification(MapFragmentId selectedCandidate, TransferDataHandler transferDataHandler) {
     if (selectedCandidate == null) {
       return;
     }
@@ -188,9 +186,11 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     GroupOfPatchTransferNotificationMessage notificationGroup =
         GroupOfPatchTransferNotificationMessage.builder().patchTransferNotificationMessages(new LinkedList<>()).build();
 
-    patchMigrationNotification.forEach(s -> {
-      notificationGroup.getPatchTransferNotificationMessages().add(s);
-    });
+    patchMigrationNotification.stream()
+        .filter(notify -> notify.getReceiverId() != null && !notify.getSenderId().equals(selectedCandidate.getId()))
+        .forEach(s -> {
+          notificationGroup.getPatchTransferNotificationMessages().add(s);
+        });
 
     log.debug("notif group : {}", notificationGroup.getPatchTransferNotificationMessages()
         .stream()
@@ -200,10 +200,8 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     notificationGroup.getPatchTransferNotificationMessages()
         .addAll(receivedPatch.stream()
             .map(message -> PatchTransferNotificationMessage.builder()
-                .transferredPatchesList(message.getSerializedPatchTransferList()
-                    .stream()
-                    .map(SerializedPatchTransfer::getPatchId)
-                    .collect(Collectors.toList()))
+                .transferredPatchesList(
+                    message.getSerializedPatchTransferList().stream().map(SerializedPatchTransfer::getPatchId).collect(Collectors.toList()))
                 .receiverId(transferDataHandler.getMe().getId())
                 .senderId(message.getMapFragmentId())
                 .connectionDto(messageSenderService.getConnectionDtoMap().get(transferDataHandler.getMe()))
@@ -222,12 +220,18 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  @Override
+  public synchronized void synchronizedGetRetransmittedNotification(TransferDataHandler transferDataHandler) {
 
     //wait for message from workers, which sent you patches
-    log.debug("Waiting for retransmission messages from {} ", receivedPatch.size());
+    log.debug("Waiting for retransmission messages from {}; retransmittet notifications status: {} ",
+        receivedPatch.size(), retransmittedNotifications.get());
     while (retransmittedNotifications.get() < receivedPatch.size()) {
       try {
         this.wait(10);
+        log.debug("Status of retransmittedNotifications: {}", retransmittedNotifications.get());
       } catch (InterruptedException e) {
         log.error("error until wait for loadbalancing synchronization", e);
       }
