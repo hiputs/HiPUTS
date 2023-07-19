@@ -2,7 +2,6 @@ package pl.edu.agh.hiputs.model.car.driver.deciders;
 
 import java.util.List;
 import pl.edu.agh.hiputs.model.car.CarReadable;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CarBasicDeciderData;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CarTrailDeciderData;
 import pl.edu.agh.hiputs.model.id.CarId;
@@ -12,13 +11,9 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadOnJunction;
 
 public interface CarProspector {
-  CarEnvironment getPrecedingCar(CarReadable currentCar, RoadStructureReader roadStructureReader);
+  CarPrecedingEnvironment getPrecedingCar(CarReadable currentCar, RoadStructureReader roadStructureReader);
 
-  CarEnvironment getPrecedingCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader);
-
-  CarEnvironment getPrecedingCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader, JunctionId skipCrossroadId);
-
-  CarEnvironment getPrecedingCarOrCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader);
+  CarPrecedingEnvironment getPrecedingCarOrCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader);
 
   List<RoadId> getConflictRoadIds(List<RoadOnJunction> roadOnJunctions, RoadId incomingRoadId, RoadId outgoingRoadId,
       CarId currentCarId, RoadStructureReader roadStructureReader);

@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.model.map.roadstructure;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -76,8 +77,17 @@ public class Lane implements LaneEditable{
   }
 
   @Override
+  public Optional<CarReadable> getCarInBackReadable(CarReadable car) {
+    return streamCarsFromExitReadable()
+        .filter(c -> c.getPositionOnLane() < car.getPositionOnLane())
+        .findFirst();
+  }
+
+  @Override
   public Optional<CarReadable> getCarBeforePosition(double position) {
-    return streamCarsFromExitReadable().filter(car -> car.getPositionOnLane() < position).findFirst();
+    return streamCarsFromExitReadable()
+        .filter(car -> car.getPositionOnLane() < position)
+        .findFirst();
   }
 
   @Override

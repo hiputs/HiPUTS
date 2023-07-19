@@ -3,7 +3,7 @@ package pl.edu.agh.hiputs.model.car.driver.deciders.overtaking;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import pl.edu.agh.hiputs.model.car.CarEditable;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarPrecedingEnvironment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.RoadId;
@@ -38,17 +38,17 @@ public class OvertakingDecider {
   /**
    * Method decider, returns decision whether car should overtake or not
    */
-  public boolean overtakeDecision(CarEditable car, CarEnvironment carEnvironment, RoadStructureReader roadStructureReader) {
-    if (isCarCloseEnough(car.getSpeed(), carEnvironment) && isPrecedingCarSlower(car, carEnvironment)) {
+  public boolean overtakeDecision(CarEditable car, CarPrecedingEnvironment carPrecedingEnvironment, RoadStructureReader roadStructureReader) {
+    if (isCarCloseEnough(car.getSpeed(), carPrecedingEnvironment) && isPrecedingCarSlower(car, carPrecedingEnvironment)) {
       Optional<OvertakingEnvironment> overtakingEnvironment =
-          getOvertakingInformation(car, carEnvironment, roadStructureReader);
+          getOvertakingInformation(car, carPrecedingEnvironment, roadStructureReader);
 
-      if (overtakingEnvironment.isPresent() && carEnvironment.getPrecedingCar().isPresent()) {
+      if (overtakingEnvironment.isPresent() && carPrecedingEnvironment.getPrecedingCar().isPresent()) {
 
-        CarReadable precedingCar = carEnvironment.getPrecedingCar().get();
+        CarReadable precedingCar = carPrecedingEnvironment.getPrecedingCar().get();
         double safeDistanceForOvertakenCar = precedingCar.getSpeed() * safetyTimeDistance;
         double maximalDistanceForOvertaking =
-            carEnvironment.getDistance() + precedingCar.getLength() + safeDistanceForOvertakenCar;
+            carPrecedingEnvironment.getDistance() + precedingCar.getLength() + safeDistanceForOvertakenCar;
         double speedDelta;
 
         if (car.getSpeed() <= (precedingCar.getSpeed() + precedingCar.getAcceleration()) - minDeltaSpeed) {
@@ -87,16 +87,16 @@ public class OvertakingDecider {
   /**
    * Check if preceding car is close enough to consider overtaking
    */
-  private boolean isCarCloseEnough(double speed, CarEnvironment carEnvironment) {
-    return carEnvironment.getDistance() <= speed * overtakingTimeDistance;
+  private boolean isCarCloseEnough(double speed, CarPrecedingEnvironment carPrecedingEnvironment) {
+    return carPrecedingEnvironment.getDistance() <= speed * overtakingTimeDistance;
   }
 
   /**
    * Decide whether preceding car is moving slower and this car should try to overtake
    */
-  public boolean isPrecedingCarSlower(CarEditable car, CarEnvironment carEnvironment) {
-    if (carEnvironment.getPrecedingCar().isPresent()) {
-      CarReadable precedingCar = carEnvironment.getPrecedingCar().get();
+  public boolean isPrecedingCarSlower(CarEditable car, CarPrecedingEnvironment carPrecedingEnvironment) {
+    if (carPrecedingEnvironment.getPrecedingCar().isPresent()) {
+      CarReadable precedingCar = carPrecedingEnvironment.getPrecedingCar().get();
       double precedingCarSpeed = precedingCar.getSpeed();
       double precedingCarAcceleration = precedingCar.getAcceleration();
       if (precedingCarAcceleration <= accelerationThreshold
@@ -152,14 +152,14 @@ public class OvertakingDecider {
    * until car can cross to opposite lane.
    *
    * @param currentCar
-   * @param carEnvironment
+   * @param carPrecedingEnvironment
    * @param roadStructureReader
    *
    * @return Optional of OvertakingEnvironment with cars (if found) and distances either to cars, crossroad or place
    *     where car can't overtake
    *     or empty, when car can't overtake (left horizontal sign does not allow overtaking)
    */
-  public Optional<OvertakingEnvironment> getOvertakingInformation(CarEditable currentCar, CarEnvironment carEnvironment,
+  public Optional<OvertakingEnvironment> getOvertakingInformation(CarEditable currentCar, CarPrecedingEnvironment carPrecedingEnvironment,
       RoadStructureReader roadStructureReader) {
     RoadReadable currentRoad = roadStructureReader.getRoadReadable(currentCar.getRoadId());
     LaneReadable currentLane = roadStructureReader.getLaneReadable(currentCar.getLaneId());
@@ -167,14 +167,14 @@ public class OvertakingDecider {
     // We can overtake only if current road and opposite road have only one lane each
     //  and there is a preceding car to overtake
     //  and there is a dotted line between roads
-    if (!canOvertakeOnRoad(currentRoad, roadStructureReader) || carEnvironment.getPrecedingCar().isEmpty()) {
+    if (!canOvertakeOnRoad(currentRoad, roadStructureReader) || carPrecedingEnvironment.getPrecedingCar().isEmpty()) {
       return Optional.empty(); // we can't overtake
     }
 
     JunctionId nextJunctionId = currentRoad.getOutgoingJunctionId();
     RoadReadable oppositeRoad = roadStructureReader.getRoadReadable(currentRoad.getLeftNeighbor().get().getRoadId());
     LaneReadable oppositeLane = roadStructureReader.getLaneReadable(oppositeRoad.getLanes().get(0));
-    CarReadable overtakenCar = carEnvironment.getPrecedingCar().get();
+    CarReadable overtakenCar = carPrecedingEnvironment.getPrecedingCar().get();
 
     Optional<CarReadable> carBeforeOvertakenCar = currentLane.getCarInFrontReadable(overtakenCar); // find C car
     Optional<CarReadable> oppositeCar =

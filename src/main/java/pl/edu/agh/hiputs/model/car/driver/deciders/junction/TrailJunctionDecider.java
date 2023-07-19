@@ -9,8 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarPrecedingEnvironment;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.ICarFollowingModel;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.RoadId;
@@ -23,7 +23,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.RoadOnJunction;
 public class TrailJunctionDecider implements JunctionDecider {
 
   private final CarProspector prospector;
-  private final IFollowingModel followingModel;
+  private final ICarFollowingModel carFollowingModel;
   private final double timeDelta;
   private final double idmDelta;
   private final double conflictAreaLength;
@@ -33,9 +33,9 @@ public class TrailJunctionDecider implements JunctionDecider {
   private final int giveWayWaitCycles;
   private final int movePermanentWaitCycles;
 
-  public TrailJunctionDecider(CarProspector prospector, IFollowingModel followingModel, DriverParameters parameters){
+  public TrailJunctionDecider(CarProspector prospector, ICarFollowingModel carFollowingModel, DriverParameters parameters){
       this.prospector = prospector;
-      this.followingModel = followingModel;
+      this.carFollowingModel = carFollowingModel;
       this.timeDelta = parameters.getJunctionTimeDeltaFactor();
       this.idmDelta = parameters.getIdmDelta();
       this.conflictAreaLength = parameters.getJunctionDefaultConflictAreaLength();
@@ -47,7 +47,7 @@ public class TrailJunctionDecider implements JunctionDecider {
   }
 
   @Override
-  public JunctionDecision makeDecision(CarReadable managedCar, CarEnvironment environment,
+  public JunctionDecision makeDecision(CarReadable managedCar, CarPrecedingEnvironment environment,
       RoadStructureReader roadStructureReader) {
 
     if(managedCar.getCrossRoadDecisionProperties().isPresent()
@@ -56,7 +56,7 @@ public class TrailJunctionDecider implements JunctionDecider {
       return movePermanentResult(managedCar, environment);
     }
 
-    CarEnvironment precedingCarInfo = prospector.getPrecedingCar(managedCar, roadStructureReader);
+    CarPrecedingEnvironment precedingCarInfo = prospector.getPrecedingCar(managedCar, roadStructureReader);
 
     if(environment.getNextCrossroadId().isEmpty()){
       AccelerationDecisionResult res =
@@ -140,15 +140,25 @@ public class TrailJunctionDecider implements JunctionDecider {
         firstConflictVehicle.getCar().getFirstCarOnIncomingRoadId());
   }
 
-  private JunctionDecision movePermanentResult(CarReadable managedCar, CarEnvironment environment) {
+  private JunctionDecision movePermanentResult(CarReadable managedCar, CarPrecedingEnvironment environment) {
     CrossroadDecisionProperties lastProperties = managedCar.getCrossRoadDecisionProperties().get();
 
     log.trace("Car:" + managedCar.getCarId() + " continue move permanent on road: " + managedCar.getRoadId());
-    return new JunctionDecision(getCrossroadAccelerationDecisionResult(managedCar.getSpeed(), managedCar.getMaxSpeed(),
-        new CarEnvironment(Optional.empty(), Optional.empty(), environment.getDistance())).getAcceleration(), lastProperties);
+
+    CarPrecedingEnvironment env = new CarPrecedingEnvironment(
+        Optional.empty(),
+        Optional.empty(),
+        environment.getDistance());
+
+    AccelerationDecisionResult decisionResult = getCrossroadAccelerationDecisionResult(
+        managedCar.getSpeed(),
+        managedCar.getMaxSpeed(),
+        env);
+
+    return new JunctionDecision(decisionResult.getAcceleration(), lastProperties);
   }
 
-  private JunctionDecision giveWayResult(CarReadable managedCar, CarEnvironment environment, RoadStructureReader roadStructureReader) {
+  private JunctionDecision giveWayResult(CarReadable managedCar, CarPrecedingEnvironment environment, RoadStructureReader roadStructureReader) {
     List<CarReadable> firstVehiclesOnJunction = getAllFirstVehiclesOnJunction(environment.getNextCrossroadId().get(),
         roadStructureReader);
 
@@ -187,8 +197,8 @@ public class TrailJunctionDecider implements JunctionDecider {
         environment.getDistance() - conflictAreaLength / 2), decisionProperties);
   }
 
-  private JunctionDecision getMoveOnJunctionDecision(CarReadable managedCar, CarEnvironment environment,
-      RoadStructureReader roadStructureReader, CarEnvironment precedingCarInfo) {
+  private JunctionDecision getMoveOnJunctionDecision(CarReadable managedCar, CarPrecedingEnvironment environment,
+      RoadStructureReader roadStructureReader, CarPrecedingEnvironment precedingCarInfo) {
     AccelerationDecisionResult res = getCrossroadAccelerationDecisionResult(managedCar.getSpeed(), managedCar.getMaxSpeed(),
         precedingCarInfo);
     if(res.isLocked()){
@@ -200,8 +210,8 @@ public class TrailJunctionDecider implements JunctionDecider {
     }
   }
 
-  private JunctionDecision getLockedJunctionDecision(CarReadable managedCar, CarEnvironment environment,
-      RoadStructureReader roadStructureReader, CarEnvironment precedingCarInfo, boolean haveSpaceAfterCrossroad,
+  private JunctionDecision getLockedJunctionDecision(CarReadable managedCar, CarPrecedingEnvironment environment,
+      RoadStructureReader roadStructureReader, CarPrecedingEnvironment precedingCarInfo, boolean haveSpaceAfterCrossroad,
       CarId lockingCarId) {
 
     int lockCounter = 1;
@@ -277,13 +287,18 @@ public class TrailJunctionDecider implements JunctionDecider {
       }
     }
 
-    CrossroadDecisionProperties decisionProperties = new CrossroadDecisionProperties(lockingCarId,
-        lockCounter, complianceFactor, haveSpaceAfterCrossroad, isMovedPermanent? Optional.of(managedCar.getRoadId()) : Optional.empty(),
-        isMovedPermanent? Optional.of(managedCar.getLaneId()) : Optional.empty(), giveWayVehicleId);
+    CrossroadDecisionProperties decisionProperties = new CrossroadDecisionProperties(
+        lockingCarId,
+        lockCounter,
+        complianceFactor,
+        haveSpaceAfterCrossroad,
+        isMovedPermanent ? Optional.of(managedCar.getRoadId()) : Optional.empty(),
+        isMovedPermanent ? Optional.of(managedCar.getLaneId()) : Optional.empty(),
+        giveWayVehicleId);
 
     if(isMovedPermanent){
       return new JunctionDecision(getCrossroadAccelerationDecisionResult(managedCar.getSpeed(), managedCar.getMaxSpeed(),
-          new CarEnvironment(Optional.empty(), Optional.empty(), precedingCarInfo.getDistance()))
+          new CarPrecedingEnvironment(Optional.empty(), Optional.empty(), precedingCarInfo.getDistance()))
           .getAcceleration(), decisionProperties);
     }
     return new JunctionDecision(getStopAccelerationResult(managedCar.getSpeed(), managedCar.getMaxSpeed(),
@@ -300,12 +315,13 @@ public class TrailJunctionDecider implements JunctionDecider {
     return compareRes1;
   }
 
-  private AccelerationDecisionResult getCrossroadAccelerationDecisionResult(double speed, double desiredSpeed, CarEnvironment precedingCarInfo) {
+  private AccelerationDecisionResult getCrossroadAccelerationDecisionResult(double speed, double desiredSpeed, CarPrecedingEnvironment precedingCarInfo) {
     if(precedingCarInfo.getPrecedingCar().isEmpty()) {
-      return new AccelerationDecisionResult(followingModel.calculateAcceleration(speed, desiredSpeed, Double.MAX_VALUE, 0), false);
+      return new AccelerationDecisionResult(
+          carFollowingModel.calculateAcceleration(speed, desiredSpeed, Double.MAX_VALUE, 0), false);
     }
     else{
-      double acceleration = followingModel.calculateAcceleration(speed, desiredSpeed, precedingCarInfo.getDistance(),
+      double acceleration = carFollowingModel.calculateAcceleration(speed, desiredSpeed, precedingCarInfo.getDistance(),
               speed - precedingCarInfo.getPrecedingCar().get().getSpeed());
 
       final boolean isLocked = (speed + acceleration <= 0.1);
@@ -314,7 +330,7 @@ public class TrailJunctionDecider implements JunctionDecider {
   }
 
   private double getStopAccelerationResult(double speed, double desiredSpeed, double distance) {
-    return followingModel.calculateAcceleration(speed, desiredSpeed, distance, speed);
+    return carFollowingModel.calculateAcceleration(speed, desiredSpeed, distance, speed);
   }
 
   private List<CarReadable> getAllFirstVehiclesOnJunction(JunctionId junctionId, RoadStructureReader roadStructureReader){
@@ -324,7 +340,7 @@ public class TrailJunctionDecider implements JunctionDecider {
     return prospector.getAllFirstCarsFromRoads(roadsOnJunction.stream().map(RoadOnJunction::getRoadId).toList(), roadStructureReader);
   }
 
-  private List<ConflictVehicleProperties> getAllConflictVehiclesProperties(CarReadable currentCar, CarEnvironment environment, RoadStructureReader roadStructureReader){
+  private List<ConflictVehicleProperties> getAllConflictVehiclesProperties(CarReadable currentCar, CarPrecedingEnvironment environment, RoadStructureReader roadStructureReader){
     if(environment.getNextCrossroadId().isEmpty() || environment.getIncomingRoadId().isEmpty()){
       return new ArrayList<>();
     }

@@ -4,16 +4,17 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarPrecedingEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
-import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspectorImpl;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarEnvironmentProvider;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.ICarFollowingModel;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.Idm;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IdmDecider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CrossroadDecisionProperties;
@@ -23,7 +24,6 @@ import pl.edu.agh.hiputs.model.car.driver.deciders.junction.TrailJunctionDecider
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
-import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 
@@ -42,10 +42,12 @@ public class Driver implements IDriver {
   private final double distanceHeadway;
   private final double timeStep;
   private final double maxDeceleration;
+  @Getter @Setter
+  private double politeness = 0;
 
   public Driver(DriverParameters parameters){
-    this.prospector = new CarProspectorImpl(parameters.getViewRange());
-    IFollowingModel idm = new Idm(parameters);
+    this.prospector = new CarEnvironmentProvider(parameters.getViewRange());
+    ICarFollowingModel idm = new Idm(parameters);
     this.idmDecider = new IdmDecider(idm);
     this.junctionDecider = new TrailJunctionDecider(prospector, idm, parameters);
     this.timeStep = parameters.getTimeStep();
@@ -65,7 +67,7 @@ public class Driver implements IDriver {
     //First prepare CarEnvironment
 
     double acceleration;
-    CarEnvironment environment = prospector.getPrecedingCarOrCrossroad(car, roadStructureReader);
+    CarPrecedingEnvironment environment = prospector.getPrecedingCarOrCrossroad(car, roadStructureReader);
 
     log.trace("Car: " + car.getCarId() + ", environment: " + environment);
 
@@ -162,7 +164,7 @@ public class Driver implements IDriver {
 
     if(offset > 0 && crossroadDecisionProperties.isPresent()){
       if(crossroadDecisionProperties.get().getMovePermanentRoadId().isPresent()){
-        CarEnvironment precedingCarInfo = prospector.getPrecedingCar(car, roadStructureReader);
+        CarPrecedingEnvironment precedingCarInfo = prospector.getPrecedingCar(car, roadStructureReader);
         if(precedingCarInfo.getPrecedingCar().isPresent() && precedingCarInfo.getDistance() < (speed * speed / maxDeceleration / 2)){
           CarReadable precedingCar = precedingCarInfo.getPrecedingCar().get();
           speed = Math.min(speed, Math.max(precedingCar.getSpeed() - maxDeceleration, 0) * 0.8);

@@ -47,7 +47,7 @@ public class Road implements RoadEditable {
   private final Optional<NeighborRoadInfo> leftNeighbor = Optional.empty();
 
   /**
-   * Reference to junction id that is at the begging of road
+   * Reference to junction id that is at the beginning of road
    * j --------->
    */
   @Getter

@@ -2,7 +2,7 @@ package pl.edu.agh.hiputs.model.car.driver.deciders.follow;
 
 import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 
-public class Idm implements IFollowingModel {
+public class Idm implements ICarFollowingModel {
 
   private final double distanceHeadway;
   private final double timeHeadway;

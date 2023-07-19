@@ -23,6 +23,13 @@ public interface LaneReadable {
   Optional<CarReadable> getCarInFrontReadable(CarReadable car);
 
   /**
+   * Returns the nearest car between the given one and the incoming junction (i.e. in back of the given car)
+   * @param car
+   * @return
+   */
+  Optional<CarReadable> getCarInBackReadable(CarReadable car);
+
+  /**
    * Returns the nearest car before given position
    */
   Optional<CarReadable> getCarBeforePosition(double position);

@@ -1,4 +1,4 @@
-package pl.edu.agh.hiputs.model.car.driver.deciders.follow;
+package pl.edu.agh.hiputs.model.car.driver.deciders;
 
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -19,14 +19,16 @@ import pl.edu.agh.hiputs.model.id.RoadId;
  */
 @Value
 @AllArgsConstructor
-public class CarEnvironment {
+public class CarPrecedingEnvironment {
   double distance;
+  //TODO
+  CarReadable thisCar = null;
   Optional<CarReadable> precedingCar;
   Optional<JunctionId> nextCrossroadId;
   Optional<RoadId> incomingRoadId;
   Optional<LaneId> incomingLaneId;
 
-  public CarEnvironment(Optional<CarReadable> precedingCar, Optional<JunctionId> nextCrossroadId, double distance) {
+  public CarPrecedingEnvironment(Optional<CarReadable> precedingCar, Optional<JunctionId> nextCrossroadId, double distance) {
     this.distance = distance;
     this.precedingCar = precedingCar;
     this.nextCrossroadId = nextCrossroadId;
