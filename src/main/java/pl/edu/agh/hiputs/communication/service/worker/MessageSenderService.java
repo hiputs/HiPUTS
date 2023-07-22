@@ -2,14 +2,12 @@ package pl.edu.agh.hiputs.communication.service.worker;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -17,8 +15,6 @@ import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import pl.edu.agh.hiputs.HiPUTS;
@@ -50,7 +46,8 @@ public class MessageSenderService implements Subscriber {
   private AtomicLong sentMessagesSize;
   private AtomicInteger sentServerMessages;
   private AtomicInteger sentMessages;
-  private Queue<Pair<MessagesTypeEnum, Integer>> sentMessagesTypeDict;
+  private Map<MessagesTypeEnum, Integer> sentMessagesTypeDict;
+  private Map<MessagesTypeEnum, Integer> sentMessagesTypeSizesDict;
 
   @PostConstruct
   void init() {
@@ -60,7 +57,12 @@ public class MessageSenderService implements Subscriber {
     sentMessagesSize = new AtomicLong(0);
     sentServerMessages = new AtomicInteger(0);
     sentMessages = new AtomicInteger(0);
-    sentMessagesTypeDict = new ConcurrentLinkedQueue<>();
+    sentMessagesTypeDict = new ConcurrentHashMap<>();
+    sentMessagesTypeSizesDict = new ConcurrentHashMap<>();
+    MessagesTypeEnum.getWorkerMessages().forEach(key -> {
+      sentMessagesTypeDict.put(key, 0);
+      sentMessagesTypeSizesDict.put(key, 0);
+    });
   }
 
   /**
@@ -71,13 +73,11 @@ public class MessageSenderService implements Subscriber {
    */
   public void send(MapFragmentId mapFragmentId, Message message) throws IOException {
     log.debug("Worker send message to: {} message type: {}", mapFragmentId, message.getMessageType());
-    log.debug("neigh repo sed {}\n {} {}, {} {} {}", neighbourRepository.keySet().stream().map(a -> a.getId()).toList(),
-        neighbourRepository.keySet().stream().map(a -> a.hashCode()).toList(),
-        neighbourRepository.keySet().stream().map(a -> Objects.equals(mapFragmentId, a)).toList(), mapFragmentId,
-        mapFragmentId.getId(), mapFragmentId.hashCode());
 
-    sentMessagesTypeDict.add(
-        new ImmutablePair<>(message.getMessageType(), neighbourRepository.get(mapFragmentId).send(message)));
+    sentMessagesTypeSizesDict.replace(message.getMessageType(),
+        sentMessagesTypeSizesDict.get(message.getMessageType()) + neighbourRepository.get(mapFragmentId).send(message));
+
+    sentMessagesTypeDict.replace(message.getMessageType(), sentMessagesTypeDict.get(message.getMessageType()) + 1);
     sentMessages.incrementAndGet();
   }
 
@@ -111,7 +111,28 @@ public class MessageSenderService implements Subscriber {
 
     neighbourRepository.values().forEach(n -> {
       try {
-        n.send(message);
+        sentMessagesTypeSizesDict.replace(message.getMessageType(),
+            sentMessagesTypeSizesDict.get(message.getMessageType()) + n.send(message));
+
+        sentMessagesTypeDict.replace(message.getMessageType(), sentMessagesTypeDict.get(message.getMessageType()) + 1);
+
+        sentMessages.incrementAndGet();
+        // sentMessagesType.add(message.getMessageType().name());
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+  }
+
+  public void broadcast(Message message, Set<MapFragmentId> receivers) {
+
+    receivers.forEach(r -> {
+      try {
+        sentMessagesTypeSizesDict.replace(message.getMessageType(),
+            sentMessagesTypeSizesDict.get(message.getMessageType()) + neighbourRepository.get(r).send(message));
+
+        sentMessagesTypeDict.replace(message.getMessageType(), sentMessagesTypeDict.get(message.getMessageType()) + 1);
+
         sentMessages.incrementAndGet();
         // sentMessagesType.add(message.getMessageType().name());
       } catch (IOException e) {
@@ -130,25 +151,34 @@ public class MessageSenderService implements Subscriber {
     }
   }
 
-  public int getSentMessages() {
-    return sentMessages.getAndSet(0);
+  public synchronized List<Integer> getSentMessages() {
+    List<Integer> result = MessagesTypeEnum.getWorkerMessages()
+        .stream()
+        .sorted(Comparator.comparing(Enum::toString))
+        .map(key -> sentMessagesTypeDict.get(key))
+        .toList();
+
+    MessagesTypeEnum.getWorkerMessages().forEach(key -> sentMessagesTypeDict.put(key, 0));
+
+    return result;
+    // return sentMessages.getAndSet(0);
   }
 
   public int getSentServerMessages() {
     return sentServerMessages.getAndSet(0);
   }
 
-  public synchronized String getSentMessagesSize() {
+  public synchronized List<Integer> getSentMessagesSize() {
     // return sentMessagesSize.getAndSet(0);
 
-    String result = sentMessagesTypeDict.stream()
-        .collect(Collectors.groupingBy(Pair::getLeft, Collectors.summingInt(Pair::getRight)))
-        .entrySet()
+    List<Integer> result = MessagesTypeEnum.getWorkerMessages()
         .stream()
-        .sorted(Entry.comparingByKey())
-        .map(val -> val.getKey().toString() + ":" + val.getValue().toString() + ",")
-        .reduce("", (res, val) -> res + val);
-    sentMessagesTypeDict.clear();
+        .sorted(Comparator.comparing(Enum::toString))
+        .map(key -> sentMessagesTypeSizesDict.get(key))
+        .toList();
+
+    MessagesTypeEnum.getWorkerMessages().forEach(key -> sentMessagesTypeSizesDict.put(key, 0));
+
     return result;
 
   }
@@ -221,5 +251,11 @@ public class MessageSenderService implements Subscriber {
           //     neighbourRepository.get(a), a.hashCode());
         });
   }
+
+  // public void removeNeighbourConnection(MapFragmentId mapFragmentId){
+  //   connectionDtoMap.remove(mapFragmentId);
+  //   neighbourRepository.get(mapFragmentId).closeConnection();
+  //   neighbourRepository.remove(mapFragmentId);
+  // }
 
 }

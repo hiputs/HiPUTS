@@ -112,23 +112,6 @@ public class MapFragmentExecutor {
       iterationStatisticsService.endStage(
           List.of(SimulationPoint.LOAD_BALANCING_NOTIFICATIONS, SimulationPoint.LOAD_BALANCING));
 
-      log.debug("Worker: {}, ShadowPatches: {}", mapFragment.getMe().getId(), mapFragment.getShadowPatchesReadable()
-          .stream()
-          .map(patch -> patch.getPatchId().getValue())
-          .collect(Collectors.joining(",")));
-      log.debug("Worker: {}, LocalPatches: {}", mapFragment.getMe().getId(), mapFragment.getLocalPatchesEditable()
-          .stream()
-          .map(patch -> patch.getPatchId().getValue())
-          .collect(Collectors.joining(",")));
-      log.debug("Worker: {}, BorderPatches: {}", mapFragment.getMe().getId(), mapFragment.getBorderPatches()
-          .entrySet()
-          .stream()
-          .map(entry -> entry.getKey().getId() + entry.getValue()
-              .stream()
-              .map(patch -> patch.getPatchId().getValue())
-              .collect(Collectors.joining(",")))
-          .collect(Collectors.joining(",")));
-
       // 9. send and receive remote patches (border patches)
       log.info("Step 9 start");
       iterationStatisticsService.startStage(SimulationPoint.SYNCHRONIZATION_AREA_SEND_PATCHES);

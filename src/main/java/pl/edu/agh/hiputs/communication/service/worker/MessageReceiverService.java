@@ -113,7 +113,7 @@ public class MessageReceiverService {
       try {
         return new DataInputStream(clientSocket.getInputStream());
       } catch (IOException | NullPointerException e) {
-        log.error("ERROR ", e.getMessage());
+        log.error("ERROR ", e);
         throw new RuntimeException(e);
       }
     }
@@ -124,7 +124,7 @@ public class MessageReceiverService {
         byte[] bytes = dataInputStream.readNBytes(length);
         return SerializationUtils.deserialize(bytes);
       } catch (IOException | NullPointerException e) {
-        log.error("ERROR ", e.getMessage());
+        log.error("ERROR ", e);
         throw new RuntimeException(e);
       }
     }

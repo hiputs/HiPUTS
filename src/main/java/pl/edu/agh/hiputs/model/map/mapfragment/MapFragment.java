@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.model.map.mapfragment;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -92,6 +93,11 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
    * should be cleared before each load balancing
    */
   private final Map<PatchId, MapFragmentId> sentPatchesIdToMapFragmentId;
+
+  /**
+   * Lis of neighbours removed due to LB process
+   */
+  private final List<MapFragmentId> removedNeighbours;
 
   public static MapFragmentBuilder builder(MapFragmentId mapFragmentId) {
     return new MapFragmentBuilder(mapFragmentId);
@@ -281,6 +287,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       removePatch(patch.getPatchId());
     }
 
+
     removeEmptyNeighbours(ticketService);
   }
 
@@ -406,6 +413,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
             .collect(Collectors.joining(";")));
 
     removeEmptyNeighbours(ticketService);
+
   }
 
   @Override
@@ -571,15 +579,22 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         knownPatches.entrySet().stream().map(a -> a.getKey().getValue() + ":" + a.getValue().getPatchId().getValue()));
   }
 
+  public List<MapFragmentId> getNeighboursToRemove() {
+    List<MapFragmentId> lostConnectNeighbours = List.copyOf(removedNeighbours);
+    removedNeighbours.clear();
+    return lostConnectNeighbours;
+  }
+
   private void removeEmptyNeighbours(TicketService ticketService) {
+    // log.info("Me {}, Remove empty neighbours {}", mapFragmentId.getId(),
+    //     lostConnectNeighbours.stream().map(MapFragmentId::getId).collect(Collectors.joining(", ")));
     List<MapFragmentId> lostConnectNeighbours = mapFragmentIdToBorderPatchIds.entrySet()
         .stream()
         .filter(i -> i.getValue().isEmpty())
         .map(Entry::getKey)
         .toList();
 
-    // log.info("Me {}, Remove empty neighbours {}", mapFragmentId.getId(),
-    //     lostConnectNeighbours.stream().map(MapFragmentId::getId).collect(Collectors.joining(", ")));
+    this.removedNeighbours.addAll(lostConnectNeighbours);
 
     lostConnectNeighbours.forEach(n -> {
       mapFragmentIdToBorderPatchIds.remove(n);
@@ -725,7 +740,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       });
 
       return new MapFragment(mapFragmentId, knownPatches, localPatchIds, borderPatches, shadowPatches, laneToPatch,
-          junctionToPatch, sentPatchesIdToMapFragmentId);
+          junctionToPatch, sentPatchesIdToMapFragmentId, new LinkedList<>());
     }
 
     /**

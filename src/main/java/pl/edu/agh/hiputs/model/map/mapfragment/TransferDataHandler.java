@@ -100,4 +100,6 @@ public interface TransferDataHandler {
 
   Map<PatchId, MapFragmentId> getMapOfSentPatches();
 
+  List<MapFragmentId> getNeighboursToRemove();
+
 }
