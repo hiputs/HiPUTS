@@ -1,5 +1,8 @@
 package pl.edu.agh.hiputs.communication.model;
 
+import java.util.Arrays;
+import java.util.List;
+
 public enum MessagesTypeEnum {
 
   // server - worker messages
@@ -82,5 +85,12 @@ public enum MessagesTypeEnum {
   /**
    * Info from service to shut down after simulation
    */
-  ShutDownMessage
+  ShutDownMessage;
+
+  public static List<MessagesTypeEnum> getWorkerMessages() {
+    return Arrays.asList(CarTransferMessage, BorderSynchronizationMessage, PatchTransferMessage,
+        PatchTransferNotificationMessage, GroupOfPatchTransferNotificationMessage, LoadInfo, AvailableTicketMessage,
+        SelectTicketMessage);
+
+  }
 }

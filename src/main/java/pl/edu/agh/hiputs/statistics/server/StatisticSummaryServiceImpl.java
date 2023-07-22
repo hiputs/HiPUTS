@@ -43,8 +43,9 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
   private static final String SUMMARY_TIMES_CSV = "summaryTimes.csv";
   private static final String ITERATION_TIMES_CSV = "iterationTimes.csv";
   private static final String ITERATION_DATA_CSV = "iterationData.csv";
+  private static final String MESSAGES_SIZES_CSV = "messagesSizes.csv";
+  private static final String MESSAGES_COUNT_CSV = "messagesCount.csv";
   private final SubscriptionService subscriptionService;
-  private final ConfigurationService configurationService;
 
   private final List<FinishSimulationStatisticMessage> repository = new ArrayList<>();
   private final HashMap<SimulationPoint, Long> serverTimeStatisticRepository = new HashMap<>();
@@ -68,6 +69,9 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     createCSVSummaryTimes();
     createCSVIterationTimes();
     createCSVIterationData();
+
+    createCSVMessagesSizes();
+    createCSVMessagesCount();
   }
 
   @Override
@@ -156,6 +160,54 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     save(header + workersContent, ITERATION_TIMES_CSV);
   }
 
+  private void createCSVMessagesSizes() {
+    List<MessagesTypeEnum> points = MessagesTypeEnum.getWorkerMessages()
+        .stream()
+        .sorted(Comparator.comparing(Enum::toString))
+        .collect(Collectors.toList());
+
+    String header = "NAME" + SEPARATOR + "STEP" + SEPARATOR + points.stream()
+        .map(Enum::toString)
+        .collect(Collectors.joining(SEPARATOR)) + END_LINE;
+
+    String workersContent = repository.stream()
+        .map(workerData -> workerData.getIterationStatisticRepository()
+            .stream()
+            .map(iterationStats -> (workerData.getWorkerId() + SEPARATOR + iterationStats.getStep() + SEPARATOR
+                + iterationStats.getOutgoingMessagesSize()
+                .stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(SEPARATOR)) + END_LINE))
+            .collect(Collectors.joining()))
+        .collect(Collectors.joining());
+
+    save(header + workersContent, MESSAGES_SIZES_CSV);
+  }
+
+  private void createCSVMessagesCount() {
+    List<MessagesTypeEnum> points = MessagesTypeEnum.getWorkerMessages()
+        .stream()
+        .sorted(Comparator.comparing(Enum::toString))
+        .collect(Collectors.toList());
+
+    String header = "NAME" + SEPARATOR + "STEP" + SEPARATOR + points.stream()
+        .map(Enum::toString)
+        .collect(Collectors.joining(SEPARATOR)) + END_LINE;
+
+    String workersContent = repository.stream()
+        .map(workerData -> workerData.getIterationStatisticRepository()
+            .stream()
+            .map(iterationStats -> (workerData.getWorkerId() + SEPARATOR + iterationStats.getStep() + SEPARATOR
+                + iterationStats.getOutgoingMessages()
+                .stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(SEPARATOR)) + END_LINE))
+            .collect(Collectors.joining()))
+        .collect(Collectors.joining());
+
+    save(header + workersContent, MESSAGES_COUNT_CSV);
+  }
+
   private String getPointsTimes(List<SimulationPoint> points, HashMap<SimulationPoint, Long> iterationTimes) {
     return points.stream().map(point -> iterationTimes.get(point).toString()).collect(Collectors.joining(SEPARATOR));
   }
@@ -171,10 +223,11 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
             .map(iterationStats -> workerData.getWorkerId() + SEPARATOR + iterationStats.getStep() + SEPARATOR
                 + iterationStats.getCarCountAfterStep() + SEPARATOR + iterationStats.getStoppedCars() + SEPARATOR
                 + iterationStats.getSpeedSum() + SEPARATOR + iterationStats.getOutgoingMessagesToServer() + SEPARATOR
-                + iterationStats.getOutgoingMessages() + SEPARATOR + iterationStats.getOutgoingMessagesSize()
-                + SEPARATOR + iterationStats.getUsedHeapMemory() + SEPARATOR + iterationStats.getUsedNoHeapMemory()
-                + SEPARATOR + iterationStats.getMaxHeapMemory() + SEPARATOR + iterationStats.getMaxNoHeapMemory()
-                + SEPARATOR + iterationStats.getInfo() + SEPARATOR + END_LINE)
+                + iterationStats.getOutgoingMessages().stream().reduce(Integer::sum).get() + SEPARATOR
+                + iterationStats.getOutgoingMessagesSize().stream().reduce(Integer::sum).get() + SEPARATOR
+                + iterationStats.getUsedHeapMemory() + SEPARATOR + iterationStats.getUsedNoHeapMemory() + SEPARATOR
+                + iterationStats.getMaxHeapMemory() + SEPARATOR + iterationStats.getMaxNoHeapMemory() + SEPARATOR
+                + iterationStats.getInfo() + SEPARATOR + END_LINE)
             .collect(Collectors.joining()))
         .collect(Collectors.joining());
 

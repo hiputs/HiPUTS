@@ -80,12 +80,12 @@ public class IterationStatisticsServiceImpl implements IterationStatisticsServic
   }
 
   @Override
-  public void setOutgoingMessagesInStep(int messages) {
+  public void setOutgoingMessagesInStep(List<Integer> messages) {
     iterationStatistics.get(step).setOutgoingMessages(messages);
   }
 
   @Override
-  public void setOutgoingMessagesSize(String size) {
+  public void setOutgoingMessagesSize(List<Integer> size) {
     iterationStatistics.get(step).setOutgoingMessagesSize(size);
   }
 
@@ -148,8 +148,8 @@ public class IterationStatisticsServiceImpl implements IterationStatisticsServic
     private HashMap<SimulationPoint, Long> iterationTimes = new HashMap<>();
     private long carCountAfterStep;
     private int outgoingMessagesToServer;
-    private int outgoingMessages;
-    private String outgoingMessagesSize;
+    private List<Integer> outgoingMessages;
+    private List<Integer> outgoingMessagesSize;
     private long usedHeapMemory;
     private long usedNoHeapMemory;
     private long maxHeapMemory;
