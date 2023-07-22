@@ -20,7 +20,7 @@ import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.model.Configuration;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.PatchEditor;
@@ -119,10 +119,11 @@ public class CarGeneratorService implements Subscriber {
     }
   }
 
-  public Car replaceCar(CarReadable car) {
+  public Car replaceCar(CarEditable car) {
     Car newCar = carProvider.generateCar(car.getPositionOnLane(), car.getLaneId(), car.getSpeed());
-    LaneEditable lane = mapFragment.getLaneEditable(newCar.getLaneId());
-    lane.placeCarInQueueMiddle(newCar);
+    LaneEditable lane = mapFragment.getLaneEditable(car.getLaneId());
+    lane.replaceCar(car, newCar);
+
     return newCar;
   }
 

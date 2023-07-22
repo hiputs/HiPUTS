@@ -3,9 +3,11 @@ package pl.edu.agh.hiputs.model.map.roadstructure;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterators;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -33,7 +35,7 @@ public class Lane implements LaneEditable {
    * Collection of cars traveling on this lane.
    */
   @Builder.Default
-  private Deque<CarEditable> cars = new LinkedList<>();
+  private final Deque<CarEditable> cars = new ConcurrentLinkedDeque<>();
 
   /**
    * Reference to lane that is on the left side of this one, for now it should be in opposite direction.
@@ -118,7 +120,10 @@ public class Lane implements LaneEditable {
 
   @Override
   public Stream<CarReadable> streamCarsFromExitReadable() {
-    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false);
+
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false)
+        .filter(Objects::nonNull)
+        .map(car -> car);
   }
 
   @Override
@@ -211,7 +216,7 @@ public class Lane implements LaneEditable {
 
   @Override
   public synchronized void placeCarInQueueMiddle(CarEditable car) {
-    LinkedList<CarEditable> carsList = (LinkedList<CarEditable>) cars;
+    LinkedList<CarEditable> carsList = new LinkedList<>(cars);
     Iterator<CarEditable> iterCars = cars.iterator();
     int idx = 0;
 
@@ -219,7 +224,14 @@ public class Lane implements LaneEditable {
       idx += 1;
     }
     carsList.add(idx, car);
-    cars = carsList;
+    cars.clear();
+    cars.addAll(carsList);
+  }
+
+  @Override
+  public synchronized void replaceCar(CarEditable oldCar, CarEditable newCar) {
+    removeCar(oldCar);
+    placeCarInQueueMiddle(newCar);
   }
 
   @Override

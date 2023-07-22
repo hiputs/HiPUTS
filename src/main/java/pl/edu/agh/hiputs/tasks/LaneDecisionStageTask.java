@@ -36,7 +36,7 @@ public class LaneDecisionStageTask implements Runnable {
 
       if (isReplaceCarWithFinishedRoute) { // generate new car replacement if needed
         carsWithFinishedRoute.forEach(car -> {
-          lane.removeCar(car);
+
           Car newCar = carGeneratorService.replaceCar(car);
 
           newCar.decide(mapFragment);

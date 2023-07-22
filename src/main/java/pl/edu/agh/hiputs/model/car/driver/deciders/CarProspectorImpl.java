@@ -3,10 +3,10 @@ package pl.edu.agh.hiputs.model.car.driver.deciders;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.junction.CarBasicDeciderData;
@@ -15,7 +15,6 @@ import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
-import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneDirection;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneOnJunction;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
@@ -255,7 +254,7 @@ public class CarProspectorImpl implements CarProspector {
         continue;
       }
 
-      List<CarReadable> carsFromExit = lane.streamCarsFromExitReadable().toList();
+      List<CarReadable> carsFromExit = lane.streamCarsFromExitReadable().collect(Collectors.toList());
       if (!carsFromExit.isEmpty()) {
         cars.add(carsFromExit.stream().findFirst().get());
       }
