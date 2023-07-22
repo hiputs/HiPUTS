@@ -74,7 +74,7 @@ public class LocalLoadMonitorServiceImpl implements LocalLoadMonitorService {
     if (!ConfigurationService.getConfiguration().getBalancingMode().equals(BalancingMode.NONE)) {
       LoadBalancingHistoryInfo info = getMyLastLoad(step);
       messageSenderService.broadcast(new LoadInfoMessage(info.getCarCost(), info.getTimeCost(), info.getMapCost(),
-          transferDataHandler.getMe().getId()));
+          transferDataHandler.getMe().getId()), transferDataHandler.getNeighbors());
     }
   }
 }

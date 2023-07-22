@@ -55,4 +55,12 @@ public class Connection {
 
     return size;
   }
+
+  public void closeConnection() {
+    try {
+      output.close();
+    } catch (IOException e) {
+      log.error("Error occurred while trying to close connection to {}. {}", id.getId(), e);
+    }
+  }
 }

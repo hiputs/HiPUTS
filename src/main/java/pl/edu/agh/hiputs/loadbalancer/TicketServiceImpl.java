@@ -89,12 +89,14 @@ public class TicketServiceImpl implements TicketService, Subscriber {
 
   @Override
   public synchronized void addNewTalker(MapFragmentId neighbourId) {
+    log.debug("TS add new Talker {}", neighbourId.getId());
     newMapFragment.add(neighbourId);
     notify();
   }
 
   @Override
   public void removeTalker(MapFragmentId neighbourId) {
+    log.debug("Ticket Service remove talker {}", neighbourId.getId());
       for(int i=0; i< TICKET_POOL_SIZE; i++){
         if(neighbourId.equals(ticketPool[i])){
           ticketPool[i] = null;
@@ -150,7 +152,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
     private void startSyncTicketNegotiaton(MapFragmentId neighbour) {
       try {
         MapFragmentId me = ConfigurationService.getConfiguration().getMapFragmentId();
-      //  log.info("Start negotiation between {} and me {}", neighbour.getId(), me.getId());
+        log.debug("Start negotiation between {} and me {}", neighbour.getId(), me.getId());
         messageSenderService.send(neighbour, new AvailableTicketMessage(me.getId(), getFreeTicket()));
         final SelectTicketMessage selectTicketMessage = selectTicketQueue.take();
         setTicket(selectTicketMessage.getTicket(), new MapFragmentId(selectTicketMessage.getMapFragmentId()));
@@ -164,7 +166,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
       int selectTicket = getTicket(message);
       MapFragmentId neighbour = new MapFragmentId(message.getMapFragmentId());
       try {
-        //log.info("Select ticket {} neighbour {}", selectTicket, neighbour.getId());
+        log.debug("Select ticket {} neighbour {}", selectTicket, neighbour.getId());
         messageSenderService.send(neighbour,
             new SelectTicketMessage(ConfigurationService.getConfiguration().getMapFragmentId().getId(), selectTicket));
       } catch (IOException e) {
@@ -175,10 +177,11 @@ public class TicketServiceImpl implements TicketService, Subscriber {
     }
 
     private void setTicket(int ticket, MapFragmentId mapFragmentId) {
+      log.debug("TS set ticket {} {}", ticket, mapFragmentId);
       if (ticketPool[ticket] != null) {
         log.error("Override ticket {}", ticket);
       }
-      //log.info("Worker {} get token {}", mapFragmentId, ticket);
+      log.debug("Worker {} get token {}", mapFragmentId, ticket);
       ticketPool[ticket] = mapFragmentId;
     }
   }
@@ -204,7 +207,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
         message.getFreeTicket().stream().filter(i -> i % 2 == 0).filter(i -> ticketPool[i] == null).findFirst();
 
     return ticket.orElseGet(
-        () -> message.getFreeTicket().stream().filter(i -> ticketPool[i] == null).findFirst().get());
+        () -> message.getFreeTicket().stream().filter(i -> ticketPool[i] == null).findFirst().orElse(null));
   }
 
   private synchronized void waitingZone(){
