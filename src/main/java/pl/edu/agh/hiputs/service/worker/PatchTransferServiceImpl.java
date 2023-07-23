@@ -23,6 +23,7 @@ import pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.loadbalancer.TicketService;
@@ -91,7 +92,7 @@ public class PatchTransferServiceImpl implements Subscriber, PatchTransferServic
     log.debug("neighbourConnectionDtos {}",
         neighbourConnectionDtos.stream().map(ConnectionDto::getId).collect(Collectors.joining(",")));
 
-    List<byte[]> serializedLanes =
+    List<SerializedLane> serializedLanes =
         carSynchronizedService.getSerializedCarByPatch(transferDataHandler, patchToSend.getPatchId());
 
     transferDataHandler.migratePatchToNeighbour(patchToSend, receiver, ticketService);

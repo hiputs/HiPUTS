@@ -10,9 +10,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
@@ -118,9 +120,10 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
     mapStatisticsRepository.add(mapStatistic);
   }
 
-
   @Builder
-  @Value
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Getter
   public static class LoadBalancingStatistic implements Serializable {
     long timeInMilis;
     long cars; // number of cars in this iteration in worker?
@@ -130,7 +133,9 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
   }
 
   @Builder
-  @Value
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Getter
   public static class DecisionStatistic implements Serializable {
     int step;
     String selectedNeighbourId;
@@ -139,14 +144,18 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
   }
 
   @Builder
-  @Value
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Getter
   public static class LoadBalancingCostStatistic implements Serializable {
     int step;
     long cost;
   }
 
   @Builder
-  @Value
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Getter
   public static class MapStatistic implements Serializable {
     int step;
     String workerId;

@@ -8,7 +8,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -143,8 +145,9 @@ public class IterationStatisticsServiceImpl implements IterationStatisticsServic
 
   @Getter
   @Setter
+  @NoArgsConstructor
+  @AllArgsConstructor
   public static class IterationInfo implements Serializable {
-
     private HashMap<SimulationPoint, Long> iterationTimes = new HashMap<>();
     private long carCountAfterStep;
     private int outgoingMessagesToServer;

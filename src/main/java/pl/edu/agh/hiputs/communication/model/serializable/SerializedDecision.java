@@ -3,43 +3,45 @@ package pl.edu.agh.hiputs.communication.model.serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
 @Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class SerializedDecision implements CustomSerializable<Decision> {
 
   /**
    * Serialized speed
    */
-  private final double speed;
+  private double speed;
 
   /**
    * Serialized acceleration
    */
-  private final double acceleration;
+  private double acceleration;
 
   /**
    * Serialized laneId
    */
-  private final String laneId;
+  private String laneId;
 
   /**
    * Serialized positionOnLane
    */
-  private final double positionOnLane;
+  private double positionOnLane;
 
   /**
    * Serialized offsetToMoveOnRoute
    */
-  private final int offsetToMoveOnRoute;
+  private int offsetToMoveOnRoute;
 
   /**
    * Serialized crossroadDecisionProperties
    */
-  private final SerializedCrossroadDecisionProperties crossroadDecisionProperties;
+  private SerializedCrossroadDecisionProperties crossroadDecisionProperties;
 
   public SerializedDecision(Decision readObject) {
     this.speed = readObject.getSpeed();

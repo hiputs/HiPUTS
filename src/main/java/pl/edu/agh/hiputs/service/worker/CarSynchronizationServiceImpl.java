@@ -21,6 +21,7 @@ import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -63,11 +64,11 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   }
 
   @Override
-  public List<byte[]> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
+  public List<SerializedLane> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
     Patch patch = transferDataHandler.getPatchById(patchId);
     List<Callable<?>> tasks = patch.streamLanesEditable().map(LaneSerializationTask::new).collect(Collectors.toList());
 
-    return ((List<Pair<LaneId, byte[]>>) taskExecutorService.executeCallableBatch(tasks)).stream()
+    return ((List<Pair<LaneId, SerializedLane>>) taskExecutorService.executeCallableBatch(tasks)).stream()
         .map(Pair::getRight)
         .collect(Collectors.toList());
   }

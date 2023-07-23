@@ -19,9 +19,9 @@ import static java.lang.Math.sqrt;
 public class HiPUTSMapGeneratorApplication {
 
     private static final String MAP_PATH = "..\\data\\";
-    private static final Pair mapDims = new Pair(108,108); // all nodes in map for one worker
+    private static final Pair mapDims = new Pair(256,256); // all nodes in map for one worker
     private static final String MAP_PATCHES_NAME = "_"+mapDims.toString();
-    private static Pair patchDims = new Pair(3,3); // nodes in patch
+    private static Pair patchDims = new Pair(2,2); // nodes in patch
     private static int laneLength = 500; //meters
 
 
@@ -36,9 +36,10 @@ public class HiPUTSMapGeneratorApplication {
         mapDims.setY(patchDims.getY() * (int) mapDims.getY() / patchDims.getY());
 
         // genMap(1);
-        // genMap(2);
+        // genMap(3);
         // genMap(4);
-        genMap(8);
+        // genMap(8);
+        genMap(9);
         // genMap(12);
         // genMap(16);
         // genMap(20);
