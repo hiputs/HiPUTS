@@ -171,9 +171,10 @@ public class ServerStrategyService implements Strategy {
       Graph<PatchData, PatchConnectionData> mapFragmentContent = mapFragmentContentIterator.next();
 
       //calculate shadow patches
-      Set<String> shadowPatchesIds = mapFragmentContent.getNodes().values()
-
-          .stream().flatMap(n -> Stream.concat(n.getIncomingEdges().stream(), n.getOutgoingEdges().stream()))
+      Set<String> shadowPatchesIds = mapFragmentContent.getNodes()
+          .values()
+          .stream()
+          .flatMap(n -> Stream.concat(n.getIncomingEdges().stream(), n.getOutgoingEdges().stream()))
           .distinct()
           .flatMap(e -> Stream.of(e.getSource(), e.getTarget()))
           .map(Node::getId)
@@ -198,7 +199,7 @@ public class ServerStrategyService implements Strategy {
               .address(workerRepository.get(e.getKey()).getAddress())
               .port(workerRepository.get(e.getKey()).getPort())
               .build()))
-          .toList();
+          .collect(Collectors.toList());
 
       ServerInitializationMessage serverInitializationMessage = ServerInitializationMessage.builder()
           .patchIds(mapFragmentContent.getNodes().keySet().stream().toList())

@@ -2,6 +2,7 @@ package pl.edu.agh.hiputs.communication.service.worker;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
+import com.esotericsoftware.kryo.io.Input;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -19,11 +20,11 @@ import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
+import pl.edu.agh.hiputs.communication.service.KryoService;
 
 /**
  * Socket where all messages addressed to the given client are received.
@@ -78,7 +79,7 @@ public class MessageReceiverService {
         port = ss.getLocalPort();
         while (true) {
           Socket s = ss.accept();
-          connectionExecutor.submit(new SingleConnectionExecutor(s));
+          connectionExecutor.submit(new SingleConnectionExecutor(s, new KryoService()));
         }
 
       } catch (IOException e) {
@@ -93,14 +94,16 @@ public class MessageReceiverService {
   private class SingleConnectionExecutor implements Runnable {
 
     private final Socket clientSocket;
+    private final KryoService kryo;
 
     @Override
     public void run() {
       try {
         DataInputStream dataInputStream = createDataInputStreamOrThrowException();
+        Input input = new Input(dataInputStream);
 
         while (true) {
-          Message message = readMessageOrThrowException(dataInputStream);
+          Message message = readMessageOrThrowException(input);
           propagateMessage(message);
         }
       } catch (RuntimeException e) {
@@ -118,12 +121,13 @@ public class MessageReceiverService {
       }
     }
 
-    private Message readMessageOrThrowException(DataInputStream dataInputStream) {
+    private Message readMessageOrThrowException(Input dataInputStream) {
       try {
-        int length = dataInputStream.readInt();
-        byte[] bytes = dataInputStream.readNBytes(length);
-        return SerializationUtils.deserialize(bytes);
-      } catch (IOException | NullPointerException e) {
+        return (Message) kryo.getKryo().readClassAndObject(dataInputStream);
+        // int length = dataInputStream.readInt();
+        // byte[] bytes = dataInputStream.readNBytes(length);
+        // return SerializationUtils.deserialize(bytes);
+      } catch (NullPointerException e) {
         log.error("ERROR ", e);
         throw new RuntimeException(e);
       }

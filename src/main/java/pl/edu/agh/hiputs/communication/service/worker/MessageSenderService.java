@@ -48,6 +48,7 @@ public class MessageSenderService implements Subscriber {
   private AtomicInteger sentMessages;
   private Map<MessagesTypeEnum, Integer> sentMessagesTypeDict;
   private Map<MessagesTypeEnum, Integer> sentMessagesTypeSizesDict;
+  // private final Kryo kyro;
 
   @PostConstruct
   void init() {

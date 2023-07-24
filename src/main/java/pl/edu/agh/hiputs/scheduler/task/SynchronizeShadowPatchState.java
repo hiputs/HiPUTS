@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.id.PatchId;
@@ -19,7 +18,7 @@ import pl.edu.agh.hiputs.model.map.patch.Patch;
 public class SynchronizeShadowPatchState implements Runnable {
 
   private final String patchId;
-  private final List<byte[]> serializedLanes;
+  private final List<SerializedLane> serializedLanes;
   private final TransferDataHandler transferDataHandler;
 
   @Override
@@ -32,7 +31,7 @@ public class SynchronizeShadowPatchState implements Runnable {
       }
       // List<byte[]> listOfLanes =  SerializationUtils.deserialize(serializedLanes);
       Map<String, List<Car>> newCarsOnLanes = serializedLanes.stream()
-          .map(s -> (SerializedLane) SerializationUtils.deserialize(s))
+          // .map(s -> (SerializedLane) SerializationUtils.deserialize(s))
           .collect(Collectors.toMap(SerializedLane::getLaneId, SerializedLane::toRealObject));
 
       shadowPatch.streamLanesEditable()

@@ -25,6 +25,7 @@ import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.BorderSynchronizationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
 import pl.edu.agh.hiputs.model.id.LaneId;
@@ -73,10 +74,10 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
         .collect(Collectors.toList());
 
     // log.info("Step 9-0-3");
-    List<Pair<LaneId, byte[]>> serializedBorderLanes =
-        (List<Pair<LaneId, byte[]>>) taskExecutorService.executeCallableBatch(serializedBorderPatchesTasks);
+    List<Pair<LaneId, SerializedLane>> serializedBorderLanes =
+        (List<Pair<LaneId, SerializedLane>>) taskExecutorService.executeCallableBatch(serializedBorderPatchesTasks);
 
-    Map<PatchId, List<byte[]>> serializedBorderPatches = serializedBorderLanes.stream()
+    Map<PatchId, List<SerializedLane>> serializedBorderPatches = serializedBorderLanes.stream()
         .collect(Collectors.groupingBy(pair -> mapFragment.getPatchIdByLaneId(pair.getLeft()),
             mapping(Pair::getRight, toList())));
 
@@ -196,11 +197,10 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
   }
 
   private BorderSynchronizationMessage createMessageFrom(Set<Patch> patches,
-      Map<PatchId, List<byte[]>> serializedBorderPatches) {
+      Map<PatchId, List<SerializedLane>> serializedBorderPatches) {
 
-    Map<String, List<byte[]>> patchContent = patches.stream()
-        .collect(Collectors.toMap(e -> e.getPatchId().getValue(),
-            e -> serializedBorderPatches.get(e.getPatchId())));
+    Map<String, List<SerializedLane>> patchContent = patches.stream()
+        .collect(Collectors.toMap(e -> e.getPatchId().getValue(), e -> serializedBorderPatches.get(e.getPatchId())));
     return new BorderSynchronizationMessage(simulationStepNo.get(), patchContent);
   }
 

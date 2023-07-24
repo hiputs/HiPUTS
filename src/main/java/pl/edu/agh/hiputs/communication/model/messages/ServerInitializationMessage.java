@@ -1,12 +1,16 @@
 package pl.edu.agh.hiputs.communication.model.messages;
 
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 
-@Value
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
 @Builder
 public class ServerInitializationMessage implements Message {
 
