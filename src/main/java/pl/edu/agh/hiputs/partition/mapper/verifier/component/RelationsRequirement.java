@@ -55,7 +55,8 @@ public class RelationsRequirement implements Requirement{
                 .flatMap(lane -> lane.getAvailableSuccessors().stream())
                 .collect(Collectors.toSet()));
           } else {
-            return false;
+            // unexpected restriction type should not be considered and it is desirable situation
+            return true;
           }
         });
   }

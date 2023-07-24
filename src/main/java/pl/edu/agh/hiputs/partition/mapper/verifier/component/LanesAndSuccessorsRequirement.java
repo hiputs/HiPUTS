@@ -42,10 +42,11 @@ public class LanesAndSuccessorsRequirement implements Requirement{
 
   private boolean areSuccessorsAssignedOnBends(Graph<JunctionData, WayData> graph) {
     return graph.getNodes().values().stream()
-        .filter(node -> node.getData().isCrossroad())
+        .filter(node -> !node.getData().isCrossroad())
+        .filter(node -> !node.getOutgoingEdges().isEmpty())
         .flatMap(node -> node.getIncomingEdges().stream())
-        .flatMap(edge -> edge.getData().getLanes().stream())
-        .anyMatch(lane -> !lane.getAvailableSuccessors().isEmpty());
+        .allMatch(edge -> edge.getData().getLanes().stream()
+            .anyMatch(lane -> !lane.getAvailableSuccessors().isEmpty()));
   }
 
   private boolean areSuccessorsNotOverlappingWithLanes(Graph<JunctionData, WayData> graph) {

@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.partition.mapper.verifier.component;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.core.annotation.Order;
@@ -25,8 +27,7 @@ public class CompletenessRequirement implements Requirement{
   }
 
   private boolean areSetsFilled(Graph<JunctionData, WayData> graph) {
-    return !graph.getNodes().isEmpty() && !graph.getEdges().isEmpty() &&
-        graph.getEdges().values().stream().anyMatch(edge -> !edge.getData().getLanes().isEmpty());
+    return !graph.getNodes().isEmpty() && !graph.getEdges().isEmpty();
   }
 
   private boolean isTISystemConsistent(Graph<JunctionData, WayData> graph) {
@@ -36,12 +37,14 @@ public class CompletenessRequirement implements Requirement{
 
   private boolean areNodesComplete(Graph<JunctionData, WayData> graph) {
     return graph.getNodes().values().stream().allMatch(node ->
+        areListsDisjoint(node.getIncomingEdges(), node.getOutgoingEdges()) &&
         node.getIncomingEdges().stream().allMatch(edge -> graph.getEdges().containsKey(edge.getId())) &&
         node.getOutgoingEdges().stream().allMatch(edge -> graph.getEdges().containsKey(edge.getId())));
   }
 
   private boolean areEdgesComplete(Graph<JunctionData, WayData> graph) {
     return graph.getEdges().values().stream().allMatch(edge ->
+        !edge.getSource().equals(edge.getTarget()) &&
         graph.getNodes().containsKey(edge.getSource().getId()) && graph.getNodes().containsKey(edge.getTarget().getId()));
   }
 
@@ -51,5 +54,10 @@ public class CompletenessRequirement implements Requirement{
         .collect(Collectors.toSet());
 
     return lanes.stream().allMatch(lane -> lanes.containsAll(lane.getAvailableSuccessors()));
+  }
+
+  private boolean areListsDisjoint(List<?> members1, List<?> members2) {
+    Set<?> checkSet = new HashSet<>(members2);
+    return members1.stream().noneMatch(checkSet::contains);
   }
 }
