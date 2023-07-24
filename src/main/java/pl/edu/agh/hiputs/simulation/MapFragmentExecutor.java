@@ -125,9 +125,9 @@ public class MapFragmentExecutor {
 
       // 10. save statistic
       log.info("Step 10 start");
-      // if (step % 10 == 0) {
+      if (step % 50 == 0) {
         simulationStatisticService.saveMapStatistic(mapFragment.getMapStatistic(step));
-      // }
+      }
 
       // 11. gen new car
       log.info("Step 11 start");

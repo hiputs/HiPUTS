@@ -49,6 +49,8 @@ dependencies {
     implementation 'de.topobyte:osm4j-geometry:0.2.0'
     implementation 'org.projectlombok:lombok:1.18.18'
 
+    implementation 'com.esotericsoftware:kryo:5.0.1'
+
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
 

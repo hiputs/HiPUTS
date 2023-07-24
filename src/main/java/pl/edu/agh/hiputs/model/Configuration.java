@@ -93,6 +93,11 @@ public class Configuration {
   private int numberOfCarsPerWorker;
 
   /**
+   * Number of cars in one of workers - big worker (for LB tests)
+   */
+  private int numberOfCarsInBigWorker;
+
+  /**
    * Pause between every simulation step in ms. When visualise mode is enabled recommended min 100ms
    */
   private int pauseAfterStep;

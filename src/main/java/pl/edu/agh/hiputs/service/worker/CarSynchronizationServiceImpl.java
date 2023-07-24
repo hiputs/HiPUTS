@@ -95,6 +95,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
       try {
         CarTransferMessage msg = incomingMessages.take();
 
+        log.debug("Incoming msg size {}", msg.getCars().size());
         List<Future<?>> f = taskExecutorService.executeBatchReturnFutures(
             List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
         injectIncomingCarFutures.addAll(f);

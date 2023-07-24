@@ -153,9 +153,10 @@ public class ServerStrategyService implements Strategy {
       String workerId = workerIdsIterator.next();
       Graph<PatchData, PatchConnectionData> mapFragmentContent = mapFragmentContentIterator.next();
 
-      patchId2workerId.putAll(
-          mapFragmentContent.getNodes().keySet().stream().collect(Collectors.toMap(Function.identity(), e -> workerId))
-      );
+      patchId2workerId.putAll(mapFragmentContent.getNodes()
+          .keySet()
+          .stream()
+          .collect(Collectors.toMap(Function.identity(), e -> workerId)));
     }
 
     workerIdsIterator = workerRepository.getAllWorkersIds().iterator();
@@ -163,9 +164,9 @@ public class ServerStrategyService implements Strategy {
 
     //prepare serverInitMessage for each worker
     Map<String, ServerInitializationMessage> workerId2ServerInitializationMessage = new HashMap<>();
-    boolean bigWorkerSelected = false;
+    boolean bigWorkerSelected = ConfigurationService.getConfiguration().getNumberOfCarsInBigWorker() > 0;
 
-    while(workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
+    while (workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
       String workerId = workerIdsIterator.next();
       Graph<PatchData, PatchConnectionData> mapFragmentContent = mapFragmentContentIterator.next();
 
@@ -202,11 +203,11 @@ public class ServerStrategyService implements Strategy {
       ServerInitializationMessage serverInitializationMessage = ServerInitializationMessage.builder()
           .patchIds(mapFragmentContent.getNodes().keySet().stream().toList())
           .workerInfo(workerDataDtos)
-          .bigWorker(!bigWorkerSelected)
+          .bigWorker(bigWorkerSelected)
           .build();
 
-      if(!bigWorkerSelected){
-        bigWorkerSelected = true;
+      if (bigWorkerSelected) {
+        bigWorkerSelected = false;
       }
       workerId2ServerInitializationMessage.put(workerId, serverInitializationMessage);
     }

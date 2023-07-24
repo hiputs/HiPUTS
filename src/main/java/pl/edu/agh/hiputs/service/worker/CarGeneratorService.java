@@ -80,14 +80,16 @@ public class CarGeneratorService implements Subscriber {
   }
 
   private List<Runnable> generateCarsDistributedEvenlyBetweenPatches() {
-    int minCarsPerPatch = configuration.getNumberOfCarsPerWorker() / mapFragment.getMyPatchCount();
+    int perWorkerCars =
+        bigWorker ? configuration.getNumberOfCarsInBigWorker() : configuration.getNumberOfCarsPerWorker();
+    int minCarsPerPatch = perWorkerCars / mapFragment.getMyPatchCount();
+
     List<Runnable> tasks = new LinkedList<>();
     int patchIdx = 0;
 
     for (PatchEditor patch : mapFragment.getLocalPatchesEditable()) {
       int carsToGenerateInPatch =
-          patchIdx < configuration.getNumberOfCarsPerWorker() % mapFragment.getMyPatchCount() ? minCarsPerPatch + 1
-              : minCarsPerPatch;
+          patchIdx < perWorkerCars % mapFragment.getMyPatchCount() ? minCarsPerPatch + 1 : minCarsPerPatch;
       int minCarsPerLane = carsToGenerateInPatch / patch.getLaneIds().size();
 
       int taskIdx = 0;
