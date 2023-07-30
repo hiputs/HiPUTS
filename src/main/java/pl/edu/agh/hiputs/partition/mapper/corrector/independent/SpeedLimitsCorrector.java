@@ -27,7 +27,11 @@ public class SpeedLimitsCorrector implements Corrector {
       WayData wayData = edge.getData();
 
       if (wayData.getTags().containsKey(maxSpeedKeyInTags)) {
-        wayData.setMaxSpeed(Integer.parseInt(wayData.getTags().get(maxSpeedKeyInTags)));
+        try {
+          wayData.setMaxSpeed(Integer.parseInt(wayData.getTags().get(maxSpeedKeyInTags)));
+        } catch (NumberFormatException exception) {
+          wayData.setMaxSpeed(ruleEngine.processWay(edge));
+        }
       } else {
         wayData.setMaxSpeed(ruleEngine.processWay(edge));
       }

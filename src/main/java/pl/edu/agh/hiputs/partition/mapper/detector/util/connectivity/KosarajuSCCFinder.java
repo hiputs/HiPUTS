@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.StronglyConnectedComponent;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -25,7 +26,27 @@ public class KosarajuSCCFinder implements CCFinder<StronglyConnectedComponent> {
     // filling stack with nodes to receive an order to run next dfs
     graph.getNodes().values().forEach(node -> {
       if (!visitedNodesIds.contains(node.getId())) {
-        dfsFillStack(node, nodeIdsStack, visitedNodesIds);
+        Stack<Node<JunctionData, WayData>> dfsNodes = new Stack<>();
+
+        // iterative version of dfs with post order tracking
+        dfsNodes.push(node);
+        while (!dfsNodes.empty()) {
+          Node<JunctionData, WayData> processingNode = dfsNodes.peek();
+          AtomicBoolean doneProcessing = new AtomicBoolean(true);
+          visitedNodesIds.add(processingNode.getId());
+
+          processingNode.getOutgoingEdges().forEach(edge -> {
+            if (!visitedNodesIds.contains(edge.getTarget().getId())) {
+              dfsNodes.push(edge.getTarget());
+              doneProcessing.set(false);
+            }
+          });
+
+          if (doneProcessing.get()) {
+            dfsNodes.pop();
+            nodeIdsStack.push(processingNode.getId());
+          }
+        }
       }
     });
 
@@ -37,12 +58,28 @@ public class KosarajuSCCFinder implements CCFinder<StronglyConnectedComponent> {
     visitedNodesIds.clear();
 
     while (!nodeIdsStack.empty()) {
-      String processingNodeId = nodeIdsStack.pop();
-      Node<JunctionData, WayData> processingNode = transposedGraph.getNodes().get(processingNodeId);
+      String startingNodeId = nodeIdsStack.pop();
+      Node<JunctionData, WayData> startingNode = transposedGraph.getNodes().get(startingNodeId);
       StronglyConnectedComponent scc = new StronglyConnectedComponent();
 
-      if (!visitedNodesIds.contains(processingNodeId)) {
-        dfsBuildSCC(processingNode, scc, visitedNodesIds);
+      // port order iterative version of dfs to retrieve all nodes representing single scc
+      if (!visitedNodesIds.contains(startingNodeId)) {
+        Stack<Node<JunctionData, WayData>> reverseDfsNodes = new Stack<>();
+        reverseDfsNodes.push(startingNode);
+
+        while (!reverseDfsNodes.empty()) {
+          Node<JunctionData, WayData> processingNode = reverseDfsNodes.pop();
+          visitedNodesIds.add(processingNode.getId());
+          scc.addNode(processingNode.getId());
+
+          processingNode.getOutgoingEdges().forEach(edge -> {
+            if (!visitedNodesIds.contains(edge.getTarget().getId())) {
+              reverseDfsNodes.push(edge.getTarget());
+            } else {
+              scc.addExternalEdge(edge.getId());
+            }
+          });
+        }
       }
 
       if (!scc.getNodesIds().isEmpty()) {
@@ -51,31 +88,6 @@ public class KosarajuSCCFinder implements CCFinder<StronglyConnectedComponent> {
     }
 
     return foundSCCs;
-  }
-
-  private void dfsFillStack(Node<JunctionData, WayData> startNode, Stack<String> nodeStack, Set<String> visitedNodes) {
-    visitedNodes.add(startNode.getId());
-
-    startNode.getOutgoingEdges().forEach(edge -> {
-      if (!visitedNodes.contains(edge.getTarget().getId())) {
-        dfsFillStack(edge.getTarget(), nodeStack, visitedNodes);
-      }
-    });
-
-    nodeStack.push(startNode.getId());
-  }
-
-  private void dfsBuildSCC(Node<JunctionData, WayData> startNode, StronglyConnectedComponent scc, Set<String> visitedNodes) {
-    visitedNodes.add(startNode.getId());
-    scc.addNode(startNode.getId());
-
-    startNode.getOutgoingEdges().forEach(edge -> {
-      if (!visitedNodes.contains(edge.getTarget().getId())) {
-        dfsBuildSCC(edge.getTarget(), scc, visitedNodes);
-      } else {
-        scc.addExternalEdge(edge.getId());
-      }
-    });
   }
 
   private Graph<JunctionData, WayData> transposeGraph(Graph<JunctionData, WayData> graph) {

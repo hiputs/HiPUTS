@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
@@ -99,7 +101,8 @@ public class DuplicatesFilter implements Filter{
     ways.forEach(nextWay -> {
       if (waysByIdAggregator.containsKey(nextWay.getId())) {
         // conflict => save older way
-        if (nextWay.getMetadata().getTimestamp() < waysByIdAggregator.get(nextWay.getId()).getMetadata().getTimestamp()) {
+        if (Objects.nonNull(nextWay.getMetadata()) && Objects.nonNull(waysByIdAggregator.get(nextWay.getId()).getMetadata()) &&
+            nextWay.getMetadata().getTimestamp() < waysByIdAggregator.get(nextWay.getId()).getMetadata().getTimestamp()) {
           // proposed is older so replacing
           waysByIdAggregator.put(nextWay.getId(), nextWay);
         }
@@ -112,12 +115,24 @@ public class DuplicatesFilter implements Filter{
   }
 
   private OsmNode mergeNodes(OsmNode first, OsmNode second) {
+    if (Objects.isNull(first.getMetadata()) || Objects.isNull(second.getMetadata())) {
+      return new Random().nextBoolean() ?
+          new Node(first.getId(), first.getLongitude(), first.getLatitude(), mergeTags(first, second)) :
+          new Node(second.getId(), second.getLongitude(), second.getLatitude(), mergeTags(second, first));
+    }
+
     return first.getMetadata().getTimestamp() < second.getMetadata().getTimestamp() ?
         new Node(first.getId(), first.getLongitude(), first.getLatitude(), mergeTags(first, second), first.getMetadata()) :
         new Node(second.getId(), second.getLongitude(), second.getLatitude(), mergeTags(second, first), second.getMetadata());
   }
 
   private OsmWay mergeWays(OsmWay first, OsmWay second) {
+    if (Objects.isNull(first.getMetadata()) || Objects.isNull(second.getMetadata())) {
+      return new Random().nextBoolean() ?
+          new Way(first.getId(), OsmModelUtil.nodesAsList(first), mergeTags(first, second)) :
+          new Way(second.getId(), OsmModelUtil.nodesAsList(second), mergeTags(second, first));
+    }
+
     return first.getMetadata().getTimestamp() < second.getMetadata().getTimestamp() ?
         new Way(first.getId(), OsmModelUtil.nodesAsList(first), mergeTags(first, second), first.getMetadata()) :
         new Way(second.getId(), OsmModelUtil.nodesAsList(second), mergeTags(second, first), second.getMetadata());

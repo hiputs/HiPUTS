@@ -46,7 +46,7 @@ public class OnBendSuccessorAllocator implements SuccessorAllocator{
 
     // removing merge lanes from considering if they are present in tags and the next way has different lanes number
     List<LaneData> incomingLanes = new ArrayList<>(incoming.getLanes());
-    if (incomingLanes.size() != outgoing.getLanes().size()) {
+    if (incomingLanes.size() == turnDirectionsOnLanes.size() && incomingLanes.size() > outgoing.getLanes().size()) {
       incomingLanes.removeAll(
           IntStream.range(0, turnDirectionsOnLanes.size())
               .filter(index -> turnDirectionsOnLanes.get(index).contains(TurnDirection.MERGE_TO_RIGHT) ||

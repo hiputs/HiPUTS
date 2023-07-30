@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +28,43 @@ public class StandardComplexCrossroadsUpdater implements ComplexCrossroadsUpdate
 
   @Override
   public void extendWithNodes(Set<Node<JunctionData, WayData>> nodes) {
+    // preparing map for merging crossroads with common occurrences
+    Map<String, Set<String>> nodeId2Representatives = complexCrossroadsRepository.getComplexCrossroads().stream()
+        .flatMap(cc -> cc.getNodesIdsIn().stream())
+        .collect(Collectors.toMap(Function.identity(), nodeId -> new HashSet<>(), (set1, set2) -> new HashSet<>()));
+
+    // merging process
+    complexCrossroadsRepository.getComplexCrossroads().forEach(cc -> {
+      // this set contains nodes which were added earlier to map and have to be added also to this cc
+      Set<String> previousNodesIds = new HashSet<>();
+
+      cc.getNodesIdsIn().forEach(nodeId -> {
+        // if this node is contained in another cc, which could be processed earlier,
+        // we collect it and representatives from this cc (map should contain them)
+        previousNodesIds.addAll(nodeId2Representatives.get(nodeId));
+
+        // just adding all representatives of current cc to all its nodes' sets in map
+        Set<String> nodesIdsCurrentlyInMap = new HashSet<>(nodeId2Representatives.get(nodeId));
+        nodesIdsCurrentlyInMap.forEach(other ->
+            nodeId2Representatives.get(other).addAll(cc.getNodesIdsIn()));
+
+        // updating also set of processing node in map
+        nodeId2Representatives.get(nodeId).addAll(cc.getNodesIdsIn());
+      });
+
+      // updating all sets of processed nodes by adding collected nodes, which were processed earlier (during another cc)
+      cc.getNodesIdsIn().forEach(nodeId ->
+          nodeId2Representatives.get(nodeId).addAll(previousNodesIds));
+    });
+
     // collecting representatives and their complex crossroads
-    Map<String, ComplexCrossroad> nodeId2ComplexCrossroad = complexCrossroadsRepository.getComplexCrossroads().stream()
-        .flatMap(cc -> cc.getNodesIdsIn().stream()
-            .map(nodeId -> Pair.of(nodeId, cc)))
+    Map<String, ComplexCrossroad> nodeId2ComplexCrossroad = nodeId2Representatives.entrySet().stream()
+        .map(entry -> {
+          ComplexCrossroad complexCrossroad = new ComplexCrossroad();
+          entry.getValue().forEach(complexCrossroad::addNode);
+
+          return Pair.of(entry.getKey(), complexCrossroad);
+        })
         .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 
     // retrieving only crossroads from internal nodes

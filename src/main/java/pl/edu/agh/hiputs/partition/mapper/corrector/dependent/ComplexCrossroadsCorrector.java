@@ -42,7 +42,11 @@ public class ComplexCrossroadsCorrector implements Corrector {
     // collecting all nodes to replace and edges to change their source/target
     Map<Node<JunctionData, WayData>, Node<JunctionData, WayData>> oldNode2NewNode = preparedTransformations.stream()
         .flatMap(crossroadTransformation -> crossroadTransformation.getOldNodes().stream()
-            .map(node -> Pair.of(node, crossroadTransformation.getNewNode())))
+            .map(node -> Pair.of(node, crossroadTransformation)))
+        .collect(Collectors.toMap(Pair::getLeft, Pair::getRight,
+            (ct1, ct2) -> ct1.getOldNodes().size() > ct2.getOldNodes().size() ? ct1 : ct2))
+        .entrySet().stream()
+        .map(entry -> Pair.of(entry.getKey(), entry.getValue().getNewNode()))
         .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
     Set<Edge<JunctionData, WayData>> excludedEdges = preparedTransformations.stream()
         .flatMap(crossroadTransformation -> crossroadTransformation.getOldEdges().stream())

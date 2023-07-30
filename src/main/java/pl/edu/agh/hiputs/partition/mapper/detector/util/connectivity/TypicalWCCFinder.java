@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.WeaklyConnectedComponent;
@@ -25,25 +26,27 @@ public class TypicalWCCFinder implements CCFinder<WeaklyConnectedComponent>{
     graph.getNodes().values().forEach(node -> {
       if (!visitedNodesIds.contains(node.getId())) {
         WeaklyConnectedComponent wCC = new WeaklyConnectedComponent();
+        Stack<Node<JunctionData, WayData>> dfsNodes = new Stack<>();
 
-        dfs(node, wCC, visitedNodesIds);
+        // iterative version of dfs
+        dfsNodes.push(node);
+        while (!dfsNodes.empty()) {
+          Node<JunctionData, WayData> processingNode = dfsNodes.pop();
+          visitedNodesIds.add(processingNode.getId());
+          wCC.addNode(processingNode.getId());
+
+          getNeighbours(processingNode).forEach(neighbour -> {
+            if (!visitedNodesIds.contains(neighbour.getId())) {
+              dfsNodes.push(neighbour);
+            }
+          });
+        }
 
         wCCs.add(wCC);
       }
     });
 
     return wCCs;
-  }
-
-  private void dfs(Node<JunctionData, WayData> startNode, WeaklyConnectedComponent wCC, Set<String> visitedNodes) {
-    visitedNodes.add(startNode.getId());
-    wCC.addNode(startNode.getId());
-
-    getNeighbours(startNode).forEach(neighbour -> {
-      if (!visitedNodes.contains(neighbour.getId())) {
-        dfs(neighbour, wCC, visitedNodes);
-      }
-    });
   }
 
   private Collection<Node<JunctionData, WayData>> getNeighbours(Node<JunctionData, WayData> node) {

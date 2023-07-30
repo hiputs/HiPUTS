@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.partition.mapper.verifier.component;
 
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,21 @@ public class NoComplicationRequirement implements Requirement{
   public boolean isSatisfying(Graph<JunctionData, WayData> graph) {
     return graph.getEdges().values().stream()
         .filter(edge -> edge.getSource().getData().isCrossroad() && edge.getTarget().getData().isCrossroad())
-        .noneMatch(edge -> edge.getData().getLength() < modelConfigService.getModelConfig().getCrossroadMinDistance());
+        .noneMatch(edge -> {
+          try {
+            // measurement between nodes created during crossroad simplifying should be disabled (they have UUID)
+            UUID sourceId = UUID.fromString(edge.getSource().getId());
+            return false;
+          } catch (IllegalArgumentException ignored) {}
+
+          try {
+            // measurement between nodes created during crossroad simplifying should be disabled (they have UUID)
+            UUID targetId = UUID.fromString(edge.getTarget().getId());
+            return false;
+          } catch (IllegalArgumentException ignored) {}
+
+          return edge.getData().getLength() < modelConfigService.getModelConfig().getCrossroadMinDistance();
+        });
   }
 
   @Override

@@ -105,7 +105,13 @@ public class StandardOsmTurnProcessor implements TurnProcessor {
         .map(string -> StringUtils.isBlank(entry) ? NONE_TURN_INDICATOR : string)
         .flatMap(string -> Arrays.stream(string.split(TURN_SEPARATOR)))
         .map(String::toUpperCase)
-        .map(TurnDirection::valueOf)
+        .map(value -> {
+          try {
+            return TurnDirection.valueOf(value);
+          } catch (IllegalArgumentException exception) {
+            return TurnDirection.NONE;
+          }
+        })
         .toList();
   }
 }

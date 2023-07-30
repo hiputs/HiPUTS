@@ -74,7 +74,7 @@ public class StandardLanesCreator implements LanesCreator{
   }
 
   private List<LaneData> createNoLanes(int number) {
-    return IntStream.rangeClosed(1, number)
+    return IntStream.rangeClosed(1, Math.max(1, number))
         .mapToObj(num -> LaneData.builder().build())
         .toList();
   }
