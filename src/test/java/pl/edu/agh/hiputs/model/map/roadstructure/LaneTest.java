@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.CarId;
-import pl.edu.agh.hiputs.model.id.RoadId;
+import pl.edu.agh.hiputs.model.id.LaneId;
 
-class RoadTest {
+class LaneTest {
 
   private final double lane_length = 1000.0;
   private final double car1_speed = 10.4;
@@ -25,28 +25,28 @@ class RoadTest {
   private final double car2_pos = 262.4;
   private final double car3_speed = 14.2;
   private final double car3_pos = 563.2;
-  private Road lane;
+  private Lane lane;
   private Car car1;
   private Car car2;
   private Car car3;
 
   @BeforeEach
   void setupLane() {
-    lane = Road.builder().length(lane_length).build();
+    lane = Lane.builder().length(lane_length).build();
 
-    car1 = createCar(lane.getRoadId(), car1_pos, car1_speed);
-    car2 = createCar(lane.getRoadId(), car2_pos, car2_speed);
-    car3 = createCar(lane.getRoadId(), car3_pos, car3_speed);
+    car1 = createCar(lane.getLaneId(), car1_pos, car1_speed);
+    car2 = createCar(lane.getLaneId(), car2_pos, car2_speed);
+    car3 = createCar(lane.getLaneId(), car3_pos, car3_speed);
 
     lane.addCarAtEntry(car3);
     lane.addCarAtEntry(car2);
     lane.addCarAtEntry(car1);
   }
 
-  private Car createCar(RoadId currentLaneId, double positionOnLane, double speed) {
+  private Car createCar(LaneId currentLaneId, double positionOnLane, double speed) {
     return Car.builder()
         .carId(CarId.random())
-        .roadId(currentLaneId)
+        .laneId(currentLaneId)
         .positionOnLane(positionOnLane)
         .speed(speed)
         .build();
@@ -78,7 +78,7 @@ class RoadTest {
 
   @Test
   void getFirstCarEmpty() {
-    Road emptyLane = Road.builder().build();
+    Lane emptyLane = Lane.builder().build();
     Optional<CarReadable> optional = emptyLane.getCarAtEntryReadable();
     assertTrue(optional.isEmpty());
   }

@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
@@ -23,10 +24,12 @@ import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.model.map.roadstructure.Road;
 import pl.edu.agh.hiputs.service.worker.PatchTransferServiceImpl;
 
@@ -72,15 +75,36 @@ public class PatchTransferServiceTest {
   }
 
   private Patch getSimplePatch() {
-    Road lane1 = Road.builder().build();
+    LaneId laneId1 = LaneId.random();
+    RoadId roadId1 = RoadId.random();
+    Lane lane1 = Lane.builder()
+        .laneId(laneId1)
+        .roadId(roadId1)
+        .build();
+    Road road1 = Road.builder()
+        .roadId(roadId1)
+        .lanes(Collections.singletonList(laneId1))
+        .build();
     lane1.addIncomingCar(getCar("C1"));
     lane1.addIncomingCar(getCar("C2"));
 
-    Road lane2 = Road.builder().build();
+    LaneId laneId2 = LaneId.random();
+    RoadId roadId2 = RoadId.random();
+    Lane lane2 = Lane.builder()
+        .laneId(laneId2)
+        .roadId(roadId2)
+        .build();
+    Road road2 = Road.builder()
+        .roadId(roadId2)
+        .lanes(Collections.singletonList(laneId2))
+        .build();
     lane2.addIncomingCar(getCar("C3"));
     lane2.addIncomingCar(getCar("C4"));
 
-    return Patch.builder().roads(Map.of(lane1.getRoadId(), lane1, lane2.getRoadId(), lane2)).build();
+    return Patch.builder()
+        .roads(Map.of(road1.getRoadId(), road1, road2.getRoadId(), road2))
+        .lanes(Map.of(lane1.getLaneId(), lane1, lane2.getLaneId(), lane2))
+        .build();
   }
 
   private Car getCar(String id) {

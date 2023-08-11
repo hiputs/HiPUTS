@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarReadable;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.ICarFollowingModel;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.Idm;
 import pl.edu.agh.hiputs.model.id.CarId;
 
@@ -29,7 +29,7 @@ class IdmTest {
     double maxDeceleration = 3.5;
     double length = 5.0;
     double maxSpeed = 20.0;
-    IFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+    ICarFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
     CarReadable managedCar = createCar(10, 0, length, maxSpeed);
     CarReadable aheadCar = createCar(10 + length + distanceHeadway, 0, length, maxSpeed);
     double acceleration = model.calculateAcceleration(managedCar.getSpeed(), managedCar.getMaxSpeed(),
@@ -47,7 +47,7 @@ class IdmTest {
     double maxDeceleration = 3.5;
     double length = 5.0;
     double maxSpeed = 20.0;
-    IFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+    ICarFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
     CarReadable managedCar = createCar(10, 0, length, maxSpeed);
     CarReadable aheadCar = createCar(517, maxSpeed, length, maxSpeed);
     double acceleration = model.calculateAcceleration(managedCar.getSpeed(), managedCar.getMaxSpeed(),
@@ -65,7 +65,7 @@ class IdmTest {
     double maxDeceleration = 3.5;
     double length = 5.0;
     double maxSpeed = 20.0;
-    IFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+    ICarFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
     CarReadable managedCar = createCar(10, maxSpeed, length, maxSpeed);
     CarReadable aheadCar = createCar(5017, maxSpeed, length, maxSpeed);
     double acceleration = model.calculateAcceleration(managedCar.getSpeed(), managedCar.getMaxSpeed(),
@@ -83,7 +83,7 @@ class IdmTest {
     double maxDeceleration = 3.5;
     double length = 5.0;
     double maxSpeed = 20.0;
-    IFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+    ICarFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
     CarReadable managedCar = createCar(10, maxSpeed, length, maxSpeed);
     CarReadable aheadCar = createCar(10 + length + distanceHeadway, maxSpeed, length, maxSpeed);
     double acceleration = model.calculateAcceleration(managedCar.getSpeed(), managedCar.getMaxSpeed(),
@@ -102,7 +102,7 @@ class IdmTest {
     double maxDeceleration = 3.5;
     double length = 5.0;
     double maxSpeed = 20.0;
-    IFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+    ICarFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
     CarReadable managedCar = createCar(10, maxSpeed, length, maxSpeed);
     double aheadCarPosition = 10 + length + distanceHeadway + maxSpeed * timeHeadway;
     CarReadable aheadCar = createCar(aheadCarPosition, maxSpeed, length, maxSpeed);
@@ -121,7 +121,7 @@ class IdmTest {
     double maxDeceleration = 3.5;
     double length = 5.0;
     double maxSpeed = 20.0;
-    IFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+    ICarFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
     CarReadable managedCar = createCar(10, maxSpeed, length, maxSpeed);
     CarReadable aheadCar = createCar(10 + length + distanceHeadway + maxSpeed * timeHeadway, 0, length, maxSpeed);
     double acceleration = model.calculateAcceleration(
@@ -140,7 +140,7 @@ class IdmTest {
     double maxDeceleration = 3.5;
     double length = 5.0;
     double maxSpeed = 20.0;
-    IFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
+    ICarFollowingModel model = new Idm(distanceHeadway, timeHeadway, maxAcceleration, maxDeceleration);
     CarReadable managedCar = createCar(10, maxSpeed, length, maxSpeed);
     CarReadable aheadCar = createCar(1, 0, length, maxSpeed);
     double acceleration = model.calculateAcceleration(

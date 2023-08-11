@@ -12,8 +12,10 @@ import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.Decision;
 import pl.edu.agh.hiputs.model.car.RouteElement;
 import pl.edu.agh.hiputs.model.car.RouteWithLocation;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 import pl.edu.agh.hiputs.tasks.RoadDecisionStageTask;
@@ -27,26 +29,29 @@ public class RoadDecisionStageTaskTest {
 
   private Car car;
   private MapFragment mapFragment;
-  private RoadId laneId;
-  private RoadId nextLaneId;
+  private RoadId roadId;
+  private LaneId laneId;
+  private RoadId nextRoadId;
+  private LaneId nextLaneId;
 
   @BeforeEach
   public void setup() {
     mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
-    laneId = mapFragment.getLocalRoadIds().stream().findAny().get();
+    roadId = mapFragment.getLocalRoadIds().stream().findAny().get();
+    laneId = mapFragment.getRoadReadable(roadId).getLanes().get(0);
     car = createTestCar();
   }
 
   @Test
   public void laneDecisionStageTaskWithoutJumpsBetweenLanesTest() {
     //given
-    setLaneId(car, laneId);
+    setLaneIdRoadId(car, laneId, roadId);
     setPositionOnLane(car, 0);
 
-    mapFragment.getRoadEditable(laneId).addCarAtEntry(car);
+    mapFragment.getLaneEditable(laneId).addCarAtEntry(car);
 
     //when
-    RoadDecisionStageTask roadDecisionStageTask = new RoadDecisionStageTask(mapFragment, laneId);
+    RoadDecisionStageTask roadDecisionStageTask = new RoadDecisionStageTask(mapFragment, roadId);
     roadDecisionStageTask.run();
 
     //then
@@ -58,22 +63,23 @@ public class RoadDecisionStageTaskTest {
   @Test
   public void laneDecisionStageTaskWithJumpsBetweenLanesTest() {
     //given
-    RoadEditable laneReadWrite = mapFragment.getRoadEditable(laneId);
+    RoadEditable roadEditable = mapFragment.getRoadEditable(roadId);
+    LaneEditable laneEditable = mapFragment.getLaneEditable(laneId);
 
-    setLaneId(car, laneId);
-    setPositionOnLane(car, laneReadWrite.getLength() - DISTANCE_TO_LANE_END);
+    setLaneIdRoadId(car, laneId, roadId);
+    setPositionOnLane(car, roadEditable.getLength() - DISTANCE_TO_LANE_END);
 
-    laneReadWrite.addCarAtEntry(car);
+    laneEditable.addCarAtEntry(car);
 
     //when
-    RoadDecisionStageTask roadDecisionStageTask = new RoadDecisionStageTask(mapFragment, laneId);
+    RoadDecisionStageTask roadDecisionStageTask = new RoadDecisionStageTask(mapFragment, roadId);
     roadDecisionStageTask.run();
 
     //then
     Decision decision = car.getDecision();
     Assertions.assertThat(decision).isNotNull();
     Assertions.assertThat(decision.getAcceleration()).isGreaterThan(0.0);
-    Assertions.assertThat(decision.getRoadId()).isEqualTo(nextLaneId);
+    Assertions.assertThat(decision.getRoadId()).isEqualTo(nextRoadId);
   }
 
   private Car createTestCar() {
@@ -81,16 +87,17 @@ public class RoadDecisionStageTaskTest {
   }
 
   private RouteWithLocation createTestRouteWithLocation() {
-    RoadReadable laneReadWrite = mapFragment.getRoadReadable(laneId);
-    nextLaneId =
-        mapFragment.getJunctionReadable(laneReadWrite.getOutgoingJunctionId()).streamOutgoingRoadIds().findAny().get();
+    RoadReadable roadReadable = mapFragment.getRoadReadable(roadId);
+    nextRoadId =
+        mapFragment.getJunctionReadable(roadReadable.getOutgoingJunctionId()).streamOutgoingRoadIds().findAny().get();
 
     return new RouteWithLocation(
-        List.of(new RouteElement(null, laneId), new RouteElement(laneReadWrite.getOutgoingJunctionId(), nextLaneId)), 0);
+        List.of(new RouteElement(null, roadId), new RouteElement(roadReadable.getOutgoingJunctionId(), nextRoadId)), 0);
   }
 
-  private void setLaneId(Car car, RoadId laneId) {
+  private void setLaneIdRoadId(Car car, LaneId laneId, RoadId roadId) {
     ReflectionUtil.setFieldValue(car, "laneId", laneId);
+    ReflectionUtil.setFieldValue(car, "roadId", roadId);
   }
 
   private void setPositionOnLane(Car car, double position) {

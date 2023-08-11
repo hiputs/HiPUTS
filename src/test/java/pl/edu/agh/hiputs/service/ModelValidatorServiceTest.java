@@ -114,9 +114,9 @@ public class ModelValidatorServiceTest {
   }
 
   private Set<PatchReader> getMockPatchWithLainFail() {
-    Road lane = new Road(new RoadId("Lane_ID"), null, null, null, null, null, null, 0, null);
+    Road road = new Road(new RoadId("ROAD_ID"), null, null, null, null, null,0);
 
-    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(), Map.of(lane.getRoadId(), lane), Map.of(), Set.of());
+    Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(), Map.of(road.getRoadId(), road), Map.of(), Set.of());
 
     return Set.of(patch);
   }

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarPrecedingEnvironment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.follow.Idm;
@@ -29,7 +29,7 @@ class IdmDeciderTest {
     CarReadable managedCar = createCar(10, 0, length, maxSpeed);
     CarReadable aheadCar = createCar(10 + length + distanceHeadway, 0, length, maxSpeed);
     FunctionalDecider decider = new IdmDecider(model);
-    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+    CarPrecedingEnvironment environment = new CarPrecedingEnvironment(Optional.of(aheadCar), Optional.empty(),
         aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
     double acceleration = decider.makeDecision(managedCar, environment, null);
     double res = Math.abs(acceleration);
@@ -48,7 +48,7 @@ class IdmDeciderTest {
     CarReadable managedCar = createCar(10, 0, length, maxSpeed);
     CarReadable aheadCar = createCar(10 + length, 0, length, maxSpeed);
     FunctionalDecider decider = new IdmDecider(model);
-    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+    CarPrecedingEnvironment environment = new CarPrecedingEnvironment(Optional.of(aheadCar), Optional.empty(),
         aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
     double acceleration = decider.makeDecision(managedCar, environment, null);
     double res = acceleration;
@@ -67,7 +67,7 @@ class IdmDeciderTest {
     CarReadable managedCar = createCar(10, 0, length, maxSpeed);
     CarReadable aheadCar = createCar(10 + 0.3, 0, length, maxSpeed);
     FunctionalDecider decider = new IdmDecider(model);
-    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+    CarPrecedingEnvironment environment = new CarPrecedingEnvironment(Optional.of(aheadCar), Optional.empty(),
         aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
     double acceleration = decider.makeDecision(managedCar, environment, null);
     double res = acceleration;
@@ -86,7 +86,7 @@ class IdmDeciderTest {
     CarReadable managedCar = createCar(10, 0, length, maxSpeed);
     CarReadable aheadCar = createCar(517, maxSpeed, length, maxSpeed);
     FunctionalDecider decider = new IdmDecider(model);
-    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+    CarPrecedingEnvironment environment = new CarPrecedingEnvironment(Optional.of(aheadCar), Optional.empty(),
         aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
     double acceleration = decider.makeDecision(managedCar, environment, null);
     double res = Math.abs(acceleration - maxAcceleration);
@@ -105,7 +105,7 @@ class IdmDeciderTest {
     CarReadable managedCar = createCar(10, maxSpeed, length, maxSpeed);
     CarReadable aheadCar = createCar(5017, maxSpeed, length, maxSpeed);
     FunctionalDecider decider = new IdmDecider(model);
-    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+    CarPrecedingEnvironment environment = new CarPrecedingEnvironment(Optional.of(aheadCar), Optional.empty(),
         aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
     double acceleration = decider.makeDecision(managedCar, environment, null);
     double res = Math.abs(acceleration);
@@ -124,7 +124,7 @@ class IdmDeciderTest {
     CarReadable managedCar = createCar(10, maxSpeed, length, maxSpeed);
     CarReadable aheadCar = createCar(10 + length + distanceHeadway, maxSpeed, length, maxSpeed);
     FunctionalDecider decider = new IdmDecider(model);
-    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+    CarPrecedingEnvironment environment = new CarPrecedingEnvironment(Optional.of(aheadCar), Optional.empty(),
         aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
     double acceleration = decider.makeDecision(managedCar, environment, null);
     double res = acceleration;  //acceleration is lover than  (-lowestDeceleration)
@@ -144,7 +144,7 @@ class IdmDeciderTest {
     CarReadable managedCar = createCar(10, maxSpeed, length, maxSpeed);
     CarReadable aheadCar = createCar(10 + length + distanceHeadway + maxSpeed * timeHeadway, 0, length, maxSpeed);
     FunctionalDecider decider = new IdmDecider(model);
-    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+    CarPrecedingEnvironment environment = new CarPrecedingEnvironment(Optional.of(aheadCar), Optional.empty(),
         aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
     double acceleration = decider.makeDecision(managedCar, environment, null);
     double res = acceleration;  //acceleration is lover than  (-lowestDeceleration)
@@ -165,7 +165,7 @@ class IdmDeciderTest {
     CarReadable managedCar = createCar(10, 0, length, maxSpeed);
     CarReadable aheadCar = createCar(10 + length + distanceHeadway, maxSpeed, length, maxSpeed);
     FunctionalDecider decider = new IdmDecider(model);
-    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+    CarPrecedingEnvironment environment = new CarPrecedingEnvironment(Optional.of(aheadCar), Optional.empty(),
         aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
     double acceleration = decider.makeDecision(managedCar, environment, null);
     double res = acceleration;  //acceleration is lover than  (-lowestDeceleration)
@@ -185,7 +185,7 @@ class IdmDeciderTest {
     CarReadable managedCar = createCar(10, 0, length, maxSpeed);
     CarReadable aheadCar = createCar(10 + length + distanceHeadway + maxSpeed * timeHeadway, maxSpeed, length, maxSpeed);
     FunctionalDecider decider = new IdmDecider(model);
-    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+    CarPrecedingEnvironment environment = new CarPrecedingEnvironment(Optional.of(aheadCar), Optional.empty(),
         aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
     double acceleration = decider.makeDecision(managedCar, environment, null);
     double res = acceleration;  //acceleration is lover than  (-lowestDeceleration)
@@ -206,7 +206,7 @@ class IdmDeciderTest {
     double aheadCarPosition = 10 + length + distanceHeadway + maxSpeed * timeHeadway;
     CarReadable aheadCar = createCar(aheadCarPosition, maxSpeed, length, maxSpeed);
     FunctionalDecider decider = new IdmDecider(model);
-    CarEnvironment environment = new CarEnvironment(Optional.of(aheadCar), Optional.empty(),
+    CarPrecedingEnvironment environment = new CarPrecedingEnvironment(Optional.of(aheadCar), Optional.empty(),
         aheadCar.getPositionOnLane() - aheadCar.getLength() - managedCar.getPositionOnLane());
     double acceleration = decider.makeDecision(managedCar, environment, null);
     double res = Math.abs(acceleration + maxAcceleration);
