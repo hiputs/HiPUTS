@@ -1,7 +1,10 @@
 package pl.edu.agh.hiputs.model.car;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -79,6 +82,13 @@ public class Car implements CarEditable {
   private double acceleration = 0;
 
   /**
+   * Current acceleration of car.
+   */
+  @Setter
+  @Builder.Default
+  private double politenessFactor = 1.0;
+
+  /**
    * Decision on how car state should be changed. Calculated by decider.
    */
   private Decision decision;
@@ -146,6 +156,17 @@ public class Car implements CarEditable {
   @Override
   public Optional<RoadId> getRouteOffsetRoadId(int offset){
       return this.routeWithLocation.getOffsetRoadId(offset);
+  }
+
+  @Override
+  public RouteWithLocation getCopyOfRoute() {
+    List<RouteElement> routeElements = routeWithLocation
+        .getRouteElements()
+        .stream()
+        .map(RouteElement::clone)
+        .collect(Collectors.toList());
+
+    return new RouteWithLocation(routeElements, routeWithLocation.getCurrentPosition());
   }
 
   @Override

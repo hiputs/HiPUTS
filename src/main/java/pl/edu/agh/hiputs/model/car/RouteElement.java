@@ -11,7 +11,7 @@ import pl.edu.agh.hiputs.model.id.RoadId;
 @Setter
 @AllArgsConstructor
 @EqualsAndHashCode
-public class RouteElement {
+public class RouteElement implements Cloneable{
 
   /**
    * JunctionId of junction that should be visited when following route.
@@ -22,4 +22,16 @@ public class RouteElement {
    * Outgoing road of junction that should be visited when following route.
    */
   private RoadId outgoingRoadId;
+
+  @Override
+  public RouteElement clone() {
+    try {
+      final RouteElement clone = (RouteElement) super.clone();
+      clone.setJunctionId(new JunctionId(junctionId.getValue(),junctionId.getJunctionType()));
+      clone.setOutgoingRoadId(new RoadId(outgoingRoadId.getValue()));
+      return clone;
+    } catch (CloneNotSupportedException e) {
+      throw new AssertionError();
+    }
+  }
 }

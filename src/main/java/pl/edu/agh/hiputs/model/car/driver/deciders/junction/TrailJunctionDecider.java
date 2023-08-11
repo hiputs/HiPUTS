@@ -50,14 +50,17 @@ public class TrailJunctionDecider implements JunctionDecider {
   public JunctionDecision makeDecision(CarReadable managedCar, CarPrecedingEnvironment environment,
       RoadStructureReader roadStructureReader) {
 
+    // check if crossroad decision for car is calculated and
     if(managedCar.getCrossRoadDecisionProperties().isPresent()
         && managedCar.getCrossRoadDecisionProperties().get().getMovePermanentRoadId().isPresent()
         && managedCar.getCrossRoadDecisionProperties().get().getMovePermanentRoadId().get().equals(managedCar.getRoadId())){
       return movePermanentResult(managedCar, environment);
     }
 
+    // check if there is car available after crossroad
     CarPrecedingEnvironment precedingCarInfo = prospector.getPrecedingCar(managedCar, roadStructureReader);
 
+    // there is no crossroad in view area
     if(environment.getNextCrossroadId().isEmpty()){
       AccelerationDecisionResult res =
           getCrossroadAccelerationDecisionResult(managedCar.getSpeed(), managedCar.getMaxSpeed(), precedingCarInfo);
@@ -67,6 +70,7 @@ public class TrailJunctionDecider implements JunctionDecider {
       return new JunctionDecision(res.getAcceleration());
     }
 
+    // if there is car after crossroad
     if(precedingCarInfo.getPrecedingCar().isPresent()){
       log.trace("Car: " + managedCar.getCarId() + " found preceding car: " + precedingCarInfo);
     }
@@ -74,7 +78,9 @@ public class TrailJunctionDecider implements JunctionDecider {
       log.trace("Car: " + managedCar.getCarId() + " found no preceding car after crossroad");
     }
 
-    if(managedCar.getCrossRoadDecisionProperties().isPresent() && managedCar.getCrossRoadDecisionProperties().get().getGiveWayVehicleId().isPresent()){
+    // if there is crossroad decision and there are cars to give way
+    if(managedCar.getCrossRoadDecisionProperties().isPresent() &&
+        managedCar.getCrossRoadDecisionProperties().get().getGiveWayVehicleId().isPresent()){
       return giveWayResult(managedCar, environment, roadStructureReader);
     }
 

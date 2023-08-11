@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,7 @@ import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
+import pl.edu.agh.hiputs.model.map.roadstructure.Lane;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadDirection;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadOnJunction;
@@ -30,12 +32,12 @@ public class CarEnvironmentProvider implements CarProspector {
 
   double viewRange = 300;
 
-  private double getViewRange(){
+  public double getViewRange(){
     return viewRange;
     //return configurationService.getConfiguration().getCarViewRange();
   }
 
-  private CarFollowingEnvironment getFollowingCar(CarReadable currentCar, RoadStructureReader roadStructureReader) {
+  public CarFollowingEnvironment getFollowingCar(CarReadable currentCar, RoadStructureReader roadStructureReader) {
     // looking range to previous crossroad
     RoadReadable currentRoad = roadStructureReader.getRoadReadable(currentCar.getRoadId());
     LaneReadable currentLane = roadStructureReader.getLaneReadable(currentCar.getLaneId());
@@ -143,7 +145,7 @@ public class CarEnvironmentProvider implements CarProspector {
         List<LaneReadable> nextLanes = getNextLanes(currentLane, nextRoadId, roadStructureReader);
         if (!nextLanes.isEmpty()) {
           //choose one of available successors for laneId
-          nextLane = nextLanes.get(ThreadLocalRandom.current().nextInt(nextLanes.size()));
+          nextLane = nextLanes.get(nextLanes.size()-1);
           nextLaneId = nextLane.getLaneId();
         } else if (!nextRoad.getLanes().isEmpty()) {
           //two cases:
@@ -224,7 +226,7 @@ public class CarEnvironmentProvider implements CarProspector {
         List<LaneReadable> nextLanes = getNextLanes(currentLane, nextRoadId, roadStructureReader);
         if (!nextLanes.isEmpty()) {
           //choose one of available successors for laneId
-          nextLane = nextLanes.get(ThreadLocalRandom.current().nextInt(nextLanes.size()));
+          nextLane = nextLanes.get(nextLanes.size()-1);
           nextLaneId = nextLane.getLaneId();
         } else if (!nextRoad.getLanes().isEmpty()) {
           nextLaneId = getNarrowingRoadLaneSuccessor(currentRoad, currentLane.getLaneId(), nextRoad).get();
@@ -260,12 +262,113 @@ public class CarEnvironmentProvider implements CarProspector {
     return new CarPrecedingEnvironment(distance, precedingCar, nextCrossroadId, incomingRoadId, incomingLaneId);
   }
 
+  public CarPrecedingEnvironment getPrecedingCrossroad(CarReadable currentCar, RoadStructureReader roadStructureReader) {
+    // looking range to next crossroad
+    RoadReadable currentRoad = roadStructureReader.getRoadReadable(currentCar.getRoadId());
+    LaneReadable currentLane = roadStructureReader.getLaneReadable(currentCar.getLaneId());
+    JunctionId nextJunctionId = currentRoad.getOutgoingJunctionId();
+    Optional<JunctionId> nextCrossroadId;
+
+    Optional<RoadId> incomingRoadId = Optional.of(currentRoad.getRoadId());
+    Optional<LaneId> incomingLaneId = Optional.of(currentLane.getLaneId());
+
+    double distance;
+
+    if (nextJunctionId.isCrossroad()) {
+      double nextRoadElementPosition = currentLane.getLength();
+
+      distance = nextRoadElementPosition - currentCar.getPositionOnLane();
+    } else {
+      distance = currentLane.getLength() - currentCar.getPositionOnLane();
+      int offset = 0;
+      RoadId nextRoadId;
+      LaneId nextLaneId;
+      RoadReadable nextRoad;
+      LaneReadable nextLane;
+
+      // find junction with type crossroad in view range
+      while (!nextJunctionId.isCrossroad() && distance < getViewRange()) {
+        if (offset != 0) {
+          distance += currentLane.getLength(); // adds previous lane length
+        }
+
+        Optional<RoadId> nextRoadIdOptional = currentCar.getRouteOffsetRoadId(++offset);
+        if (nextRoadIdOptional.isEmpty()) {
+          break;
+        }
+        nextRoadId = nextRoadIdOptional.get();
+        nextRoad = roadStructureReader.getRoadReadable(nextRoadId);
+        if (nextRoad == null) {
+          break;
+        }
+        nextJunctionId = nextRoad.getOutgoingJunctionId();
+
+        //Get Next Lanes - only before crossroad
+        List<LaneReadable> nextLanes = getNextLanes(currentLane, nextRoadId, roadStructureReader);
+        if (!nextLanes.isEmpty()) {
+          //choose one of available successors for laneId
+          nextLane = nextLanes.get(nextLanes.size()-1);
+          nextLaneId = nextLane.getLaneId();
+        } else if (!nextRoad.getLanes().isEmpty()) {
+          nextLaneId = getNarrowingRoadLaneSuccessor(currentRoad, currentLane.getLaneId(), nextRoad).get();
+          nextLane = roadStructureReader.getLaneReadable(nextLaneId);
+        } else {
+          log.debug("getPrecedingCarOrCrossroad: There is no available Lanes on Road");
+          break;
+        }
+
+        incomingRoadId = Optional.of(nextRoadId);
+        incomingLaneId = Optional.of(nextLaneId);
+        currentLane = nextLane;
+        currentRoad = nextRoad;
+      }
+
+      //check if the distance between car and next junction is bigger than view range
+      if (offset != 0) {
+        distance += currentLane.getLength();
+      }
+    }
+
+    double crossroadDistance = distance;
+    if (nextJunctionId.isCrossroad() && crossroadDistance <= getViewRange() && roadStructureReader.getJunctionReadable(nextJunctionId) != null) {
+      nextCrossroadId = Optional.of(nextJunctionId);
+    } else {
+      nextCrossroadId = Optional.empty();
+      incomingRoadId = Optional.empty();
+      incomingLaneId = Optional.empty();
+    }
+    return new CarPrecedingEnvironment(distance, Optional.empty(), nextCrossroadId, incomingRoadId, incomingLaneId);
+  }
+
   public List<LaneReadable> getNextLanes(LaneReadable currentLane, RoadId nextRoadId, RoadStructureReader roadStructureReader) {
     return currentLane.getLaneSuccessors()
         .stream()
         .map(roadStructureReader::getLaneReadable)
         .filter(lane -> lane.getRoadId().equals(nextRoadId))
         .toList();
+  }
+
+  public List<LaneReadable> getCorrectIncomingLanes(RoadReadable incomingRoad, RoadId nextRoadId, RoadStructureReader roadStructureReader) {
+    List<LaneReadable> correctLanes = new ArrayList<>();
+
+    incomingRoad
+        .getLanes()
+        .stream()
+        .map(roadStructureReader::getLaneReadable)
+        .forEach(lane -> {
+           List<LaneReadable> successors = lane.getLaneSuccessors()
+               .stream()
+               .map(roadStructureReader::getLaneReadable)
+               .filter(laneSuccessor -> laneSuccessor.getRoadId().equals(nextRoadId))
+               .toList();
+
+           if(!successors.isEmpty()) {
+             correctLanes.add(lane);
+           }
+
+        });
+
+    return correctLanes;
   }
 
   public Optional<LaneReadable> getPreviousLanes(LaneReadable currentLane, RoadReadable prevRoad, RoadStructureReader roadStructureReader) {

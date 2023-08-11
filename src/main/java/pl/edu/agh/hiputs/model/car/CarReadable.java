@@ -22,11 +22,15 @@ public interface CarReadable {
 
   double getMaxSpeed();
 
+  double getPolitenessFactor();
+
   CarId getCarId();
 
   Optional<CrossroadDecisionProperties> getCrossRoadDecisionProperties();
 
   Optional<RoadId> getRouteOffsetRoadId(int offset);
+
+  RouteWithLocation getCopyOfRoute();
 
   double getDistanceHeadway();
 }
