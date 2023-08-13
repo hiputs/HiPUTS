@@ -42,6 +42,12 @@ public class MobilModel implements ILaneChangeChecker {
   @Override
   public MobilModelDecision makeDecision(CarReadable car, LaneId targetLaneId, double politenessFactor,
       RoadStructureReader roadStructureReader) {
+    return this.makeDecision(car, targetLaneId, politenessFactor, roadStructureReader, false);
+  }
+
+  @Override
+  public MobilModelDecision makeDecision(CarReadable car, LaneId targetLaneId, double politenessFactor,
+      RoadStructureReader roadStructureReader, boolean skipOverallAccelerationCheck) {
     double overallAcceleration,
         carAcceleration,
         carAccelerationLC,
@@ -101,15 +107,16 @@ public class MobilModel implements ILaneChangeChecker {
     }
 
     // calculate car environment overall acceleration
-    // overallAcceleration = (carAccelerationLC - carAcceleration) + car.getPolitenessFactor() *
-    //     ((newFollowerAccelerationLC - newFollowerAcceleration) - (oldFollowerAccelerationLC - oldFollowerAcceleration));
     overallAcceleration = (carAccelerationLC - carAcceleration) + politenessFactor *
         ((newFollowerAccelerationLC - newFollowerAcceleration) - (oldFollowerAccelerationLC - oldFollowerAcceleration));
 
 
-    return new MobilModelDecision(
-        carAccelerationLC,
-        (overallAcceleration > ACCELERATION_THRESHOLD) && (newFollowerAccelerationLC > (-1)*BE_SAFE));
-
+    if ((!skipOverallAccelerationCheck && (overallAcceleration > ACCELERATION_THRESHOLD) && (newFollowerAccelerationLC > (-1)*BE_SAFE)) ||
+        (skipOverallAccelerationCheck && (newFollowerAccelerationLC > (-1)*BE_SAFE))
+    ) {
+      return new MobilModelDecision(Optional.of(carAccelerationLC), true);
+    } else {
+      return new MobilModelDecision(Optional.empty(), false);
+    }
   }
 }

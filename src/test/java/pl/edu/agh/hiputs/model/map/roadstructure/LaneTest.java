@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -26,6 +27,7 @@ class LaneTest {
   private final double car3_speed = 14.2;
   private final double car3_pos = 563.2;
   private Lane lane;
+  private Lane lane2;
   private Car car1;
   private Car car2;
   private Car car3;
@@ -81,6 +83,19 @@ class LaneTest {
     Lane emptyLane = Lane.builder().build();
     Optional<CarReadable> optional = emptyLane.getCarAtEntryReadable();
     assertTrue(optional.isEmpty());
+  }
+
+  @Test
+  void getCarInBackReadable() {
+    Optional<CarReadable> optional1 =  lane.getCarInBackReadable(car2);
+    Optional<CarReadable> optional2 = lane.getCarInBackReadable(car3);
+    assertAll(
+        () -> assertFalse(optional1.isEmpty()),
+        () -> assertEquals(optional1.get().getPositionOnLane(), car1_pos),
+        () -> assertEquals(optional1.get().getSpeed(), car1_speed),
+        () -> assertFalse(optional2.isEmpty()),
+        () -> assertEquals(optional2.get().getPositionOnLane(), car2_pos),
+        () -> assertEquals(optional2.get().getSpeed(), car2_speed));
   }
 
   @Disabled("Validation of adding the same car will be added in the future")

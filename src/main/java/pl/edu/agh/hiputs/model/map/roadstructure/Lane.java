@@ -60,7 +60,7 @@ public class Lane implements LaneEditable{
    * Collection of cars traveling on this road.
    */
   @Builder.Default
-  private final Deque<CarEditable> cars = new LinkedList<>();
+  private Deque<CarEditable> cars = new LinkedList<>();
 
   /**
    * Set for cars incoming onto this road
@@ -79,7 +79,7 @@ public class Lane implements LaneEditable{
   @Override
   public Optional<CarReadable> getCarInBackReadable(CarReadable car) {
     return streamCarsFromExitReadable()
-        .filter(c -> c.getPositionOnLane() < car.getPositionOnLane())
+        .filter(c -> c.getPositionOnLane() <= car.getPositionOnLane() && !c.getCarId().equals(car.getCarId()))
         .findFirst();
   }
 
@@ -162,6 +162,38 @@ public class Lane implements LaneEditable{
       car.setPositionOnLaneAndSpeed(position, speed);
     }
     cars.addFirst(car);
+  }
+
+  @Override
+  public void addCarLaneChange(CarEditable car) {
+    if(!cars.isEmpty()){
+      boolean isInserted = false;
+
+      LinkedList<CarEditable> resultCars = new LinkedList<>();
+      Iterator<CarEditable> itr = cars.descendingIterator();
+      while (itr.hasNext()) {
+        CarEditable carFromExit = itr.next();
+        if (carFromExit.getPositionOnLane() > car.getPositionOnLane()) {
+          resultCars.addFirst(carFromExit);
+        } else if (car.getPositionOnLane() < carFromExit.getPositionOnLane() && !isInserted) {
+          resultCars.addFirst(car);
+
+          isInserted = true;
+          resultCars.addFirst(carFromExit);
+        } else {
+          resultCars.addFirst(carFromExit);
+        }
+      }
+
+      if (!isInserted) {
+        resultCars.addFirst(car);
+      }
+
+      // override current queue due to new order of cars
+      cars = resultCars;
+    } else {
+      cars.addFirst(car);
+    }
   }
 
   @Override

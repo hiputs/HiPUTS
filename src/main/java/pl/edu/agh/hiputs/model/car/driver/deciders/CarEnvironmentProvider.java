@@ -159,7 +159,7 @@ public class CarEnvironmentProvider implements CarProspector {
           }
           nextLane = roadStructureReader.getLaneReadable(nextLaneId);
         } else {
-          log.debug("getPrecedingCar: There is no available Lanes on Road");
+          log.error("getPrecedingCar: There is no available Lanes on Road");
           break;
         }
 
@@ -232,7 +232,7 @@ public class CarEnvironmentProvider implements CarProspector {
           nextLaneId = getNarrowingRoadLaneSuccessor(currentRoad, currentLane.getLaneId(), nextRoad).get();
           nextLane = roadStructureReader.getLaneReadable(nextLaneId);
         } else {
-          log.debug("getPrecedingCarOrCrossroad: There is no available Lanes on Road");
+          log.error("getPrecedingCarOrCrossroad: There is no available Lanes on Road");
           break;
         }
 
@@ -313,7 +313,7 @@ public class CarEnvironmentProvider implements CarProspector {
           nextLaneId = getNarrowingRoadLaneSuccessor(currentRoad, currentLane.getLaneId(), nextRoad).get();
           nextLane = roadStructureReader.getLaneReadable(nextLaneId);
         } else {
-          log.debug("getPrecedingCarOrCrossroad: There is no available Lanes on Road");
+          log.error("getPrecedingCarOrCrossroad: There is no available Lanes on Road");
           break;
         }
 
@@ -356,11 +356,7 @@ public class CarEnvironmentProvider implements CarProspector {
         .stream()
         .map(roadStructureReader::getLaneReadable)
         .forEach(lane -> {
-           List<LaneReadable> successors = lane.getLaneSuccessors()
-               .stream()
-               .map(roadStructureReader::getLaneReadable)
-               .filter(laneSuccessor -> laneSuccessor.getRoadId().equals(nextRoadId))
-               .toList();
+           List<LaneReadable> successors = this.getNextLanes(lane, nextRoadId, roadStructureReader);
 
            if(!successors.isEmpty()) {
              correctLanes.add(lane);

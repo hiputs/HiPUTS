@@ -20,7 +20,15 @@ import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 public class LaneChangeDecider implements ILaneChangeDecider {
   private final CarProspector prospector;
   private final ILaneChangeChecker mobilModel;
-  private static double politenessFactor = 1.0;
+
+  /**
+   * optimal politeness factor is defined as 1.0 - increasing overall speed in car environment
+   * 0 - 1.0 -> egoist driver
+   * > 1.0 -> altruistic driver
+   * < 0.0 -> driver that looks for decreasing overall speed for other cars in car environment
+   */
+  private static double optimalPolitenessFactor = 1.0;
+  private static double noLaneChangeZone = 50.0;
 
   @Override
   public LaneChangeDecision makeDecision(CarReadable managedCar, CarPrecedingEnvironment nextCrossroad,
@@ -28,8 +36,7 @@ public class LaneChangeDecider implements ILaneChangeDecider {
     RoadReadable currentRoad = roadStructureReader.getRoadReadable(managedCar.getRoadId());
 
     if (currentRoad.getLanes().size() == 1) {
-      //TODO
-      return new LaneChangeDecision(0, managedCar.getLaneId());
+      return new LaneChangeDecision(Optional.empty(), managedCar.getLaneId());
     }
 
     // check for mandatory Lane Changes
@@ -49,8 +56,12 @@ public class LaneChangeDecider implements ILaneChangeDecider {
       }
     }
 
-
-    return getLaneChangeDecision(managedCar, politenessFactor, roadStructureReader,Set.of(LaneChange.LEFT, LaneChange.RIGHT));
+    // do not make unnecessary lane changes if distance to crossroad is lower than assign value in meters
+    if (nextCrossroad.getNextCrossroadId().isPresent() && nextCrossroad.getDistance() <= noLaneChangeZone ) {
+      return new LaneChangeDecision(Optional.empty(), managedCar.getLaneId());
+    } else {
+      return getLaneChangeDecision(managedCar, optimalPolitenessFactor, roadStructureReader,Set.of(LaneChange.LEFT, LaneChange.RIGHT), false);
+    }
   }
 
   private LaneChangeDecision makeMandatoryLaneChangeDecision(CarReadable managedCar, CarPrecedingEnvironment nextCrossroad,
@@ -71,11 +82,11 @@ public class LaneChangeDecider implements ILaneChangeDecider {
     double distanceToCrossroad = nextCrossroad.getDistance();
     double politenessFactor = distanceToCrossroad/prospector.getViewRange();
 
-    return getLaneChangeDecision(managedCar, politenessFactor, roadStructureReader, laneChanges);
+    return getLaneChangeDecision(managedCar, politenessFactor, roadStructureReader, laneChanges, true);
   }
 
   private LaneChangeDecision getLaneChangeDecision(CarReadable managedCar, double politenessFactor,
-      RoadStructureReader roadStructureReader, Set<LaneChange> laneChanges) {
+      RoadStructureReader roadStructureReader, Set<LaneChange> laneChanges, boolean isMandatory) {
 
     RoadReadable currentRoad = roadStructureReader.getRoadReadable(managedCar.getRoadId());
 
@@ -85,21 +96,21 @@ public class LaneChangeDecider implements ILaneChangeDecider {
     if (laneChanges.contains(LaneChange.LEFT) && currentLaneIndex > 0) {
       LaneId targetLaneId = currentRoad.getLanes().get(currentLaneIndex - 1);
       MobilModelDecision mobilModelDecision = this.mobilModel.makeDecision(managedCar,targetLaneId,politenessFactor,
-          roadStructureReader);
-      //TODO
+          roadStructureReader, isMandatory);
+
       return mobilModelDecision.isCanChangeLane() ? new LaneChangeDecision(mobilModelDecision.getAcceleration(),
-          targetLaneId) : new LaneChangeDecision(0, managedCar.getLaneId());
+          targetLaneId) : new LaneChangeDecision(Optional.empty(), managedCar.getLaneId());
     }
 
     if (laneChanges.contains(LaneChange.RIGHT) && currentLaneIndex < currentRoad.getLanes().size()-1) {
       LaneId targetLaneId = currentRoad.getLanes().get(currentLaneIndex + 1);
       MobilModelDecision mobilModelDecision = this.mobilModel.makeDecision(managedCar,targetLaneId,politenessFactor,
-          roadStructureReader);
-      //TODO
+          roadStructureReader, isMandatory);
+
       return mobilModelDecision.isCanChangeLane() ? new LaneChangeDecision(mobilModelDecision.getAcceleration(),
-          targetLaneId) : new LaneChangeDecision(0, managedCar.getLaneId());
+          targetLaneId) : new LaneChangeDecision(Optional.empty(), managedCar.getLaneId());
     }
-    return new LaneChangeDecision(0, managedCar.getLaneId());
+    return new LaneChangeDecision(Optional.empty(), managedCar.getLaneId());
   }
 
   private Optional<RoadId> targetRoadAfterCrossroad(CarReadable car, RoadReadable currentRoad, RoadId incomingRoadId, RoadStructureReader roadStructureReader) {

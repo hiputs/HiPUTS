@@ -3,9 +3,11 @@ package pl.edu.agh.hiputs.tasks;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
+import pl.edu.agh.hiputs.model.car.CarUpdateResult;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureEditor;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
@@ -55,12 +57,12 @@ public class RoadUpdateStageTask implements Runnable {
   private void updateCarsOnLane(LaneEditable lane) {
     try {
       List<CarEditable> carsToRemove = lane.streamCarsFromExitEditable()
-          .filter(car -> !Objects.equals(car.getDecision().getRoadId(), roadId) || car.update().isEmpty())
+          .filter(car -> !Objects.equals(car.getDecision().getLaneId(), lane.getLaneId()) || car.update().isEmpty())
           .toList();
       for (CarEditable car : carsToRemove) {
         lane.removeCar(car);
         //If remove instance which stay on old road draw warning
-        if (!Objects.equals(car.getDecision().getRoadId(), roadId)) {
+        if (!Objects.equals(car.getDecision().getLaneId(), lane.getLaneId())) {
           //#TODO change log to warning when repair junction decider
           // log.trace("Car: " + car.getCarId() + " car remove from road: " + laneId + " due incorrect laneId in decision: " + car.getDecision().getLaneId());
         } else {
@@ -81,9 +83,17 @@ public class RoadUpdateStageTask implements Runnable {
     lane.pollIncomingCars()
         .sorted(Comparator.<CarEditable>comparingDouble(car -> car.getDecision().getPositionOnRoad()).reversed())
         .forEach(currentCar -> {
-          if (currentCar.update().isPresent()) {
-            lane.addCarAtEntry(currentCar);
-            log.trace("Car: " + currentCar.getCarId() + " add at entry of road: " + roadId + " lane: "+ lane.getLaneId().getValue());
+          Optional<CarUpdateResult> carUpdateResult = currentCar.update();
+          if (carUpdateResult.isPresent()) {
+            CarUpdateResult carUpdate = carUpdateResult.get();
+            if(!carUpdate.getNewLaneId().equals(carUpdate.getOldLaneId())&&
+                carUpdate.getNewRoadId().equals(carUpdate.getOldRoadId())) {
+              lane.addCarLaneChange(currentCar);
+              log.trace("Car: " + currentCar.getCarId() + " car lane change on the same road: " + roadId + ", prevLane: "+ carUpdate.getOldLaneId() + ", newLane: " + carUpdate.getNewLaneId());
+            } else {
+              lane.addCarAtEntry(currentCar);
+              log.trace("Car: " + currentCar.getCarId() + " add at entry of road: " + roadId + " lane: "+ lane.getLaneId().getValue());
+            }
           }
         });
   }

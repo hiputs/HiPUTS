@@ -95,7 +95,6 @@ public class ExampleCarProvider {
         .getRoadReadable(roadId)
         .getOutgoingJunctionId();
 
-    //TODO: move to mapRepository?
     this.roadIdToSuccessorRoadIds = roadId -> mapRepository.getPatch(roadIdToPatchId.get(roadId))
         .getRoadReadable(roadId)
         .getLanes()

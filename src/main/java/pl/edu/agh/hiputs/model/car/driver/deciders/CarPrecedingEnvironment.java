@@ -21,8 +21,6 @@ import pl.edu.agh.hiputs.model.id.RoadId;
 @AllArgsConstructor
 public class CarPrecedingEnvironment {
   double distance;
-  //TODO
-  CarReadable thisCar = null;
   Optional<CarReadable> precedingCar;
   Optional<JunctionId> nextCrossroadId;
   Optional<RoadId> incomingRoadId;

@@ -22,6 +22,11 @@ public interface LaneEditable extends LaneReadable{
   void addNewCar(CarEditable car);
 
   /**
+   * Adds a car to lane, if car changed lane (on the same road)
+   */
+  void addCarLaneChange(CarEditable car);
+
+  /**
    * Removes and returns the car from the road that is closest to the outgoing junction.
    */
   Optional<CarEditable> pollCarAtExit();

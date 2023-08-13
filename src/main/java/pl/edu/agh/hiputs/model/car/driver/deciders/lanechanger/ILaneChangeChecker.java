@@ -8,4 +8,7 @@ public interface ILaneChangeChecker {
 
   MobilModelDecision makeDecision(CarReadable car, LaneId targetLaneId, double politenessFactor,
       RoadStructureReader roadStructureReader);
+
+  MobilModelDecision makeDecision(CarReadable car, LaneId targetLaneId, double politenessFactor,
+      RoadStructureReader roadStructureReader, boolean skipOverallAccelerationCheck);
 }

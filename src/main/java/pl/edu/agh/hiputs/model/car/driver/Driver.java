@@ -95,7 +95,11 @@ public class Driver implements IDriver {
           crossroadDecisionProperties = junctionDecision.getDecisionProperties();
         }
       } else {
-        acceleration = laneChangeDecision.getAcceleration();
+        if (laneChangeDecision.getAcceleration().isEmpty()) {
+          log.error("Lane Change Decision - no acceleration calculated");
+        }
+
+        acceleration = laneChangeDecision.getAcceleration().get();
       }
     }
     catch (Exception e){
@@ -180,7 +184,7 @@ public class Driver implements IDriver {
         }
         currentLane = roadStructureReader.getLaneReadable(currentLaneId);
       } else {
-        log.debug("getPrecedingCar: There is no available Lanes on Road");
+        log.error("Driver makeDecision: There is no available Lanes on Road");
         break;
       }
     }
