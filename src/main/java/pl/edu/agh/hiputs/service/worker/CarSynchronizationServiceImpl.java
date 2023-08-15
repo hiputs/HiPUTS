@@ -100,6 +100,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
     }
 
     applyMessages(mapFragment, readedMessage);
+    incomingMessages.clear();
     incomingMessages.addAll(futureIncomingMessages);
     futureIncomingMessages.clear();
   }

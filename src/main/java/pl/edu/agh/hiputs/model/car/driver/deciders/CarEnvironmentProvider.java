@@ -222,14 +222,22 @@ public class CarEnvironmentProvider implements CarProspector {
         }
         nextJunctionId = nextRoad.getOutgoingJunctionId();
 
-        //Get Next Lanes - only before crossroad
+        //Get Next Lanes - can be after crossroad
         List<LaneReadable> nextLanes = getNextLanes(currentLane, nextRoadId, roadStructureReader);
         if (!nextLanes.isEmpty()) {
           //choose one of available successors for laneId
           nextLane = nextLanes.get(nextLanes.size()-1);
           nextLaneId = nextLane.getLaneId();
         } else if (!nextRoad.getLanes().isEmpty()) {
-          nextLaneId = getNarrowingRoadLaneSuccessor(currentRoad, currentLane.getLaneId(), nextRoad).get();
+          //two cases:
+          // - lane is after crossroad (and we are or wrong lane to turn)
+          // - narrowing road
+          if (currentRoad.getOutgoingJunctionId().isCrossroad()) {
+            // We are on the wrong lane take first right lane on road after crossroad
+            nextLaneId = nextRoad.getLanes().get(nextRoad.getLanes().size()-1);
+          } else {
+            nextLaneId = getNarrowingRoadLaneSuccessor(currentRoad, currentLane.getLaneId(), nextRoad).get();
+          }
           nextLane = roadStructureReader.getLaneReadable(nextLaneId);
         } else {
           log.error("getPrecedingCarOrCrossroad: There is no available Lanes on Road");
@@ -303,17 +311,25 @@ public class CarEnvironmentProvider implements CarProspector {
         }
         nextJunctionId = nextRoad.getOutgoingJunctionId();
 
-        //Get Next Lanes - only before crossroad
+        //Get Next Lanes - can be after crossroad
         List<LaneReadable> nextLanes = getNextLanes(currentLane, nextRoadId, roadStructureReader);
         if (!nextLanes.isEmpty()) {
           //choose one of available successors for laneId
           nextLane = nextLanes.get(nextLanes.size()-1);
           nextLaneId = nextLane.getLaneId();
         } else if (!nextRoad.getLanes().isEmpty()) {
-          nextLaneId = getNarrowingRoadLaneSuccessor(currentRoad, currentLane.getLaneId(), nextRoad).get();
+          //two cases:
+          // - lane is after crossroad (and we are or wrong lane to turn)
+          // - narrowing road
+          if (currentRoad.getOutgoingJunctionId().isCrossroad()) {
+            // We are on the wrong lane take first right lane on road after crossroad
+            nextLaneId = nextRoad.getLanes().get(nextRoad.getLanes().size()-1);
+          } else {
+            nextLaneId = getNarrowingRoadLaneSuccessor(currentRoad, currentLane.getLaneId(), nextRoad).get();
+          }
           nextLane = roadStructureReader.getLaneReadable(nextLaneId);
         } else {
-          log.error("getPrecedingCarOrCrossroad: There is no available Lanes on Road");
+          log.error("getPrecedingCrossroad: There is no available Lanes on Road");
           break;
         }
 
@@ -379,20 +395,30 @@ public class CarEnvironmentProvider implements CarProspector {
     //lane narrowing case - no successors available
     //------------>*-------------->
     //------------>
+    //------------>
     List<LaneId> lanes = currentRoad.getLanes();
     int lanePosition = lanes.indexOf(currentLaneId);
     int totalLanes = lanes.size();
 
     List<LaneId> nextLanes = nextRoad.getLanes();
     int totalNextLanes = nextLanes.size();
-    if (lanePosition == totalLanes - 1) {
-      return Optional.of(nextLanes.get(totalNextLanes - 1));
-    } else if (lanePosition == 0) {
-      return Optional.of(nextLanes.get(0));
-    } else {
-      log.error("Incorrect lane mapping in graph. No successors for middle lane");
-      return Optional.empty();
+    int laneDiff = totalLanes - totalNextLanes;
+    if (laneDiff >= 0){
+      if (lanePosition >= 0 && lanePosition < laneDiff) {
+        return Optional.of(nextLanes.get(0));
+      } else if (lanePosition <= totalLanes - 1 && lanePosition >= totalLanes - laneDiff) {
+        return Optional.of(nextLanes.get(totalNextLanes - 1));
+      }
     }
+
+    if(lanePosition == 0) {
+      return Optional.of(nextLanes.get(0));
+    } else if (lanePosition == totalLanes - 1) {
+      Optional.of(nextLanes.get(totalNextLanes - 1));
+    }
+
+    log.warn("Incorrect lane mapping in graph. Wrong lane mapping for road id: "+currentRoad.getRoadId().getValue());
+    return Optional.of(nextLanes.get(totalNextLanes - 1));
   }
 
   public List<RoadOnJunction> getRightRoadsOnJunction(List<RoadOnJunction> roadOnJunctions, RoadId incomingRoadId, RoadId outgoingRoadId){
