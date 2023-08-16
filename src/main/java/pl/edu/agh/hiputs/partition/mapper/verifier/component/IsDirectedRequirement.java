@@ -35,7 +35,7 @@ public class IsDirectedRequirement implements Requirement{
     return edge1 != edge2 &&
         !edge1.equals(edge2) &&
         edge1.getData().getLanes() != edge2.getData().getLanes() &&
-        !edge1.getData().getLanes().equals(edge2.getData().getLanes()) &&
+        (!edge1.getData().getLanes().equals(edge2.getData().getLanes()) || edge1.getData().getLanes().isEmpty()) &&
         (edge1.getData().getTrafficIndicator().isEmpty() || edge2.getData().getTrafficIndicator().isEmpty() ||
             !edge1.getData().getTrafficIndicator().get().equals(edge2.getData().getTrafficIndicator().get()));
   }
