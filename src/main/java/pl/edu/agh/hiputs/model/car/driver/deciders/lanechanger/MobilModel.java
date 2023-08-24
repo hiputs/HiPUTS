@@ -23,18 +23,22 @@ public class MobilModel implements ILaneChangeChecker {
 
   /**
    * acceleration before lane change
-   * --------[ a_new_follower  ]------->*---------------------->*-------[   ]------>
-   * --------[ a_old_follower  ]------->*------[ a_car ]------->*-------[   ]------>
+   * --------[ a_new_follower  ]------->*---------------------->*-------[  new_preceding ]------>
+   * --------[ a_old_follower  ]------->*------[ a_car ]------->*-------[ old_preceding ]------>
    *
    * acceleration after lane change
-   * --------[ new_a_new_follower  ]------->*---[ new_a_car ]------>*-------[   ]------>
-   * --------[ new_a_old_follower  ]------->*---------------------->*-------[   ]------>
+   * --------[ new_a_new_follower  ]------->*---[ new_a_car ]------>*-------[  new_preceding ]------>
+   * --------[ new_a_old_follower  ]------->*---------------------->*-------[  old_preceding ]------>
    *
    * new_a_car - a_car + politeness_factor * (new_a_new_follower - a_new_follower + new_a_old_follower - a_old_follower) > acceleration_threshold
    * {     driver     }                      {             new follower          } {           old follower            }
    *
    * @param car
    * @param targetLaneId
+   * @param politenessFactor -
+   * 1 optimal value
+   * 0-1 - egoist driver
+   * <0 - driver that is looking for other cars deceleration
    * @param roadStructureReader
    * @return boolean if it is possible to change Lane
    */

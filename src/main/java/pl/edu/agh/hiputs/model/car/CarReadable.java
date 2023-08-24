@@ -22,8 +22,6 @@ public interface CarReadable {
 
   double getMaxSpeed();
 
-  double getPolitenessFactor();
-
   CarId getCarId();
 
   Optional<CrossroadDecisionProperties> getCrossRoadDecisionProperties();

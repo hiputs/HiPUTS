@@ -14,6 +14,4 @@ public interface CarEditable extends CarReadable, Comparable<CarEditable> {
   RouteWithLocation getRouteWithLocation();
 
   void setPositionOnLaneAndSpeed(double position, double speed);
-
-  void setPolitenessFactor(double politenessFactor);
 }

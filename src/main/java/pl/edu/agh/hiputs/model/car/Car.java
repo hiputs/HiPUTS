@@ -82,13 +82,6 @@ public class Car implements CarEditable {
   private double acceleration = 0;
 
   /**
-   * Current acceleration of car.
-   */
-  @Setter
-  @Builder.Default
-  private double politenessFactor = 1.0;
-
-  /**
    * Decision on how car state should be changed. Calculated by decider.
    */
   private Decision decision;

@@ -478,6 +478,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     knownPatches.put(addedPatch.getPatchId(), addedPatch);
 
     addedPatch.getRoadIds().forEach(roadId -> roadIdToPatchId.put(roadId, addedPatch.getPatchId()));
+    addedPatch.getLaneIds().forEach(laneId -> laneIdToPatchId.put(laneId, addedPatch.getPatchId()));
     addedPatch.getJunctionIds().forEach(junctionId -> junctionIdToPatchId.put(junctionId, addedPatch.getPatchId()));
     return addedPatch;
   }
@@ -490,7 +491,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     localPatchIds.remove(id);
 
     removedPatch.getRoadIds().forEach(roadIdToPatchId::remove);
-
+    removedPatch.getLaneIds().forEach(laneIdToPatchId::remove);
     removedPatch.getJunctionIds().forEach(junctionIdToPatchId::remove);
   }
 
