@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.statistics.server;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -326,19 +327,32 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
 
   private void save(List<StringBuffer> lines, String filename) {
     File csvOutputFile = new File(DIR + "/" + filename);
-    try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
-      lines.stream()
-          .map(StringBuffer::toString)
-          .forEach(pw::println);
+    PrintWriter pw;
+    try {
+      if (ConfigurationService.getConfiguration().isAppendResults() && csvOutputFile.exists()
+          && !csvOutputFile.isDirectory()) {
+        pw = new PrintWriter(new FileOutputStream(csvOutputFile, true));
+      } else {
+        pw = new PrintWriter(csvOutputFile);
+      }
+      // try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
+      lines.stream().map(StringBuffer::toString).forEach(pw::println);
       pw.close();
     } catch (Exception e) {
-        log.error("Error until save csv file {}", filename, e);
+      log.error("Error until save csv file {}", filename, e);
     }
   }
 
   private void save(String content, String filename) {
     File csvOutputFile = new File(DIR + "/" + filename);
-    try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
+    PrintWriter pw;
+    try {
+      if (ConfigurationService.getConfiguration().isAppendResults() && csvOutputFile.exists()
+          && !csvOutputFile.isDirectory()) {
+        pw = new PrintWriter(new FileOutputStream(csvOutputFile, true));
+      } else {
+        pw = new PrintWriter(csvOutputFile);
+      }
       pw.print(content);
       pw.close();
     } catch (Exception e) {

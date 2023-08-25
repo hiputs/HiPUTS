@@ -101,7 +101,8 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
 
     log.info("Step 9-0-2");
     iterationStatisticsService.endStage(SimulationPoint.PATCHES_SERIALIZATION);
-    iterationStatisticsService.startStage(SimulationPoint.PATCHES_SENDING);
+    iterationStatisticsService.startStage(
+        SimulationPoint.PATCHES_SENDING); // TODO There is also serialization in patches sending - change name
     // long time3 = System.currentTimeMillis();
     sendMessages(messages);
     iterationStatisticsService.endStage(SimulationPoint.PATCHES_SENDING);

@@ -34,7 +34,7 @@ public class SimplyLoadBalancingStrategy implements LoadBalancingStrategy {
         info.getWaitingTime());
     age++;
 
-    if (transferDataHandler.getNeighbors().isEmpty() || age < 3 || transferDataHandler.getLocalPatchesSize() < 5) {
+    if (transferDataHandler.getNeighbors().isEmpty() || age < 5 || transferDataHandler.getLocalPatchesSize() < 5) {
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
     }

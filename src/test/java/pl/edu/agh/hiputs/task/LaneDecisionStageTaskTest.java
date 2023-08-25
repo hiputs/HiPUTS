@@ -17,6 +17,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.service.worker.CarGeneratorService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
@@ -34,6 +35,8 @@ public class LaneDecisionStageTaskTest {
 
   @Mock
   private MapRepository mapRepository;
+  @Mock
+  private CarGeneratorService carGeneratorService;
 
   @BeforeEach
   public void setup() {
@@ -47,11 +50,13 @@ public class LaneDecisionStageTaskTest {
     //given
     setLaneId(car, laneId);
     setPositionOnLane(car, 0);
+    boolean carReplaced = false;
 
     mapFragment.getLaneEditable(laneId).addCarAtEntry(car);
 
     //when
-    LaneDecisionStageTask laneDecisionStageTask = new LaneDecisionStageTask(mapFragment, laneId);
+    LaneDecisionStageTask laneDecisionStageTask =
+        new LaneDecisionStageTask(mapFragment, laneId, carGeneratorService, carReplaced);
     laneDecisionStageTask.run();
 
     //then
@@ -64,6 +69,7 @@ public class LaneDecisionStageTaskTest {
   public void laneDecisionStageTaskWithJumpsBetweenLanesTest() {
     //given
     LaneEditable laneReadWrite = mapFragment.getLaneEditable(laneId);
+    boolean carReplaced = false;
 
     setLaneId(car, laneId);
     setPositionOnLane(car, laneReadWrite.getLength() - DISTANCE_TO_LANE_END);
@@ -71,7 +77,8 @@ public class LaneDecisionStageTaskTest {
     laneReadWrite.addCarAtEntry(car);
 
     //when
-    LaneDecisionStageTask laneDecisionStageTask = new LaneDecisionStageTask(mapFragment, laneId);
+    LaneDecisionStageTask laneDecisionStageTask =
+        new LaneDecisionStageTask(mapFragment, laneId, carGeneratorService, carReplaced);
     laneDecisionStageTask.run();
 
     //then

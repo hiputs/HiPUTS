@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.LoadInfoMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
@@ -15,15 +16,14 @@ import pl.edu.agh.hiputs.statistics.SimulationPoint;
 import pl.edu.agh.hiputs.statistics.worker.IterationStatisticsServiceImpl;
 import pl.edu.agh.hiputs.statistics.worker.IterationStatisticsServiceImpl.IterationInfo;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LocalLoadMonitorServiceImpl implements LocalLoadMonitorService {
 
   private static final Set<SimulationPoint> ACTIVE_TIME =
-      Set.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SECOND_ITERATION_UPDATING_CARS,
-          SimulationPoint.SYNCHRONIZATION_AREA_SEND_PATCHES);
-  private static final Set<SimulationPoint> WAITING_TIME =
-      Set.of(SimulationPoint.WAITING_RECEIVING_CARS, SimulationPoint.WAITING_RECEIVING_PATCHES);
+      Set.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SECOND_ITERATION_UPDATING_CARS, SimulationPoint.SYNCHRONIZATION_AREA_SEND_PATCHES);
+  private static final Set<SimulationPoint> WAITING_TIME = Set.of(SimulationPoint.WAITING_RECEIVING_CARS, SimulationPoint.WAITING_RECEIVING_PATCHES);
   private static final int MOVING_AVERAGE = 50;
 
   private TransferDataHandler transferDataHandler;
@@ -37,6 +37,7 @@ public class LocalLoadMonitorServiceImpl implements LocalLoadMonitorService {
 
   @Override
   public LoadBalancingHistoryInfo getMyLastLoad(int step) {
+    log.debug("Taking LastLoad from step {}", step);
     IterationInfo info = iterationStatisticsService.getIterationInfo(step);
     List<IterationInfo> iterationInfos = iterationStatisticsService.getIterationStatistics();
 

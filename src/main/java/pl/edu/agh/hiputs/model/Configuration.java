@@ -43,6 +43,11 @@ public class Configuration {
   private boolean statisticModeActive;
 
   /**
+   * Whether append statistic results at the end of existing files or create new ones
+   */
+  private boolean appendResults;
+
+  /**
    * How long simulation should work
    */
   private int simulationStep;
