@@ -1,9 +1,9 @@
 package pl.edu.agh.hiputs.partition.mapper.verifier.component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -34,8 +34,8 @@ public class NoDuplicatesRequirement implements Requirement{
     Set<String> nodeIds = graph.getNodes().values().stream()
         .map(Node::getId)
         .collect(Collectors.toSet());
-    Set<Pair<Double, Double>> nodeLocations = graph.getNodes().values().stream()
-        .map(node -> Pair.of(node.getData().getLat(), node.getData().getLon()))
+    Set<List<Double>> nodeLocations = graph.getNodes().values().stream()
+        .map(node -> List.of(node.getData().getLat(), node.getData().getLon()))
         .collect(Collectors.toSet());
 
     return graph.getNodes().size() == nodeIds.size() && graph.getNodes().size() == nodeLocations.size();
@@ -45,8 +45,8 @@ public class NoDuplicatesRequirement implements Requirement{
     Set<String> edgeIds = graph.getEdges().values().stream()
         .map(Edge::getId)
         .collect(Collectors.toSet());
-    Set<Pair<String, String>> edgeLocations = graph.getEdges().values().stream()
-        .map(edge -> Pair.of(edge.getSource().getId(), edge.getTarget().getId()))
+    Set<List<String>> edgeLocations = graph.getEdges().values().stream()
+        .map(edge -> List.of(edge.getSource().getId(), edge.getTarget().getId()))
         .collect(Collectors.toSet());
 
     return graph.getEdges().size() == edgeIds.size() && graph.getEdges().size() == edgeLocations.size();

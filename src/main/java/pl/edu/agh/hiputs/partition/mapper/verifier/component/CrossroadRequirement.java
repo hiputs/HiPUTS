@@ -32,8 +32,16 @@ public class CrossroadRequirement implements Requirement{
 
     Map<Set<Node<JunctionData, WayData>>, Edge<JunctionData, WayData>> nodesParticipating2Edge = new HashMap<>();
 
-    node.getIncomingEdges().forEach(edge -> nodesParticipating2Edge.put(Set.of(edge.getSource(), edge.getTarget()), edge));
-    node.getOutgoingEdges().forEach(edge -> nodesParticipating2Edge.put(Set.of(edge.getSource(), edge.getTarget()), edge));
+    node.getIncomingEdges().forEach(edge -> {
+      if (!edge.getSource().equals(edge.getTarget())) {
+        nodesParticipating2Edge.put(Set.of(edge.getSource(), edge.getTarget()), edge);
+      }
+    });
+    node.getOutgoingEdges().forEach(edge -> {
+      if (!edge.getSource().equals(edge.getTarget())) {
+        nodesParticipating2Edge.put(Set.of(edge.getSource(), edge.getTarget()), edge);
+      }
+    });
 
     return nodesParticipating2Edge.size() > 2;
   }
