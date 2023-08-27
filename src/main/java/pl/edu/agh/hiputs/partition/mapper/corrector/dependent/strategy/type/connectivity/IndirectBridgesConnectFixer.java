@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.mapper.helper.service.complex.ComplexCrossroadsUpdater;
 import pl.edu.agh.hiputs.partition.mapper.helper.structure.connectivity.StronglyConnectedComponent;
@@ -37,17 +37,17 @@ public class IndirectBridgesConnectFixer implements ConnectFixer {
   ) {
     if (wCCs.size() > 1) {
       // completing all wcc pairs and retrieving their node representatives with the closest distance
-      List<Pair<WeaklyConnectedComponent, WeaklyConnectedComponent>> ccsToConnect = findAllRequiredConnections(wCCs);
-      List<Pair<Node<JunctionData, WayData>, Node<JunctionData, WayData>>> nodesToConnect = ccsToConnect.stream()
-          .map(pair -> findClosestNodes(pair.getLeft(), pair.getRight(), graph))
+      List<List<WeaklyConnectedComponent>> ccsToConnect = findAllRequiredConnections(wCCs);
+      List<List<Node<JunctionData, WayData>>> nodesToConnect = ccsToConnect.stream()
+          .map(ccPair -> findClosestNodes(ccPair.get(0), ccPair.get(1), graph))
           .filter(Optional::isPresent)
           .map(Optional::get)
           .toList();
 
       // creating two edges in different directions between all pairs of nodes and adding to graph
       nodesToConnect.stream()
-          .map(nodesPair -> createBothEdgesBetweenNodes(nodesPair.getLeft(), nodesPair.getRight()))
-          .flatMap(edgePair -> Stream.of(edgePair.getLeft(), edgePair.getRight()))
+          .map(nodesPair -> createBothEdgesBetweenNodes(nodesPair.get(0), nodesPair.get(1)))
+          .flatMap(edgePair -> Stream.of(edgePair.get(0), edgePair.get(1)))
           .forEach(edge -> {
             if (checkAdditionPossibility(edge, graph)) {
               graph.addEdge(edge);
@@ -56,38 +56,64 @@ public class IndirectBridgesConnectFixer implements ConnectFixer {
 
       // triggering update process for earlier found complex crossroads (observer pattern)
       complexCrossroadsUpdater.extendWithNodes(nodesToConnect.stream()
-          .flatMap(pair -> Stream.of(pair.getLeft(), pair.getRight()))
+          .flatMap(nodesPair -> Stream.of(nodesPair.get(0), nodesPair.get(1)))
           .collect(Collectors.toSet()));
     }
 
     return graph;
   }
 
-  private List<Pair<WeaklyConnectedComponent, WeaklyConnectedComponent>> findAllRequiredConnections (
-      List<WeaklyConnectedComponent> wCCs
-  ) {
+  private List<List<WeaklyConnectedComponent>> findAllRequiredConnections (List<WeaklyConnectedComponent> wCCs) {
     return IntStream.range(0, wCCs.size() - 1)
-        .mapToObj(i -> Pair.of(i, IntStream.range(i + 1, wCCs.size())
-            .boxed()
-            .toList()))
-        .flatMap(pair -> pair.getRight().stream()
-            .map(index -> Pair.of(pair.getLeft(), index)))
-        .map(pair -> Pair.of(wCCs.get(pair.getLeft()), wCCs.get(pair.getRight())))
+        .boxed()
+        .map(index -> List.of(wCCs.get(index), wCCs.get(index + 1)))
         .toList();
   }
 
-  private Optional<Pair<Node<JunctionData, WayData>, Node<JunctionData, WayData>>> findClosestNodes(
+  private Optional<List<Node<JunctionData, WayData>>> findClosestNodes(
       WeaklyConnectedComponent wCC1, WeaklyConnectedComponent wCC2, Graph<JunctionData, WayData> graph
   ) {
-    return wCC1.getNodesIds().stream()
-        .flatMap(firstId -> wCC2.getNodesIds().stream()
-            .map(secondId -> Pair.of(firstId, secondId)))
-        .map(pair -> Pair.of(graph.getNodes().get(pair.getLeft()), graph.getNodes().get(pair.getRight())))
-        .min(Comparator.comparingDouble(pair -> Point.convertFromCoords(pair.getLeft().getData()).distanceTo(
-            Point.convertFromCoords(pair.getRight().getData()))));
+    if (wCC1.getNodesIds().isEmpty() || wCC2.getNodesIds().isEmpty()) {
+      return Optional.empty();
+    }
+
+    // retrieving average coordinates
+    Map<Point, Node<JunctionData, WayData>> wCC1Coordinates = wCC1.getNodesIds().stream()
+        .collect(Collectors.toMap(
+            nodeId -> Point.convertFromCoords(graph.getNodes().get(nodeId).getData()),
+            nodeId -> graph.getNodes().get(nodeId)));
+    Map<Point, Node<JunctionData, WayData>> wCC2Coordinates = wCC2.getNodesIds().stream()
+        .collect(Collectors.toMap(
+            nodeId -> Point.convertFromCoords(graph.getNodes().get(nodeId).getData()),
+            nodeId -> graph.getNodes().get(nodeId)));
+
+    OptionalDouble avgX1 = wCC1Coordinates.keySet().stream().mapToDouble(Point::getX).average();
+    OptionalDouble avgY1 = wCC1Coordinates.keySet().stream().mapToDouble(Point::getY).average();
+
+    OptionalDouble avgX2 = wCC2Coordinates.keySet().stream().mapToDouble(Point::getX).average();
+    OptionalDouble avgY2 = wCC2Coordinates.keySet().stream().mapToDouble(Point::getY).average();
+
+    // finding the closest nodes to average points
+    Optional<Point> closestFromWCC2 = Optional.empty();
+    if (avgX1.isPresent() && avgY1.isPresent()) {
+      closestFromWCC2 = wCC2Coordinates.keySet().stream()
+          .min(Comparator.comparingDouble(point ->
+              point.distanceTo(new Point(avgX1.getAsDouble(), avgY1.getAsDouble()))));
+    }
+
+    Optional<Point> closestFromWCC1 = Optional.empty();
+    if (avgX2.isPresent() && avgY2.isPresent()) {
+      closestFromWCC1 = wCC1Coordinates.keySet().stream()
+          .min(Comparator.comparingDouble(point ->
+              point.distanceTo(new Point(avgX2.getAsDouble(), avgY2.getAsDouble()))));
+    }
+
+    return closestFromWCC1.isPresent() && closestFromWCC2.isPresent() ?
+        Optional.of(List.of(wCC1Coordinates.get(closestFromWCC1.get()), wCC2Coordinates.get(closestFromWCC2.get()))) :
+        Optional.empty();
   }
 
-  private Pair<Edge<JunctionData, WayData>, Edge<JunctionData, WayData>> createBothEdgesBetweenNodes(
+  private List<Edge<JunctionData, WayData>> createBothEdgesBetweenNodes(
       Node<JunctionData, WayData> node1, Node<JunctionData, WayData> node2
   ) {
     Map<String, String> tags = retrieveTagsUsingNodes(node1, node2);
@@ -115,7 +141,7 @@ public class IndirectBridgesConnectFixer implements ConnectFixer {
     edge2.setSource(node2);
     edge2.setTarget(node1);
 
-    return Pair.of(edge1, edge2);
+    return List.of(edge1, edge2);
   }
 
   private Map<String, String> retrieveTagsUsingNodes(
@@ -124,11 +150,12 @@ public class IndirectBridgesConnectFixer implements ConnectFixer {
     Collection<String> tagsToRetrieve = List.of("highway", "name", "addr:country", "maxspeed");
     Map<String, String> newTags = new HashMap<>();
 
-    Collection<Entry<String, String>> joinedTagsFromEdges = Stream.of(
+    Collection<List<String>> joinedTagsFromEdges = Stream.of(
         node1.getIncomingEdges(), node1.getOutgoingEdges(), node2.getIncomingEdges(), node2.getOutgoingEdges())
         .flatMap(List::stream)
         .map(edge -> edge.getData().getTags())
-        .flatMap(map -> map.entrySet().stream())
+        .flatMap(map -> map.keySet().stream()
+            .map(key -> List.of(key, map.get(key))))
         .toList();
 
     tagsToRetrieve.forEach(tag ->
@@ -138,10 +165,10 @@ public class IndirectBridgesConnectFixer implements ConnectFixer {
     return newTags;
   }
 
-  private Optional<String> getMostOccurredTag(Collection<Entry<String, String>> tags, String key) {
+  private Optional<String> getMostOccurredTag(Collection<List<String>> tags, String key) {
     return tags.stream()
-        .filter(entry -> entry.getKey().equals(key))
-        .map(Entry::getValue)
+        .filter(tagEntry -> tagEntry.get(0).equals(key))
+        .map(tagEntry -> tagEntry.get(1))
         .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
         .entrySet().stream()
         .max(Comparator.comparingLong(Entry::getValue))

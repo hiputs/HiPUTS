@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -39,6 +40,17 @@ public class OnCrossroadSuccessorAllocator implements SuccessorAllocator, Restri
   public void provideRestrictions(Set<Restriction> restrictions) {
     this.fromEdgeId2Restrictions = restrictions.stream()
         .collect(Collectors.groupingBy(Restriction::getFromEdgeId, Collectors.toSet()));
+
+    this.fromEdgeId2Restrictions.keySet().forEach(fromEdgeId -> {
+      List<Restriction> foundOnlyRestrictions = this.fromEdgeId2Restrictions.get(fromEdgeId).stream()
+          .filter(restriction ->
+              Objects.nonNull(restriction.getType()) && restriction.getType().toString().startsWith("ONLY_"))
+          .toList();
+
+      if (foundOnlyRestrictions.size() > 1) {
+        foundOnlyRestrictions.forEach(this.fromEdgeId2Restrictions.get(fromEdgeId)::remove);
+      }
+    });
   }
 
   @Override

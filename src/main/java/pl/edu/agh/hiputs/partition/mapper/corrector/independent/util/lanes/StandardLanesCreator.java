@@ -32,44 +32,52 @@ public class StandardLanesCreator implements LanesCreator{
           wayData.getTags().containsKey(LANES_BOTH_WAYS_KEY)) {
         // 1. Lanes number with forward, backward and both_ways => equal assigning both_ways number of lanes to roads
         return wayData.isTagsInOppositeMeaning() ?
-            createNoLanes(Integer.parseInt(wayData.getTags().get(LANES_BACKWARD_KEY))
-                + Integer.parseInt(wayData.getTags().get(LANES_BOTH_WAYS_KEY))) :
-            createNoLanes(Integer.parseInt(wayData.getTags().get(LANES_FORWARD_KEY))
-                + Integer.parseInt(wayData.getTags().get(LANES_BOTH_WAYS_KEY)));
+            createNoLanes(retrieveLanesNo(wayData, LANES_BACKWARD_KEY) + retrieveLanesNo(wayData, LANES_BOTH_WAYS_KEY)) :
+            createNoLanes(retrieveLanesNo(wayData, LANES_FORWARD_KEY) + retrieveLanesNo(wayData, LANES_BOTH_WAYS_KEY));
       }
       else if (wayData.getTags().containsKey(LANES_FORWARD_KEY) && wayData.getTags().containsKey(LANES_BACKWARD_KEY)) {
         // 2. Lanes number with forward and backward => trivial
         return wayData.isTagsInOppositeMeaning() ?
-            createNoLanes(Integer.parseInt(wayData.getTags().get(LANES_BACKWARD_KEY))) :
-            createNoLanes(Integer.parseInt(wayData.getTags().get(LANES_FORWARD_KEY)));
+            createNoLanes(retrieveLanesNo(wayData, LANES_BACKWARD_KEY)) :
+            createNoLanes(retrieveLanesNo(wayData, LANES_FORWARD_KEY));
       }
       else if (wayData.getTags().containsKey(LANES_FORWARD_KEY)) {
         // 3. Lanes number with forward only => assigning forward when the same road direction or difference if not
         return wayData.isTagsInOppositeMeaning() ?
-            createNoLanes(Integer.parseInt(wayData.getTags().get(LANES_TOTAL_KEY))
-                - Integer.parseInt(wayData.getTags().get(LANES_FORWARD_KEY))) :
-            createNoLanes(Integer.parseInt(wayData.getTags().get(LANES_FORWARD_KEY)));
+            createNoLanes(retrieveLanesNo(wayData, LANES_TOTAL_KEY) - retrieveLanesNo(wayData, LANES_FORWARD_KEY)) :
+            createNoLanes(retrieveLanesNo(wayData, LANES_FORWARD_KEY));
       }
       else if (wayData.getTags().containsKey(LANES_BACKWARD_KEY)) {
         // 4. Lanes number with backward only => assigning different when the same road direction or backward if not
         return wayData.isTagsInOppositeMeaning() ?
-            createNoLanes(Integer.parseInt(wayData.getTags().get(LANES_BACKWARD_KEY))) :
-            createNoLanes(Integer.parseInt(wayData.getTags().get(LANES_TOTAL_KEY))
-                - Integer.parseInt(wayData.getTags().get(LANES_BACKWARD_KEY)));
+            createNoLanes(retrieveLanesNo(wayData, LANES_BACKWARD_KEY)) :
+            createNoLanes(retrieveLanesNo(wayData, LANES_TOTAL_KEY) - retrieveLanesNo(wayData, LANES_BACKWARD_KEY));
       }
       else {
         if (oneWayProcessor.checkFromTags(wayData.getTags())) {
           // 5. Only lanes number => assigning it to road if oneWay
-          return createNoLanes(Integer.parseInt(wayData.getTags().get(LANES_TOTAL_KEY)));
+          return createNoLanes(retrieveLanesNo(wayData, LANES_TOTAL_KEY));
         }
         else {
           // 6. Only lanes number => equally dividing into two roads if not oneWay
-          return createNoLanes(Math.max(Integer.parseInt(wayData.getTags().get(LANES_TOTAL_KEY)) / 2, 1));
+          return createNoLanes(Math.max(retrieveLanesNo(wayData, LANES_TOTAL_KEY) / 2, 1));
         }
       }
     } else {
       // 7. Lack of required data => one-lane road.
       return createNoLanes(1);
+    }
+  }
+
+  private int retrieveLanesNo(WayData wayData, String key) {
+    try {
+      return Integer.parseInt(wayData.getTags().get(key));
+    } catch (NumberFormatException e) {
+      try {
+        return (int) Math.ceil(Double.parseDouble(wayData.getTags().get(key)));
+      } catch (NumberFormatException | ClassCastException ex) {
+        return 1;
+      }
     }
   }
 

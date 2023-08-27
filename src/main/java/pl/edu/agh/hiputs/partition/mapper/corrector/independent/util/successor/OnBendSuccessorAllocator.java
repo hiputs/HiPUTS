@@ -56,6 +56,10 @@ public class OnBendSuccessorAllocator implements SuccessorAllocator{
       );
     }
 
+    if (incomingLanes.isEmpty()) {
+      incomingLanes.addAll(incoming.getLanes());
+    }
+
     int minNoLanes = Math.min(incomingLanes.size(), outgoing.getLanes().size());
 
     int incomingDiff = incomingLanes.size() - minNoLanes;

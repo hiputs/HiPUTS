@@ -1,6 +1,7 @@
 package pl.edu.agh.hiputs.partition.mapper.corrector.dependent;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -48,7 +49,7 @@ public class RestrictionsCorrectorTest {
 
     // when
     Graph<JunctionData, WayData> graph = new GraphBuilder<JunctionData, WayData>().build();
-    RestrictionsCorrector corrector = new RestrictionsCorrector(Set.of(
+    RestrictionsCorrector corrector = new RestrictionsCorrector(new HashSet<>(Set.of(
         Restriction.builder()
             .id("id")
             .type(RestrictionType.NO_ENTRY)
@@ -56,7 +57,7 @@ public class RestrictionsCorrectorTest {
             .viaNodeId("B")
             .toEdgeId("2")
             .build()
-    ), allocator);
+    )), allocator);
 
     // then
     corrector.correct(graph);
@@ -118,7 +119,7 @@ public class RestrictionsCorrectorTest {
         .addEdge(edge1)
         .addEdge(edge2)
         .build();
-    RestrictionsCorrector corrector = new RestrictionsCorrector(Set.of(
+    RestrictionsCorrector corrector = new RestrictionsCorrector(new HashSet<>(Set.of(
         Restriction.builder()
             .id("id")
             .type(RestrictionType.NO_ENTRY)
@@ -126,7 +127,7 @@ public class RestrictionsCorrectorTest {
             .viaNodeId("B")
             .toEdgeId("2")
             .build()
-    ), allocator);
+    )), allocator);
 
     // then
     corrector.correct(graph);
@@ -156,7 +157,7 @@ public class RestrictionsCorrectorTest {
         .addNode(nodeC)
         .addEdge(edge2)
         .build();
-    RestrictionsCorrector corrector = new RestrictionsCorrector(Set.of(
+    RestrictionsCorrector corrector = new RestrictionsCorrector(new HashSet<>(Set.of(
         Restriction.builder()
             .id("id")
             .type(RestrictionType.NO_ENTRY)
@@ -164,7 +165,7 @@ public class RestrictionsCorrectorTest {
             .viaNodeId("B")
             .toEdgeId("2")
             .build()
-    ), allocator);
+    )), allocator);
 
     // then
     corrector.correct(graph);
@@ -194,7 +195,7 @@ public class RestrictionsCorrectorTest {
         .addNode(nodeC)
         .addEdge(edge1)
         .build();
-    RestrictionsCorrector corrector = new RestrictionsCorrector(Set.of(
+    RestrictionsCorrector corrector = new RestrictionsCorrector(new HashSet<>(Set.of(
         Restriction.builder()
             .id("id")
             .type(RestrictionType.NO_ENTRY)
@@ -202,7 +203,7 @@ public class RestrictionsCorrectorTest {
             .viaNodeId("B")
             .toEdgeId("2")
             .build()
-    ), allocator);
+    )), allocator);
 
     // then
     corrector.correct(graph);
@@ -233,7 +234,7 @@ public class RestrictionsCorrectorTest {
         .addEdge(edge1)
         .addEdge(edge2)
         .build();
-    RestrictionsCorrector corrector = new RestrictionsCorrector(Set.of(
+    RestrictionsCorrector corrector = new RestrictionsCorrector(new HashSet<>(Set.of(
         Restriction.builder()
             .id("id")
             .type(RestrictionType.NO_ENTRY)
@@ -241,7 +242,7 @@ public class RestrictionsCorrectorTest {
             .viaNodeId("X")
             .toEdgeId("2")
             .build()
-    ), allocator);
+    )), allocator);
 
     // then
     corrector.correct(graph);

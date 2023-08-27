@@ -16,6 +16,10 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 @Order(3)
 @RequiredArgsConstructor
 public class SpeedLimitsCorrector implements Corrector {
+  private final static String knotsSuffix = "knots";
+  private final static String mphSuffix = "mph";
+  private final static double knotsToKmhMultiplier = 1.852;
+  private final static double mphToKmhMultiplier = 1.609344;
   private final CountryResolver countryResolver;
   private final RuleEngine ruleEngine;
 
@@ -28,7 +32,16 @@ public class SpeedLimitsCorrector implements Corrector {
 
       if (wayData.getTags().containsKey(maxSpeedKeyInTags)) {
         try {
-          wayData.setMaxSpeed(Integer.parseInt(wayData.getTags().get(maxSpeedKeyInTags)));
+          String speedValue = wayData.getTags().get(maxSpeedKeyInTags);
+          if (speedValue.endsWith(mphSuffix)) {
+            wayData.setMaxSpeed(
+                (int)(Integer.parseInt(speedValue.replace(mphSuffix, "").trim()) * mphToKmhMultiplier));
+          } else if (speedValue.endsWith(knotsSuffix)) {
+            wayData.setMaxSpeed(
+                (int)(Integer.parseInt(speedValue.replace(knotsSuffix, "").trim()) * knotsToKmhMultiplier));
+          } else {
+            wayData.setMaxSpeed(Integer.parseInt(wayData.getTags().get(maxSpeedKeyInTags)));
+          }
         } catch (NumberFormatException exception) {
           wayData.setMaxSpeed(ruleEngine.processWay(edge));
         }

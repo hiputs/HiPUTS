@@ -231,9 +231,13 @@ public class IndirectBridgesConnectFixerTest {
     // then
     creator.fixFoundDisconnections(List.of(), List.of(wCC1, wCC2, wCC3), graph);
     Assertions.assertEquals(3, graph.getNodes().size());
-    Assertions.assertEquals(6, graph.getEdges().size());
-    Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getOutgoingEdges().size() == 2));
-    Assertions.assertTrue(graph.getNodes().values().stream().allMatch(node -> node.getIncomingEdges().size() == 2));
+    Assertions.assertEquals(4, graph.getEdges().size());
+    Assertions.assertEquals(1, nodeA.getOutgoingEdges().size());
+    Assertions.assertEquals(1, nodeA.getIncomingEdges().size());
+    Assertions.assertEquals(2, nodeB.getOutgoingEdges().size());
+    Assertions.assertEquals(2, nodeB.getIncomingEdges().size());
+    Assertions.assertEquals(1, nodeC.getOutgoingEdges().size());
+    Assertions.assertEquals(1, nodeC.getIncomingEdges().size());
   }
 
   @Test

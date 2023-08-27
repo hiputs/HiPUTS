@@ -53,9 +53,11 @@ public class MapDisConnectivityDetector implements Detector {
       List<? extends ConnectedComponent> sCCsFound, Class<? extends ConnectedComponent> ccClass
   ) {
     StringBuilder ccsStringBuilder = new StringBuilder();
-    sCCsFound.forEach(cc -> ccsStringBuilder.append(String.format("\t{%s},\n",
-        cc.getNodesIds().stream().reduce("", (current, next) -> current.isBlank() ?
-            next : current + String.format(", %s", next)))));
+    sCCsFound.forEach(cc -> {
+      ccsStringBuilder.append("\t{");
+      cc.getNodesIds().forEach(nodeId -> ccsStringBuilder.append(nodeId).append(", "));
+      ccsStringBuilder.append("}, \n");
+    });
 
     return String.format("%ss:\n[\n%s]\n", ccClass.getSimpleName(), ccsStringBuilder);
   }

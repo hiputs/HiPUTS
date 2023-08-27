@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.partition.mapper.corrector.dependent;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import pl.edu.agh.hiputs.partition.mapper.corrector.Corrector;
@@ -16,6 +17,10 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 
 @RequiredArgsConstructor
 public class TagCorrector implements Corrector {
+  private final static String knotsSuffix = "knots";
+  private final static String mphSuffix = "mph";
+  private final static double knotsToKmhMultiplier = 1.852;
+  private final static double mphToKmhMultiplier = 1.609344;
   private final EdgeExtractor extractor = new StandardEdgeExtractor();
   private final List<Pair<String, List<Edge<JunctionData, WayData>>>> edgesToFix;
   private final List<Pair<String, List<Node<JunctionData, WayData>>>> nodesToFix;
@@ -55,7 +60,21 @@ public class TagCorrector implements Corrector {
   }
 
   private String avgSpeed(String speed1, String speed2) {
-    return String.format("%d", (Integer.parseInt(speed1) + Integer.parseInt(speed2)) / 2);
+    try {
+      return String.format("%d", (validateSpeedString(speed1) + validateSpeedString(speed2)) / 2);
+    } catch (Exception e) {
+      return new Random().nextBoolean() ? speed1 : speed2;
+    }
+  }
+
+  private int validateSpeedString(String speed) {
+    if (speed.endsWith(mphSuffix)) {
+      return (int) (Integer.parseInt(speed.replace(mphSuffix, "").trim()) * mphToKmhMultiplier);
+    } else if (speed.endsWith(knotsSuffix)) {
+      return (int) (Integer.parseInt(speed.replace(knotsSuffix, "").trim()) * knotsToKmhMultiplier);
+    } else {
+      return Integer.parseInt(speed);
+    }
   }
 
   private void fixNodes(String tag, List<Node<JunctionData, WayData>> nodes) {

@@ -68,6 +68,7 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
     osmGraph.getRelations().stream()
         .map(relation -> osmToInternal(relation, osmWayId2Edges))
         .filter(this::isComplete)
+        .filter(restriction -> nodes.containsKey(restriction.getViaNodeId()))
         .forEach(restriction -> nodes.get(restriction.getViaNodeId()).getData().getRestrictions().add(restriction));
 
     log.info("Applying transforms");
@@ -102,6 +103,10 @@ public class Osm2InternalModelMapperImpl implements Osm2InternalModelMapper{
     boolean isOneway = oneWayProcessor.checkFromTags(tags);
 
     for (int i = 0; i < osmWay.getNumberOfNodes() - 1; i++) {
+      if (osmWay.getNodeId(i) == osmWay.getNodeId(i + 1)) {
+        continue;
+      }
+
       WayData wayData = WayData.builder()
           .tags(tags)
           .tagsInOppositeMeaning(false)

@@ -20,12 +20,19 @@ public class CompletenessFilter implements Filter{
   public OsmGraph filter(OsmGraph osmGraph) {
 
     // 1. ways with minimum two nodes
-    // 3. ways with tags containing highway
-    // 2. nodes with at least one occurrence in ways
+    // 2. ways with tags containing highway
+    // 3. ways with nodes already existing
+    // 4. nodes with at least one occurrence in ways
+
+    Set<Long> nodesIds = osmGraph.getNodes().stream()
+        .map(OsmNode::getId)
+        .collect(Collectors.toSet());
 
     List<OsmWay> processingWays = osmGraph.getWays().stream()
-        .filter(osmWay -> OsmModelUtil.nodesAsList(osmWay).size() >= 2)
-        .filter(osmWay -> OsmModelUtil.getTagsAsMap(osmWay).containsKey(ROAD_KEY))
+        .filter(osmWay -> OsmModelUtil.nodesAsList(osmWay).size() >= 2)                     // 1.
+        .filter(osmWay -> OsmModelUtil.getTagsAsMap(osmWay).containsKey(ROAD_KEY))          // 2.
+        .filter(osmWay -> Arrays.stream(OsmModelUtil.nodesAsList(osmWay).toArray()).boxed() // 3.
+            .allMatch(nodesIds::contains))
         .collect(Collectors.toList());
 
     Set<Long> nodesOccurrences = processingWays.stream()
@@ -33,7 +40,7 @@ public class CompletenessFilter implements Filter{
         .collect(Collectors.toSet());
 
     List<OsmNode> processingNodes = osmGraph.getNodes().stream()
-        .filter(osmNode -> nodesOccurrences.contains(osmNode.getId()))
+        .filter(osmNode -> nodesOccurrences.contains(osmNode.getId()))                      // 4.
         .collect(Collectors.toList());
 
     return new OsmGraph(processingNodes, processingWays, osmGraph.getRelations());
