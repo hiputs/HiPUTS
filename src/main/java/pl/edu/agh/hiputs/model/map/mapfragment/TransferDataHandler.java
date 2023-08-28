@@ -7,6 +7,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import pl.edu.agh.hiputs.loadbalancer.TicketService;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
@@ -83,6 +84,8 @@ public interface TransferDataHandler {
   boolean isLocalPatch(PatchId patchId);
 
   PatchId getPatchIdByRoadId(RoadId roadId);
+
+  PatchId getPatchIdByLaneId(LaneId laneId);
 
   void printStaistic();
 

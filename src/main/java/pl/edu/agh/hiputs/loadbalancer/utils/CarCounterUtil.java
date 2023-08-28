@@ -14,7 +14,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 public class CarCounterUtil {
 
     public static int countCars(PatchReader patchReader){
-      return patchReader.streamLaneReadable()
+      return patchReader.streamLanesReadable()
           .map(LaneReadable::numberOfCars)
           .reduce(0, Integer::sum);
     }

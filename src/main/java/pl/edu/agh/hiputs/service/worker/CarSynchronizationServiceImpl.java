@@ -24,6 +24,7 @@ import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;

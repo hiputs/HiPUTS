@@ -104,7 +104,7 @@ public class Patch implements PatchReader, PatchEditor {
   }
 
   @Override
-  public Stream<LaneReadable> streamLaneReadable() {
+  public Stream<LaneReadable> streamLanesReadable() {
     return lanes.values().stream().map(Function.identity());
   }
 

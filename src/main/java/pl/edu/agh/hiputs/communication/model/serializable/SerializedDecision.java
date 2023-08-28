@@ -27,7 +27,7 @@ public class SerializedDecision implements CustomSerializable<Decision> {
   /**
    * Serialized roadId
    */
-  private final String roadId;
+  private String roadId;
 
   /**
    * Serialized laneId

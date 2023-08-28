@@ -75,7 +75,7 @@ public class CarTransferMessageTest {
         .roadId("abc")
         .positionOnRoad(0)
         .routeElements(routeElementList)
-        .decision(SerializationUtils.serialize(SerializedDecision.builder().roadId("1111").build()))
+        .decision(SerializedDecision.builder().roadId("1111").build())
         .build();
   }
 }

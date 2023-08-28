@@ -50,7 +50,7 @@ public class SerializedCar implements CustomSerializable<Car> {
   /**
    * Road location id
    */
-  private final String roadId;
+  private String roadId;
 
   /**
    * Lane location id

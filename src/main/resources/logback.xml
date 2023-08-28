@@ -35,9 +35,9 @@
   </appender>
 
 
-  <!--    <root level="info">-->
-  <!--      <appender-ref ref="CONSOLE"/>-->
-  <!--    </root>-->
+<!--      <root level="info">-->
+<!--        <appender-ref ref="CONSOLE"/>-->
+<!--      </root>-->
 
   <!--
   To log any package on another level use <logger> bellow

@@ -28,9 +28,10 @@ public class RoadUpdateStageTask implements Runnable {
           .stream()
           .map(mapFragment::getLaneEditable)
           .forEach(laneEditable -> {
-            this.removeLeavingCars(laneEditable);
+            // this.removeLeavingCars(laneEditable);
             this.updateCarsOnLane(laneEditable);
             this.handleIncomingCars(laneEditable);
+            laneEditable.updateCarSpeedMetrics();
           });
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);
@@ -40,14 +41,14 @@ public class RoadUpdateStageTask implements Runnable {
   /**
    * Removes from Lane.carsQueue all cars which decided to leave this lane
    */
-  private void removeLeavingCars(LaneEditable lane) {
-    while (lane.getCarAtExit()
-            .map(car -> Objects.isNull(roadId) || !Objects.equals(roadId, car.getDecision().getRoadId()))
-            .orElse(false)) {
-      CarEditable car = lane.pollCarAtExit().get();
-      log.debug("Car: " + car.getCarId() + " with destination road: " + car.getDecision().getRoadId() + " removeLeavingCar from road: " + roadId);
-    }
-  }
+  // private void removeLeavingCars(LaneEditable lane) {
+  //   while (lane.getCarAtExit()
+  //           .map(car -> Objects.isNull(roadId) || !Objects.equals(roadId, car.getDecision().getRoadId()))
+  //           .orElse(false)) {
+  //     CarEditable car = lane.pollCarAtExit().get();
+  //     log.debug("Car: " + car.getCarId() + " with destination road: " + car.getDecision().getRoadId() + " removeLeavingCar from road: " + roadId);
+  //   }
+  // }
 
   /**
    * Iterates in reverse over Lane.carsQueue and call Car.update()
@@ -57,10 +58,12 @@ public class RoadUpdateStageTask implements Runnable {
   private void updateCarsOnLane(LaneEditable lane) {
     try {
       List<CarEditable> carsToRemove = lane.streamCarsFromExitEditable()
-          .filter(car -> !Objects.equals(car.getDecision().getLaneId(), lane.getLaneId()) || car.update().isEmpty())
+          .filter(car -> Objects.isNull(lane.getLaneId()) || !Objects.equals(car.getDecision().getLaneId(), lane.getLaneId()) || car.update()
+              .isEmpty())
           .toList();
       for (CarEditable car : carsToRemove) {
         lane.removeCar(car);
+        log.debug("Car {} was removed.", car.getCarId());
         //If remove instance which stay on old road draw warning
         if (!Objects.equals(car.getDecision().getLaneId(), lane.getLaneId())) {
           //#TODO change log to warning when repair junction decider

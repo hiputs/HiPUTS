@@ -47,21 +47,21 @@ public class ExampleCarProvider {
   private List<LaneId> localLaneIdList;
   private Configuration configuration;
 
-  public ExampleCarProvider(MapFragment mapFragment) {
-    this.mapFragment = mapFragment;
-    this.localRoadIdList = mapFragment.getLocalRoadIds().stream().toList();
-    this.localLaneIdList = mapFragment.getLocalLaneIds().stream().toList();
-
-    this.junctionIdToOutgoingRoadIdList =
-        junctionId -> mapFragment.getJunctionReadable(junctionId).streamOutgoingRoadIds().toList();
-
-    this.roadIdToOutgoingJunctionId = roadId -> mapFragment.getRoadReadable(roadId).getOutgoingJunctionId();
-    this.roadIdToSuccessorRoadIds = roadId -> mapFragment.getRoadToLaneSuccessorsReadable(roadId)
-        .stream()
-        .map(LaneReadable::getRoadId)
-        .collect(Collectors.toSet());
-    this.configuration = ConfigurationService.getConfiguration();
-  }
+  // public ExampleCarProvider(MapFragment mapFragment) {
+  //   this.mapFragment = mapFragment;
+  //   this.localRoadIdList = mapFragment.getLocalRoadIds().stream().toList();
+  //   this.localLaneIdList = mapFragment.getLocalLaneIds().stream().toList();
+  //
+  //   this.junctionIdToOutgoingRoadIdList =
+  //       junctionId -> mapFragment.getJunctionReadable(junctionId).streamOutgoingRoadIds().toList();
+  //
+  //   this.roadIdToOutgoingJunctionId = roadId -> mapFragment.getRoadReadable(roadId).getOutgoingJunctionId();
+  //   this.roadIdToSuccessorRoadIds = roadId -> mapFragment.getRoadToLaneSuccessorsReadable(roadId)
+  //       .stream()
+  //       .map(LaneReadable::getRoadId)
+  //       .collect(Collectors.toSet());
+  //   this.configuration = ConfigurationService.getConfiguration();
+  // }
 
   public ExampleCarProvider(MapFragment mapFragment, MapRepository mapRepository) {
     this.mapFragment = mapFragment;

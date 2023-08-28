@@ -27,7 +27,7 @@ public interface PatchReader {
 
   Stream<LaneEditable> streamLanesEditable();
 
-  Stream<LaneReadable> streamLaneReadable();
+  Stream<LaneReadable> streamLanesReadable();
 
   Set<JunctionId> getJunctionIds();
 

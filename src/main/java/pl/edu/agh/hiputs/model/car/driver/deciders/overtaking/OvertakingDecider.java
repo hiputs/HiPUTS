@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarPrecedingEnvironment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;

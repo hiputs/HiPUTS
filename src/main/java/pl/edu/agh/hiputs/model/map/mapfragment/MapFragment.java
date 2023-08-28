@@ -696,6 +696,9 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
+  public PatchId getPatchIdByLaneId(LaneId laneId) {return laneIdToPatchId.get(laneId);}
+
+  @Override
   public void printStaistic() {
     // log.info("Local patches {}, borderPatches {} ", localPatchIds.size(),
     //     mapFragmentIdToBorderPatchIds.values().stream().map(Set::size).reduce(0, Integer::sum));

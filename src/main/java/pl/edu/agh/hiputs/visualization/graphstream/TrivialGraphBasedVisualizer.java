@@ -166,7 +166,7 @@ public class TrivialGraphBasedVisualizer {
   public void redrawCars() {
     ArrayList<Sprite> spritesInThisUpdate = new ArrayList<>();
 
-    mapFragment.getKnownPatchReadable().stream().flatMap(PatchReader::streamLaneReadable).forEach(lane -> {
+    mapFragment.getKnownPatchReadable().stream().flatMap(PatchReader::streamLanesReadable).forEach(lane -> {
       CarReadable car = lane.getCarAtEntryReadable().orElse(null);
       while (car != null) {
         Sprite sprite = spriteManager.getSprite(car.getCarId().getValue() + lane.getLaneId().getValue());
