@@ -31,7 +31,6 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
 
   private final Map<PatchId, Patch> patches = new HashMap<>();
 
-  private final ConfigurationService configurationService;
   private final WorkerSubscriptionService subscriptionService;
 
   private final PatchesGraphReader patchesGraphReader;
@@ -50,10 +49,10 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
 
   @Override
   public void readMapAndBuildModel() throws InterruptedException {
-    if (configurationService.getConfiguration().isReadFromOsmDirectly()) {
+    if (ConfigurationService.getConfiguration().isReadFromOsmDirectly()) {
       waitForMapReadyToReadMessage();
     } else {
-      mapPackagePath = Path.of(configurationService.getConfiguration().getMapPath());
+      mapPackagePath = Path.of(ConfigurationService.getConfiguration().getMapPath());
     }
 
     // if (!configurationService.getConfiguration().isServerOnThisMachine()) {
@@ -104,7 +103,7 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
   @Override
   public PatchId getPatchIdByRoadId(RoadId roadId) {
     return patches.values()
-        .parallelStream()
+        .stream()
         .filter(p -> p.getRoadIds().contains(roadId))
         .findFirst()
         .get()

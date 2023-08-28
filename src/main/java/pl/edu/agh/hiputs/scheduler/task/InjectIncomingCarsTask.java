@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
-import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -19,7 +18,7 @@ public class InjectIncomingCarsTask implements Runnable {
   public void run() {
     try {
       transferDataHandler.acceptIncomingCars(
-          serializedCars.parallelStream()
+          serializedCars.stream()
               .map(SerializedCar::toRealObject)
               .collect(Collectors.toSet()));
     } catch (Exception e) {

@@ -34,12 +34,12 @@ import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 public class TrivialGraphBasedVisualizer {
 
   private final String graphStyles = """          
-      node.crossroad { fill-color: rgb(24,116,152); text-color: rgb(255,255,255); size: 25; text-size: 15; }
+      node.crossroad { fill-color: rgb(24,116,152); text-color: rgb(0,0,0); size: 25; text-size: 15; }
       node.bend { fill-color: rgb(24,116,152); text-color: rgb(255,255,255); size: 10; text-size: 15; }
       edge.local {  fill-color: rgb(54, 174, 124); text-size: 15; }
       edge.border {  fill-color: rgb(249, 217, 35); text-size: 15; }
       edge.remote {  fill-color: rgb(235, 83, 83); text-size: 15; }
-      sprite { text-color: rgb(255,255,255); size: 18; text-size: 15;  }
+      sprite { text-color: rgb(0,0,0); size: 18; text-size: 15;  }
       """;
 
   private final String vehicleSpriteTemplate = "fill-color: rgb(%d,%d,0); shape: box; size: 15, 10;";

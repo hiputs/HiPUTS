@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class BorderSynchronizationMessage implements Message {
 
   /**
@@ -18,7 +20,7 @@ public class BorderSynchronizationMessage implements Message {
   /**
    * Serialized lanes grouped by serialized PatchId where these lanes belong to
    */
-  Map<String, List<byte[]>> patchContent;
+  Map<String, List<SerializedLane>> patchContent;
 
   @Override
   public MessagesTypeEnum getMessageType() {

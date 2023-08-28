@@ -66,7 +66,7 @@ public class Car implements CarEditable {
   /**
    * Route that car will follow and its location on this route.
    */
-  private RouteWithLocation routeWithLocation;
+  private final RouteWithLocation routeWithLocation;
 
   /**
    * Current speed of car.
@@ -117,9 +117,9 @@ public class Car implements CarEditable {
     }
 
     Optional<CrossroadDecisionProperties> decisionProperties = decision.getCrossroadDecisionProperties();
-    if(decision.getCrossroadDecisionProperties().isEmpty() && this.crossroadDecisionProperties.isPresent()){
+    if (decision.getCrossroadDecisionProperties().isEmpty() && this.crossroadDecisionProperties.isPresent()) {
       decisionProperties = Optional.empty();
-      log.trace("Car: " + carId + " reset crossroadDecisionProperties");
+      log.trace("Car: {} reset crossroadDecisionProperties", carId);
     }
     this.crossroadDecisionProperties = decisionProperties;
 
@@ -139,6 +139,11 @@ public class Car implements CarEditable {
     if(this.speed > speed){
       this.speed = speed;
     }
+  }
+
+  @Override
+  public void extendRouteWithLocation(List<RouteElement> extension) {
+    routeWithLocation.addRouteElements(extension);
   }
 
   @Override

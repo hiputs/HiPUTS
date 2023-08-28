@@ -106,7 +106,7 @@ public class Driver implements IDriver {
       StringWriter sw = new StringWriter();
       PrintWriter pw = new PrintWriter(sw);
       e.printStackTrace(pw);
-      log.error("Car: " + car.getCarId() + " caught error: \n" + e.getClass() + " : " + e.getMessage() + "\n" + sw.toString());
+      log.error("Car: {} caught error: \n{}:{}\n{}", car.getCarId(), e.getClass(), e.getMessage(), sw.toString());
       acceleration = 0.1; //set default acceleration to move car to prevent stand here for a long time with error.
       crossroadDecisionProperties = Optional.empty();
     }
@@ -159,8 +159,8 @@ public class Driver implements IDriver {
       currentRoadId = desiredRoadId.get();
       destinationCandidate = roadStructureReader.getRoadReadable(currentRoadId);
       if(destinationCandidate == null){
-        log.warn("Car: " + car.getCarId() + " Destination out of this node, positionRest: " + desiredPosition
-            + ", desiredRoadId: " + currentRoadId);
+        log.warn("Car: {} Destination out of this node, positionRest: {}, desiredLaneId: {}", car.getCarId(),
+            desiredPosition, currentLaneId);
         currentRoadId = null;
         currentLaneId = null;
         break;
@@ -199,10 +199,11 @@ public class Driver implements IDriver {
           speed = Math.min(speed, Math.max(precedingCar.getSpeed() - maxDeceleration, 0) * 0.8);
           desiredPosition = Math.min(desiredPosition,
               precedingCar.getPositionOnLane() - Math.min(0.1, precedingCar.getPositionOnLane() * 0.1));
-          log.trace("Car: " + car.getCarId() + " finish move permanent and limit speed to car: " + precedingCar.getCarId() + ", speed: " + precedingCar.getSpeed() + ", position: " + precedingCar.getPositionOnLane());
+          log.trace("Car: {} finish move permanent and limit speed to car: {}, speed: {}, position: {}", car.getCarId(),
+              precedingCar.getCarId(), precedingCar.getSpeed(), precedingCar.getPositionOnLane());
         }
         else{
-          log.trace("Car: " + car.getCarId() + " finish move permanent without preceding car");
+          log.trace("Car: {} finish move permanent without preceding car", car.getCarId());
         }
       }
     }
@@ -217,7 +218,7 @@ public class Driver implements IDriver {
         .crossroadDecisionProperties(crossroadDecisionProperties)
         .build();
 
-    log.debug("Car: " + car.getCarId() + ", decision: " + decision);
+    log.debug("Car: {}, decision: {}", car.getCarId(), decision);
 
     return decision;
   }

@@ -50,7 +50,7 @@ public class GrowingPatchPartitioner implements PatchPartitioner {
           .map(e -> e.getData().getPatchId())
           .toList();
       Set<String> colorsSet = new HashSet<>(colorsList);
-      log.info(String.format("Wykryto %d nowych kolorów", colorsSet.size()));
+      log.info("Wykryto {} nowych kolorów", colorsSet.size());
 
       // jeśli nie napotkam kolorów to koloruje na nowy
       if(colorsSet.size() == 0) {

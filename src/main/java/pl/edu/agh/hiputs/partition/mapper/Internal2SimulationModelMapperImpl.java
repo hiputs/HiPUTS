@@ -43,13 +43,11 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
 
     Set<PatchId> neighbouringPatches = new HashSet<>();
 
-    neighbouringPatches.addAll(patch.getOutgoingEdges()
-        .parallelStream()
+    neighbouringPatches.addAll(patch.getOutgoingEdges().stream()
         .map(e -> new PatchId(e.getTarget().getId()))
         .toList());
 
-    neighbouringPatches.addAll(patch.getIncomingEdges()
-        .parallelStream()
+    neighbouringPatches.addAll(patch.getIncomingEdges().stream()
         .map(e -> new PatchId(e.getTarget().getId()))
         .toList());
 

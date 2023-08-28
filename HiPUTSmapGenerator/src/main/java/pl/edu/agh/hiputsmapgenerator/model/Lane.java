@@ -20,6 +20,12 @@ public class Lane {
         this.target = target;
     }
 
+    public Lane(String source, String target, int length) {
+        this.source = source;
+        this.target = target;
+        this.length = length;
+    }
+
     @Override
     public String toString() {
         return source + "," +

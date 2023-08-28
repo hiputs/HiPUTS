@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.loadbalancer;
 
+import static java.lang.Thread.sleep;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -34,29 +36,26 @@ public class TicketServiceImpl implements TicketService, Subscriber {
   private int TICKET_POOL_SIZE = 10;
   private final WorkerSubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
-
-  private final ConfigurationService configurationService;
-
-
-  private MapFragmentId[] ticketPool;
-
   private final Queue<AvailableTicketMessage> availableTicketMessageQueue = new LinkedList<>();
   private final Queue<MapFragmentId> newMapFragment = new LinkedList<>();
   private final BlockingQueue<SelectTicketMessage> selectTicketQueue = new LinkedBlockingQueue<>();
-
   private final Executor executor = Executors.newSingleThreadExecutor();
 
+  private MapFragmentId[] ticketPool;
   private final AtomicInteger actualStep = new AtomicInteger();
 
   @PostConstruct
   void init() {
-    subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
-    subscriptionService.subscribe(this, MessagesTypeEnum.SelectTicketMessage);
-    subscriptionService.subscribe(this, MessagesTypeEnum.AvailableTicketMessage);
+    if (ConfigurationService.getConfiguration().isTicketActive()) {
+      subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
+      subscriptionService.subscribe(this, MessagesTypeEnum.SelectTicketMessage);
+      subscriptionService.subscribe(this, MessagesTypeEnum.AvailableTicketMessage);
 
-    TICKET_POOL_SIZE = Math.min(TICKET_POOL_SIZE, configurationService.getConfiguration().getWorkerCount() * 2);
-    ticketPool = new MapFragmentId[TICKET_POOL_SIZE];
-    executor.execute(new TicketInfinityLoop());
+      TICKET_POOL_SIZE = Math.min(TICKET_POOL_SIZE, ConfigurationService.getConfiguration().getWorkerCount() * 2);
+      ticketPool = new MapFragmentId[TICKET_POOL_SIZE];
+
+      executor.execute(new TicketInfinityLoop());
+    }
   }
 
   @Override
@@ -90,12 +89,14 @@ public class TicketServiceImpl implements TicketService, Subscriber {
 
   @Override
   public synchronized void addNewTalker(MapFragmentId neighbourId) {
+    log.debug("TS add new Talker {}", neighbourId.getId());
     newMapFragment.add(neighbourId);
     notify();
   }
 
   @Override
   public void removeTalker(MapFragmentId neighbourId) {
+    log.debug("Ticket Service remove talker {}", neighbourId.getId());
       for(int i=0; i< TICKET_POOL_SIZE; i++){
         if(neighbourId.equals(ticketPool[i])){
           ticketPool[i] = null;
@@ -109,6 +110,20 @@ public class TicketServiceImpl implements TicketService, Subscriber {
     public void run() {
       while (true) {
         if (!availableTicketMessageQueue.isEmpty()) {
+          while (messageSenderService.getConnectionDtoMap().isEmpty() || !messageSenderService.getConnectionDtoMap()
+              .keySet()
+              .stream()
+              .map(MapFragmentId::getId)
+              .toList()
+              .contains(availableTicketMessageQueue.peek().getMapFragmentId())) {
+            try {
+              sleep(5);
+              log.info("Message receiver not in neighborhood repository");
+            } catch (InterruptedException e) {
+              e.printStackTrace();
+            }
+          }
+
           selectTicket();
           continue;
         }
@@ -120,7 +135,9 @@ public class TicketServiceImpl implements TicketService, Subscriber {
             continue;
           }
 
-          if(neighbour.hashCode() > configurationService.getConfiguration().getMapFragmentId().hashCode()){// wait for message because older send theirs possibility
+          if (neighbour.hashCode() > ConfigurationService.getConfiguration()
+              .getMapFragmentId()
+              .hashCode()) {// wait for message because older send theirs possibility
             continue;
           }
 
@@ -134,11 +151,14 @@ public class TicketServiceImpl implements TicketService, Subscriber {
 
     private void startSyncTicketNegotiaton(MapFragmentId neighbour) {
       try {
-        MapFragmentId me = configurationService.getConfiguration().getMapFragmentId();
-      //  log.info("Start negotiation between {} and me {}", neighbour.getId(), me.getId());
+        MapFragmentId me = ConfigurationService.getConfiguration().getMapFragmentId();
+        log.debug("Start negotiation between {} and me {}", neighbour.getId(), me.getId());
         messageSenderService.send(neighbour, new AvailableTicketMessage(me.getId(), getFreeTicket()));
         final SelectTicketMessage selectTicketMessage = selectTicketQueue.take();
-        setTicket(selectTicketMessage.getTicket(), new MapFragmentId(selectTicketMessage.getMapFragmentId()));
+
+        if (selectTicketMessage.getTicket() != -1) {
+          setTicket(selectTicketMessage.getTicket(), new MapFragmentId(selectTicketMessage.getMapFragmentId()));
+        }
       } catch (Exception e) {
         log.error("Send free ticket error", e);
       }
@@ -146,23 +166,30 @@ public class TicketServiceImpl implements TicketService, Subscriber {
 
     private void selectTicket() {
       AvailableTicketMessage message = availableTicketMessageQueue.poll();
-      int selectTicket = getTicket(message);
-      MapFragmentId neighbour = new MapFragmentId(message.getMapFragmentId());
-      try {
-        //log.info("Select ticket {} neighbour {}", selectTicket, neighbour.getId());
-        messageSenderService.send(neighbour, new SelectTicketMessage(configurationService.getConfiguration().getMapFragmentId().getId(), selectTicket));
-      } catch (IOException e) {
-        log.error("Send message error");
-      }
+      if (message != null) {
+        int selectTicket = getTicket(message);
 
-      setTicket(selectTicket, neighbour);
+        MapFragmentId neighbour = new MapFragmentId(message.getMapFragmentId());
+        try {
+          log.debug("Select ticket {} neighbour {}", selectTicket, neighbour.getId());
+          messageSenderService.send(neighbour,
+              new SelectTicketMessage(ConfigurationService.getConfiguration().getMapFragmentId().getId(),
+                  selectTicket));
+        } catch (IOException e) {
+          log.error("Send message error");
+        }
+        if (selectTicket != -1) {
+          setTicket(selectTicket, neighbour);
+        }
+      }
     }
 
     private void setTicket(int ticket, MapFragmentId mapFragmentId) {
+      log.debug("TS set ticket {} {}", ticket, mapFragmentId);
       if (ticketPool[ticket] != null) {
         log.error("Override ticket {}", ticket);
       }
-      //log.info("Worker {} get token {}", mapFragmentId, ticket);
+      log.debug("Worker {} get token {}", mapFragmentId, ticket);
       ticketPool[ticket] = mapFragmentId;
     }
   }
@@ -188,7 +215,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
         message.getFreeTicket().stream().filter(i -> i % 2 == 0).filter(i -> ticketPool[i] == null).findFirst();
 
     return ticket.orElseGet(
-        () -> message.getFreeTicket().stream().filter(i -> ticketPool[i] == null).findFirst().get());
+        () -> message.getFreeTicket().stream().filter(i -> ticketPool[i] == null).findFirst().orElse(-1));
   }
 
   private synchronized void waitingZone(){

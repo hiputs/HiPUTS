@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
@@ -15,6 +16,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 @Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class SerializedLane implements CustomSerializable<List<Car>> {
 
   String roadId;

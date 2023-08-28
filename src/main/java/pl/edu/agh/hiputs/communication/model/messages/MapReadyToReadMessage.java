@@ -1,10 +1,14 @@
 package pl.edu.agh.hiputs.communication.model.messages;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 
-@Value
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
 @Builder
 public class MapReadyToReadMessage implements Message {
 

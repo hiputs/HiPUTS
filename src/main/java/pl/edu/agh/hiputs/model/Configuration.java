@@ -27,6 +27,12 @@ public class Configuration {
   private int workerCount;
 
   /**
+   * Count of cores per worker
+   * (number of threads used by Scheduler)
+   */
+  private int coresPerWorkerCount;
+
+  /**
    * Every worker run visualisation
    */
   private boolean enableGUI;
@@ -35,6 +41,11 @@ public class Configuration {
    * Server create statistic after simulation
    */
   private boolean statisticModeActive;
+
+  /**
+   * Whether append statistic results at the end of existing files or create new ones
+   */
+  private boolean appendResults;
 
   /**
    * How long simulation should work
@@ -54,7 +65,7 @@ public class Configuration {
   /**
    * Good knowledge server ip address
    */
-  private String serverAddress;
+  private String serverAddress; // todo no one use it?
 
   /**
    * Good knowledge server port
@@ -80,6 +91,16 @@ public class Configuration {
    * Number of cars to be generated on each lane on simulation start
    */
   private int initialNumberOfCarsPerLane;
+
+  /**
+   * Number of cars to be generated on each worker's part of map
+   */
+  private int numberOfCarsPerWorker;
+
+  /**
+   * Number of cars in one of workers - big worker (for LB tests)
+   */
+  private int numberOfCarsInBigWorker;
 
   /**
    * Pause between every simulation step in ms. When visualise mode is enabled recommended min 100ms
@@ -165,10 +186,22 @@ public class Configuration {
    */
   private MapFragmentId mapFragmentId;
 
+  /**
+   * Extend route of each car to maintain all existing vehicles in simulation (when route ends, vehicle disappears)
+   */
+  private boolean extendCarRouteWhenItEnds;
+
+  /**
+   * Create new car in place of a car which ended his journey. Can be used to maintain constant number of cars in
+   * simulation.
+   */
+  private boolean replaceCarWithFinishedRoute;
+
   public static Configuration getDefault() {
     return Configuration.builder()
         .testMode(true)
         .workerCount(1)
+        .coresPerWorkerCount(48)
         .enableGUI(true)
         .statisticModeActive(false)
         .simulationStep(1000)
@@ -212,7 +245,7 @@ public class Configuration {
      * Arbitrary maximum distance in meters at which the car should be able to retrieve all necessary information
      * required by decision process
      */
-    private double carViewRange;
+    private double carViewRange; // todo duplicated in 'master' configuration
 
     /**
      * Property related only for "hexagon" patch partitioner.

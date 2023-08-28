@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarPrecedingEnvironment;
@@ -22,12 +23,16 @@ import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
+
 @Disabled
 
 public class GetPrecedingCarTest {
 
   private MapFragment mapFragment;
+  @Mock
+  private MapRepository mapRepository;
   private ExampleCarProvider carProvider;
   private RoadId startRoadId;
   private RoadEditable startRoad;
@@ -37,8 +42,8 @@ public class GetPrecedingCarTest {
   private CarProspector prospector;
     @BeforeEach
     public void setup() {
-        mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
-        carProvider = new ExampleCarProvider(mapFragment);
+        mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false, mapRepository);
+        carProvider = new ExampleCarProvider(mapFragment, mapRepository);
         startRoadId = mapFragment.getLocalRoadIds().iterator().next();
         startRoad = mapFragment.getRoadEditable(startRoadId);
         startLaneId = startRoad.getLanes().get(0);

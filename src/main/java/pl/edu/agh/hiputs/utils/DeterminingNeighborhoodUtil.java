@@ -1,15 +1,11 @@
 package pl.edu.agh.hiputs.utils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import java.util.Set;
-
-import lombok.experimental.UtilityClass;
-
-import java.util.HashMap;
 import java.util.stream.Collectors;
-
+import lombok.experimental.UtilityClass;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
@@ -32,7 +28,7 @@ public class DeterminingNeighborhoodUtil {
 
         allPatches.forEach(patch -> {
             Set<PatchId> neighbourhoodPatchIds = patch.getRoadIds()
-                    .parallelStream()
+                    .stream()
                     .map(patch::getRoadReadable)
                     .filter(road -> patch.getJunctionReadable(road.getOutgoingJunctionId()) == null ||
                             patch.getJunctionReadable(road.getIncomingJunctionId()) == null)

@@ -49,7 +49,7 @@ public interface TransferDataHandler {
   void acceptShadowPatches(Set<Patch> shadowPatches);
 
   /**
-   * Return  patches from worker's point of view
+   * Return patches from worker's point of view
    */
   Set<PatchReader> getKnownPatchReadable();
 
@@ -65,11 +65,13 @@ public interface TransferDataHandler {
 
   void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId, TicketService ticketService);
 
-  void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository, List<ImmutablePair<PatchId, MapFragmentId>> patchIdWithMapFragmentId, TicketService ticketService);
+  void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository,
+      List<ImmutablePair<PatchId, MapFragmentId>> neighbourPatchIdsWithMapFragmentId, TicketService ticketService);
 
   MapFragmentId getMapFragmentIdByPatchId(PatchId patchId);
 
-  void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId source, MapFragmentId destination, TicketService ticketService);
+  void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId destination, MapFragmentId source,
+      TicketService ticketService);
 
   Patch getPatchById(PatchId patchId);
 
@@ -85,4 +87,19 @@ public interface TransferDataHandler {
   void printStaistic();
 
   int getLocalPatchesSize();
+
+  /**
+   * Map of patches sent to neighbours during Load Balancing
+   *
+   * @param patchReceiver
+   * @param mapReceiver
+   */
+  void updateMapOfSentPatches(PatchId patchReceiver, MapFragmentId mapReceiver);
+
+  void clearMapOfSentPatches();
+
+  Map<PatchId, MapFragmentId> getMapOfSentPatches();
+
+  List<MapFragmentId> getNeighboursToRemove();
+
 }

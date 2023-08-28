@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
@@ -20,11 +21,15 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.tasks.RoadUpdateStageTask;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
 @Disabled
 @ExtendWith(MockitoExtension.class)
 public class RoadUpdateStageTaskTest {
+
+  @Mock
+  private MapRepository mapRepository;
 
   private MapFragment mapFragment;
   private RoadId roadId1, roadId2;
@@ -39,7 +44,7 @@ public class RoadUpdateStageTaskTest {
 
   @BeforeEach
   public void setup() {
-    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
+    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false, mapRepository);
     roadId1 = mapFragment.getLocalRoadIds().iterator().next();
     road1 = mapFragment.getRoadEditable(roadId1);
     laneId1 = road1.getLanes().get(0);

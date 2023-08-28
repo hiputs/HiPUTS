@@ -2,13 +2,15 @@ package pl.edu.agh.hiputs.model.map.roadstructure;
 
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterators;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -24,7 +26,7 @@ import pl.edu.agh.hiputs.model.id.RoadId;
 @Slf4j
 @Builder
 @AllArgsConstructor
-public class Lane implements LaneEditable{
+public class Lane implements LaneEditable {
 
   /**
    * Unique lane identifier.
@@ -57,16 +59,30 @@ public class Lane implements LaneEditable{
   private final List<LaneId> laneSuccessors = new ArrayList<>();
 
   /**
-   * Collection of cars traveling on this road.
+   * Collection of cars traveling on this lane.
    */
   @Builder.Default
-  private Deque<CarEditable> cars = new LinkedList<>();
+  private Deque<CarEditable> cars = new ConcurrentLinkedDeque<>();
 
   /**
    * Set for cars incoming onto this road
    */
   @Builder.Default
   private Set<CarEditable> incomingCars = new ConcurrentSkipListSet<>();
+
+  /**
+   * Cars whose speed is less than 1km/h - for metrics
+   */
+  @Getter
+  @Builder.Default
+  private int stoppedCars = 0;
+
+  /**
+   * Summary speed of cars on this Lane - for metrics
+   */
+  @Getter
+  @Builder.Default
+  private double sumSpeed = 0;
 
   @Override
   public Optional<CarReadable> getCarInFrontReadable(CarReadable car) {
@@ -107,7 +123,10 @@ public class Lane implements LaneEditable{
 
   @Override
   public Stream<CarReadable> streamCarsFromExitReadable() {
-    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false);
+
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false)
+        .filter(Objects::nonNull)
+        .map(car -> car);
   }
 
   @Override
@@ -125,7 +144,7 @@ public class Lane implements LaneEditable{
   public void addCarAtEntry(CarEditable car) {
     if(!cars.isEmpty()){
       CarReadable firstCarOnRoad = cars.peekFirst();
-      if(firstCarOnRoad.getPositionOnLane() < car.getPositionOnLane()){
+      if(firstCarOnRoad != null && firstCarOnRoad.getPositionOnLane() < car.getPositionOnLane()){
         log.debug("Road: " + roadId + " Try to add car at entry with higher position than first one car on road, car: "
             + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnRoad.getCarId()
             + ", position: " + firstCarOnRoad.getPositionOnLane() + ", speed: " + firstCarOnRoad.getSpeed() + ". Collision after crossroad!");
@@ -144,7 +163,7 @@ public class Lane implements LaneEditable{
       double position = cars.getFirst().getPositionOnLane() - cars.getFirst().getLength() - 0.3;
       double speed = cars.getFirst().getSpeed();
 
-      if(position > length){
+      if (position > length) {
         car.setPositionOnLaneAndSpeed(0, 10);
       }
 
@@ -152,9 +171,9 @@ public class Lane implements LaneEditable{
         double start = c.getPositionOnLane();
         double end = start + c.getLength();
 
-        if(position >= start && position <= end){
+        if (position >= start && position <= end) {
           position = end + 0.3;
-        } else{
+        } else {
           break;
         }
       }
@@ -207,9 +226,9 @@ public class Lane implements LaneEditable{
   }
 
   @Override
-  public Stream<CarEditable> pollIncomingCars() {
+  public synchronized Stream<CarEditable> pollIncomingCars() {
     Set<CarEditable> oldIncomingCars = incomingCars;
-    this.incomingCars = new HashSet<>();
+    this.incomingCars = new ConcurrentSkipListSet<>();
     return oldIncomingCars.stream();
   }
 
@@ -223,7 +242,46 @@ public class Lane implements LaneEditable{
     return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false);
   }
 
+  @Override
   public boolean removeCar(CarEditable car) {
     return this.cars.remove(car);
+  }
+
+  @Override
+  public synchronized void placeCarInQueueMiddle(CarEditable car) {
+    LinkedList<CarEditable> carsList = new LinkedList<>(cars);
+    Iterator<CarEditable> iterCars = cars.iterator();
+    int idx = 0;
+
+    while (iterCars.hasNext() && iterCars.next().getPositionOnLane() < car.getPositionOnLane()) {
+      idx += 1;
+    }
+    carsList.add(idx, car);
+    cars.clear();
+    cars.addAll(carsList);
+  }
+
+  @Override
+  public synchronized void replaceCar(CarEditable oldCar, CarEditable newCar) {
+    removeCar(oldCar);
+    placeCarInQueueMiddle(newCar);
+  }
+
+  @Override
+  public void removeAllCars() {
+    cars.clear();
+  }
+
+  @Override
+  public void updateCarSpeedMetrics() {
+    stoppedCars = 0;
+    sumSpeed = 0;
+    for (CarEditable car : cars) {
+      sumSpeed += car.getSpeed();
+      if (car.getSpeed() <= 0.27) //0.27 m/s is less than 1 km/h
+      {
+        stoppedCars += 1;
+      }
+    }
   }
 }

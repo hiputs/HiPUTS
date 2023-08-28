@@ -41,7 +41,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     try {
       saveGraphWithPatches(graph, ExportDescriptor.builder().exportDirAbsolutePath(exportPath.toAbsolutePath().toString()).build());
     } catch (IOException e) {
-      log.error("Error occurred while saving graph with patches: " + e.getMessage());
+      log.error("Error occurred while saving graph with patches: {}", e.getMessage());
     }
   }
 
@@ -189,7 +189,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
           .lanes(csvToCollection(record.get(EdgeHeader.lanes)).stream()
               .map(laneIdToLaneData::get)
               .toList())
-          .tags(csvToMap(record.get(EdgeHeader.tags)))
+          .tags(csvToMap(record.isSet(EdgeHeader.tags.name()) ? record.get(EdgeHeader.tags) : ""))
           .build();
       Edge<JunctionData, WayData> edge = new Edge<>(record.get(EdgeHeader.source) + "->" + record.get(EdgeHeader.target), wayData);
       edge.setSource(nodeId2Node.get(record.get(EdgeHeader.source)));

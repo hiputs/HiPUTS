@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.Car;
@@ -19,6 +20,10 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 import pl.edu.agh.hiputs.tasks.RoadDecisionStageTask;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.service.worker.CarGeneratorService;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
+import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
 @Disabled
@@ -34,9 +39,14 @@ public class RoadDecisionStageTaskTest {
   private RoadId nextRoadId;
   private LaneId nextLaneId;
 
+  @Mock
+  private MapRepository mapRepository;
+  @Mock
+  private CarGeneratorService carGeneratorService;
+
   @BeforeEach
   public void setup() {
-    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
+    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false, mapRepository);
     roadId = mapFragment.getLocalRoadIds().stream().findAny().get();
     laneId = mapFragment.getRoadReadable(roadId).getLanes().get(0);
     car = createTestCar();
@@ -47,11 +57,12 @@ public class RoadDecisionStageTaskTest {
     //given
     setLaneIdRoadId(car, laneId, roadId);
     setPositionOnLane(car, 0);
+    boolean carReplaced = false;
 
     mapFragment.getLaneEditable(laneId).addCarAtEntry(car);
 
     //when
-    RoadDecisionStageTask roadDecisionStageTask = new RoadDecisionStageTask(mapFragment, roadId);
+    RoadDecisionStageTask roadDecisionStageTask = new RoadDecisionStageTask(mapFragment, roadId, carGeneratorService, carReplaced);
     roadDecisionStageTask.run();
 
     //then
@@ -65,6 +76,7 @@ public class RoadDecisionStageTaskTest {
     //given
     RoadEditable roadEditable = mapFragment.getRoadEditable(roadId);
     LaneEditable laneEditable = mapFragment.getLaneEditable(laneId);
+    boolean carReplaced = false;
 
     setLaneIdRoadId(car, laneId, roadId);
     setPositionOnLane(car, roadEditable.getLength() - DISTANCE_TO_LANE_END);
@@ -72,7 +84,7 @@ public class RoadDecisionStageTaskTest {
     laneEditable.addCarAtEntry(car);
 
     //when
-    RoadDecisionStageTask roadDecisionStageTask = new RoadDecisionStageTask(mapFragment, roadId);
+    RoadDecisionStageTask roadDecisionStageTask = new RoadDecisionStageTask(mapFragment, roadId, carGeneratorService, carReplaced);
     roadDecisionStageTask.run();
 
     //then
