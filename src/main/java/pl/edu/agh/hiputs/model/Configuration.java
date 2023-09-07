@@ -198,10 +198,7 @@ public class Configuration {
   private boolean replaceCarWithFinishedRoute;
 
   public static Configuration getDefault() {
-    return Configuration.builder()
-        .testMode(true)
-        .workerCount(1)
-        .coresPerWorkerCount(48)
+    return Configuration.builder().testMode(true).workerCount(1).coresPerWorkerCount(1)
         .enableGUI(true)
         .statisticModeActive(false)
         .simulationStep(1000)
