@@ -11,6 +11,14 @@ application {
     mainClass = 'pl.edu.agh.hiputsmapgenerator.HiPUTSMapGeneratorApplication'
 }
 
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'pl.edu.agh.hiputsmapgenerator.HiPUTSMapGeneratorApplication'
+        )
+    }
+}
+
 
 repositories {
     mavenCentral()

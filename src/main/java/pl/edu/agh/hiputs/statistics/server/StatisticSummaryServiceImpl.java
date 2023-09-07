@@ -64,9 +64,9 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     // createCSVTotalCostByWorker();
     createCSVWorkerCosts();
     CreateCSVCarByWorker();
-    createCSVLoadBalancingCostByWorker();
+    // createCSVLoadBalancingCostByWorker();
     createCSVPatchExchangesRecords();
-    createCSVMapStatistic();
+    // createCSVMapStatistic();
     createCSVSummaryTimes();
     createCSVIterationTimes();
     createCSVIterationData();

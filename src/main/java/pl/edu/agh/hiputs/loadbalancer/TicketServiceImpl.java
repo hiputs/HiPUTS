@@ -36,7 +36,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
   private int TICKET_POOL_SIZE = 10;
   private final WorkerSubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
-  private final Queue<AvailableTicketMessage> availableTicketMessageQueue = new LinkedList<>();
+  private final BlockingQueue<AvailableTicketMessage> availableTicketMessageQueue = new LinkedBlockingQueue<>();
   private final Queue<MapFragmentId> newMapFragment = new LinkedList<>();
   private final BlockingQueue<SelectTicketMessage> selectTicketQueue = new LinkedBlockingQueue<>();
   private final Executor executor = Executors.newSingleThreadExecutor();
@@ -108,14 +108,19 @@ public class TicketServiceImpl implements TicketService, Subscriber {
 
     @Override
     public void run() {
+      try {
+        sleep(5);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
       while (true) {
         if (!availableTicketMessageQueue.isEmpty()) {
+          // .collect(Collectors.toList())
           while (messageSenderService.getConnectionDtoMap().isEmpty() || !messageSenderService.getConnectionDtoMap()
               .keySet()
               .stream()
               .map(MapFragmentId::getId)
-              .toList()
-              .contains(availableTicketMessageQueue.peek().getMapFragmentId())) {
+              .anyMatch(id -> id.equals(availableTicketMessageQueue.peek().getMapFragmentId()))) {
             try {
               sleep(5);
               log.info("Message receiver not in neighborhood repository");

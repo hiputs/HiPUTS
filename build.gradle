@@ -2,11 +2,13 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '2.6.2'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'application'
 }
 
 group 'pl.edu.agh.hiputs'
 version 'HiPUTS-0.0.0.1-SNAPSHOT'
 
+mainClassName = 'pl.edu.agh.hiputs.HiPUTS'
 
 configurations {
     compileOnly {
@@ -32,6 +34,7 @@ repositories {
 //    sourceCompatibility JavaVersion.V
 //    targetCompatibility JavaVersion.VERSION_1_8
 //}
+
 
 
 

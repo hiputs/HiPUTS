@@ -77,7 +77,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
           new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 
       simulationStatisticService.startStage(SimulationPoint.WORKER_MAP_BUILD);
+      log.info("Building map...");
       mapRepository.readMapAndBuildModel();
+      log.info("Map build.");
       simulationStatisticService.endStage(SimulationPoint.WORKER_MAP_BUILD);
     } catch (Exception e) {
       log.error("Worker fail", e);
@@ -119,7 +121,9 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     carGeneratorService.setMapFragment(mapFragment);
 
     simulationStatisticService.startStage(SimulationPoint.WORKER_INITIAL_CAR_GENERATION);
+    log.info("Starting generating cars...");
     carGeneratorService.generateInitialCars();
+    log.info("Cars generated.");
     simulationStatisticService.endStage(SimulationPoint.WORKER_INITIAL_CAR_GENERATION);
 
     if (configuration.isEnableGUI()) {

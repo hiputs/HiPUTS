@@ -18,7 +18,8 @@ import static java.lang.Math.sqrt;
 
 public class HiPUTSMapGeneratorApplication {
 
-    private static final String MAP_PATH = "..\\data\\";
+  // private static final String MAP_PATH = "..\\data\\";
+     private static final String MAP_PATH = "";
     private static final Pair mapDims = new Pair(256,256); // all nodes in map for one worker
     private static final String MAP_PATCHES_NAME = "_"+mapDims.toString();
     private static Pair patchDims = new Pair(2,2); // nodes in patch
@@ -35,22 +36,22 @@ public class HiPUTSMapGeneratorApplication {
         mapDims.setX(patchDims.getX() * (int) mapDims.getX() / patchDims.getX());
         mapDims.setY(patchDims.getY() * (int) mapDims.getY() / patchDims.getY());
 
-        // genMap(1);
-        // genMap(3);
-        // genMap(4);
-        // genMap(8);
-        genMap(9);
+       // genMap(1);
+       //  genMap(2);
+       // genMap(4);
+       //  genMap(8);
+        // genMap(9);
         // genMap(12);
         // genMap(16);
         // genMap(20);
         // genMap(24);
         // genMap(28);
-        // genMap(36);
+        // genMap(32);
         // genMap(48);
-        // genMap(64);
-        // genMap(128);
-        // genMap(256);
-        // genMap(384);
+        //  genMap(64);
+        //   genMap(128);
+          genMap(256);
+//           genMap(512);
 
     }
 
