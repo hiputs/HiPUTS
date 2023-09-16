@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
@@ -19,7 +20,7 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.utils.MinMaxAcc;
 
 @Service
-// @Primary
+@Primary // TODO for scalabity tests with synthetic map mark RectangelMapFragmentPartitioner as PRIMARY
 @RequiredArgsConstructor
 public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
 
@@ -27,7 +28,7 @@ public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
 
   @Override
   public Collection<Graph<PatchData, PatchConnectionData>> partition(Graph<PatchData, PatchConnectionData> graph) {
-    return partition(graph, configurationService.getConfiguration().getWorkerCount());
+    return partition(graph, ConfigurationService.getConfiguration().getWorkerCount());
   }
 
   private Collection<Graph<PatchData, PatchConnectionData>> partition(Graph<PatchData, PatchConnectionData> graph, int partsCount) {

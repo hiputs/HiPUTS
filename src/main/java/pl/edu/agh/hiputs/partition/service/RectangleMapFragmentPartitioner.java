@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -19,7 +18,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.utils.MinMaxAcc;
 
-@Primary // todo - used for scalability tests - for normal use mark QuadTreeMap... as @Primary
+// @Primary // todo - used for scalability tests - for normal use mark QuadTreeMap... as @Primary
 @Service
 public class RectangleMapFragmentPartitioner extends QuadTreeMapFragmentPartitioner {
 
