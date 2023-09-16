@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -37,7 +38,8 @@ public class TicketServiceImpl implements TicketService, Subscriber {
   private final WorkerSubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
   private final BlockingQueue<AvailableTicketMessage> availableTicketMessageQueue = new LinkedBlockingQueue<>();
-  private final Queue<MapFragmentId> newMapFragment = new LinkedList<>();
+      //ConcurrentLinkedQueue();
+  private final Queue<MapFragmentId> newMapFragment = new ConcurrentLinkedQueue<>();
   private final BlockingQueue<SelectTicketMessage> selectTicketQueue = new LinkedBlockingQueue<>();
   private final Executor executor = Executors.newSingleThreadExecutor();
 

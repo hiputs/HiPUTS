@@ -46,8 +46,8 @@ public class MessageSenderService implements Subscriber {
   private AtomicLong sentMessagesSize;
   private AtomicInteger sentServerMessages;
   private AtomicInteger sentMessages;
-  private Map<MessagesTypeEnum, Integer> sentMessagesTypeDict;
-  private Map<MessagesTypeEnum, Integer> sentMessagesTypeSizesDict;
+  private Map<MessagesTypeEnum, AtomicInteger> sentMessagesTypeDict;
+  private Map<MessagesTypeEnum, AtomicInteger> sentMessagesTypeSizesDict;
   // private final Kryo kyro;
 
   @PostConstruct
@@ -61,8 +61,8 @@ public class MessageSenderService implements Subscriber {
     sentMessagesTypeDict = new ConcurrentHashMap<>();
     sentMessagesTypeSizesDict = new ConcurrentHashMap<>();
     MessagesTypeEnum.getWorkerMessages().forEach(key -> {
-      sentMessagesTypeDict.put(key, 0);
-      sentMessagesTypeSizesDict.put(key, 0);
+      sentMessagesTypeDict.put(key, new AtomicInteger(0));
+      sentMessagesTypeSizesDict.put(key, new AtomicInteger(0));
     });
   }
 
@@ -75,10 +75,15 @@ public class MessageSenderService implements Subscriber {
   public void send(MapFragmentId mapFragmentId, Message message) throws IOException {
     log.debug("Worker send message to: {} message type: {}", mapFragmentId, message.getMessageType());
 
-    sentMessagesTypeSizesDict.replace(message.getMessageType(),
-        sentMessagesTypeSizesDict.get(message.getMessageType()) + neighbourRepository.get(mapFragmentId).send(message));
+    // sentMessagesTypeSizesDict.replace(message.getMessageType(),
+    //     sentMessagesTypeSizesDict.get(message.getMessageType()) + neighbourRepository.get(mapFragmentId).send
+    //     (message));
 
-    sentMessagesTypeDict.replace(message.getMessageType(), sentMessagesTypeDict.get(message.getMessageType()) + 1);
+    sentMessagesTypeSizesDict.get(message.getMessageType())
+        .getAndAdd(neighbourRepository.get(mapFragmentId).send(message));
+
+    sentMessagesTypeDict.get(message.getMessageType()).incrementAndGet();
+    // sentMessagesTypeDict.replace(message.getMessageType(), sentMessagesTypeDict.get(message.getMessageType()).());
     sentMessages.incrementAndGet();
   }
 
@@ -112,10 +117,11 @@ public class MessageSenderService implements Subscriber {
 
     neighbourRepository.values().forEach(n -> {
       try {
-        sentMessagesTypeSizesDict.replace(message.getMessageType(),
-            sentMessagesTypeSizesDict.get(message.getMessageType()) + n.send(message));
+        // sentMessagesTypeSizesDict.replace(message.getMessageType(),
+        sentMessagesTypeSizesDict.get(message.getMessageType()).addAndGet(n.send(message));
 
-        sentMessagesTypeDict.replace(message.getMessageType(), sentMessagesTypeDict.get(message.getMessageType()) + 1);
+        // sentMessagesTypeDict.replace(message.getMessageType(),
+        sentMessagesTypeDict.get(message.getMessageType()).incrementAndGet();
 
         sentMessages.incrementAndGet();
         // sentMessagesType.add(message.getMessageType().name());
@@ -129,10 +135,11 @@ public class MessageSenderService implements Subscriber {
 
     receivers.forEach(r -> {
       try {
-        sentMessagesTypeSizesDict.replace(message.getMessageType(),
-            sentMessagesTypeSizesDict.get(message.getMessageType()) + neighbourRepository.get(r).send(message));
+        // sentMessagesTypeSizesDict.replace(message.getMessageType(),
+        sentMessagesTypeSizesDict.get(message.getMessageType()).addAndGet(neighbourRepository.get(r).send(message));
 
-        sentMessagesTypeDict.replace(message.getMessageType(), sentMessagesTypeDict.get(message.getMessageType()) + 1);
+        // sentMessagesTypeDict.replace(message.getMessageType(),
+        sentMessagesTypeDict.get(message.getMessageType()).incrementAndGet();
 
         sentMessages.incrementAndGet();
         // sentMessagesType.add(message.getMessageType().name());
@@ -156,10 +163,10 @@ public class MessageSenderService implements Subscriber {
     List<Integer> result = MessagesTypeEnum.getWorkerMessages()
         .stream()
         .sorted(Comparator.comparing(Enum::toString))
-        .map(key -> sentMessagesTypeDict.get(key))
+        .map(key -> sentMessagesTypeDict.get(key).get())
         .toList();
 
-    MessagesTypeEnum.getWorkerMessages().forEach(key -> sentMessagesTypeDict.put(key, 0));
+    MessagesTypeEnum.getWorkerMessages().forEach(key -> sentMessagesTypeDict.put(key, new AtomicInteger(0)));
 
     return result;
     // return sentMessages.getAndSet(0);
@@ -175,10 +182,10 @@ public class MessageSenderService implements Subscriber {
     List<Integer> result = MessagesTypeEnum.getWorkerMessages()
         .stream()
         .sorted(Comparator.comparing(Enum::toString))
-        .map(key -> sentMessagesTypeSizesDict.get(key))
+        .map(key -> sentMessagesTypeSizesDict.get(key).get())
         .toList();
 
-    MessagesTypeEnum.getWorkerMessages().forEach(key -> sentMessagesTypeSizesDict.put(key, 0));
+    MessagesTypeEnum.getWorkerMessages().forEach(key -> sentMessagesTypeSizesDict.put(key, new AtomicInteger(0)));
 
     return result;
 
