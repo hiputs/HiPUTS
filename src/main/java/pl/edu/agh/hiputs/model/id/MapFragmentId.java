@@ -14,7 +14,8 @@ public class MapFragmentId {
   private final String id;
 
   public static MapFragmentId random() {
-    return new MapFragmentId("W" + ThreadLocalRandom.current().nextInt(0, 10000));
+    return new MapFragmentId(
+        "W" + ThreadLocalRandom.current().nextInt(0, 10000) + ThreadLocalRandom.current().nextInt(100, 10000));
   }
 
   public static MapFragmentId from(MapFragmentId mapFragmentId) {
