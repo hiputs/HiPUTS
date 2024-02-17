@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @AllArgsConstructor
 @Getter
-// @EqualsAndHashCode
 @Slf4j
 public class MapFragmentId {
 
@@ -15,7 +14,8 @@ public class MapFragmentId {
 
   public static MapFragmentId random() {
     return new MapFragmentId(
-        "W" + ThreadLocalRandom.current().nextInt(0, 10000) + ThreadLocalRandom.current().nextInt(100, 10000));
+        "W" + ThreadLocalRandom.current().nextInt(0, 10000) + ThreadLocalRandom.current().nextInt(10, 10000)
+            + System.getProperty("NODE_NAME"));
   }
 
   public static MapFragmentId from(MapFragmentId mapFragmentId) {

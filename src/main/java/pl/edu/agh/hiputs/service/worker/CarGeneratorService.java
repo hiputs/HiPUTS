@@ -36,26 +36,25 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 @RequiredArgsConstructor
 public class CarGeneratorService implements Subscriber {
 
+  private static final int START_ADD_CAR = 5;
+  private final TaskExecutorService taskExecutor;
+  private final MapRepository mapRepository;
+  private final WorkerSubscriptionService subscriptionService;
   @Setter
   private MapFragment mapFragment;
   private ExampleCarProvider carProvider;
   private Configuration configuration;
-  private final TaskExecutorService taskExecutor;
-  private final MapRepository mapRepository;
-  private final WorkerSubscriptionService subscriptionService;
   private boolean bigWorker = false;
   private int step = 0;
   private int totalPatch = -1;
-  private static final int START_ADD_CAR = 5;
-
 
   @PostConstruct
-  void init(){
+  void init() {
     subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
     configuration = ConfigurationService.getConfiguration();
   }
 
-  public void generateInitialCars(){
+  public void generateInitialCars() {
     createCarProvider();
 
     List<Runnable> generationTasks =
@@ -65,24 +64,15 @@ public class CarGeneratorService implements Subscriber {
     taskExecutor.executeBatch(generationTasks);
   }
 
-  private void putCarsOnLanes(List<Car> generatedCars) {
-    generatedCars.sort(Comparator.comparing(Car::getPositionOnLane));
-    Collections.reverse(generatedCars);
-    // it's important to sort and reverse cars because now we place cars from the end of the road
-    // to the beginning and
-    // when needed car's position is modified to not be generated on other car
-
-    generatedCars.forEach(car -> {
-      LaneEditable lane = mapFragment.getLaneEditable(car.getLaneId());
-      carProvider.limitSpeedPreventCollisionOnStart(car, lane);
-      lane.addNewCar(car);
-    });
-  }
-
   private List<Runnable> generateCarsDistributedEvenlyBetweenPatches() {
-    int perWorkerCars =
-        bigWorker ? configuration.getNumberOfCarsInBigWorker() : configuration.getNumberOfCarsPerWorker();
-    int minCarsPerPatch = perWorkerCars / mapFragment.getMyPatchCount();
+    long t0 = System.currentTimeMillis();
+    int perWorkerCars;
+    if (bigWorker) {
+      perWorkerCars = configuration.getNumberOfCarsInBigWorker();
+    } else {
+      perWorkerCars = configuration.getNumberOfCarsPerWorker();
+    }
+    int minCarsPerPatch = mapFragment.getMyPatchCount() > 0 ? perWorkerCars / mapFragment.getMyPatchCount() : 0;
 
     List<Runnable> tasks = new LinkedList<>();
     int patchIdx = 0;
@@ -102,6 +92,8 @@ public class CarGeneratorService implements Subscriber {
       }
       patchIdx++;
     }
+    long t1 = System.currentTimeMillis();
+    log.debug("GENERATE CAR DIVISION TIME: {}", t1 - t0);
     return tasks;
   }
 
@@ -113,20 +105,37 @@ public class CarGeneratorService implements Subscriber {
         .collect(Collectors.toList());
   }
 
+  private void createCarProvider() {
+    if (carProvider == null) {
+      try {
+        carProvider = new ExampleCarProvider(mapFragment, mapRepository);
+      } catch (NullPointerException e) {
+        throw new NullPointerException(
+            "MapFragment is null. " + "You need to provide MapFragment object before creating CarProvider object.");
+      }
+    }
+  }
+
+  private void putCarsOnLanes(List<Car> generatedCars) {
+    generatedCars.sort(Comparator.comparing(Car::getPositionOnLane));
+    Collections.reverse(generatedCars);
+    // it's important to sort and reverse cars because now we place cars from the end of the road
+    // to the beginning and
+    // when needed car's position is modified to not be generated on other car
+
+    generatedCars.forEach(car -> {
+      LaneEditable lane = mapFragment.getLaneEditable(car.getLaneId());
+      carProvider.limitSpeedPreventCollisionOnStart(car, lane);
+      lane.addNewCar(car);
+    });
+  }
+
   public void manageCars(int step, MapFragment mapFragment) {
     if (configuration.isExtendCarRouteWhenItEnds()) {
       extendCarsRoutes(step);
     } else if (configuration.getNewCars() > 0) {
       generateCarsAfterStep(mapFragment);
     }
-  }
-
-  public Car replaceCar(CarEditable car) {
-    Car newCar = carProvider.generateCar(car.getPositionOnLane(), car.getLaneId(), car.getSpeed());
-    LaneEditable lane = mapFragment.getLaneEditable(car.getLaneId());
-    lane.replaceCar(car, newCar);
-
-    return newCar;
   }
 
   private void extendCarsRoutes(int step) {
@@ -156,10 +165,10 @@ public class CarGeneratorService implements Subscriber {
       return;
     }
 
-    if(bigWorker){
+    if (bigWorker) {
       count = count * 10;
     }
-    
+
     List<LaneEditable> lanesEditable = mapFragment.getRandomLanesEditable(count);
     // ExampleCarProvider carProvider = new ExampleCarProvider(mapFragment, mapRepository);
     createCarProvider();
@@ -184,23 +193,16 @@ public class CarGeneratorService implements Subscriber {
 
   }
 
-  private void createCarProvider(){
-    if(carProvider == null) {
-      try {
-        carProvider = new ExampleCarProvider(mapFragment, mapRepository);
-      }
-      catch(NullPointerException e){
-        throw new NullPointerException("MapFragment is null. "
-            + "You need to provide MapFragment object before creating CarProvider object.");
-      }
-    }
+  public Car replaceCar(CarEditable car) {
+    Car newCar = carProvider.generateCar(car.getPositionOnLane(), car.getLaneId(), car.getSpeed());
+    LaneEditable lane = mapFragment.getLaneEditable(car.getLaneId());
+    lane.replaceCar(car, newCar);
+
+    return newCar;
   }
 
   @Override
   public void notify(Message message) {
     bigWorker = ((ServerInitializationMessage) message).isBigWorker();
   }
-
-
-
 }

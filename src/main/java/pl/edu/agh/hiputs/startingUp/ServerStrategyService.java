@@ -69,6 +69,8 @@ public class ServerStrategyService implements Strategy {
   private final PatchesGraphWriter patchesGraphWriter;
   private final WorkerRepository workerRepository;
   private final GraphCoherencyUtil graphCoherencyUtil;
+  @Autowired
+  private ApplicationContext context;
 
   @Override
   public void executeStrategy() throws InterruptedException {
@@ -94,6 +96,7 @@ public class ServerStrategyService implements Strategy {
 
     log.info("Start waiting for all workers be in state WorkerConnection");
     workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
+    log.info("All workers are in state WorkerConnection");
 
     statisticSummaryService.startStage(SimulationPoint.SERVER_MAP_PARTITION);
     if (ConfigurationService.getConfiguration().isReadFromOsmDirectly()) {
@@ -132,10 +135,7 @@ public class ServerStrategyService implements Strategy {
       log.info("Start generating summary");
       statisticSummaryService.endStage(SimulationPoint.SERVER_APP);
 
-      long t0 = System.currentTimeMillis();
       generateReport();
-      long t1 = System.currentTimeMillis();
-      System.out.print(t1 - t0);
     }
 
     messageSenderServerService.broadcast(new ShutDownMessage());
@@ -143,13 +143,14 @@ public class ServerStrategyService implements Strategy {
     shutDown();
   }
 
-  private void calculateAndDistributeConfiguration(Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents) {
+  private void calculateAndDistributeConfiguration(
+      Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents) {
     Iterator<String> workerIdsIterator = workerRepository.getAllWorkersIds().iterator();
     Iterator<Graph<PatchData, PatchConnectionData>> mapFragmentContentIterator = mapFragmentsContents.iterator();
 
     Map<String, String> patchId2workerId = new HashMap<>();
     // map which patch belongs where
-    while(workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
+    while (workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
       String workerId = workerIdsIterator.next();
       Graph<PatchData, PatchConnectionData> mapFragmentContent = mapFragmentContentIterator.next();
 
@@ -185,12 +186,12 @@ public class ServerStrategyService implements Strategy {
       Map<String, List<String>> workerId2shadowPatchesIds = new HashMap<>();
       shadowPatchesIds.forEach(patchId -> {
         String neighbourWorkerId = patchId2workerId.get(patchId);
-          if (workerId2shadowPatchesIds.containsKey(neighbourWorkerId)) {
-            workerId2shadowPatchesIds.get(neighbourWorkerId).add(patchId);
-          } else {
-            workerId2shadowPatchesIds.put(neighbourWorkerId, Stream.of(patchId).collect(Collectors.toList()));
-          }
-        });
+        if (workerId2shadowPatchesIds.containsKey(neighbourWorkerId)) {
+          workerId2shadowPatchesIds.get(neighbourWorkerId).add(patchId);
+        } else {
+          workerId2shadowPatchesIds.put(neighbourWorkerId, Stream.of(patchId).collect(Collectors.toList()));
+        }
+      });
 
       List<WorkerDataDto> workerDataDtos = workerId2shadowPatchesIds.entrySet()
           .stream()
@@ -213,9 +214,8 @@ public class ServerStrategyService implements Strategy {
       workerId2ServerInitializationMessage.put(workerId, serverInitializationMessage);
     }
 
-    workerId2ServerInitializationMessage.entrySet().forEach(
-        e -> messageSenderServerService.send(e.getKey(), e.getValue())
-    );
+    workerId2ServerInitializationMessage.entrySet()
+        .forEach(e -> messageSenderServerService.send(e.getKey(), e.getValue()));
   }
 
   private void generateReport() {
@@ -248,19 +248,17 @@ public class ServerStrategyService implements Strategy {
     return patchesGraph;
   }
 
-  private Path generateDeploymentPackageName(Path osmFilePath) {
-    String fileName = osmFilePath.getFileName().toString().split("\\.")[0];
-    return Paths.get(osmFilePath.getParent().toAbsolutePath().toString(), fileName + "_" + UUID.randomUUID());
-  }
-
   private void createDeploymentPackageDir(Path deploymentPackagePath) {
     if (!deploymentPackagePath.toFile().mkdir()) {
       throw new RuntimeException(String.format("Directory with path %s cannot be created", deploymentPackagePath));
     }
   }
 
-  @Autowired
-  private ApplicationContext context;
+  private Path generateDeploymentPackageName(Path osmFilePath) {
+    String fileName = osmFilePath.getFileName().toString().split("\\.")[0];
+    return Paths.get(osmFilePath.getParent().toAbsolutePath().toString(), fileName + "_" + UUID.randomUUID());
+  }
+
   private void shutDown() {
     int exitCode = SpringApplication.exit(context, () -> 0);
     System.exit(exitCode);
@@ -273,8 +271,6 @@ public class ServerStrategyService implements Strategy {
       try {
         Thread.sleep(1);
         workerStrategyService.executeStrategy();
-        // } catch (InterruptedException e) {
-        //   log.error("Worker not started", e);
       } catch (Exception e) {
         log.error("Unexpected exception occurred", e);
       }

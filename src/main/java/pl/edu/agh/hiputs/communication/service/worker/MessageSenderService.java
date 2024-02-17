@@ -3,7 +3,6 @@ package pl.edu.agh.hiputs.communication.service.worker;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,15 +39,14 @@ public class MessageSenderService implements Subscriber {
 
   private final Map<MapFragmentId, Connection> neighbourRepository = new ConcurrentHashMap<>();
   @Getter
-  private final Map<MapFragmentId, ConnectionDto> connectionDtoMap = new HashMap<>();
-  private Connection serverConnection;
+  private final Map<MapFragmentId, ConnectionDto> connectionDtoMap = new ConcurrentHashMap<>();
   private final WorkerSubscriptionService subscriptionService;
+  private Connection serverConnection;
   private AtomicLong sentMessagesSize;
   private AtomicInteger sentServerMessages;
   private AtomicInteger sentMessages;
   private Map<MessagesTypeEnum, AtomicInteger> sentMessagesTypeDict;
   private Map<MessagesTypeEnum, AtomicInteger> sentMessagesTypeSizesDict;
-  // private final Kryo kyro;
 
   @PostConstruct
   void init() {
@@ -75,16 +73,21 @@ public class MessageSenderService implements Subscriber {
   public void send(MapFragmentId mapFragmentId, Message message) throws IOException {
     log.debug("Worker send message to: {} message type: {}", mapFragmentId, message.getMessageType());
 
-    // sentMessagesTypeSizesDict.replace(message.getMessageType(),
-    //     sentMessagesTypeSizesDict.get(message.getMessageType()) + neighbourRepository.get(mapFragmentId).send
-    //     (message));
+    if (neighbourRepository.containsKey(mapFragmentId) && neighbourRepository.get(mapFragmentId) != null) {
+      sentMessagesTypeSizesDict.putIfAbsent(message.getMessageType(), new AtomicInteger(0));
+      sentMessagesTypeSizesDict.get(message.getMessageType())
+          .getAndAdd(neighbourRepository.get(mapFragmentId).send(message));
 
-    sentMessagesTypeSizesDict.get(message.getMessageType())
-        .getAndAdd(neighbourRepository.get(mapFragmentId).send(message));
-
-    sentMessagesTypeDict.get(message.getMessageType()).incrementAndGet();
-    // sentMessagesTypeDict.replace(message.getMessageType(), sentMessagesTypeDict.get(message.getMessageType()).());
-    sentMessages.incrementAndGet();
+      sentMessagesTypeDict.putIfAbsent(message.getMessageType(), new AtomicInteger(0));
+      sentMessagesTypeDict.get(message.getMessageType()).incrementAndGet();
+      sentMessages.incrementAndGet();
+    } else {
+      log.error(
+          "No such neighbour {} in neighbourRepository. Message type to send: {}. Neighs in repo: {}; neigh val {}",
+          mapFragmentId.getId(), message.getMessageType(),
+          neighbourRepository.keySet().stream().map(MapFragmentId::getId).toList(),
+          neighbourRepository.getOrDefault(mapFragmentId, null));
+    }
   }
 
   public void sendServerMessage(Message message) throws IOException {
@@ -100,11 +103,8 @@ public class MessageSenderService implements Subscriber {
     Configuration configuration = ConfigurationService.getConfiguration();
     String ip = CollectionUtils.isEmpty(HiPUTS.globalInitArgs) ? "127.0.0.1" : HiPUTS.globalInitArgs.get(0);
     log.info("Server address {}:{}", ip, configuration.getServerPort());
-    ConnectionDto connectionDto = ConnectionDto.builder()
-        .port(configuration.getServerPort())
-        .address(ip)
-        .id("SERVER")
-        .build();
+    ConnectionDto connectionDto =
+        ConnectionDto.builder().port(configuration.getServerPort()).address(ip).id("SERVER").build();
     serverConnection = new Connection(connectionDto);
   }
 
@@ -114,17 +114,18 @@ public class MessageSenderService implements Subscriber {
    *     <p>Method send message to all existing worker</p>
    */
   public void broadcast(Message message) {
+    sentMessagesTypeSizesDict.putIfAbsent(message.getMessageType(), new AtomicInteger(0));
+    sentMessagesTypeDict.putIfAbsent(message.getMessageType(), new AtomicInteger(0));
 
     neighbourRepository.values().forEach(n -> {
       try {
-        // sentMessagesTypeSizesDict.replace(message.getMessageType(),
-        sentMessagesTypeSizesDict.get(message.getMessageType()).addAndGet(n.send(message));
-
-        // sentMessagesTypeDict.replace(message.getMessageType(),
-        sentMessagesTypeDict.get(message.getMessageType()).incrementAndGet();
-
-        sentMessages.incrementAndGet();
-        // sentMessagesType.add(message.getMessageType().name());
+        if (n != null) {
+          sentMessagesTypeSizesDict.get(message.getMessageType()).addAndGet(n.send(message));
+          sentMessagesTypeDict.get(message.getMessageType()).incrementAndGet();
+          sentMessages.incrementAndGet();
+        } else {
+          log.error("connection is null; message type {}", message.getMessageType());
+        }
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -132,17 +133,20 @@ public class MessageSenderService implements Subscriber {
   }
 
   public void broadcast(Message message, Set<MapFragmentId> receivers) {
+    sentMessagesTypeSizesDict.putIfAbsent(message.getMessageType(), new AtomicInteger(0));
+    sentMessagesTypeDict.putIfAbsent(message.getMessageType(), new AtomicInteger(0));
 
     receivers.forEach(r -> {
       try {
-        // sentMessagesTypeSizesDict.replace(message.getMessageType(),
-        sentMessagesTypeSizesDict.get(message.getMessageType()).addAndGet(neighbourRepository.get(r).send(message));
-
-        // sentMessagesTypeDict.replace(message.getMessageType(),
-        sentMessagesTypeDict.get(message.getMessageType()).incrementAndGet();
-
-        sentMessages.incrementAndGet();
-        // sentMessagesType.add(message.getMessageType().name());
+        if (neighbourRepository.containsKey(r) && neighbourRepository.get(r) != null) {
+          sentMessagesTypeSizesDict.get(message.getMessageType()).addAndGet(neighbourRepository.get(r).send(message));
+          sentMessagesTypeDict.get(message.getMessageType()).incrementAndGet();
+          sentMessages.incrementAndGet();
+        } else {
+          log.error("No such neighbour {} in neighbourRepository. Message type to send: {}. Neighs in repo: {}",
+              r.getId(), message.getMessageType(),
+              neighbourRepository.keySet().stream().map(MapFragmentId::getId).toList());
+        }
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -167,9 +171,7 @@ public class MessageSenderService implements Subscriber {
         .toList();
 
     MessagesTypeEnum.getWorkerMessages().forEach(key -> sentMessagesTypeDict.put(key, new AtomicInteger(0)));
-
     return result;
-    // return sentMessages.getAndSet(0);
   }
 
   public int getSentServerMessages() {
@@ -177,8 +179,6 @@ public class MessageSenderService implements Subscriber {
   }
 
   public synchronized List<Integer> getSentMessagesSize() {
-    // return sentMessagesSize.getAndSet(0);
-
     List<Integer> result = MessagesTypeEnum.getWorkerMessages()
         .stream()
         .sorted(Comparator.comparing(Enum::toString))
@@ -186,25 +186,22 @@ public class MessageSenderService implements Subscriber {
         .toList();
 
     MessagesTypeEnum.getWorkerMessages().forEach(key -> sentMessagesTypeSizesDict.put(key, new AtomicInteger(0)));
-
     return result;
-
   }
 
   private void handlePatchTransferNotificationMessage(Message message) {
     PatchTransferNotificationMessage patchTransferNotificationMessage = (PatchTransferNotificationMessage) message;
     MapFragmentId newMapId = new MapFragmentId(patchTransferNotificationMessage.getReceiverId());
-
-    // long receiverInRepoCount = neighbourRepository.keySet().stream().filter(key -> key.getId().equals
-    // (patchTransferNotificationMessage.getReceiverId())).count();
-    if (patchTransferNotificationMessage.getReceiverId() == null || neighbourRepository.containsKey(newMapId)) {
+    if (patchTransferNotificationMessage.getReceiverId() == null
+        || patchTransferNotificationMessage.getConnectionDto() == null || neighbourRepository.containsKey(newMapId)) {
       log.debug("receiverId == null or neighbourRepository contains key for {}",
           patchTransferNotificationMessage.getReceiverId());
       return;
     }
 
-    log.debug("neighbourRepository NOT contain key for {}", patchTransferNotificationMessage.getReceiverId());
     Connection connection = new Connection(patchTransferNotificationMessage.getConnectionDto());
+    log.info("neighbourRepository NOT contain key for {}; connection {}",
+        patchTransferNotificationMessage.getReceiverId(), connection);
     connectionDtoMap.put(newMapId, patchTransferNotificationMessage.getConnectionDto());
     neighbourRepository.put(newMapId, connection);
   }
@@ -227,43 +224,26 @@ public class MessageSenderService implements Subscriber {
         .flatMap(Collection::stream)
         .collect(Collectors.toSet());
 
-    workerConnectionMessages
-        .forEach(c -> {
-          log.debug("handlePatchMessage from {}", c.getId());
-          MapFragmentId newMapId = new MapFragmentId(c.getId());
-          // long mapIdInRepoCount = neighbourRepository.keySet().stream().filter(key -> key.getId().equals(c.getId()
-          // )).count();
-          if (c == null || neighbourRepository.containsKey(newMapId)) {
-            return;
-          }
-          log.debug("Processing patch transfer message - adding new neighbour {}", c.getId());
-          Connection connection = new Connection(c);
-          connectionDtoMap.put(newMapId, c);
-          neighbourRepository.put(newMapId, connection);
-        });
+    workerConnectionMessages.forEach(c -> {
+      log.debug("handlePatchMessage from {}", c.getId());
+      MapFragmentId newMapId = new MapFragmentId(c.getId());
+      if (c == null || neighbourRepository.containsKey(newMapId)) {
+        return;
+      }
+      log.debug("Processing patch transfer message - adding new neighbour {}", c.getId());
+      Connection connection = new Connection(c);
+      connectionDtoMap.put(newMapId, c);
+      neighbourRepository.put(newMapId, connection);
+    });
   }
 
-  private void handleWorkerConnectionMessage(Message message){
+  private void handleWorkerConnectionMessage(Message message) {
     ServerInitializationMessage serverInitializationMessage = (ServerInitializationMessage) message;
-    serverInitializationMessage.getWorkerInfo()
-        .stream()
-        .map(WorkerDataDto::getConnectionData)
-        .forEach(c -> {
-          Connection connection = new Connection(c);
-          MapFragmentId newMapId = new MapFragmentId(c.getId());
-          connectionDtoMap.put(newMapId, c);
-          neighbourRepository.put(newMapId, connection);
-
-          // MapFragmentId a = new MapFragmentId(c.getId());
-          // log.debug("Add neigh {} {} - {}, {}, {}", newMapId, newMapId.hashCode(), neighbourRepository.keySet(),
-          //     neighbourRepository.get(a), a.hashCode());
-        });
+    serverInitializationMessage.getWorkerInfo().stream().map(WorkerDataDto::getConnectionData).forEach(c -> {
+      Connection connection = new Connection(c);
+      MapFragmentId newMapId = new MapFragmentId(c.getId());
+      connectionDtoMap.put(newMapId, c);
+      neighbourRepository.put(newMapId, connection);
+    });
   }
-
-  // public void removeNeighbourConnection(MapFragmentId mapFragmentId){
-  //   connectionDtoMap.remove(mapFragmentId);
-  //   neighbourRepository.get(mapFragmentId).closeConnection();
-  //   neighbourRepository.remove(mapFragmentId);
-  // }
-
 }
