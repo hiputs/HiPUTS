@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.model.id;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import pl.edu.agh.hiputs.utils.uuid.UUIDProvider;
 
 @RequiredArgsConstructor
 @Getter
@@ -12,7 +13,7 @@ public class PatchId {
   private final String value;
 
   public static PatchId random() {
-    return new PatchId(UUID.randomUUID().toString());
+    return new PatchId(UUIDProvider.nextUUID().toString());
   }
 
   @Override

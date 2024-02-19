@@ -5,6 +5,9 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.CompletedIn
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationStatisticMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.WorkerConnectionMessage;
+import static pl.edu.agh.hiputs.visualization.connection.topic.TopicConfiguration.VISUALIZATION_STATE_CHANGE_TOPIC;
+import static proto.model.RUNNING_STATE.CLOSED;
+import static proto.model.RUNNING_STATE.STARTED;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
 import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
@@ -34,6 +38,7 @@ import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 import pl.edu.agh.hiputs.communication.service.server.ConnectionInitializationService;
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
 import pl.edu.agh.hiputs.communication.service.server.WorkerRepository;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.loadbalancer.utils.GraphCoherencyUtil;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
@@ -43,20 +48,20 @@ import pl.edu.agh.hiputs.partition.persistance.PatchesGraphReader;
 import pl.edu.agh.hiputs.partition.persistance.PatchesGraphWriter;
 import pl.edu.agh.hiputs.partition.service.MapFragmentPartitioner;
 import pl.edu.agh.hiputs.partition.service.MapStructureLoader;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.server.WorkerSynchronisationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
 import pl.edu.agh.hiputs.statistics.SimulationPoint;
 import pl.edu.agh.hiputs.statistics.server.StatisticSummaryService;
+import pl.edu.agh.hiputs.visualization.connection.VisualizationSynchronisationService;
 
 @Slf4j
-// @Primary
 @Service
 @RequiredArgsConstructor
 public class ServerStrategyService implements Strategy {
 
   private final WorkerSynchronisationService workerSynchronisationService;
   private final ConnectionInitializationService connectionInitializationService;
+  private final Configuration configuration;
   private final WorkerStrategyService workerStrategyService;
   private final MapFragmentPartitioner mapFragmentPartitioner;
   private final ExecutorService workerPrepareExecutor = newSingleThreadExecutor();
@@ -68,38 +73,45 @@ public class ServerStrategyService implements Strategy {
   private final PatchesGraphReader patchesGraphReader;
   private final PatchesGraphWriter patchesGraphWriter;
   private final WorkerRepository workerRepository;
+
+  private final VisualizationSynchronisationService visualizationSynchronisationService;
+
+  private final KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
   private final GraphCoherencyUtil graphCoherencyUtil;
   @Autowired
   private ApplicationContext context;
 
   @Override
   public void executeStrategy() throws InterruptedException {
-
     log.info("Running server");
     statisticSummaryService.startStage(SimulationPoint.SERVER_APP);
     statisticSummaryService.startStage(SimulationPoint.SERVER_INITIALIZATION);
     connectionInitializationService.init();
     workerPrepareExecutor.submit(new PrepareWorkerTask());
 
+    log.info("Start waiting for all workers be in state WorkerConnection");
+    workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
+    log.info("All workers are in state WorkerConnection"); //TODO czemu najpierw to zamiast po initmap
+
+    if (configuration.isEnableVisualization()) {
+      kafkaListenerEndpointRegistry.getListenerContainer(VISUALIZATION_STATE_CHANGE_TOPIC).start();
+      visualizationSynchronisationService.waitForVisualizationStateChangeMessage(STARTED);
+    }
+
     statisticSummaryService.startStage(SimulationPoint.SERVER_INIT_MAP);
     Path mapPackagePath =
-        ConfigurationService.getConfiguration().isReadFromOsmDirectly() ? generateDeploymentPackageName(
-            Path.of(ConfigurationService.getConfiguration().getMapPath()))
-            : Path.of(ConfigurationService.getConfiguration().getMapPath());
+        configuration.isReadFromOsmDirectly() ? generateDeploymentPackageName(Path.of(configuration.getMapPath()))
+            : Path.of(configuration.getMapPath());
 
     Graph<PatchData, PatchConnectionData> patchesGraph =
-        ConfigurationService.getConfiguration().isReadFromOsmDirectly() ? createAndSavePatchesPackage(mapPackagePath)
+        configuration.isReadFromOsmDirectly() ? createAndSavePatchesPackage(mapPackagePath)
             : patchesGraphReader.readGraphWithPatches(mapPackagePath);
 
     mapRepository.setPatchesGraph(patchesGraph);
     statisticSummaryService.endStage(SimulationPoint.SERVER_INIT_MAP);
 
-    log.info("Start waiting for all workers be in state WorkerConnection");
-    workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
-    log.info("All workers are in state WorkerConnection");
-
     statisticSummaryService.startStage(SimulationPoint.SERVER_MAP_PARTITION);
-    if (ConfigurationService.getConfiguration().isReadFromOsmDirectly()) {
+    if (configuration.isReadFromOsmDirectly()) {
       messageSenderServerService.broadcast(
           MapReadyToReadMessage.builder().mapPackagePath(mapPackagePath.toString()).build());
     }
@@ -124,13 +136,21 @@ public class ServerStrategyService implements Strategy {
     statisticSummaryService.startStage(SimulationPoint.SERVER_SIMULATION);
     distributeRunSimulationMessage(mapFragmentsContents);
 
+    if (configuration.isEnableVisualization()) {
+      visualizationSynchronisationService.changeSimulationState(STARTED);
+    }
+
     log.info("Waiting for end simulation");
     workerSynchronisationService.waitForAllWorkers(FinishSimulationMessage);
     log.info("Simulation finished");
 
     statisticSummaryService.endStage(SimulationPoint.SERVER_SIMULATION);
 
-    if (ConfigurationService.getConfiguration().isStatisticModeActive()) {
+    if (configuration.isEnableVisualization()) {
+      visualizationSynchronisationService.changeSimulationState(CLOSED);
+    }
+
+    if (configuration.isStatisticModeActive()) {
       workerSynchronisationService.waitForAllWorkers(FinishSimulationStatisticMessage);
       log.info("Start generating summary");
       statisticSummaryService.endStage(SimulationPoint.SERVER_APP);
@@ -165,7 +185,7 @@ public class ServerStrategyService implements Strategy {
 
     //prepare serverInitMessage for each worker
     Map<String, ServerInitializationMessage> workerId2ServerInitializationMessage = new HashMap<>();
-    boolean bigWorkerSelected = ConfigurationService.getConfiguration().getNumberOfCarsInBigWorker() > 0;
+    boolean bigWorkerSelected = configuration.getNumberOfCarsInBigWorker() > 0;
 
     while (workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
       String workerId = workerIdsIterator.next();
@@ -229,9 +249,9 @@ public class ServerStrategyService implements Strategy {
   private Graph<PatchData, PatchConnectionData> createAndSavePatchesPackage(Path mapPackagePath) {
     log.info("Start reading map");
     Graph<PatchData, PatchConnectionData> patchesGraph;
-    if (ConfigurationService.getConfiguration().isReadFromOsmDirectly()) {
+    if (configuration.isReadFromOsmDirectly()) {
       log.info("Reading map from osm file");
-      patchesGraph = mapStructureLoader.loadFromOsmFile(Path.of(ConfigurationService.getConfiguration().getMapPath()));
+      patchesGraph = mapStructureLoader.loadFromOsmFile(Path.of(configuration.getMapPath()));
 
       log.info("Writing map with patches");
       createDeploymentPackageDir(mapPackagePath);
@@ -240,8 +260,7 @@ public class ServerStrategyService implements Strategy {
     } else {
       //read existing map
       log.info("Reading map from import package - patch partition skipped");
-      patchesGraph =
-          mapStructureLoader.loadFromCsvImportPackage(Path.of(ConfigurationService.getConfiguration().getMapPath()));
+      patchesGraph = mapStructureLoader.loadFromCsvImportPackage(Path.of(configuration.getMapPath()));
     }
 
     log.info("Reading map finished successfully");
@@ -254,14 +273,14 @@ public class ServerStrategyService implements Strategy {
     }
   }
 
-  private Path generateDeploymentPackageName(Path osmFilePath) {
-    String fileName = osmFilePath.getFileName().toString().split("\\.")[0];
-    return Paths.get(osmFilePath.getParent().toAbsolutePath().toString(), fileName + "_" + UUID.randomUUID());
-  }
-
   private void shutDown() {
     int exitCode = SpringApplication.exit(context, () -> 0);
     System.exit(exitCode);
+  }
+
+  private Path generateDeploymentPackageName(Path osmFilePath) {
+    String fileName = osmFilePath.getFileName().toString().split("\\.")[0];
+    return Paths.get(osmFilePath.getParent().toAbsolutePath().toString(), fileName + "_" + UUID.randomUUID());
   }
 
   private class PrepareWorkerTask implements Runnable {
@@ -269,8 +288,10 @@ public class ServerStrategyService implements Strategy {
     @Override
     public void run() {
       try {
-        Thread.sleep(1);
+        Thread.sleep(50);
         workerStrategyService.executeStrategy();
+      } catch (InterruptedException e) {
+        log.error("Worker not started", e);
       } catch (Exception e) {
         log.error("Unexpected exception occurred", e);
       }

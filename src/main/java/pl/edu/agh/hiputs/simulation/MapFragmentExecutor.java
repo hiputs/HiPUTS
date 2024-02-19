@@ -10,14 +10,14 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingService;
 import pl.edu.agh.hiputs.loadbalancer.LocalLoadMonitorService;
 import pl.edu.agh.hiputs.loadbalancer.utils.CarCounterUtil;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
-import pl.edu.agh.hiputs.service.ConfigurationService;
-import pl.edu.agh.hiputs.service.worker.CarGeneratorService;
+import pl.edu.agh.hiputs.service.routegenerator.CarGeneratorService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.CarsOnBorderSynchronizationService;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
@@ -32,40 +32,39 @@ import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
 @RequiredArgsConstructor
 public class MapFragmentExecutor {
 
-  @Setter
-  @Getter
-  private MapFragment mapFragment;
+  private final Configuration configuration;
   private final TaskExecutorService taskExecutor;
   private final CarSynchronizationService carSynchronizationService;
   private final CarsOnBorderSynchronizationService carsOnBorderSynchronizationService;
   private final LocalLoadMonitorService localLoadMonitorService;
   private final LoadBalancingService loadBalancingService;
   private final MessageSenderService messageSenderService;
-
   private final PatchTransferService patchTransferService;
   private final CarGeneratorService carGeneratorService;
   private final SimulationStatisticService simulationStatisticService;
   private final IterationStatisticsService iterationStatisticsService;
+  @Setter
+  @Getter
+  private MapFragment mapFragment;
 
   public void run(int step) {
     try {
       iterationStatisticsService.startSimulationStep();
 
       // 3. decision
-      log.info("Step 3 start");
+      log.debug("Step 3 start");
       iterationStatisticsService.startStage(
           List.of(SimulationPoint.FULL_STEP, SimulationPoint.DECISION_STAGE, SimulationPoint.FIRST_ITERATION));
       List<Runnable> decisionStageTasks = mapFragment.getLocalLaneIds()
           .stream()
           .map(laneId -> new LaneDecisionStageTask(mapFragment, laneId, carGeneratorService,
-              ConfigurationService.getConfiguration().isReplaceCarWithFinishedRoute()))
-          .collect(Collectors.toList());
+              configuration.isReplaceCarWithFinishedRoute())).collect(Collectors.toList());
       taskExecutor.executeBatch(decisionStageTasks);
 
       iterationStatisticsService.endStage(SimulationPoint.DECISION_STAGE);
 
       // 4. send incoming sets of cars to neighbours
-      log.info("Step 4 start");
+      log.debug("Step 4 start");
       iterationStatisticsService.startStage(SimulationPoint.SENDING_CARS);
       int sendCars = carSynchronizationService.sendIncomingSetsOfCarsToNeighbours(mapFragment);
       iterationStatisticsService.endStage(List.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SENDING_CARS));
@@ -130,10 +129,22 @@ public class MapFragmentExecutor {
       }
 
       // 11. gen new car
-      log.info("Step 11 start");
+      log.debug("Step 11 start");
+
+      /**
+       * TODO: Create separate main class for generating route files - Currently this `if` is a workaround. -> `if`
+       * moved to CarGeneratorServiceImpl->generateInitialCars()
+       * To achieve that `SingleWorkStrategyService` and `SingleWorkStrategyService` need the same source of data.
+       * Currently `SingleWorkStrategyService` uses `MapFragment` directly with empty `MapRepository`
+       * Possible fix:
+       * - Create `SingleMapFragmentMapRepository` that would extend `MapRepository` and load directly from map fragment
+       *     in memory (instead of files on disk)
+       * - Conditionally create either `SingleMapFragmentMapRepository` or `MapRepositoryImpl` based on `testMode` flag
+       * - Create separate main class for generating route files
+       */
 
       iterationStatisticsService.startStage(SimulationPoint.MANAGE_CARS);
-      carGeneratorService.manageCars(step, mapFragment);
+      carGeneratorService.manageCars(mapFragment, step);
       iterationStatisticsService.endStage(SimulationPoint.MANAGE_CARS);
 
       // mapFragment.printFullStatistic();

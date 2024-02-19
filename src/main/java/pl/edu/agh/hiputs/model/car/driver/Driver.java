@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.Decision;
@@ -35,7 +36,8 @@ public class Driver implements IDriver {
   private final FunctionalDecider idmDecider;
   private final JunctionDecider junctionDecider;
   private final double distanceHeadway;
-  private final double timeStep;
+  @Setter
+  private double timeStep;
   private final double maxDeceleration;
 
   public Driver(DriverParameters parameters){

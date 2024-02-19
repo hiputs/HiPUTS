@@ -26,6 +26,7 @@ import pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationM
 import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.loadbalancer.LoadBalancingStrategy.LoadBalancingDecision;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.PatchBalancingInfo;
@@ -34,7 +35,6 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.PatchTransferService;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 
@@ -46,6 +46,8 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   private static final int MAX_PATCH_EXCHANGE = 40;
   private final PatchTransferService patchTransferService;
   private final SimulationStatisticService simulationStatisticService;
+  private final Configuration configuration;
+
   private final WorkerSubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
   private final AtomicInteger synchronizationLoadBalancingCounter = new AtomicInteger();
@@ -65,7 +67,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
 
   @Override
   public MapFragmentId startLoadBalancing(TransferDataHandler transferDataHandler) {
-    if (ConfigurationService.getConfiguration().getWorkerCount() == 1) {
+    if (configuration.getWorkerCount() == 1) {
       return null;
     }
     transferDataHandler.clearMapOfSentPatches();
@@ -84,7 +86,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
     log.debug("neighboursToNotify {}", notifications.keySet());
     balance(transferDataHandler);
     log.debug("after balance {} ", notifications.keySet());
-    if (!ConfigurationService.getConfiguration().getBalancingMode().equals(BalancingMode.NONE)) {
+    if (!configuration.getBalancingMode().equals(BalancingMode.NONE)) {
       sendNotificationsAndSynchronizeWithNeighbours();
     }
 
@@ -253,7 +255,7 @@ public class LoadBalancingServiceImpl implements LoadBalancingService, Subscribe
   }
 
   private LoadBalancingStrategy getStrategyByMode() {
-    return switch (ConfigurationService.getConfiguration().getBalancingMode()) {
+    return switch (configuration.getBalancingMode()) {
       case SIMPLY -> new SimplyLoadBalancingStrategy(simulationStatisticService, localLoadMonitorService,
           selectNeighbourToBalancingService);
       case PID -> new PidLoadBalancingStrategy(simulationStatisticService, localLoadMonitorService,

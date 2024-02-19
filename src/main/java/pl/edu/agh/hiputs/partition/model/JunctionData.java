@@ -20,6 +20,9 @@ public class JunctionData implements NodeData {
   @Setter
   private String patchId;
 
+  @Builder.Default
+  private boolean isOsmNode = true;
+
   @Override
   public void merge(NodeData other) {
     if (other == null) {

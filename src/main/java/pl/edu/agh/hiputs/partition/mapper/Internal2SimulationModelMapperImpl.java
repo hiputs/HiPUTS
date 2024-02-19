@@ -71,7 +71,7 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
 
   private Junction mapNodeToSimulationModel(Node<JunctionData, WayData> node) {
     JunctionBuilder junctionBuilder = Junction.builder()
-        .junctionId(new JunctionId(node.getId(), getJunctionType(node)))
+        .junctionId(new JunctionId(node.getId(), getJunctionType(node), node.getData().isOsmNode()))
         .longitude(node.getData().getLon())
         .latitude(node.getData().getLat());
 
@@ -87,8 +87,8 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
     Lane.LaneBuilder laneBuilder = Lane.builder()
         .laneId(new LaneId(edge.getId()))
         .length(edge.getData().getLength())
-        .incomingJunctionId(new JunctionId(edge.getSource().getId(), getJunctionType(edge.getSource())))
-        .outgoingJunctionId(new JunctionId(edge.getTarget().getId(), getJunctionType(edge.getTarget())))
+        .incomingJunctionId(new JunctionId(edge.getSource().getId(), getJunctionType(edge.getSource()), edge.getSource().getData().isOsmNode()))
+        .outgoingJunctionId(new JunctionId(edge.getTarget().getId(), getJunctionType(edge.getTarget()), edge.getTarget().getData().isOsmNode()))
         .leftNeighbor(getOppositeLaneId(edge).map(laneId -> new NeighborLaneInfo(laneId,
             HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE))); //todo parse line from osm if possible
     return laneBuilder.build();

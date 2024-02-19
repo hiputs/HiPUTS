@@ -5,6 +5,7 @@ enum NodeHeaders {
   longitude,
   latitude,
   is_crossroad,
+  is_osm_node,
   patch_id,
   tags;
 }

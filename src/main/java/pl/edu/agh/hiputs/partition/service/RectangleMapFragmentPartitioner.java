@@ -10,6 +10,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
@@ -22,8 +23,8 @@ import pl.edu.agh.hiputs.utils.MinMaxAcc;
 @Service
 public class RectangleMapFragmentPartitioner extends QuadTreeMapFragmentPartitioner {
 
-  public RectangleMapFragmentPartitioner(ConfigurationService configurationService) {
-    super(configurationService);
+  public RectangleMapFragmentPartitioner(Configuration configuration) {
+    super(configuration);
   }
 
   @Override

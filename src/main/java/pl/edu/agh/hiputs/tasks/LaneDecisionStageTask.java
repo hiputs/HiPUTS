@@ -4,12 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
-import pl.edu.agh.hiputs.service.worker.CarGeneratorService;
+import pl.edu.agh.hiputs.service.routegenerator.CarGeneratorService;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,16 +33,16 @@ public class LaneDecisionStageTask implements Runnable {
         }
       });
 
-      if (isReplaceCarWithFinishedRoute) { // generate new car replacement if needed
-        carsWithFinishedRoute.forEach(car -> {
-
-          Car newCar = carGeneratorService.replaceCar(car);
-
-          newCar.decide(mapFragment);
-          addToIncomingCarsOfDestinationLane(newCar, newCar.getDecision().getLaneId());
-          log.debug("Car {} was replaced", car.getCarId());
-        });
-      }
+      // if (isReplaceCarWithFinishedRoute) { // generate new car replacement if needed
+      //   carsWithFinishedRoute.forEach(car -> {
+      //
+      //     Car newCar = carGeneratorService.replaceCar(car);
+      //
+      //     newCar.decide(mapFragment);
+      //     addToIncomingCarsOfDestinationLane(newCar, newCar.getDecision().getLaneId());
+      //     log.debug("Car {} was replaced", car.getCarId());
+      //   });
+      // }
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);
     }
