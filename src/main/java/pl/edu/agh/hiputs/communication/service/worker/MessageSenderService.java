@@ -126,7 +126,7 @@ public class MessageSenderService implements Subscriber {
           log.error("connection is null; message type {}", message.getMessageType());
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        log.error("Exception occurred ", e);
       }
     });
   }
@@ -147,7 +147,7 @@ public class MessageSenderService implements Subscriber {
               neighbourRepository.keySet().stream().map(MapFragmentId::getId).toList());
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        log.error("Exception occurred ", e);
       }
     });
   }

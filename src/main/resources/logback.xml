@@ -39,13 +39,13 @@
   -->
   <root level="info">
     <appender-ref ref="CONSOLE" />
+    <appender-ref ref="ASYNC_FILE" />
   </root>
 
 
-  <logger name="pl.edu.agh.hiputs" level="info" additivity="false">
-    <appender-ref ref="ASYNC_FILE" />
-    <appender-ref ref="CONSOLE" />
-  </logger>
+  <!--  <logger name="pl.edu.agh.hiputs" level="info">-->
+  <!--   -->
+  <!--  </logger>-->
 
 
 </configuration>

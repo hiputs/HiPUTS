@@ -45,7 +45,7 @@ carMinLengthInMeters: 3.0
 carMaxLengthInMeters: 5.0
 carUpSpeedBoundaryInMetersPerSecond: 28
 carUpMaxSpeedBoundaryInMetersPerSecond: 38 # bigger then previous
-mapFragmentPartitioner: "quadTree"
+mapFragmentPartitioner: quadTree
 patchPartitioner:
   partitionerType: hexagon
   carViewRange: 100.0
