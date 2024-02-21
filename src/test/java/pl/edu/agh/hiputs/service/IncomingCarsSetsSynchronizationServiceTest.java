@@ -47,7 +47,7 @@ public class IncomingCarsSetsSynchronizationServiceTest {
   @Mock
   private WorkerSubscriptionService subscriptionService;
 
-  private final SchedulerService taskExecutorService = new SchedulerService();
+  private final SchedulerService taskExecutorService = new SchedulerService(ConfigurationService.getConfiguration());
 
   @SneakyThrows
   @Test
