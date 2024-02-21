@@ -8,20 +8,23 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.scheduler.exception.InsufficientSystemResourcesException;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SchedulerService implements TaskExecutorService {
 
+  private final Configuration configuration;
   private ForkJoinPool threadPoolExecutor;
 
   @PostConstruct
   public void init() {
-    int cores = ConfigurationService.getConfiguration().getCoresPerWorkerCount(); //getFreeCores();
+    int cores = configuration.getCoresPerWorkerCount(); //getFreeCores();
 
     log.info("Cores available in this processor:{}. Cores used by Scheduler: {}",
         Runtime.getRuntime().availableProcessors(), cores);

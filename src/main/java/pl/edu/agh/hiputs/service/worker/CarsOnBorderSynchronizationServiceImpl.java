@@ -63,7 +63,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
 
   @Override
   public List<Pair<String, Integer>> sendCarsOnBorderToNeighbours(TransferDataHandler mapFragment) {
-    log.info("Step 9-0-1");
+    log.debug("Step 9-0-1");
     iterationStatisticsService.startStage(SimulationPoint.PATCHES_SERIALIZATION);
     Set<Patch> distinctBorderPatches =
         mapFragment.getBorderPatches().values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
@@ -92,7 +92,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
       return new ImmutablePair<>(patch.getPatchId().getValue(), cars);
     }).collect(Collectors.toList());
 
-    log.info("Step 9-0-2");
+    log.debug("Step 9-0-2");
     iterationStatisticsService.endStage(SimulationPoint.PATCHES_SERIALIZATION);
     iterationStatisticsService.startStage(
         SimulationPoint.PATCHES_SENDING); // TODO There is also serialization in patches sending - change name

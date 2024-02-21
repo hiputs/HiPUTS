@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
@@ -19,9 +20,10 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.utils.MinMaxAcc;
 
-// @Primary // todo - used for scalability tests - for normal use mark QuadTreeMap... as @Primary
+
 @Service
-public class RectangleMapFragmentPartitioner extends QuadTreeMapFragmentPartitioner {
+@ConditionalOnProperty(value = "map-fragment-partitioner", havingValue = "rectangle")
+public class RectangleMapFragmentPartitioner extends QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
 
   public RectangleMapFragmentPartitioner(Configuration configuration) {
     super(configuration);

@@ -25,4 +25,10 @@ public class CarGeneratorConfiguration{
    */
   private boolean generateRouteFiles;
 
+  /**
+   * When `true` CarGeneratorServiceImpl will be used as CarGenerator; when `false` RandomCarGeneratorService will be
+   * used.
+   */
+  private boolean newGenerator;
+
 }

@@ -34,7 +34,7 @@ import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "car-generator.generate-from-file", havingValue = "false")
+@ConditionalOnProperty(value = "car-generator.new-generator", havingValue = "false")
 public class RandomCarGeneratorService implements Subscriber, CarGeneratorService {
 
   private static final int START_ADD_CAR = 5;

@@ -53,7 +53,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final MessageSenderService messageSenderService;
   private final MessageReceiverService messageReceiverService;
   private final MapFragmentCreator mapFragmentCreator;
-  private final CarGeneratorService carGeneratorService; //todo refactor of car generation
+  private final CarGeneratorService carGeneratorService;
   private final ExecutorService simulationExecutor = newSingleThreadExecutor();
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
   private final SimulationStatisticService simulationStatisticService;
@@ -128,7 +128,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
     simulationStatisticService.startStage(SimulationPoint.WORKER_INITIAL_CAR_GENERATION);
     log.info("Starting generating cars...");
-    carGeneratorService.generateInitialCars(mapFragment); //TODO a co ja z tego pliku ? dodac metode do tego?
+    carGeneratorService.generateInitialCars(mapFragment);
     log.info("Cars generated.");
     simulationStatisticService.endStage(SimulationPoint.WORKER_INITIAL_CAR_GENERATION);
 
@@ -188,7 +188,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
 
   @Override
   public void run() {
-    localLoadMonitorService.init(mapFragmentExecutor.getMapFragment()); // todo refactor?
+    localLoadMonitorService.init(mapFragmentExecutor.getMapFragment());
     simulationStatisticService.startStage(SimulationPoint.WORKER_SIMULATION);
     int i = 0;
     long startTime = 0;

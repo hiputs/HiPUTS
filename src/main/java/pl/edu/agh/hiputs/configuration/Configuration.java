@@ -96,16 +96,19 @@ public class Configuration {
   private transient boolean serverOnThisMachine;
 
   /**
+   * !WORKS ONLY WHEN carGenerator.newGenerator==FALSE!
    * Number of cars to be generated on each lane on simulation start
    */
   private int initialNumberOfCarsPerLane;
 
   /**
+   * !WORKS ONLY WHEN carGenerator.newGenerator==FALSE!
    * Number of cars to be generated on each worker's part of map
    */
   private int numberOfCarsPerWorker;
 
   /**
+   * !WORKS ONLY WHEN carGenerator.newGenerator==FALSE!
    * Number of cars in one of workers - big worker (for LB tests)
    */
   private int numberOfCarsInBigWorker;
@@ -176,6 +179,11 @@ public class Configuration {
   private PatchPartitionerConfiguration patchPartitioner;
 
   /**
+   * Partitioner which divides patches among workers. Possible options `rectangle` and `quadTree`
+   */
+  private String mapFragmentPartitioner;
+
+  /**
    * Max new cars create after every step
    */
   private int newCars;
@@ -225,15 +233,15 @@ public class Configuration {
   private MapFragmentId mapFragmentId;
 
   /**
+   * !WORKS ONLY WHEN carGenerator.newGenerator==FALSE!
    * Extend route of each car to maintain all existing vehicles in simulation (when route ends, vehicle disappears)
-   * Works only with RandomCarGeneratorService.
    */
   private boolean extendCarRouteWhenItEnds;
 
   /**
+   * !!Does not work!! TODO make CarGeneratorServices consistent
    * Create new car in place of a car which ended his journey. Can be used to maintain constant number of cars in
    * simulation.
-   * Car's route will be generated on the fly, not read from file (RandomCarGeneratorService will be used).
    */
   private boolean replaceCarWithFinishedRoute;
 
@@ -261,12 +269,11 @@ public class Configuration {
         .junctionSafeTimeDeltaFactor(1.25)
         .giveWayThreshold(10)
         .movePermanentThreshold(50)
-        .simulationTimeStep(1.0)
-        .balancingMode(BalancingMode.NONE)
+        .simulationTimeStep(1.0).balancingMode(BalancingMode.SIMPLY)
         .newCars(0)
         .minCars(0)
         .ticketActive(false)
-        .patchPartitioner(PatchPartitionerConfiguration.getDefault())
+        .patchPartitioner(PatchPartitionerConfiguration.getDefault()).mapFragmentPartitioner("quadTree")
         .timeBasedCarGenerationConfigPath("timeBasedCarGenerationConfig.json")
         .carMinLengthInMeters(3.0)
         .carMaxLengthInMeters(5.0)

@@ -4,7 +4,7 @@ import static java.text.MessageFormat.format;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Primary;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.exception.EntityNotFoundException;
@@ -16,7 +16,7 @@ import pl.edu.agh.hiputs.service.routegenerator.generator.CarGenerator;
 @Slf4j
 @AllArgsConstructor
 @Service
-@Primary
+@ConditionalOnProperty(value = "car-generator.new-generator", havingValue = "true")
 public class CarGeneratorServiceImpl implements CarGeneratorService {
 
   private final CarGenerator carGenerator;
@@ -33,9 +33,7 @@ public class CarGeneratorServiceImpl implements CarGeneratorService {
 
   @Override
   public void manageCars(MapFragment fragment, int step) {
-    fragment.getLocalPatches()
-        .forEach(patch -> generateCarsForPatch(patch, step,
-            fragment)); //TODO tu byly knownPatches, a nie local, ale moze mialy byc known
+    fragment.getLocalPatches().forEach(patch -> generateCarsForPatch(patch, step, fragment));
   }
 
   private void generateCarsForPatch(Patch patch, int step, MapFragment mapFragment) {

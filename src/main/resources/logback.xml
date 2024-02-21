@@ -37,6 +37,10 @@
   <!--
   To log any package on another level use <logger> bellow
   -->
+  <root level="info">
+    <appender-ref ref="CONSOLE" />
+  </root>
+
 
   <logger name="pl.edu.agh.hiputs" level="info" additivity="false">
     <appender-ref ref="ASYNC_FILE" />

@@ -50,7 +50,7 @@ public class SimplyLoadBalancingStrategy implements LoadBalancingStrategy {
       boolean shouldBalancing = myCost / candidate.getRight() > ALLOW_LOAD_IMBALANCE;
       boolean shouldExtremeBalancing = myCost / candidate.getRight() >  LOW_THRESHOLD;
 
-      log.info("should {}, mycost {} candidate cost {}", shouldBalancing, myCost, candidate.getRight());
+      log.debug("should {}, mycost {} candidate cost {}", shouldBalancing, myCost, candidate.getRight());
 
       loadBalancingDecision.setLoadBalancingRecommended(shouldBalancing);
       loadBalancingDecision.setExtremelyLoadBalancing(shouldExtremeBalancing);

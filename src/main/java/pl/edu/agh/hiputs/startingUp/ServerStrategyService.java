@@ -91,7 +91,7 @@ public class ServerStrategyService implements Strategy {
 
     log.info("Start waiting for all workers be in state WorkerConnection");
     workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
-    log.info("All workers are in state WorkerConnection"); //TODO czemu najpierw to zamiast po initmap
+    log.info("All workers are in state WorkerConnection");
 
     if (configuration.isEnableVisualization()) {
       kafkaListenerEndpointRegistry.getListenerContainer(VISUALIZATION_STATE_CHANGE_TOPIC).start();

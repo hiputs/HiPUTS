@@ -70,13 +70,13 @@ public class MapFragmentExecutor {
       iterationStatisticsService.endStage(List.of(SimulationPoint.FIRST_ITERATION, SimulationPoint.SENDING_CARS));
 
       // 5. receive incoming sets of cars from neighbours
-      log.info("Step 5 start");
+      log.debug("Step 5 start");
       iterationStatisticsService.startStage(SimulationPoint.WAITING_RECEIVING_CARS);
       carSynchronizationService.synchronizedGetIncomingSetsOfCars(mapFragment);
       iterationStatisticsService.endStage(SimulationPoint.WAITING_RECEIVING_CARS);
 
       // 6. 7. insert incoming cars & update lanes/cars
-      log.info("Step 6,7 start");
+      log.debug("Step 6,7 start");
       iterationStatisticsService.startStage(SimulationPoint.SECOND_ITERATION_UPDATING_CARS);
       List<Runnable> updateStageTasks = mapFragment.getLocalLaneIds().stream()
           .map(laneId -> new LaneUpdateStageTask(mapFragment, laneId))
@@ -93,13 +93,13 @@ public class MapFragmentExecutor {
       iterationStatisticsService.endStage(SimulationPoint.SECOND_ITERATION_NOTIFY);
 
       // 8. load balancing
-      log.info("Step 8 start");
+      log.debug("Step 8 start");
       iterationStatisticsService.startStage(
           List.of(SimulationPoint.LOAD_BALANCING, SimulationPoint.LOAD_BALANCING_START));
       MapFragmentId lastLoadBalancingCandidate = loadBalancingService.startLoadBalancing(mapFragment);
       iterationStatisticsService.endStage(SimulationPoint.LOAD_BALANCING_START);
 
-      log.info("Step 8 - 1 start");
+      log.debug("Step 8 - 1 start");
       iterationStatisticsService.startStage(SimulationPoint.LOAD_BALANCING_NOTIFICATIONS);
       patchTransferService.retransmitNotification(lastLoadBalancingCandidate, mapFragment);
       iterationStatisticsService.startStage(SimulationPoint.WAITING_RECEIVING_RETRANSMISSIONS);
@@ -112,25 +112,24 @@ public class MapFragmentExecutor {
           List.of(SimulationPoint.LOAD_BALANCING_NOTIFICATIONS, SimulationPoint.LOAD_BALANCING));
 
       // 9. send and receive remote patches (border patches)
-      log.info("Step 9 start");
+      log.debug("Step 9 start");
       iterationStatisticsService.startStage(SimulationPoint.SYNCHRONIZATION_AREA_SEND_PATCHES);
       List<Pair<String, Integer>> borderCars =
           carsOnBorderSynchronizationService.sendCarsOnBorderToNeighbours(mapFragment);
       iterationStatisticsService.endStage(SimulationPoint.SYNCHRONIZATION_AREA_SEND_PATCHES);
-      log.info("Step 9 - 1 start");
+      log.debug("Step 9 - 1 start");
       iterationStatisticsService.startStage(SimulationPoint.WAITING_RECEIVING_PATCHES);
       carsOnBorderSynchronizationService.synchronizedGetRemoteCars(mapFragment);
       iterationStatisticsService.endStage(SimulationPoint.WAITING_RECEIVING_PATCHES);
 
       // 10. save statistic
-      log.info("Step 10 start");
+      log.debug("Step 10 start");
       if (step % 50 == 0) {
         simulationStatisticService.saveMapStatistic(mapFragment.getMapStatistic(step));
       }
 
       // 11. gen new car
       log.debug("Step 11 start");
-
       /**
        * TODO: Create separate main class for generating route files - Currently this `if` is a workaround. -> `if`
        * moved to CarGeneratorServiceImpl->generateInitialCars()
@@ -142,29 +141,12 @@ public class MapFragmentExecutor {
        * - Conditionally create either `SingleMapFragmentMapRepository` or `MapRepositoryImpl` based on `testMode` flag
        * - Create separate main class for generating route files
        */
-
       iterationStatisticsService.startStage(SimulationPoint.MANAGE_CARS);
       carGeneratorService.manageCars(mapFragment, step);
       iterationStatisticsService.endStage(SimulationPoint.MANAGE_CARS);
 
       // mapFragment.printFullStatistic();
-
-      log.debug("Worker: {}, ShadowPatches: {}", mapFragment.getMe().getId(), mapFragment.getShadowPatchesReadable()
-          .stream()
-          .map(patch -> patch.getPatchId().getValue())
-          .collect(Collectors.joining(",")));
-      log.debug("Worker: {}, LocalPatches: {}", mapFragment.getMe().getId(), mapFragment.getLocalPatchesEditable()
-          .stream()
-          .map(patch -> patch.getPatchId().getValue())
-          .collect(Collectors.joining(",")));
-      log.debug("Worker: {}, BorderPatches: {}", mapFragment.getMe().getId(), mapFragment.getBorderPatches()
-          .entrySet()
-          .stream()
-          .map(entry -> entry.getKey().getId() + entry.getValue()
-              .stream()
-              .map(patch -> patch.getPatchId().getValue())
-              .collect(Collectors.joining(",")))
-          .collect(Collectors.joining(",")));
+      logPatchesInfo();
       iterationStatisticsService.endStage(SimulationPoint.FULL_STEP);
       iterationStatisticsService.setOutgoingMessagesInStep(messageSenderService.getSentMessages());
       iterationStatisticsService.setOutgoingMessagesToServerInStep(messageSenderService.getSentServerMessages());
@@ -179,5 +161,24 @@ public class MapFragmentExecutor {
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);
     }
+  }
+
+  private void logPatchesInfo() {
+    log.debug("Worker: {}, ShadowPatches: {}", mapFragment.getMe().getId(), mapFragment.getShadowPatchesReadable()
+        .stream()
+        .map(patch -> patch.getPatchId().getValue())
+        .collect(Collectors.joining(",")));
+    log.debug("Worker: {}, LocalPatches: {}", mapFragment.getMe().getId(), mapFragment.getLocalPatchesEditable()
+        .stream()
+        .map(patch -> patch.getPatchId().getValue())
+        .collect(Collectors.joining(",")));
+    log.debug("Worker: {}, BorderPatches: {}", mapFragment.getMe().getId(), mapFragment.getBorderPatches()
+        .entrySet()
+        .stream()
+        .map(entry -> entry.getKey().getId() + entry.getValue()
+            .stream()
+            .map(patch -> patch.getPatchId().getValue())
+            .collect(Collectors.joining(",")))
+        .collect(Collectors.joining(",")));
   }
 }

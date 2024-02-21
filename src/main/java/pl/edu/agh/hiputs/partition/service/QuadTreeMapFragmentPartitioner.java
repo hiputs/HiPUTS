@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.context.annotation.Primary;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
@@ -20,8 +20,8 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.utils.MinMaxAcc;
 
 @Service
-@Primary // TODO for scalabity tests with synthetic map mark RectangelMapFragmentPartitioner as PRIMARY
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "map-fragment-partitioner", havingValue = "quadTree")
 public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
 
   protected final Configuration configuration;
