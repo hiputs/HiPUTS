@@ -1,6 +1,11 @@
 package pl.edu.agh.hiputs.communication.service.server;
 
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
+import pl.edu.agh.hiputs.configuration.Configuration;
 
 import com.esotericsoftware.kryo.io.Input;
 import java.io.DataInputStream;
@@ -17,6 +22,8 @@ import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.communication.service.KryoService;
 import pl.edu.agh.hiputs.service.ConfigurationService;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+
 /**
  * Socket where all messages addressed to the given client are received.
  */
@@ -28,7 +35,7 @@ public class ConnectionInitializationService {
   private final ExecutorService listenerExecutor = newSingleThreadExecutor();
   private final MessagePropagationService messagePropagationService;
   private final WorkerRepository workerRepository;
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
 
   public void init() {
     listenerExecutor.submit(new Listener());
@@ -40,7 +47,7 @@ public class ConnectionInitializationService {
     public void run() {
       try {
         ThreadPoolExecutor connectionExecutor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-        ServerSocket serverSocket = new ServerSocket(ConfigurationService.getConfiguration().getServerPort());
+        ServerSocket serverSocket = new ServerSocket(configuration.getServerPort());
         if (serverSocket.isClosed()) {
           log.error("Server fail");
         } else {
@@ -91,9 +98,6 @@ public class ConnectionInitializationService {
     }
 
     private WorkerConnectionMessage getWorkerConnectionMessage(Input input) throws IOException, ClassNotFoundException {
-      // int length = inputStream.readInt();
-      // byte[] bytes = inputStream.readNBytes(length);
-      // return SerializationUtils.deserialize(bytes);
       KryoService kryo = new KryoService();
       return (WorkerConnectionMessage) kryo.getKryo().readClassAndObject(input);
     }

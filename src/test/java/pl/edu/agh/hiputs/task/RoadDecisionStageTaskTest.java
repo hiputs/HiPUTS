@@ -20,7 +20,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 import pl.edu.agh.hiputs.tasks.RoadDecisionStageTask;
-import pl.edu.agh.hiputs.service.worker.CarGeneratorService;
+import pl.edu.agh.hiputs.service.routegenerator.CarGeneratorService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 

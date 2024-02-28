@@ -8,10 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.LoadInfoMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.statistics.SimulationPoint;
 import pl.edu.agh.hiputs.statistics.worker.IterationStatisticsServiceImpl;
 import pl.edu.agh.hiputs.statistics.worker.IterationStatisticsServiceImpl.IterationInfo;
@@ -29,6 +29,7 @@ public class LocalLoadMonitorServiceImpl implements LocalLoadMonitorService {
   private TransferDataHandler transferDataHandler;
   private final MessageSenderService messageSenderService;
   private final IterationStatisticsServiceImpl iterationStatisticsService;
+  private final Configuration configuration;
 
   @Override
   public void init(TransferDataHandler transferDataHandler) {
@@ -72,7 +73,7 @@ public class LocalLoadMonitorServiceImpl implements LocalLoadMonitorService {
 
   @Override
   public void notifyAboutMyLoad(int step) {
-    if (!ConfigurationService.getConfiguration().getBalancingMode().equals(BalancingMode.NONE)) {
+    if (!configuration.getBalancingMode().equals(BalancingMode.NONE)) {
       LoadBalancingHistoryInfo info = getMyLastLoad(step);
       messageSenderService.broadcast(new LoadInfoMessage(info.getCarCost(), info.getTimeCost(), info.getMapCost(),
           transferDataHandler.getMe().getId()), transferDataHandler.getNeighbors());

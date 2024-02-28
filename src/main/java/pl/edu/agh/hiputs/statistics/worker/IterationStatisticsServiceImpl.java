@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.statistics.SimulationPoint;
 
 @Service
@@ -25,10 +25,11 @@ public class IterationStatisticsServiceImpl implements IterationStatisticsServic
   @Getter
   private int step = 0;
   private List<IterationInfo> iterationStatistics;
+  private final Configuration configuration;
 
   @PostConstruct
   private void init() {
-    iterationStatistics = new ArrayList<>(ConfigurationService.getConfiguration().getSimulationStep());
+    iterationStatistics = new ArrayList<>(configuration.getSimulationStep());
   }
 
   @Override

@@ -19,33 +19,53 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.LaneData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.WayData;
-import pl.edu.agh.hiputs.partition.model.graph.Edge;
-import pl.edu.agh.hiputs.partition.model.graph.Graph;
-import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.partition.model.geom.GeomUtil;
 import pl.edu.agh.hiputs.partition.model.geom.HexagonCoordinate;
 import pl.edu.agh.hiputs.partition.model.geom.HexagonGrid;
 import pl.edu.agh.hiputs.partition.model.geom.HexagonGrid.HexagonLineSegment;
 import pl.edu.agh.hiputs.partition.model.geom.LineSegment;
+import pl.edu.agh.hiputs.partition.model.geom.Point;
+import pl.edu.agh.hiputs.partition.model.geom.StandardEquationLine;
+import pl.edu.agh.hiputs.partition.model.graph.Edge;
+import pl.edu.agh.hiputs.partition.model.graph.Graph;
+import pl.edu.agh.hiputs.partition.model.graph.Node;
 import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever;
 import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever.MapBoundaries;
 import pl.edu.agh.hiputs.partition.service.util.PatchesGraphExtractor;
-import pl.edu.agh.hiputs.partition.model.geom.Point;
-import pl.edu.agh.hiputs.partition.model.geom.StandardEquationLine;
 import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
 @Slf4j
-@AllArgsConstructor
+@Component
+@ConditionalOnProperty(value = "patch-partitioner.partitioner-type", havingValue = "hexagon")
 public class HexagonsPartitioner implements PatchPartitioner {
 
   @NonNull
   private final BorderEdgesHandlingStrategy borderEdgesHandlingStrategy;
   private double carViewRange;
+
+  public HexagonsPartitioner(@NonNull @Value("${patch-partitioner.border-handling-strategy}")
+  BorderEdgesHandlingStrategy borderEdgesHandlingStrategy,
+      @Value("${patch-partitioner.car-view-range}") Double carViewRange) {
+    this.borderEdgesHandlingStrategy = borderEdgesHandlingStrategy;
+    this.carViewRange = carViewRange;
+  }
+
+  private static String patchIdFromHexagonCoordinate(HexagonCoordinate hexagonCoordinate) {
+    return String.format("%d-%d", hexagonCoordinate.getXHex(), hexagonCoordinate.getYHex());
+  }
+
+  private static HexagonCoordinate hexagonCoordinateFromPatchId(String patchId) {
+    String[] arr = patchId.split("-");
+    return HexagonCoordinate.builder().xHex(Integer.parseInt(arr[0])).yHex(Integer.parseInt(arr[1])).build();
+  }
 
   @Override
   public Graph<PatchData, PatchConnectionData> partition(Graph<JunctionData, WayData> graph) {
@@ -68,9 +88,9 @@ public class HexagonsPartitioner implements PatchPartitioner {
 
       edgesToSplit.stream()
           .filter(e -> !(e.getData().getLength() == lastLength))
-          .collect(Collectors.groupingBy(e -> Stream.of(e.getSource().getId(), e.getTarget().getId()).sorted().collect(
-              Collectors.joining("---"))))
-          .forEach((k,v) -> {
+          .collect(Collectors.groupingBy(
+              e -> Stream.of(e.getSource().getId(), e.getTarget().getId()).sorted().collect(Collectors.joining("---"))))
+          .forEach((k, v) -> {
             Edge<JunctionData, WayData> e = v.get(0);
             double newLongitude = (e.getSource().getData().getLon() + e.getTarget().getData().getLon()) / 2;
             double newLatitude = (e.getSource().getData().getLat() + e.getTarget().getData().getLat()) / 2;
@@ -79,28 +99,28 @@ public class HexagonsPartitioner implements PatchPartitioner {
     }
 
     if (borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.maxLaneLengthBuffer)
-        ||  borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.hybrid)) {
-      double maxLaneLength = graph.getEdges().values().stream()
-          .map(e -> e.getData().getLength()).max(java.lang.Double::compareTo)
+        || borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.hybrid)) {
+      double maxLaneLength =
+          graph.getEdges().values().stream().map(e -> e.getData().getLength()).max(java.lang.Double::compareTo)
           .orElse(0.0);
       carViewRange += maxLaneLength;
     }
 
-    HexagonGrid hexagonGrid = new HexagonGrid(mapBoundaries.getLeftBottomPlanarX(), mapBoundaries.getLeftBottomPlanarY(), carViewRange);
+    HexagonGrid hexagonGrid =
+        new HexagonGrid(mapBoundaries.getLeftBottomPlanarX(), mapBoundaries.getLeftBottomPlanarY(), carViewRange);
     List<Node<JunctionData, WayData>> graphSources = new LinkedList<>();
-    graph.getNodes().values()
-        .forEach(node -> {
-          if (node.getIncomingEdges().size() == 0){
-            graphSources.add(node);
-            return;
-          }
-          double x = CoordinatesUtil.longitude2plain(node.getData().getLon(), node.getData().getLat());
-          double y = CoordinatesUtil.latitude2plain(node.getData().getLat());
-          HexagonCoordinate hexagonCoordinate = hexagonGrid.getHexagonCoordinate(x, y);
-          String patchId = patchIdFromHexagonCoordinate(hexagonCoordinate);
-          node.getData().setPatchId(patchId);
-          node.getIncomingEdges().forEach(edge -> edge.getData().setPatchId(patchId));
-        });
+    graph.getNodes().values().forEach(node -> {
+      if (node.getIncomingEdges().size() == 0) {
+        graphSources.add(node);
+        return;
+      }
+      double x = CoordinatesUtil.longitude2plain(node.getData().getLon(), node.getData().getLat());
+      double y = CoordinatesUtil.latitude2plain(node.getData().getLat());
+      HexagonCoordinate hexagonCoordinate = hexagonGrid.getHexagonCoordinate(x, y);
+      String patchId = patchIdFromHexagonCoordinate(hexagonCoordinate);
+      node.getData().setPatchId(patchId);
+      node.getIncomingEdges().forEach(edge -> edge.getData().setPatchId(patchId));
+    });
 
     //handle graphSources
     graphSources.forEach(node -> {
@@ -108,11 +128,13 @@ public class HexagonsPartitioner implements PatchPartitioner {
     });
 
     if (borderEdgesHandlingStrategy.equals(BorderEdgesHandlingStrategy.edgeCutting)) {
-      graph.getEdges().values().stream()
+      graph.getEdges()
+          .values()
+          .stream()
           .filter(e -> !e.getSource().getData().getPatchId().equals(e.getTarget().getData().getPatchId()))
-          .collect(Collectors.groupingBy(e -> Stream.of(e.getSource().getId(), e.getTarget().getId()).sorted().collect(
-              Collectors.joining("---"))))
-          .forEach((k,v)-> cutEdges(graph, v, hexagonGrid));
+          .collect(Collectors.groupingBy(
+              e -> Stream.of(e.getSource().getId(), e.getTarget().getId()).sorted().collect(Collectors.joining("---"))))
+          .forEach((k, v) -> cutEdges(graph, v, hexagonGrid));
     }
   }
 
@@ -120,7 +142,8 @@ public class HexagonsPartitioner implements PatchPartitioner {
     return MapBoundariesRetriever.retrieveMapBoundaries(graph);
   }
 
-  private void cutEdges(Graph<JunctionData, WayData> graph, List<Edge<JunctionData, WayData>> edges, HexagonGrid hexagonGrid) {
+  private void cutEdges(Graph<JunctionData, WayData> graph, List<Edge<JunctionData, WayData>> edges,
+      HexagonGrid hexagonGrid) {
     HexagonCoordinate c1 = hexagonCoordinateFromPatchId(edges.get(0).getSource().getData().getPatchId());
     HexagonCoordinate c2 = hexagonCoordinateFromPatchId(edges.get(0).getTarget().getData().getPatchId());
 
@@ -136,7 +159,8 @@ public class HexagonsPartitioner implements PatchPartitioner {
     }
   }
 
-  private void cutEdgesOnce(Graph<JunctionData, WayData> graph, List<Edge<JunctionData, WayData>> edges, HexagonGrid hexagonGrid) {
+  private void cutEdgesOnce(Graph<JunctionData, WayData> graph, List<Edge<JunctionData, WayData>> edges,
+      HexagonGrid hexagonGrid) {
     Point intersectionPlainPoint = calculateNewNodePoint(edges.get(0), hexagonGrid);
 
     double newLongitude = CoordinatesUtil.plain2Longitude(intersectionPlainPoint.getX(), intersectionPlainPoint.getY());
@@ -145,21 +169,21 @@ public class HexagonsPartitioner implements PatchPartitioner {
     cutEdgesAtPoint(graph, edges, newLongitude, newLatitude);
   }
 
-  private void cutEdgesRecursive(Graph<JunctionData, WayData> graph, List<Edge<JunctionData, WayData>> edges, HexagonGrid hexagonGrid) {
+  private void cutEdgesRecursive(Graph<JunctionData, WayData> graph, List<Edge<JunctionData, WayData>> edges,
+      HexagonGrid hexagonGrid) {
     PointWithNextHex intersectionPlainPoint = calculateNewNodePointForRecursive(edges.get(0), hexagonGrid);
 
-    double newLongitude = CoordinatesUtil.plain2Longitude(intersectionPlainPoint.getPoint().getX(), intersectionPlainPoint.getPoint().getY());
+    double newLongitude = CoordinatesUtil.plain2Longitude(intersectionPlainPoint.getPoint().getX(),
+        intersectionPlainPoint.getPoint().getY());
     double newLatitude = CoordinatesUtil.plain2Latitude(intersectionPlainPoint.getPoint().getY());
 
-    edges = cutEdgesAtPointForRecursive(graph, edges, newLongitude, newLatitude, patchIdFromHexagonCoordinate(intersectionPlainPoint.nextHexagonCoordinate));
+    edges = cutEdgesAtPointForRecursive(graph, edges, newLongitude, newLatitude,
+        patchIdFromHexagonCoordinate(intersectionPlainPoint.nextHexagonCoordinate));
     cutEdges(graph, edges, hexagonGrid);
   }
 
-  private void cutEdgesAtPoint(
-      Graph<JunctionData, WayData> graph,
-      List<Edge<JunctionData, WayData>> edges,
-      double newLongitude,
-      double newLatitude) {
+  private void cutEdgesAtPoint(Graph<JunctionData, WayData> graph, List<Edge<JunctionData, WayData>> edges,
+      double newLongitude, double newLatitude) {
     Edge<JunctionData, WayData> e = edges.get(0);
     Node<JunctionData, WayData> newNode = createChildNode(newLongitude, newLatitude, e.getData().getPatchId());
     graph.addNode(newNode);
@@ -167,8 +191,10 @@ public class HexagonsPartitioner implements PatchPartitioner {
     edges.forEach(edge -> graph.removeEdgeById(edge.getId()));
 
     edges.forEach(edge -> {
-      Edge<JunctionData, WayData> edge1 = createChildEdge(edge.getSource(), newNode, edge, edge.getSource().getData().getPatchId());
-      Edge<JunctionData, WayData> edge2 = createChildEdge(newNode, edge.getTarget(), edge, edge.getTarget().getData().getPatchId());
+      Edge<JunctionData, WayData> edge1 =
+          createChildEdge(edge.getSource(), newNode, edge, edge.getSource().getData().getPatchId());
+      Edge<JunctionData, WayData> edge2 =
+          createChildEdge(newNode, edge.getTarget(), edge, edge.getTarget().getData().getPatchId());
 
       rewriteLaneSuccessorsToChildren(edge, edge1, edge2);
 
@@ -177,12 +203,8 @@ public class HexagonsPartitioner implements PatchPartitioner {
     });
   }
 
-  private List<Edge<JunctionData, WayData>> cutEdgesAtPointForRecursive(
-      Graph<JunctionData, WayData> graph,
-      List<Edge<JunctionData, WayData>> edges,
-      double newLongitude,
-      double newLatitude,
-      String patchId) {
+  private List<Edge<JunctionData, WayData>> cutEdgesAtPointForRecursive(Graph<JunctionData, WayData> graph,
+      List<Edge<JunctionData, WayData>> edges, double newLongitude, double newLatitude, String patchId) {
     Edge<JunctionData, WayData> e = edges.get(0);
     Node<JunctionData, WayData> newNode = createChildNode(newLongitude, newLatitude, patchId);
     graph.addNode(newNode);
@@ -214,45 +236,41 @@ public class HexagonsPartitioner implements PatchPartitioner {
     return remainingEdges;
   }
 
-  private void rewriteLaneSuccessorsToChildren(
-      Edge<JunctionData, WayData> parent, Edge<JunctionData, WayData> child1, Edge<JunctionData, WayData> child2
-  ) {
+  private void rewriteLaneSuccessorsToChildren(Edge<JunctionData, WayData> parent, Edge<JunctionData, WayData> child1,
+      Edge<JunctionData, WayData> child2) {
     // taking all lanes from incoming edges of parent source node, which have parent lanes as successors
-    List<LaneData> lanesToUpdate = parent.getSource().getIncomingEdges().stream()
-        .flatMap(inEdge -> inEdge.getData().getLanes().stream())
-        .toList();
+    List<LaneData> lanesToUpdate =
+        parent.getSource().getIncomingEdges().stream().flatMap(inEdge -> inEdge.getData().getLanes().stream()).toList();
 
     // reassigning successors of incoming lanes to take new lanes from child edge
     assignSuccessorsUsingLanesMapping(lanesToUpdate, createLaneUpdateMapping(parent, child1));
 
     // assigning second child's lanes to first child lanes as successors
     assignSuccessorsUsingRecreatedLanes(child1.getData().getLanes(),
-        child2.getData().getLanes().stream()
-            .map(List::of)
-            .toList());
+        child2.getData().getLanes().stream().map(List::of).toList());
 
     // assigning parent successors to second child successors
     assignSuccessorsUsingRecreatedLanes(child2.getData().getLanes(),
-        parent.getData().getLanes().stream()
-            .map(LaneData::getAvailableSuccessors)
-            .toList());
+        parent.getData().getLanes().stream().map(LaneData::getAvailableSuccessors).toList());
   }
 
-  private Map<LaneData, LaneData> createLaneUpdateMapping(Edge<JunctionData, WayData> parent, Edge<JunctionData, WayData> child) {
+  private Map<LaneData, LaneData> createLaneUpdateMapping(Edge<JunctionData, WayData> parent,
+      Edge<JunctionData, WayData> child) {
     return IntStream.range(0, parent.getData().getLanes().size())
         .mapToObj(index -> Pair.of(parent.getData().getLanes().get(index), child.getData().getLanes().get(index)))
         .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
   }
 
   private void assignSuccessorsUsingLanesMapping(List<LaneData> lanesToUpdate, Map<LaneData, LaneData> mapping) {
-    lanesToUpdate.forEach(lane ->
-        lane.getAvailableSuccessors().replaceAll(successor ->
-            mapping.getOrDefault(successor, successor)));
+    lanesToUpdate.forEach(
+        lane -> lane.getAvailableSuccessors().replaceAll(successor -> mapping.getOrDefault(successor, successor)));
   }
 
   private void assignSuccessorsUsingRecreatedLanes(List<LaneData> lanesToUpdate, List<List<LaneData>> newSuccessors) {
     IntStream.range(0, lanesToUpdate.size())
-        .forEach(index -> lanesToUpdate.get(index).getAvailableSuccessors().addAll(new ArrayList<>(newSuccessors.get(index))));
+        .forEach(index -> lanesToUpdate.get(index)
+            .getAvailableSuccessors()
+            .addAll(new ArrayList<>(newSuccessors.get(index))));
   }
 
   private Point calculateNewNodePoint(Edge<JunctionData, WayData> e, HexagonGrid hexagonGrid) {
@@ -273,74 +291,56 @@ public class HexagonsPartitioner implements PatchPartitioner {
     List<HexagonLineSegment> hexagonLineSegments = hexagonGrid.getLineSegmentsOfHexagon(c1);
     LineSegment edgeLineSegment = new LineSegment(p1, p2);
     Map<HexagonLineSegment, Optional<Point>> intersectionPointsWithEdgeLineSegments = hexagonLineSegments.stream()
-        .collect(Collectors.toMap(ls -> ls, ls -> ls.intersectionPointWith(edgeLineSegment)))
-        .entrySet().stream()
+        .collect(Collectors.toMap(ls -> ls, ls -> ls.intersectionPointWith(edgeLineSegment))).entrySet().stream()
         .filter(entry -> entry.getValue().isPresent())
         .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
     if (intersectionPointsWithEdgeLineSegments.size() != 1) {
       //Cannot clearly find cut point - selecting the most distant one from source
-      intersectionPointsWithEdgeLineSegments = intersectionPointsWithEdgeLineSegments.entrySet().stream()
-          .sorted(Comparator.comparing(entry ->  - entry.getValue().get().distanceTo(p1)))
+      intersectionPointsWithEdgeLineSegments = intersectionPointsWithEdgeLineSegments.entrySet()
+          .stream()
+          .sorted(Comparator.comparing(entry -> -entry.getValue().get().distanceTo(p1)))
           .limit(1)
           .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 
-    Entry<HexagonLineSegment, Optional<Point>> resEntry = intersectionPointsWithEdgeLineSegments.entrySet()
-        .stream()
-        .toList()
-        .get(0);
-    return new PointWithNextHex(resEntry.getValue().get(), hexagonGrid.getNeighbourHexagonCoordinate(c1, resEntry.getKey().getOrientation()));
+    Entry<HexagonLineSegment, Optional<Point>> resEntry =
+        intersectionPointsWithEdgeLineSegments.entrySet().stream().toList().get(0);
+    return new PointWithNextHex(resEntry.getValue().get(),
+        hexagonGrid.getNeighbourHexagonCoordinate(c1, resEntry.getKey().getOrientation()));
   }
+
 
   private Node<JunctionData, WayData> createChildNode(double lon, double lat, String patchId) {
-    return new Node<>(UUID.randomUUID().toString(),
-        JunctionData.builder()
-            .lon(lon)
-            .lat(lat)
-            .isCrossroad(false)
-            .tags(new HashMap<>())
-            .patchId(patchId)
-            .build());
+    return new Node<>(UUID.randomUUID().toString(), JunctionData.builder()
+        .lon(lon)
+        .lat(lat)
+        .isCrossroad(false)
+        .tags(new HashMap<>())
+        .patchId(patchId)
+        .isOsmNode(false)
+        .build());
   }
 
-  private Edge<JunctionData, WayData> createChildEdge(
-      Node<JunctionData, WayData> source,
-      Node<JunctionData, WayData> target,
-      Edge<JunctionData, WayData> parentEdge,
-      String patchId) {
-    Edge<JunctionData, WayData> newEdge = new Edge<>(source.getId() + "->" + target.getId(),
-        WayData.builder()
-            .length(CoordinatesUtil.plainDistanceInMeters(source.getData().getLat(), target.getData().getLat(), source.getData().getLon(), target.getData().getLon()))
-            .patchId(patchId)
-            .isPriorityRoad(parentEdge.getData().isPriorityRoad())
-            .isOneWay(parentEdge.getData().isOneWay())
-            .maxSpeed(parentEdge.getData().getMaxSpeed())
-            .lanes(this.recreateLanesUsingParent(parentEdge.getData().getLanes()))
-            .tags(parentEdge.getData().getTags())
-            .build());
+  private Edge<JunctionData, WayData> createChildEdge(Node<JunctionData, WayData> source,
+      Node<JunctionData, WayData> target, Edge<JunctionData, WayData> parentEdge, String patchId) {
+    Edge<JunctionData, WayData> newEdge = new Edge<>(source.getId() + "->" + target.getId(), WayData.builder()
+        .length(CoordinatesUtil.plainDistanceInMeters(source.getData().getLat(), target.getData().getLat(),
+            source.getData().getLon(), target.getData().getLon()))
+        .patchId(patchId)
+        .isPriorityRoad(parentEdge.getData().isPriorityRoad())
+        .isOneWay(parentEdge.getData().isOneWay())
+        .maxSpeed(parentEdge.getData().getMaxSpeed())
+        .lanes(this.recreateLanesUsingParent(parentEdge.getData().getLanes()))
+        .tags(parentEdge.getData().getTags())
+        .build());
     newEdge.setSource(source);
     newEdge.setTarget(target);
     return newEdge;
   }
 
   private List<LaneData> recreateLanesUsingParent(List<LaneData> lanes) {
-    return lanes.stream()
-        .map(lane -> LaneData.builder().build())
-        .toList();
-  }
-
-
-  private static String patchIdFromHexagonCoordinate(HexagonCoordinate hexagonCoordinate) {
-    return String.format("%d-%d", hexagonCoordinate.getXHex(), hexagonCoordinate.getYHex());
-  }
-
-  private static HexagonCoordinate hexagonCoordinateFromPatchId(String patchId) {
-    String[] arr = patchId.split("-");
-    return HexagonCoordinate.builder()
-            .xHex(Integer.parseInt(arr[0]))
-            .yHex(Integer.parseInt(arr[1]))
-            .build();
+    return lanes.stream().map(lane -> LaneData.builder().build()).toList();
   }
 
   private Point getPlanarPointFromNode(Node<JunctionData, WayData> node) {
@@ -359,6 +359,7 @@ public class HexagonsPartitioner implements PatchPartitioner {
   @Setter
   @AllArgsConstructor
   private static class PointWithNextHex {
+
     private Point point;
     private HexagonCoordinate nextHexagonCoordinate;
   }

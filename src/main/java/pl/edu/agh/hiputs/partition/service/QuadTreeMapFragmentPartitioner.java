@@ -8,26 +8,27 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Graph.GraphBuilder;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.utils.MinMaxAcc;
 
 @Service
-// @Primary
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "map-fragment-partitioner", havingValue = "quadTree")
 public class QuadTreeMapFragmentPartitioner implements MapFragmentPartitioner {
 
-  protected final ConfigurationService configurationService;
+  protected final Configuration configuration;
 
   @Override
   public Collection<Graph<PatchData, PatchConnectionData>> partition(Graph<PatchData, PatchConnectionData> graph) {
-    return partition(graph, configurationService.getConfiguration().getWorkerCount());
+    return partition(graph, configuration.getWorkerCount());
   }
 
   private Collection<Graph<PatchData, PatchConnectionData>> partition(Graph<PatchData, PatchConnectionData> graph, int partsCount) {

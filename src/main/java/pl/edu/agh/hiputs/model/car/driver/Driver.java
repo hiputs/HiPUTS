@@ -48,7 +48,8 @@ public class Driver implements IDriver {
   private final JunctionDecider junctionDecider;
   private final ILaneChangeDecider laneChangeDecider;
   private final double distanceHeadway;
-  private final double timeStep;
+  @Setter
+  private double timeStep;
   private final double maxDeceleration;
 
   public Driver(DriverParameters parameters){

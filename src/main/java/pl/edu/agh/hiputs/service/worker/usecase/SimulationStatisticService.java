@@ -14,7 +14,4 @@ public interface SimulationStatisticService extends StageTimeService {
   void sendStatistic(MapFragmentId mapFragmentId);
 
   void saveMapStatistic(MapStatistic mapStatistic);
-
-  // void saveCarStatistics();
-
 }

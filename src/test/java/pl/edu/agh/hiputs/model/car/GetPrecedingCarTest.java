@@ -53,7 +53,6 @@ public class GetPrecedingCarTest {
         prospector = new CarEnvironmentProvider();
     }
 
-
   @Test
   public void getPrecedingCarWhereCarIsFound() {
     setAllJunctionTypeCrossroad();
@@ -82,6 +81,7 @@ public class GetPrecedingCarTest {
         //in this case we get precedingCar and nextCrossroadId
         () -> Assertions.assertEquals(startRoad.getOutgoingJunctionId(), carPrecedingEnvironment.getNextCrossroadId().get()));
   }
+
   @Test
   public void getPrecedingCarWhereCarIsNotFound() {
     setAllJunctionTypeCrossroad();
@@ -90,6 +90,7 @@ public class GetPrecedingCarTest {
     Assertions.assertAll(() -> Assertions.assertFalse(carPrecedingEnvironment.getPrecedingCar().isPresent()),
         () -> Assertions.assertFalse(carPrecedingEnvironment.getNextCrossroadId().isPresent()));
   }
+
   @Test
   public void getPrecedingCarWhereCarIsNotFoundInsaneViewRange() {
     prospector = new CarEnvironmentProvider(10000000);
@@ -102,10 +103,10 @@ public class GetPrecedingCarTest {
         () -> Assertions.assertEquals(startRoad.getLength() - car1.getPositionOnLane(), carPrecedingEnvironment.getDistance()));
   }
 
-    @Test
-    public void getPrecedingCarWhereCarIsNotFoundAndAllJunctionAreBend() {
-        car1 = carProvider.generateCar(10.0, startLaneId, 2);
-        this.setAllJunctionTypeBend();
+  @Test
+  public void getPrecedingCarWhereCarIsNotFoundAndAllJunctionAreBend() {
+    car1 = carProvider.generateCar(10.0, startLaneId, 2);
+    this.setAllJunctionTypeBend();
 
     startLane.addCarAtEntry(car1);
     CarPrecedingEnvironment carPrecedingEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
@@ -153,7 +154,6 @@ public class GetPrecedingCarTest {
     ReflectionUtil.setFieldValue(junctionId, "junctionType", JunctionType.BEND);
   }
 
-
   private void setAllJunctionTypeCrossroad() {
     for (RoadId laneId : mapFragment.getLocalRoadIds()) {
       JunctionReadable junction =
@@ -168,8 +168,9 @@ public class GetPrecedingCarTest {
     ReflectionUtil.setFieldValue(junctionId, "junctionType", JunctionType.CROSSROAD);
   }
 
-  private void recalculateJunctionsHashCodes(MapFragment map){
-    Map<JunctionId, PatchId> oldJunctionIdToPatchId = (Map<JunctionId, PatchId>) ReflectionUtil.getFieldValue(map, "junctionIdToPatchId");
+  private void recalculateJunctionsHashCodes(MapFragment map) {
+    Map<JunctionId, PatchId> oldJunctionIdToPatchId =
+        (Map<JunctionId, PatchId>) ReflectionUtil.getFieldValue(map, "junctionIdToPatchId");
     Map<JunctionId, PatchId> newJunctionIdToPatchId = new HashMap<>();
     newJunctionIdToPatchId.putAll(oldJunctionIdToPatchId);
     ReflectionUtil.setFieldValue(map, "junctionIdToPatchId", newJunctionIdToPatchId);

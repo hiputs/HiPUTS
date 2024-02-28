@@ -50,18 +50,24 @@ public class Connection {
       return 0;
     }
     // byte[] bytes = SerializationUtils.serialize(message);
-    // int size = bytes.length;
+    // Output bout = new Output(new ByteArrayOutputStream());
+    // kryo.getKryo().writeClassAndObject(bout, message);
+    // bout.flush();
+    // bout.close();
     //
+    // int size = bout.getBuffer().length;
+    // //
     // output.writeInt(size);
     // output.flush();
-    // output.write(bytes);
+    // output.write(bout.getBuffer());
     // output.flush();
+
     kryo.getKryo().writeClassAndObject(output, message);
     // kryo.getSerializer(message.getClass()).
     // kryo.writeObject(output.toBytes().length);
-
-    int size = output.toBytes().length;
+    int size = output.getBuffer().length;
     output.flush();
+
     log.debug("Msg sent");
 
     return size;

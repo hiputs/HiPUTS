@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-  <property name="defaultPattern" value="[%date] [%thread] %highlight(%-5level) [%logger{10}] %msg%n"/>
+  <property name="defaultPattern" value="[%date] [%thread] %highlight(%-5level) [%logger{10}] %msg%n" />
 
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
@@ -34,18 +34,18 @@
             the Appender not block the application and just drop the messages -->
   </appender>
 
-
-<!--      <root level="info">-->
-<!--        <appender-ref ref="CONSOLE"/>-->
-<!--      </root>-->
-
   <!--
   To log any package on another level use <logger> bellow
   -->
-
-  <logger name="pl.edu.agh.hiputs" level="info" additivity="false">
+  <root level="info">
+    <appender-ref ref="CONSOLE" />
     <appender-ref ref="ASYNC_FILE" />
-  </logger>
+  </root>
+
+
+  <!--  <logger name="pl.edu.agh.hiputs" level="info">-->
+  <!--   -->
+  <!--  </logger>-->
 
 
 </configuration>

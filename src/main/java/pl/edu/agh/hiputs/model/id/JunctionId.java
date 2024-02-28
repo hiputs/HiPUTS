@@ -8,6 +8,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureEditor;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.utils.uuid.UUIDProvider;
 
 @RequiredArgsConstructor
 @Getter
@@ -18,12 +19,20 @@ public class JunctionId {
 
   private final JunctionType junctionType;
 
+  private final boolean isOsmNode;
+
+  public JunctionId(String value, JunctionType junctionType) {
+    this.value = value;
+    this.junctionType = junctionType;
+    this.isOsmNode = true;
+  }
+
   public static JunctionId randomCrossroad() {
-    return new JunctionId(UUID.randomUUID().toString(), JunctionType.CROSSROAD);
+    return new JunctionId(UUIDProvider.nextUUID().toString(), JunctionType.CROSSROAD);
   }
 
   public static JunctionId randomBend() {
-    return new JunctionId(UUID.randomUUID().toString(), JunctionType.BEND);
+    return new JunctionId(UUIDProvider.nextUUID().toString(), JunctionType.BEND);
   }
 
   public boolean isCrossroad() {
@@ -40,6 +49,6 @@ public class JunctionId {
 
   @Override
   public String toString() {
-    return "JunctionId{" + value + " type=" + junctionType + '}';
+    return "JunctionId{" + value + " type=" + junctionType + " isOsmNode=" + isOsmNode + '}';
   }
 }

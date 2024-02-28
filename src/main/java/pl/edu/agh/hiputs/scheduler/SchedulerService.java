@@ -8,20 +8,23 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.scheduler.exception.InsufficientSystemResourcesException;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SchedulerService implements TaskExecutorService {
 
+  private final Configuration configuration;
   private ForkJoinPool threadPoolExecutor;
 
   @PostConstruct
   public void init() {
-    int cores = ConfigurationService.getConfiguration().getCoresPerWorkerCount(); //getFreeCores();
+    int cores = configuration.getCoresPerWorkerCount(); //getFreeCores();
 
     log.info("Cores available in this processor:{}. Cores used by Scheduler: {}",
         Runtime.getRuntime().availableProcessors(), cores);
@@ -29,7 +32,8 @@ public class SchedulerService implements TaskExecutorService {
     if (cores <= 0) {
       throw new InsufficientSystemResourcesException("Insufficient number of cores");
     }
-    threadPoolExecutor = ForkJoinPool.commonPool();//new ForkJoinPool(cores-1);
+    threadPoolExecutor =
+        ForkJoinPool.commonPool();// TODO somehow make commonPool to have as many threads as available in processor
     log.info("Parallelism level {}", threadPoolExecutor.getParallelism());
   }
 
@@ -40,29 +44,7 @@ public class SchedulerService implements TaskExecutorService {
   @Override
   public void executeBatch(Collection<Runnable> tasks) {
     List<Future<?>> futures = tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
-    // tasks.parallelStream().forEach(t -> t.run());
-
     waitForAllTaskFinished(futures);
-  }
-
-  @Override
-  public List<Future<?>> executeBatchReturnFutures(Collection<Runnable> tasks) {
-    return tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
-  }
-
-  @Override
-  public List<?> executeCallableBatch(Collection<Callable<?>> tasks) {
-    List<Future<?>> futures = tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
-    // return tasks.parallelStream().map(t -> {
-    //   try {
-    //     return t.call();
-    //   } catch (Exception e) {
-    //     e.printStackTrace();
-    //   }
-    //   return null;
-    // }).collect(Collectors.toList());
-
-    return waitForAllTaskReturnResult(futures);
   }
 
   public void waitForAllTaskFinished(List<Future<?>> futures) {
@@ -73,6 +55,17 @@ public class SchedulerService implements TaskExecutorService {
         log.error("Error occurred util waiting for task", e);
       }
     }
+  }
+
+  @Override
+  public List<Future<?>> executeBatchReturnFutures(Collection<Runnable> tasks) {
+    return tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<?> executeCallableBatch(Collection<Callable<?>> tasks) {
+    List<Future<?>> futures = tasks.stream().map(t -> threadPoolExecutor.submit(t)).collect(Collectors.toList());
+    return waitForAllTaskReturnResult(futures);
   }
 
   private List<?> waitForAllTaskReturnResult(List<Future<?>> futures) {

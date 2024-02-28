@@ -20,6 +20,8 @@ import pl.edu.agh.hiputs.statistics.worker.SimulationStatisticServiceImpl.LoadBa
 import pl.edu.agh.hiputs.statistics.worker.SimulationStatisticServiceImpl.LoadBalancingStatistic;
 import pl.edu.agh.hiputs.statistics.worker.SimulationStatisticServiceImpl.MapStatistic;
 
+import pl.edu.agh.hiputs.visualization.communication.messages.StopSimulationMessage;
+
 public enum MessagesTypeEnum {
 
   // server - worker messages
@@ -58,7 +60,7 @@ public enum MessagesTypeEnum {
 
   //worker - worker messages
   /**
-   *  Transfer incoming cars set after decision stage
+   * Transfer incoming cars set after decision stage
    */
   CarTransferMessage,
   /**
@@ -102,13 +104,27 @@ public enum MessagesTypeEnum {
   /**
    * Info from service to shut down after simulation
    */
-  ShutDownMessage;
+  ShutDownMessage,
+
+  /**
+   * Stop simulation
+   */
+  StopSimulationMessage,
+
+  /**
+   * Resume simulation
+   */
+  ResumeSimulationMessage,
+
+  /**
+   * Visualization State change message
+   */
+  VisualizationStateChangeMessage;
 
   public static List<MessagesTypeEnum> getWorkerMessages() {
     return Arrays.asList(CarTransferMessage, BorderSynchronizationMessage, PatchTransferMessage,
         PatchTransferNotificationMessage, GroupOfPatchTransferNotificationMessage, LoadInfo, AvailableTicketMessage,
         SelectTicketMessage);
-
   }
 
   public static List<Class> getMessagesClasses() {
@@ -130,8 +146,6 @@ public enum MessagesTypeEnum {
         SerializedCar.class, SerializedRouteElement.class, SerializedLane.class, SerializedPatchTransfer.class,
         LoadBalancingStatistic.class, DecisionStatistic.class, LoadBalancingCostStatistic.class, IterationInfo.class,
         MapStatistic.class, SimulationPoint.class, SerializedDecision.class, SerializedCrossroadDecisionProperties.class
-
     );
-
   }
 }

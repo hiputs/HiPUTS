@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -25,8 +26,8 @@ import pl.edu.agh.hiputs.communication.model.messages.SelectTicketMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Service
@@ -36,24 +37,25 @@ public class TicketServiceImpl implements TicketService, Subscriber {
   private int TICKET_POOL_SIZE = 10;
   private final WorkerSubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
-  private final Queue<AvailableTicketMessage> availableTicketMessageQueue = new LinkedList<>();
-  private final Queue<MapFragmentId> newMapFragment = new LinkedList<>();
+  private final BlockingQueue<AvailableTicketMessage> availableTicketMessageQueue = new LinkedBlockingQueue<>();
+  //ConcurrentLinkedQueue();
+  private final Queue<MapFragmentId> newMapFragment = new ConcurrentLinkedQueue<>();
   private final BlockingQueue<SelectTicketMessage> selectTicketQueue = new LinkedBlockingQueue<>();
   private final Executor executor = Executors.newSingleThreadExecutor();
+  private final Configuration configuration;
 
   private MapFragmentId[] ticketPool;
   private final AtomicInteger actualStep = new AtomicInteger();
 
   @PostConstruct
   void init() {
-    if (ConfigurationService.getConfiguration().isTicketActive()) {
+    if (configuration.isTicketActive()) {
       subscriptionService.subscribe(this, MessagesTypeEnum.ServerInitializationMessage);
       subscriptionService.subscribe(this, MessagesTypeEnum.SelectTicketMessage);
       subscriptionService.subscribe(this, MessagesTypeEnum.AvailableTicketMessage);
 
-      TICKET_POOL_SIZE = Math.min(TICKET_POOL_SIZE, ConfigurationService.getConfiguration().getWorkerCount() * 2);
+      TICKET_POOL_SIZE = Math.min(TICKET_POOL_SIZE, configuration.getWorkerCount() * 2);
       ticketPool = new MapFragmentId[TICKET_POOL_SIZE];
-
       executor.execute(new TicketInfinityLoop());
     }
   }
@@ -108,14 +110,18 @@ public class TicketServiceImpl implements TicketService, Subscriber {
 
     @Override
     public void run() {
+      try {
+        sleep(5);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
       while (true) {
         if (!availableTicketMessageQueue.isEmpty()) {
           while (messageSenderService.getConnectionDtoMap().isEmpty() || !messageSenderService.getConnectionDtoMap()
               .keySet()
               .stream()
               .map(MapFragmentId::getId)
-              .toList()
-              .contains(availableTicketMessageQueue.peek().getMapFragmentId())) {
+              .anyMatch(id -> id.equals(availableTicketMessageQueue.peek().getMapFragmentId()))) {
             try {
               sleep(5);
               log.info("Message receiver not in neighborhood repository");
@@ -135,8 +141,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
             continue;
           }
 
-          if (neighbour.hashCode() > ConfigurationService.getConfiguration()
-              .getMapFragmentId()
+          if (neighbour.hashCode() > configuration.getMapFragmentId()
               .hashCode()) {// wait for message because older send theirs possibility
             continue;
           }
@@ -151,7 +156,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
 
     private void startSyncTicketNegotiaton(MapFragmentId neighbour) {
       try {
-        MapFragmentId me = ConfigurationService.getConfiguration().getMapFragmentId();
+        MapFragmentId me = configuration.getMapFragmentId();
         log.debug("Start negotiation between {} and me {}", neighbour.getId(), me.getId());
         messageSenderService.send(neighbour, new AvailableTicketMessage(me.getId(), getFreeTicket()));
         final SelectTicketMessage selectTicketMessage = selectTicketQueue.take();
@@ -172,8 +177,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
         MapFragmentId neighbour = new MapFragmentId(message.getMapFragmentId());
         try {
           log.debug("Select ticket {} neighbour {}", selectTicket, neighbour.getId());
-          messageSenderService.send(neighbour,
-              new SelectTicketMessage(ConfigurationService.getConfiguration().getMapFragmentId().getId(),
+          messageSenderService.send(neighbour, new SelectTicketMessage(configuration.getMapFragmentId().getId(),
                   selectTicket));
         } catch (IOException e) {
           log.error("Send message error");

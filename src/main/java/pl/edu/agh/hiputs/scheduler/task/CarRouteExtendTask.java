@@ -12,14 +12,13 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 
 @Slf4j
 @RequiredArgsConstructor
-public class CarRouteExtendTask implements Runnable{
+public class CarRouteExtendTask implements Runnable {
 
+  private static final int ROUTE_ELEMENTS_THRESHOLD = 15;
   private final ExampleCarProvider carProvider;
   private final MapFragment mapFragment;
   private final LaneId laneId;
   private final int remainingTimeSteps;
-  private static final int ROUTE_ELEMENTS_THRESHOLD = 15;
-
 
   @Override
   public void run() {
@@ -32,10 +31,9 @@ public class CarRouteExtendTask implements Runnable{
             RoadId lastRoad = car.getRouteWithLocation().getLastRouteElement().getOutgoingRoadId();
             LaneId anyLaneId = mapFragment.getRoadEditable(lastRoad).getLanes().get(0);
             List<RouteElement> newRoute =
-                carProvider.generateRouteElements(anyLaneId,
-                    remainingTimeSteps / 40 + ROUTE_ELEMENTS_THRESHOLD);
-            log.debug("Extending car's:"+ car.getCarId()+" route. Current route size:"+car.getRouteWithLocation().getRemainingRouteSize()+". Adding "+(newRoute.size()-1)+" elements.");
-
+                carProvider.generateRouteElements(anyLaneId, ROUTE_ELEMENTS_THRESHOLD + (remainingTimeSteps / 10));
+            log.debug("Extending car's:" + car.getCarId() + " route. Current route size:" + car.getRouteWithLocation()
+                .getRemainingRouteSize() + ". Adding " + (newRoute.size() - 1) + " elements.");
             car.extendRouteWithLocation(newRoute.subList(1, newRoute.size()));
           });
     } catch (Exception e) {

@@ -63,7 +63,7 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
 
   @Override
   public List<Pair<String, Integer>> sendCarsOnBorderToNeighbours(TransferDataHandler mapFragment) {
-    log.info("Step 9-0-1");
+    log.debug("Step 9-0-1");
     iterationStatisticsService.startStage(SimulationPoint.PATCHES_SERIALIZATION);
     Set<Patch> distinctBorderPatches =
         mapFragment.getBorderPatches().values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
@@ -81,13 +81,6 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
         .collect(Collectors.groupingBy(pair -> mapFragment.getPatchIdByLaneId(pair.getLeft()),
             mapping(Pair::getRight, toList())));
 
-    // Map<PatchId, byte[]> doubleSerializedBorderPatches = serializedBorderPatches.entrySet()
-    //     .stream()
-    //     .parallel()
-    //     .map(pair -> new ImmutablePair<>(pair.getKey(), SerializationUtils.serialize((Serializable) pair.getValue
-    //     ())))
-    //     .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
-
     Map<MapFragmentId, BorderSynchronizationMessage> messages = mapFragment.getBorderPatches()
         .entrySet()
         .stream()
@@ -99,92 +92,15 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
       return new ImmutablePair<>(patch.getPatchId().getValue(), cars);
     }).collect(Collectors.toList());
 
-    log.info("Step 9-0-2");
+    log.debug("Step 9-0-2");
     iterationStatisticsService.endStage(SimulationPoint.PATCHES_SERIALIZATION);
     iterationStatisticsService.startStage(
         SimulationPoint.PATCHES_SENDING); // TODO There is also serialization in patches sending - change name
-    // long time3 = System.currentTimeMillis();
+
     sendMessages(messages);
     iterationStatisticsService.endStage(SimulationPoint.PATCHES_SENDING);
-    // long time4 = System.currentTimeMillis();
-    // log.info("Step 9 times: {}, {}; {}; {};", time1-time0,time2-time1, time3-time2, time4-time3);
 
     return sendCars;
-  }
-
-  @Override
-  public void synchronizedGetRemoteCars(TransferDataHandler mapFragment) {
-    int countOfNeighbours = mapFragment.getNeighbors().size();
-    List<Future<?>> patchSynchronizationFutures = new LinkedList<>();
-    int consumedMessages = 0;
-    // List<Runnable> patchSynchronizationTasks = new LinkedList<>();
-
-    while (consumedMessages < countOfNeighbours) {
-      try {
-        BorderSynchronizationMessage msg = incomingMessages.take();
-
-        List<Runnable> tasks = msg.getPatchContent()
-            .entrySet()
-            .stream()
-            .map(e -> new SynchronizeShadowPatchState(e.getKey(), e.getValue(), mapFragment))
-            .collect(Collectors.toList());
-
-        patchSynchronizationFutures.addAll(taskExecutorService.executeBatchReturnFutures(tasks));
-        // patchSynchronizationTasks.addAll(tasks);
-        consumedMessages += 1;
-
-      } catch (InterruptedException e) {
-        log.error("Exception when waiting for cars: ", e);
-        throw new RuntimeException(e);
-      }
-    }
-    // taskExecutorService.executeBatch(patchSynchronizationTasks);
-    taskExecutorService.waitForAllTaskFinished(patchSynchronizationFutures);
-
-    incomingMessages.clear();
-    futureIncomingMessages.drainTo(incomingMessages);
-    simulationStepNo.incrementAndGet();
-  }
-
-
-  private String getWeaitingByMessage() {
-    try {
-      final Set<MapFragmentId> mapFragmentIds = incomingMessages.stream()
-          .map(m -> m.getPatchContent().keySet().iterator().next())
-          .map(patchId -> DebugUtils.getMapFragment().getMapFragmentIdByPatchId(new PatchId(patchId)))
-          .collect(Collectors.toSet());
-
-      return DebugUtils.getMapFragment().getNeighbors()
-          .stream()
-          .filter(mapFragmentId -> !mapFragmentIds.contains(mapFragmentId))
-          .map(mapFragmentId -> mapFragmentId.getId() + "{ " + DebugUtils.getMapFragment().getBorderPatches().get(mapFragmentId).stream().map(p -> p.getPatchId().getValue()).collect(
-              Collectors.joining(", ")) + "}")
-          .collect(Collectors.joining(", "));
-    } catch (Exception e){
-
-    }
-    return "---";
-  }
-
-  @Override
-  public synchronized void notify(Message message) {
-    try {
-      if (message.getMessageType() != MessagesTypeEnum.BorderSynchronizationMessage) {
-        return;
-      }
-
-      BorderSynchronizationMessage borderSynchronizationMessage = (BorderSynchronizationMessage) message;
-      // log.info("---Receive--- my it {} it {} from {}", simulationStepNo.get(), borderSynchronizationMessage.getSimulationStepNo(), borderSynchronizationMessage.getPatchContent().keySet().iterator().next());
-      if (borderSynchronizationMessage.getSimulationStepNo() == simulationStepNo.get()) {
-        incomingMessages.add(borderSynchronizationMessage);
-        // notifyAll();
-      } else {
-        futureIncomingMessages.add(borderSynchronizationMessage);
-      }
-
-    } catch (Exception e) {
-      log.error("Unexpected Exception : ", e);
-    }
   }
 
   private void sendMessages(Map<MapFragmentId, BorderSynchronizationMessage> messages) {
@@ -205,4 +121,75 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
     return new BorderSynchronizationMessage(simulationStepNo.get(), patchContent);
   }
 
+  @Override
+  public void synchronizedGetRemoteCars(TransferDataHandler mapFragment) {
+    int countOfNeighbours = mapFragment.getNeighbors().size();
+    List<Future<?>> patchSynchronizationFutures = new LinkedList<>();
+    int consumedMessages = 0;
+
+    while (consumedMessages < countOfNeighbours) {
+      try {
+        BorderSynchronizationMessage msg = incomingMessages.take();
+
+        List<Runnable> tasks = msg.getPatchContent()
+            .entrySet()
+            .stream()
+            .map(e -> new SynchronizeShadowPatchState(e.getKey(), e.getValue(), mapFragment))
+            .collect(Collectors.toList());
+
+        patchSynchronizationFutures.addAll(taskExecutorService.executeBatchReturnFutures(tasks));
+        consumedMessages += 1;
+      } catch (InterruptedException e) {
+        log.error("Exception when waiting for cars: ", e);
+        throw new RuntimeException(e);
+      }
+    }
+    taskExecutorService.waitForAllTaskFinished(patchSynchronizationFutures);
+
+    incomingMessages.clear();
+    futureIncomingMessages.drainTo(incomingMessages);
+    simulationStepNo.incrementAndGet();
+  }
+
+  private String getWeaitingByMessage() {
+    try {
+      final Set<MapFragmentId> mapFragmentIds = incomingMessages.stream()
+          .map(m -> m.getPatchContent().keySet().iterator().next())
+          .map(patchId -> DebugUtils.getMapFragment().getMapFragmentIdByPatchId(new PatchId(patchId)))
+          .collect(Collectors.toSet());
+
+      return DebugUtils.getMapFragment()
+          .getNeighbors()
+          .stream()
+          .filter(mapFragmentId -> !mapFragmentIds.contains(mapFragmentId))
+          .map(mapFragmentId -> mapFragmentId.getId() + "{ " + DebugUtils.getMapFragment()
+              .getBorderPatches()
+              .get(mapFragmentId)
+              .stream()
+              .map(p -> p.getPatchId().getValue())
+              .collect(Collectors.joining(", ")) + "}")
+          .collect(Collectors.joining(", "));
+    } catch (Exception e) {
+    }
+    return "---";
+  }
+
+  @Override
+  public synchronized void notify(Message message) {
+    try {
+      if (message.getMessageType() != MessagesTypeEnum.BorderSynchronizationMessage) {
+        return;
+      }
+      BorderSynchronizationMessage borderSynchronizationMessage = (BorderSynchronizationMessage) message;
+      // log.info("---Receive--- my it {} it {} from {}", simulationStepNo.get(), borderSynchronizationMessage
+      // .getSimulationStepNo(), borderSynchronizationMessage.getPatchContent().keySet().iterator().next());
+      if (borderSynchronizationMessage.getSimulationStepNo() == simulationStepNo.get()) {
+        incomingMessages.add(borderSynchronizationMessage);
+      } else {
+        futureIncomingMessages.add(borderSynchronizationMessage);
+      }
+    } catch (Exception e) {
+      log.error("Unexpected Exception : ", e);
+    }
+  }
 }

@@ -8,6 +8,7 @@ import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureEditor;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.utils.uuid.UUIDProvider;
 
 @RequiredArgsConstructor
 @Getter
@@ -16,7 +17,9 @@ public class LaneId {
 
   private final String value;
 
-  public static LaneId random() {return new LaneId(UUID.randomUUID().toString());}
+  public static LaneId random() {
+    return new LaneId(UUID.randomUUID().toString());
+  } // todo tu bylo u mnie UUIDProvider.nextUUID().toString());
 
   public LaneEditable getEditable(RoadStructureEditor editor) {return editor.getLaneEditable(this);}
 

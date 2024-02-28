@@ -3,7 +3,6 @@ package pl.edu.agh.hiputs.communication;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.util.List;
-import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;

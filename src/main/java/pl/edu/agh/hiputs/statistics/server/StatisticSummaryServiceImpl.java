@@ -63,8 +63,8 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
 
     // createCSVTotalCostByWorker();
     createCSVWorkerCosts();
-    CreateCSVCarByWorker();
-    createCSVLoadBalancingCostByWorker();
+    createCSVCarByWorker();
+    // createCSVLoadBalancingCostByWorker();
     createCSVPatchExchangesRecords();
     createCSVMapStatistic();
     createCSVSummaryTimes();
@@ -75,40 +75,9 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     createCSVMessagesCount();
   }
 
-  @Override
-  public void startStage(SimulationPoint stage) {
-    serverTimeStatisticRepository.put(stage, System.currentTimeMillis());
-  }
-
-  @Override
-  public void startStage(List<SimulationPoint> stages) {
-    long time = System.currentTimeMillis();
-    for (SimulationPoint stage : stages) {
-      serverTimeStatisticRepository.put(stage, time);
-    }
-  }
-
-  @Override
-  public void endStage(SimulationPoint stage) {
-    long startTime = serverTimeStatisticRepository.get(stage);
-    serverTimeStatisticRepository.replace(stage, System.currentTimeMillis() - startTime);
-  }
-
-  @Override
-  public void endStage(List<SimulationPoint> stages) {
-    long endTime = System.currentTimeMillis();
-    for (SimulationPoint stage : stages) {
-      long startTime = serverTimeStatisticRepository.get(stage);
-      serverTimeStatisticRepository.replace(stage, endTime - startTime);
-    }
-  }
-
   private void createCSVPatchExchangesRecords() {
-    String content = repository
-        .stream()
-        .flatMap(i -> i.getDecisionRepository()
-                .stream()
-                .filter(r -> r.getSelectedPatch() != null)
+    String content =
+        repository.stream().flatMap(i -> i.getDecisionRepository().stream().filter(r -> r.getSelectedPatch() != null)
             .map(r -> new PatchMigration(r.getStep(), i.getWorkerId(), r.getSelectedNeighbourId(),
                 r.getSelectedPatch())))
         .sorted(Comparator.comparingInt(r -> r.step))
@@ -116,6 +85,23 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
         .collect(Collectors.joining());
 
     save(content, PATCH_EXCHANGES_CSV);
+  }
+
+  private void save(String content, String filename) {
+    File csvOutputFile = new File(DIR + "/" + filename);
+    PrintWriter pw;
+    try {
+      if (ConfigurationService.getConfiguration().isAppendResults() && csvOutputFile.exists()
+          && !csvOutputFile.isDirectory()) {
+        pw = new PrintWriter(new FileOutputStream(csvOutputFile, true));
+      } else {
+        pw = new PrintWriter(csvOutputFile);
+      }
+      pw.print(content);
+      pw.close();
+    } catch (Exception e) {
+      log.error("Error until save csv file {}", filename, e);
+    }
   }
 
   private void createCSVSummaryTimes() {
@@ -161,11 +147,13 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     save(header + workersContent, ITERATION_TIMES_CSV);
   }
 
+  private String getPointsTimes(List<SimulationPoint> points, HashMap<SimulationPoint, Long> iterationTimes) {
+    return points.stream().map(point -> iterationTimes.get(point).toString()).collect(Collectors.joining(SEPARATOR));
+  }
+
   private void createCSVMessagesSizes() {
-    List<MessagesTypeEnum> points = MessagesTypeEnum.getWorkerMessages()
-        .stream()
-        .sorted(Comparator.comparing(Enum::toString))
-        .collect(Collectors.toList());
+    List<MessagesTypeEnum> points =
+        MessagesTypeEnum.getWorkerMessages().stream().sorted(Comparator.comparing(Enum::toString)).toList();
 
     String header = "NAME" + SEPARATOR + "STEP" + SEPARATOR + points.stream()
         .map(Enum::toString)
@@ -186,10 +174,8 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
   }
 
   private void createCSVMessagesCount() {
-    List<MessagesTypeEnum> points = MessagesTypeEnum.getWorkerMessages()
-        .stream()
-        .sorted(Comparator.comparing(Enum::toString))
-        .collect(Collectors.toList());
+    List<MessagesTypeEnum> points =
+        MessagesTypeEnum.getWorkerMessages().stream().sorted(Comparator.comparing(Enum::toString)).toList();
 
     String header = "NAME" + SEPARATOR + "STEP" + SEPARATOR + points.stream()
         .map(Enum::toString)
@@ -207,10 +193,6 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
         .collect(Collectors.joining());
 
     save(header + workersContent, MESSAGES_COUNT_CSV);
-  }
-
-  private String getPointsTimes(List<SimulationPoint> points, HashMap<SimulationPoint, Long> iterationTimes) {
-    return points.stream().map(point -> iterationTimes.get(point).toString()).collect(Collectors.joining(SEPARATOR));
   }
 
   private void createCSVIterationData() {
@@ -245,21 +227,6 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     save(content, MAP_STATUS_CSV);
   }
 
-  private void createCSVLoadBalancingCostByWorker() {
-    List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
-
-    repository.forEach(repo -> {
-      int i = 1;
-      for (LoadBalancingCostStatistic info : repo.getBalancingCostRepository()) {
-        lines.get(i).append(info.getCost());
-        lines.get(i).append(SEPARATOR);
-        i++;
-      }
-    });
-
-    save(lines, WORKER_LOAD_BALANCING_COST_CSV);
-  }
-
   private void createCSVWorkerCosts() {
     List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
 
@@ -273,36 +240,6 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     });
 
     save(lines, WORKER_COSTS_CSV);
-  }
-
-  private void CreateCSVCarByWorker() {
-    List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
-
-    repository.forEach(repo -> {
-      int j = 1;
-      for (IterationInfo info : repo.getIterationStatisticRepository()) {
-        lines.get(j).append(info.getCarCountAfterStep());
-        lines.get(j).append(SEPARATOR);
-        j++;
-      }
-    });
-
-    save(lines, CAR_CSV);
-  }
-
-  private void createCSVWaitingTime() {
-    List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
-
-    repository.forEach(repo -> {
-      final int[] i = {1};
-      repo.getBalancingStatisticRepository().forEach(info -> {
-        lines.get(i[0]).append(info.getWaitingTime());
-        lines.get(i[0]).append(SEPARATOR);
-        i[0]++;
-      });
-    });
-
-    save(lines, WORKER_WAITING_TIME_CSV);
   }
 
   private List<StringBuffer> createEmptyStringBufferWithHeaders() {
@@ -335,7 +272,6 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
       } else {
         pw = new PrintWriter(csvOutputFile);
       }
-      // try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
       lines.stream().map(StringBuffer::toString).forEach(pw::println);
       pw.close();
     } catch (Exception e) {
@@ -343,21 +279,77 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
     }
   }
 
-  private void save(String content, String filename) {
-    File csvOutputFile = new File(DIR + "/" + filename);
-    PrintWriter pw;
-    try {
-      if (ConfigurationService.getConfiguration().isAppendResults() && csvOutputFile.exists()
-          && !csvOutputFile.isDirectory()) {
-        pw = new PrintWriter(new FileOutputStream(csvOutputFile, true));
-      } else {
-        pw = new PrintWriter(csvOutputFile);
+  private void createCSVCarByWorker() {
+    List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
+
+    repository.forEach(repo -> {
+      int j = 1;
+      for (IterationInfo info : repo.getIterationStatisticRepository()) {
+        lines.get(j).append(info.getCarCountAfterStep());
+        lines.get(j).append(SEPARATOR);
+        j++;
       }
-      pw.print(content);
-      pw.close();
-    } catch (Exception e) {
-      log.error("Error until save csv file {}", filename, e);
+    });
+
+    save(lines, CAR_CSV);
+  }
+
+  @Override
+  public void startStage(SimulationPoint stage) {
+    serverTimeStatisticRepository.put(stage, System.currentTimeMillis());
+  }
+
+  @Override
+  public void startStage(List<SimulationPoint> stages) {
+    long time = System.currentTimeMillis();
+    for (SimulationPoint stage : stages) {
+      serverTimeStatisticRepository.put(stage, time);
     }
+  }
+
+  @Override
+  public void endStage(SimulationPoint stage) {
+    long startTime = serverTimeStatisticRepository.get(stage);
+    serverTimeStatisticRepository.replace(stage, System.currentTimeMillis() - startTime);
+  }
+
+  @Override
+  public void endStage(List<SimulationPoint> stages) {
+    long endTime = System.currentTimeMillis();
+    for (SimulationPoint stage : stages) {
+      long startTime = serverTimeStatisticRepository.get(stage);
+      serverTimeStatisticRepository.replace(stage, endTime - startTime);
+    }
+  }
+
+  private void createCSVLoadBalancingCostByWorker() {
+    List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
+
+    repository.forEach(repo -> {
+      int i = 1;
+      for (LoadBalancingCostStatistic info : repo.getBalancingCostRepository()) {
+        lines.get(i).append(info.getCost());
+        lines.get(i).append(SEPARATOR);
+        i++;
+      }
+    });
+
+    save(lines, WORKER_LOAD_BALANCING_COST_CSV);
+  }
+
+  private void createCSVWaitingTime() {
+    List<StringBuffer> lines = createEmptyStringBufferWithHeaders();
+
+    repository.forEach(repo -> {
+      final int[] i = {1};
+      repo.getBalancingStatisticRepository().forEach(info -> {
+        lines.get(i[0]).append(info.getWaitingTime());
+        lines.get(i[0]).append(SEPARATOR);
+        i[0]++;
+      });
+    });
+
+    save(lines, WORKER_WAITING_TIME_CSV);
   }
 
   @Override

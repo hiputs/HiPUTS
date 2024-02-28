@@ -20,8 +20,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationStatisticMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.statistics.SimulationPoint;
 
@@ -37,10 +37,11 @@ public class SimulationStatisticServiceImpl implements SimulationStatisticServic
   private final List<MapStatistic> mapStatisticsRepository = new LinkedList<>();
   private final HashMap<SimulationPoint, Long> workerTimeStatisticRepository = new HashMap<SimulationPoint, Long>();
   private final IterationStatisticsService iterationStatisticService;
+  private final Configuration configuration;
 
   @PostConstruct
   void init() {
-    enableLogs = ConfigurationService.getConfiguration().isStatisticModeActive();
+    enableLogs = configuration.isStatisticModeActive();
   }
 
   @Override

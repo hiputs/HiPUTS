@@ -1,0 +1,28 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer
+      properties:
+        buffer.memory: 50_000_000 # 50MB
+        batch.size: 25_000_000 # 25MB
+        max.request.size: 25_000_000 # 25MB
+        linger.ms: 10 # 10ms waiting for messages to be ready to send
+        retries: 3
+
+    consumer:
+      group-id: visualization_state_change_group
+      auto-offset-reset: latest
+      enable-auto-commit: true
+      auto-commit-interval: 5
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
+
+    properties:
+      schema.registry.url: http://localhost:8085
+      auto.register.schemas: true

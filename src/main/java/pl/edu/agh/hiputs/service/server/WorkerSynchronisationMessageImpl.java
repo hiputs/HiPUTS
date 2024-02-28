@@ -1,24 +1,27 @@
 package pl.edu.agh.hiputs.service.server;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
-
-import java.util.*;
-import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.configuration.Configuration;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WorkerSynchronisationMessageImpl implements WorkerSynchronisationService{
+public class WorkerSynchronisationMessageImpl implements WorkerSynchronisationService {
 
-    private final Map<MessagesTypeEnum, Set<String>> messageTypeWorkerRepository = new HashMap<>();
-    private final ConfigurationService configurationService;
+  private final Map<MessagesTypeEnum, Set<String>> messageTypeWorkerRepository = new ConcurrentHashMap<>();
+  private final Configuration configuration;
 
     @Override
     public synchronized void waitForAllWorkers(MessagesTypeEnum state) {
-        while(messageTypeWorkerRepository.get(state) == null || messageTypeWorkerRepository.get(state).size() < configurationService.getConfiguration().getWorkerCount()){
+      while (messageTypeWorkerRepository.get(state) == null
+          || messageTypeWorkerRepository.get(state).size() < configuration.getWorkerCount()) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -32,7 +35,8 @@ public class WorkerSynchronisationMessageImpl implements WorkerSynchronisationSe
         messageTypeWorkerRepository.putIfAbsent(state, new TreeSet<>());
         messageTypeWorkerRepository.get(state)
                 .add(workerId);
-        log.info(String.format("Server receive info -> Worker id: %s has reached the state %s, connection status %d / %d", workerId, state, messageTypeWorkerRepository.get(state).size(), configurationService.getConfiguration().getWorkerCount()));
+      log.info(String.format("Server receive info -> Worker id: %s has reached the state %s, connection status %d / %d",
+          workerId, state, messageTypeWorkerRepository.get(state).size(), configuration.getWorkerCount()));
         notifyAll();
 
     }
