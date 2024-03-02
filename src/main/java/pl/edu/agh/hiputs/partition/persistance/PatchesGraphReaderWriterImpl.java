@@ -38,6 +38,8 @@ import pl.edu.agh.hiputs.partition.model.lights.group.GreenColorGroupReadable;
 import pl.edu.agh.hiputs.partition.model.lights.group.MultipleTIsGreenColorGroup;
 import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicator;
 import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicatorReadable;
+import pl.edu.agh.hiputs.partition.model.relation.Restriction;
+import pl.edu.agh.hiputs.partition.model.relation.RestrictionType;
 import pl.edu.agh.hiputs.service.SignalsConfigurationService;
 
 @Slf4j
@@ -75,6 +77,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     FileWriter edgesWriter = new FileWriter(exportDescriptor.getEdgesFilePath());
     FileWriter lanesWriter = new FileWriter(exportDescriptor.getLanesFilePath());
     FileWriter patchesWriter = new FileWriter(exportDescriptor.getPatchesFilePath());
+    FileWriter restrictionsWriter = new FileWriter(exportDescriptor.getRestrictionsFilePath());
     FileWriter signalGroupsWriter = new FileWriter(exportDescriptor.getSignalGroupsFilePath());
     FileWriter signalCentersWriter = new FileWriter(exportDescriptor.getSignalCentersFilePath());
 
@@ -86,6 +89,8 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
             CSVFormat.DEFAULT.builder().setHeader(LaneHeader.class).build());
         CSVPrinter patchesPrinter = new CSVPrinter(patchesWriter,
             CSVFormat.DEFAULT.builder().setHeader(PatchHeader.class).build());
+        CSVPrinter restrictionsPrinter = new CSVPrinter(restrictionsWriter,
+            CSVFormat.DEFAULT.builder().setHeader(RestrictionHeader.class).build());
         CSVPrinter signalGroupsPrinter = new CSVPrinter(signalGroupsWriter,
             CSVFormat.DEFAULT.builder().setHeader(SignalGroupHeader.class).build());
         CSVPrinter signalCentersPrinter = new CSVPrinter(signalCentersWriter,
@@ -103,7 +108,8 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
                 n.getData().isCrossroad(),
                 n.getData().getPatchId(),
                 n.getData().getSignalsControlCenter().map(SignalsControlCenter::getId).orElse(null),
-                mapToCsv(n.getData().getTags()));
+                mapToCsv(n.getData().getTags()),
+                mapToCsv(n.getData().getRestrictions().stream().map(Restriction::getId).toList()));
           }
         }
 
@@ -137,6 +143,21 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
                   .map(LaneData::getId)
                   .toList())
           );
+        }
+
+        // taking all restrictions
+        List<Restriction> distinctRestrictions = p.getData()
+            .getGraphInsidePatch()
+            .getNodes()
+            .values()
+            .stream()
+            .flatMap(node -> node.getData().getRestrictions().stream())
+            .distinct()
+            .toList();
+
+        for (Restriction restriction : distinctRestrictions) {
+          restrictionsPrinter.printRecord(restriction.getId(), restriction.getFromEdgeId(), restriction.getViaNodeId(),
+              restriction.getToEdgeId(), restriction.getType());
         }
 
         // taking all signal control centers from crossroads
@@ -181,6 +202,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     FileReader edgesReader = new FileReader(exportDescriptor.getEdgesFilePath());
     FileReader lanesReader = new FileReader(exportDescriptor.getLanesFilePath());
     FileReader patchesReader = new FileReader(exportDescriptor.getPatchesFilePath());
+    FileReader restrictionsReader = new FileReader(exportDescriptor.getRestrictionsFilePath());
     FileReader signalGroupsReader = new FileReader(exportDescriptor.getSignalGroupsFilePath());
     FileReader signalCentersReader = new FileReader(exportDescriptor.getSignalCentersFilePath());
 
@@ -192,6 +214,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     Iterable<CSVRecord> records =
         CSVFormat.DEFAULT.builder().setHeader(NodeHeaders.class).setSkipHeaderRecord(true).build().parse(nodesReader);
     Map<String, String> signalsCCId2NodeId = new HashMap<>();
+    Map<String, Collection<String>> nodeId2RestrictionsIds = new HashMap<>();
     for (CSVRecord record : records) {
       JunctionData junctionData = JunctionData.builder()
           .lon(Double.parseDouble(record.get(NodeHeaders.longitude)))
@@ -213,6 +236,11 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
       // taking all nodes with signal control centers and mapping their id's: signalControlCenterId -> nodeId
       if (!Strings.isBlank(record.get(NodeHeaders.signalsControlCenter))) {
         signalsCCId2NodeId.put(record.get(NodeHeaders.signalsControlCenter), record.get(NodeHeaders.id));
+      }
+
+      // taking all nodes with restrictions and mapping their id's: nodeId -> [restrictions]
+      if (!Strings.isBlank(record.get(NodeHeaders.restrictions))) {
+        nodeId2RestrictionsIds.put(record.get(NodeHeaders.id), csvToCollection(record.get(NodeHeaders.restrictions)));
       }
     }
 
@@ -295,6 +323,27 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
             .map(laneIdToLaneData::get)
             .toList()
     ));
+
+    records = CSVFormat.DEFAULT.builder()
+        .setHeader(RestrictionHeader.class)
+        .setSkipHeaderRecord(true)
+        .build()
+        .parse(restrictionsReader);
+    Map<String, Restriction> id2Restrictions = new HashMap<>();
+    for (CSVRecord record : records) {
+      id2Restrictions.put(record.get(RestrictionHeader.id), Restriction.builder()
+          .id(record.get(RestrictionHeader.id))
+          .fromEdgeId(record.get(RestrictionHeader.from_edge_id))
+          .viaNodeId(record.get(RestrictionHeader.via_node_id))
+          .toEdgeId(record.get(RestrictionHeader.to_edge_id))
+          .type(RestrictionType.valueOf(record.get(RestrictionHeader.type).toUpperCase()))
+          .build());
+    }
+
+    nodeId2RestrictionsIds.forEach((nodeId, restrictionsId) -> nodeId2Node.get(nodeId)
+        .getData()
+        .getRestrictions()
+        .addAll(restrictionsId.stream().map(id2Restrictions::get).toList()));
 
     records =
         CSVFormat.DEFAULT.builder().setHeader(EdgeHeader.class).setSkipHeaderRecord(true).build().parse(edgesReader);

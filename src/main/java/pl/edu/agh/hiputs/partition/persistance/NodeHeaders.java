@@ -7,5 +7,6 @@ enum NodeHeaders {
   is_crossroad,
   patch_id,
   signalsControlCenter,
-  tags;
+  tags,
+  restrictions
 }

@@ -35,7 +35,7 @@ public class SignalsConfigurationService {
       File signalsConfigFile = new File(SETTINGS_PATH);
 
       if (signalsConfigFile.exists()) {
-        signalsConfig = new Gson().fromJson(Files.readString(signalsConfigFile.toPath()), SignalsConfiguration.class);
+        signalsConfig = gson.fromJson(Files.readString(signalsConfigFile.toPath()), SignalsConfiguration.class);
 
         nodeId2TimeMap = Arrays.stream(signalsConfig.getSignalControlCenterConfigurations())
             .collect(Collectors.toMap(
@@ -43,9 +43,10 @@ public class SignalsConfigurationService {
                 SignalControlCenterConfiguration::getTime
             ));
       } else {
-        signalsConfig = new SignalsConfiguration();
-        signalsConfig.setDefaultTime(randIntegerFromInterval());
-        signalsConfig.setStrategy("redGreenOnlyTrafficLightsStrategy");
+        signalsConfig = SignalsConfiguration.builder()
+            .defaultTime(randIntegerFromInterval())
+            .strategy("redGreenOnlyTrafficLightsStrategy")
+            .build();
 
         nodeId2TimeMap = new HashMap<>();
       }

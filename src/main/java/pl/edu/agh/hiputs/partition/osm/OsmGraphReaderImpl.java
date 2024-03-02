@@ -4,6 +4,7 @@ import de.topobyte.osm4j.core.access.OsmIterator;
 import de.topobyte.osm4j.core.model.iface.EntityContainer;
 import de.topobyte.osm4j.core.model.iface.EntityType;
 import de.topobyte.osm4j.core.model.iface.OsmNode;
+import de.topobyte.osm4j.core.model.iface.OsmRelation;
 import de.topobyte.osm4j.core.model.iface.OsmWay;
 import de.topobyte.osm4j.xml.dynsax.OsmXmlIterator;
 
@@ -28,6 +29,7 @@ public class OsmGraphReaderImpl implements OsmGraphReader{
     public OsmGraph loadOsmData(InputStream osmFileInputStream) {
         List<OsmNode> nodes = new LinkedList<>();
         List<OsmWay> ways = new LinkedList<>();
+        List<OsmRelation> relations = new LinkedList<>();
 
         OsmIterator iterator = new OsmXmlIterator(osmFileInputStream, false);
 
@@ -40,6 +42,15 @@ public class OsmGraphReaderImpl implements OsmGraphReader{
                 for(int i=0; i<way.getNumberOfTags(); i++){
                     if (way.getTag(i).getKey().equals("highway") && !way.getTag(i).getValue().equals("footway")) {
                         ways.add(way);
+                    }
+                }
+            } else if (container.getType() == EntityType.Relation) {
+                OsmRelation relation = (OsmRelation) container.getEntity();
+                for (int i = 0; i < relation.getNumberOfTags(); i++) {
+                    if (relation.getTag(i).getKey().equals("type") && relation.getTag(i)
+                        .getValue()
+                        .equals("restriction")) {
+                        relations.add(relation);
                     }
                 }
             }
@@ -57,7 +68,7 @@ public class OsmGraphReaderImpl implements OsmGraphReader{
 
         speedRuleEngine.validateSpeedLimits(nodes, ways);
 
-        return new OsmGraph(nodes, ways);
+        return new OsmGraph(nodes, ways, relations);
     }
 
     private Stream<Long> getAllNodesIdsOnWay(OsmWay way) {
