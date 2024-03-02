@@ -13,13 +13,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.partition.osm.speed.rule.engine.RuleEngine;
 
 /**
  * This class is responsible for reading road map from osm map, so include filtering nodes that are not included in any raod
  */
 @Service
+@RequiredArgsConstructor
 public class OsmGraphReaderImpl implements OsmGraphReader{
+    private final RuleEngine speedRuleEngine;
 
     public OsmGraph loadOsmData(InputStream osmFileInputStream) {
         List<OsmNode> nodes = new LinkedList<>();
@@ -41,6 +45,8 @@ public class OsmGraphReaderImpl implements OsmGraphReader{
             }
         }
 
+        speedRuleEngine.findDefaultCountry(nodes);
+
         Set<Long> nodesIdsOnWays = ways.stream()
                 .flatMap(this::getAllNodesIdsOnWay)
                 .collect(Collectors.toSet());
@@ -48,6 +54,8 @@ public class OsmGraphReaderImpl implements OsmGraphReader{
         nodes = nodes.stream()
                 .filter(osmNode -> nodesIdsOnWays.contains(osmNode.getId()))
                 .collect(Collectors.toList());
+
+        speedRuleEngine.validateSpeedLimits(nodes, ways);
 
         return new OsmGraph(nodes, ways);
     }
