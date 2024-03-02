@@ -13,5 +13,5 @@ public interface IDriver {
 
   double getDistanceHeadway();
 
-  void setTimeStep(double timeStep);
+  // void setTimeStep(double timeStep);
 }

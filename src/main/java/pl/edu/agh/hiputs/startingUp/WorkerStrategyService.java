@@ -31,9 +31,6 @@ import pl.edu.agh.hiputs.loadbalancer.LocalLoadMonitorService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.service.routegenerator.CarGeneratorService;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
-import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.service.worker.usecase.TrafficLightsFinderService;
@@ -63,7 +60,6 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final CarGeneratorService carGeneratorService;
   private final ExecutorService simulationExecutor = newSingleThreadExecutor();
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
-  private final SimulationStatisticService simulationStatisticService;
   private final DebugUtils debugUtils;
   private final LocalLoadMonitorService localLoadMonitorService;
   private final CarsProducer carsProducer;
