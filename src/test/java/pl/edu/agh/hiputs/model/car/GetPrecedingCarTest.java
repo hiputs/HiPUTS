@@ -8,17 +8,19 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarPrecedingEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
-import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspectorImpl;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarEnvironmentProvider;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 @Disabled
@@ -27,19 +29,23 @@ public class GetPrecedingCarTest {
 
   private MapFragment mapFragment;
   private ExampleCarProvider carProvider;
-  private RoadId startLaneId;
-  private RoadEditable startLane;
+  private RoadId startRoadId;
+  private RoadEditable startRoad;
+  private LaneId startLaneId;
+  private LaneEditable startLane;
   private Car car1, car2;
   private CarProspector prospector;
     @BeforeEach
     public void setup() {
         mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
         carProvider = new ExampleCarProvider(mapFragment);
-        startLaneId = mapFragment.getLocalRoadIds().iterator().next();
-        startLane = mapFragment.getRoadEditable(startLaneId);
+      startRoadId = mapFragment.getLocalRoadIds().iterator().next();
+      startRoad = mapFragment.getRoadEditable(startRoadId);
+      startLaneId = startRoad.getLanes().get(0);
+      startLane = mapFragment.getLaneEditable(startLaneId);
         car1 = carProvider.generateCar(10.0, startLaneId, 3);
         car2 = carProvider.generateCar(60.0, startLaneId, 4);
-        prospector = new CarProspectorImpl();
+      prospector = new CarEnvironmentProvider();
     }
 
 
@@ -48,47 +54,50 @@ public class GetPrecedingCarTest {
     setAllJunctionTypeCrossroad();
     startLane.addCarAtEntry(car2);
     startLane.addCarAtEntry(car1);
-    CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
-    Assertions.assertAll(() -> Assertions.assertTrue(carEnvironment.getPrecedingCar().isPresent()),
-        () -> Assertions.assertEquals(car2, carEnvironment.getPrecedingCar().get()),
-        () -> Assertions.assertEquals(50.0 - car2.getLength(), carEnvironment.getDistance()),
-        () -> Assertions.assertFalse(carEnvironment.getNextCrossroadId().isPresent())
+    CarPrecedingEnvironment carPrecedingEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
+    Assertions.assertAll(() -> Assertions.assertTrue(carPrecedingEnvironment.getPrecedingCar().isPresent()),
+        () -> Assertions.assertEquals(car2, carPrecedingEnvironment.getPrecedingCar().get()),
+        () -> Assertions.assertEquals(50.0 - car2.getLength(), carPrecedingEnvironment.getDistance()),
+        () -> Assertions.assertFalse(carPrecedingEnvironment.getNextCrossroadId().isPresent())
         //in this case we get precedingCar, nextCrossroadId is out of view range
     );
   }
 
   @Test
   public void getPrecedingCarWhereCarIsFoundInsaneViewRange() {
-    prospector = new CarProspectorImpl(10000000);
+    prospector = new CarEnvironmentProvider(10000000);
     setAllJunctionTypeCrossroad();
     startLane.addCarAtEntry(car2);
     startLane.addCarAtEntry(car1);
-    CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
-    Assertions.assertAll(() -> Assertions.assertTrue(carEnvironment.getPrecedingCar().isPresent()),
-        () -> Assertions.assertEquals(car2, carEnvironment.getPrecedingCar().get()),
-        () -> Assertions.assertEquals(50.0 - car2.getLength(), carEnvironment.getDistance()),
-        () -> Assertions.assertTrue(carEnvironment.getNextCrossroadId().isPresent()),
+    CarPrecedingEnvironment carPrecedingEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
+    Assertions.assertAll(() -> Assertions.assertTrue(carPrecedingEnvironment.getPrecedingCar().isPresent()),
+        () -> Assertions.assertEquals(car2, carPrecedingEnvironment.getPrecedingCar().get()),
+        () -> Assertions.assertEquals(50.0 - car2.getLength(), carPrecedingEnvironment.getDistance()),
+        () -> Assertions.assertTrue(carPrecedingEnvironment.getNextCrossroadId().isPresent()),
         //in this case we get precedingCar and nextCrossroadId
-        () -> Assertions.assertEquals(startLane.getOutgoingJunctionId(), carEnvironment.getNextCrossroadId().get()));
+        () -> Assertions.assertEquals(startRoad.getOutgoingJunctionId(),
+            carPrecedingEnvironment.getNextCrossroadId().get()));
   }
   @Test
   public void getPrecedingCarWhereCarIsNotFound() {
     setAllJunctionTypeCrossroad();
     startLane.addCarAtEntry(car1);
-    CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
-    Assertions.assertAll(() -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
-        () -> Assertions.assertFalse(carEnvironment.getNextCrossroadId().isPresent()));
+    CarPrecedingEnvironment carPrecedingEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
+    Assertions.assertAll(() -> Assertions.assertFalse(carPrecedingEnvironment.getPrecedingCar().isPresent()),
+        () -> Assertions.assertFalse(carPrecedingEnvironment.getNextCrossroadId().isPresent()));
   }
   @Test
   public void getPrecedingCarWhereCarIsNotFoundInsaneViewRange() {
-    prospector = new CarProspectorImpl(10000000);
+    prospector = new CarEnvironmentProvider(10000000);
     setAllJunctionTypeCrossroad();
     startLane.addCarAtEntry(car1);
-    CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
-    Assertions.assertAll(() -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
-        () -> Assertions.assertTrue(carEnvironment.getNextCrossroadId().isPresent()),
-        () -> Assertions.assertEquals(startLane.getOutgoingJunctionId(), carEnvironment.getNextCrossroadId().get()),
-        () -> Assertions.assertEquals(startLane.getLength() - car1.getPositionOnRoad(), carEnvironment.getDistance()));
+    CarPrecedingEnvironment carPrecedingEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
+    Assertions.assertAll(() -> Assertions.assertFalse(carPrecedingEnvironment.getPrecedingCar().isPresent()),
+        () -> Assertions.assertTrue(carPrecedingEnvironment.getNextCrossroadId().isPresent()),
+        () -> Assertions.assertEquals(startRoad.getOutgoingJunctionId(),
+            carPrecedingEnvironment.getNextCrossroadId().get()),
+        () -> Assertions.assertEquals(startRoad.getLength() - car1.getPositionOnLane(),
+            carPrecedingEnvironment.getDistance()));
   }
 
     @Test
@@ -97,35 +106,36 @@ public class GetPrecedingCarTest {
         this.setAllJunctionTypeBend();
 
     startLane.addCarAtEntry(car1);
-    CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
-    Assertions.assertAll(() -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
-        () -> Assertions.assertFalse(carEnvironment.getNextCrossroadId().isPresent()));
+      CarPrecedingEnvironment carPrecedingEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
+      Assertions.assertAll(() -> Assertions.assertFalse(carPrecedingEnvironment.getPrecedingCar().isPresent()),
+          () -> Assertions.assertFalse(carPrecedingEnvironment.getNextCrossroadId().isPresent()));
   }
 
   @Test
   public void getPrecedingCarWhereCarIsNotFoundAndAllJunctionAreBendInsaneViewRange() {
-    prospector = new CarProspectorImpl(10000000);
+    prospector = new CarEnvironmentProvider(10000000);
     car1 = carProvider.generateCar(10.0, startLaneId, 2);
     this.setAllJunctionTypeBend();
 
     startLane.addCarAtEntry(car1);
-    CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
-    Assertions.assertAll(() -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
-        () -> Assertions.assertFalse(carEnvironment.getNextCrossroadId().isPresent()),
-        () -> Assertions.assertEquals(3 * startLane.getLength() - car1.getPositionOnRoad(),
-            carEnvironment.getDistance()));
+    CarPrecedingEnvironment carPrecedingEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
+    Assertions.assertAll(() -> Assertions.assertFalse(carPrecedingEnvironment.getPrecedingCar().isPresent()),
+        () -> Assertions.assertFalse(carPrecedingEnvironment.getNextCrossroadId().isPresent()),
+        () -> Assertions.assertEquals(3 * startRoad.getLength() - car1.getPositionOnLane(),
+            carPrecedingEnvironment.getDistance()));
   }
 
   @Test
   public void getPrecedingCarShouldFindItself() {
-    prospector = new CarProspectorImpl(10000000);
+    prospector = new CarEnvironmentProvider(10000000);
     this.setAllJunctionTypeBend();
     startLane.addCarAtEntry(car1);
-    CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
-    Assertions.assertAll(() -> Assertions.assertTrue(carEnvironment.getPrecedingCar().isPresent()),
-        () -> Assertions.assertEquals(car1, carEnvironment.getPrecedingCar().get()),
-        () -> Assertions.assertFalse(carEnvironment.getNextCrossroadId().isPresent()),
-        () -> Assertions.assertEquals(3 * startLane.getLength() - car1.getLength(), carEnvironment.getDistance()));
+    CarPrecedingEnvironment carPrecedingEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
+    Assertions.assertAll(() -> Assertions.assertTrue(carPrecedingEnvironment.getPrecedingCar().isPresent()),
+        () -> Assertions.assertEquals(car1, carPrecedingEnvironment.getPrecedingCar().get()),
+        () -> Assertions.assertFalse(carPrecedingEnvironment.getNextCrossroadId().isPresent()),
+        () -> Assertions.assertEquals(3 * startRoad.getLength() - car1.getLength(),
+            carPrecedingEnvironment.getDistance()));
   }
 
   private void setAllJunctionTypeBend() {

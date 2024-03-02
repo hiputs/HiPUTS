@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.car.Decision;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 
 @Getter
@@ -27,6 +28,11 @@ public class SerializedDecision implements CustomSerializable<Decision> {
   private final String roadId;
 
   /**
+   * Serialized laneId
+   */
+  private final String laneId;
+
+  /**
    * Serialized positionOnRoad
    */
   private final double positionOnRoad;
@@ -45,6 +51,7 @@ public class SerializedDecision implements CustomSerializable<Decision> {
     this.speed = readObject.getSpeed();
     this.acceleration = readObject.getAcceleration();
     this.roadId = readObject.getRoadId().getValue();
+    this.laneId = readObject.getLaneId().getValue();
     this.positionOnRoad = readObject.getPositionOnRoad();
     this.offsetToMoveOnRoute = readObject.getOffsetToMoveOnRoute();
     this.crossroadDecisionProperties = new SerializedCrossroadDecisionProperties(readObject.getCrossroadDecisionProperties());
@@ -55,7 +62,7 @@ public class SerializedDecision implements CustomSerializable<Decision> {
     return Decision.builder()
         .speed(speed)
         .acceleration(acceleration)
-        .roadId(new RoadId(roadId))
+        .roadId(new RoadId(roadId)).laneId(new LaneId(laneId))
         .positionOnRoad(positionOnRoad)
         .offsetToMoveOnRoute(offsetToMoveOnRoute)
         .crossroadDecisionProperties(crossroadDecisionProperties.toRealObject())

@@ -1,9 +1,12 @@
 package pl.edu.agh.hiputs.model.map.patch;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -95,6 +98,20 @@ public class Patch implements PatchReader, PatchEditor {
     return lanes.get(laneId);
   }
 
+  @Override
+  public Stream<LaneEditable> streamLanesEditable() {
+    return lanes.values().parallelStream().map(Function.identity());
+  }
+
+  @Override
+  public Stream<LaneReadable> streamLaneReadable() {
+    return lanes.values().stream().map(Function.identity());
+  }
+
+  @Override
+  public Stream<LaneEditable> parallelStreamLanesEditable() {
+    return lanes.values().parallelStream().map(Function.identity());
+  }
 
   @Override
   public LaneEditable getLaneEditable(LaneId laneId) {

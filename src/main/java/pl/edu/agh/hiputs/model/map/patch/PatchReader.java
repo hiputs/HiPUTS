@@ -7,6 +7,7 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
 
@@ -23,6 +24,10 @@ public interface PatchReader {
   Set<LaneId> getLaneIds();
 
   LaneReadable getLaneReadable(LaneId laneId);
+
+  Stream<LaneEditable> streamLanesEditable();
+
+  Stream<LaneReadable> streamLaneReadable();
 
   Set<JunctionId> getJunctionIds();
 

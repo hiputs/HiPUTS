@@ -27,6 +27,7 @@ import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.CarId;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
@@ -81,8 +82,7 @@ public class IncomingCarsSetsSynchronizationServiceTest {
         .length(12)
         .speed(13)
         .maxSpeed(14)
-        .roadId(new RoadId("abc"))
-        .positionOnRoad(0)
+        .roadId(new RoadId("abc")).laneId(new LaneId("def")).positionOnLane(0)
         .routeWithLocation(new RouteWithLocation(routeElementList, 0))
         .decision(Decision.builder().roadId(new RoadId("destination")).build())
         .build();

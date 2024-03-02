@@ -100,8 +100,7 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
         .length(edge.getData().getLength())
         .incomingJunctionId(new JunctionId(edge.getSource().getId(), getJunctionType(edge.getSource())))
         .outgoingJunctionId(new JunctionId(edge.getTarget().getId(), getJunctionType(edge.getTarget())))
-        .leftNeighbor(getOppositeRoadId(edge).map(roadId -> new NeighborRoadInfo(roadId,
-            HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE))); //todo parse line from osm if possible
+        .leftNeighbor(getNeighbourNeighborRoadInfo(edge)); //todo parse line from osm if possible
 
     edge.getData().getTrafficIndicator()
         .ifPresent(trafficIndicator -> roadBuilder.trafficIndicator(Optional.of(trafficIndicator)));
@@ -122,7 +121,7 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
     return edge.getData().getLanes().stream().map(laneData -> {
       Lane.LaneBuilder laneBuilder = Lane.builder()
           .laneId(new LaneId(laneData.getId()))
-          .roadId(new RoadId(edge.getId()))
+          .roadId(new RoadId(edge.getId())).length(edge.getData().getLength())
           .laneSuccessors(laneData.getAvailableSuccessors().stream()
               .map(lanesSuccessors -> new LaneId(lanesSuccessors.getId())).collect(Collectors.toList()));
 
@@ -135,7 +134,7 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
     return node.getData().isCrossroad() ? JunctionType.CROSSROAD : JunctionType.BEND;
   }
 
-  private Optional<RoadId> getOppositeRoadId(Edge<JunctionData, WayData> edge) {
+  private Optional<NeighborRoadInfo> getNeighbourNeighborRoadInfo(Edge<JunctionData, WayData> edge) {
     if (edge.getData().isOneWay()) {
       return Optional.empty();
     }
@@ -144,7 +143,19 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
         .getIncomingEdges()
         .stream()
         .filter(e -> e.getSource().equals(edge.getTarget()))
-        .map(e -> new RoadId(e.getId()))
-        .findFirst();
+        .findFirst()
+        .map(e -> new NeighborRoadInfo(new RoadId(e.getId()), this.getSign(edge, e)));
+  }
+
+  private HorizontalSign getSign(Edge<JunctionData, WayData> edge, Edge<JunctionData, WayData> oppositeEdge) {
+    if (getLanesCount(edge) == 1 && getLanesCount(oppositeEdge) == 1) {
+      return HorizontalSign.OPPOSITE_DIRECTION_DOTTED_LINE;
+    } else {
+      return HorizontalSign.OPPOSITE_DIRECTION_SOLID_LINE;
+    }
+  }
+
+  private int getLanesCount(Edge<JunctionData, WayData> edge) {
+    return edge.getData().getLanes().size();
   }
 }

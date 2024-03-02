@@ -1,12 +1,12 @@
-package pl.edu.agh.hiputs.model.car.driver.deciders.junction;
+package pl.edu.agh.hiputs.model.car.driver.deciders.lanechanger;
 
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarPrecedingEnvironment;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 
-public interface JunctionDecider {
+public interface ILaneChangeDecider {
 
-  JunctionDecision makeDecision(CarReadable managedCar, CarPrecedingEnvironment environment,
+  LaneChangeDecision makeDecision(CarReadable managedCar, CarPrecedingEnvironment environment,
       RoadStructureReader roadStructureReader);
 
 }

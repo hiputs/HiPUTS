@@ -2,11 +2,11 @@ package pl.edu.agh.hiputs.model.car.driver.deciders.junction;
 
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
+import pl.edu.agh.hiputs.model.car.driver.deciders.CarPrecedingEnvironment;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
 import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.car.driver.deciders.FunctionalDecider;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.IFollowingModel;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.ICarFollowingModel;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
@@ -18,9 +18,9 @@ public class BasicJunctionDecider implements FunctionalDecider {
 
   private final CarProspector prospector;
 
-  private final IFollowingModel followingModel;
+  private final ICarFollowingModel followingModel;
 
-  public BasicJunctionDecider(CarProspector prospector, IFollowingModel followingModel) {
+  public BasicJunctionDecider(CarProspector prospector, ICarFollowingModel followingModel) {
     this.prospector = prospector;
     this.followingModel = followingModel;
   }
@@ -31,7 +31,8 @@ public class BasicJunctionDecider implements FunctionalDecider {
   private final double speedThreshold = 2;
   private final double freeAcceleration = 1;
 
-  public double makeDecision(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader) {
+  public double makeDecision(CarReadable car, CarPrecedingEnvironment environment,
+      RoadStructureReader roadStructureReader) {
     double maxSpeed = environment.getDistance() < lineHeight * 8 ? crossroadMaxSpeed : car.getMaxSpeed();
     log.warn("Car: " + car.getCarId() + " crossroad workaround remove when repair errors");
     return followingModel.calculateAcceleration(car.getSpeed(), maxSpeed, Double.MAX_VALUE, 0);
@@ -63,7 +64,8 @@ public class BasicJunctionDecider implements FunctionalDecider {
     return acceleration;*/
   }
 
-  private double getClosestConflictVehicleArriveTime(CarReadable car, CarEnvironment environment, RoadStructureReader roadStructureReader){
+  private double getClosestConflictVehicleArriveTime(CarReadable car, CarPrecedingEnvironment environment,
+      RoadStructureReader roadStructureReader) {
     if(environment.getNextCrossroadId().isEmpty() || environment.getIncomingRoadId().isEmpty()){
       return Double.MAX_VALUE;
     }

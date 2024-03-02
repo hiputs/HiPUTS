@@ -1,6 +1,5 @@
 package pl.edu.agh.hiputs.example;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -137,7 +136,8 @@ public class ExampleMapFragmentProvider {
     setRoadLengths(stringRoadMap, roadLengths);
 
     stringRoadMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
-    generateLanesOnRoad(stringRoadMap, stringLaneMap);
+    generateLanesOnRoad(stringRoadMap, stringLaneMap, stringJunctionMap);
+    setLaneLengths(stringLaneMap, roadLengths);
 
     Patch patch = createPatch(stringRoadMap, stringLaneMap, stringJunctionMap);
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
@@ -187,7 +187,8 @@ public class ExampleMapFragmentProvider {
     setRoadLengths(stringRoadMap, roadLengths);
 
     stringRoadMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
-    generateLanesOnRoad(stringRoadMap, stringLaneMap);
+    generateLanesOnRoad(stringRoadMap, stringLaneMap, stringJunctionMap);
+    setLaneLengths(stringLaneMap, roadLengths);
 
     Patch patch = createPatch(stringRoadMap, stringLaneMap, stringJunctionMap);
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
@@ -204,19 +205,21 @@ public class ExampleMapFragmentProvider {
 
     setRoadLengths(stringRoadMap, roadLengths);
     stringRoadMap.forEach((edge, roadUnderConstruction) -> putOnMap(edge, roadUnderConstruction, stringJunctionMap));
-    generateLanesOnRoad(stringRoadMap, stringLaneMap);
+    generateLanesOnRoad(stringRoadMap, stringLaneMap, stringJunctionMap);
+    setLaneLengths(stringLaneMap, roadLengths);
 
     Patch patch = createPatch(stringRoadMap, stringLaneMap, stringJunctionMap);
 
     MapFragment mapFragment = MapFragment.builder(MapFragmentId.random()).addLocalPatch(patch).build();
     ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragment);
 
-    patch.streamRoadsEditable().forEach(road -> {
+    patch.streamLanesEditable().forEach(lane -> {
       for (int i = 0; i < randomCarsPerLane; i++) {
-        double carPosition = (randomCarsPerLane - i) * road.getLength() / (randomCarsPerLane + 1);
-        Car car = exampleCarProvider.generateCar(carPosition, road.getRoadId());
-        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, road);
-        road.addCarAtEntry(car);
+        double carPosition =
+            (randomCarsPerLane - i) * patch.getRoadReadable(lane.getRoadId()).getLength() / (randomCarsPerLane + 1);
+        Car car = exampleCarProvider.generateCar(carPosition, lane.getLaneId());
+        exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
+        lane.addCarAtEntry(car);
       }
     });
 
@@ -275,6 +278,12 @@ public class ExampleMapFragmentProvider {
         .length(Optional.ofNullable(roadLengths.get(key)).orElse(DEFAULT_LANE_LENGTH)));
   }
 
+  private static void setLaneLengths(Map<String, LaneUnderConstruction> stringLaneMap,
+      Map<String, Double> roadLengths) {
+    stringLaneMap.forEach((key, roadUnderConstruction) -> roadUnderConstruction.getLaneBuilder()
+        .length(Optional.ofNullable(roadLengths.get(key)).orElse(DEFAULT_LANE_LENGTH)));
+  }
+
   private static void putOnMap(String edge, RoadUnderConstruction roadUnderConstruction,
       Map<String, JunctionUnderConstruction> stringJunctionMap) {
     String begin = edge.split("->")[0];
@@ -292,15 +301,24 @@ public class ExampleMapFragmentProvider {
   }
 
   private static void generateLanesOnRoad(Map<String, RoadUnderConstruction> stringRoadMap,
-      Map<String,LaneUnderConstruction> stringLaneMap) {
+      Map<String, LaneUnderConstruction> stringLaneMap, Map<String, JunctionUnderConstruction> stringJunctionMap) {
 
     stringRoadMap
         .forEach((edge, roadUnderConstruction) ->{
+          String begin = edge.split("->")[0];
+          String end = edge.split("->")[1];
+
+          List<LaneId> laneSuccessors = stringLaneMap.entrySet()
+              .stream()
+              .filter(laneMap -> laneMap.getKey().split("->")[0].equals(end) && !laneMap.getKey().split("->")[1].equals(
+                  begin))
+              .map(laneMap -> laneMap.getValue().laneId)
+              .toList();
+
           LaneUnderConstruction laneUnderConstruction = stringLaneMap.get(edge);
           roadUnderConstruction.roadBuilder.lanes(Collections.singletonList(laneUnderConstruction.laneId));
           laneUnderConstruction.laneBuilder
-              .laneId(laneUnderConstruction.laneId)
-              .roadId(roadUnderConstruction.roadId);
+              .laneId(laneUnderConstruction.laneId).roadId(roadUnderConstruction.roadId).laneSuccessors(laneSuccessors);
         });
 
   }

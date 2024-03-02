@@ -3,6 +3,7 @@ package pl.edu.agh.hiputs.model.map.mapfragment;
 import static java.lang.Math.min;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -116,6 +117,34 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
+  public List<LaneReadable> getLaneSuccessorsReadable(LaneId laneId) {
+    return getLaneReadable(laneId).getLaneSuccessors().stream().map(this::getLaneReadable).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<LaneReadable> getRoadToLaneSuccessorsReadable(RoadId roadId) {
+    return getRoadReadable(roadId).getLanes()
+        .stream()
+        .map(this::getLaneSuccessorsReadable)
+        .flatMap(Collection::stream)
+        .distinct()
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<LaneReadable> getLanesReadableFromRoadId(RoadId roadId) {
+    return getRoadReadable(roadId).getLanes().stream().map(this::getLaneReadable).collect(Collectors.toList());
+  }
+
+  @Override
+  public RoadReadable getRoadReadableFromLaneId(LaneId laneId) {
+    return Optional.ofNullable(laneIdToPatchId.get(laneId))
+        .map(knownPatches::get)
+        .map(patch -> patch.getRoadReadable(patch.getLaneReadable(laneId).getRoadId()))
+        .orElse(null);
+  }
+
+  @Override
   public JunctionReadable getJunctionReadable(JunctionId junctionId) {
     return Optional.ofNullable(junctionIdToPatchId.get(junctionId))
         .map(knownPatches::get)
@@ -148,18 +177,17 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
-  public List<RoadEditable> getRandomRoadsEditable(int count) {
-    List<RoadEditable> road = new ArrayList<>(count);
+  public List<LaneEditable> getRandomLanesEditable(int count) {
+    List<LaneEditable> lane = new ArrayList<>(count);
     Object[] array = localPatchIds.toArray();
 
     do {
       PatchId patchId = (PatchId) array[ThreadLocalRandom.current().nextInt(0, array.length)];
       Patch patch = knownPatches.get(patchId);
-      road.addAll(patch.getRoadIds().parallelStream().map(patch::getRoadEditable).toList());
-    } while (road.size() < count);
+      lane.addAll(patch.getLaneIds().parallelStream().map(patch::getLaneEditable).toList());
+    } while (lane.size() < count);
 
-    return new ArrayList<>(road);
-
+    return new ArrayList<>(lane);
   }
 
   @Override
@@ -173,16 +201,14 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         .parallelStream()
         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
             .parallelStream()
-            .map(knownPatches::get)
-            .flatMap(Patch::streamRoadsEditable)
-            .flatMap(RoadEditable::pollIncomingCars)
+            .map(knownPatches::get).flatMap(Patch::streamLanesEditable).flatMap(LaneEditable::pollIncomingCars)
             .collect(Collectors.toSet())));
   }
 
   @Override
   public void acceptIncomingCars(Set<Car> incomingCars) {
     incomingCars.parallelStream().peek(car -> {
-      RoadEditable road = car.getDecision().getRoadId().getEditable(this);
+      LaneEditable road = car.getDecision().getLaneId().getEditable(this);
       if (road != null) {
         road.addIncomingCar(car);
       } else {
@@ -223,6 +249,13 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     return localPatchIds.stream()
         .map(knownPatches::get)
         .flatMap(patch -> patch.getRoadIds().stream())
+        .collect(Collectors.toSet());
+  }
+
+  public Set<LaneId> getLocalLaneIds() {
+    return localPatchIds.stream()
+        .map(knownPatches::get)
+        .flatMap(patch -> patch.getLaneIds().stream())
         .collect(Collectors.toSet());
   }
 
@@ -434,6 +467,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     knownPatches.put(addedPatch.getPatchId(), addedPatch);
 
     addedPatch.getRoadIds().forEach(roadId -> roadIdToPatchId.put(roadId, addedPatch.getPatchId()));
+    addedPatch.getLaneIds().forEach(laneId -> laneIdToPatchId.put(laneId, addedPatch.getPatchId()));
     addedPatch.getJunctionIds().forEach(junctionId -> junctionIdToPatchId.put(junctionId, addedPatch.getPatchId()));
     return addedPatch;
   }
@@ -446,7 +480,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     localPatchIds.remove(id);
 
     removedPatch.getRoadIds().forEach(roadIdToPatchId::remove);
-
+    removedPatch.getLaneIds().forEach(laneIdToPatchId::remove);
     removedPatch.getJunctionIds().forEach(junctionIdToPatchId::remove);
   }
 

@@ -3,11 +3,14 @@ package pl.edu.agh.hiputs.tasks;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
+import pl.edu.agh.hiputs.model.car.CarUpdateResult;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureEditor;
+import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 
 @Slf4j
@@ -21,45 +24,47 @@ public class RoadUpdateStageTask implements Runnable {
   public void run() {
     try {
       RoadEditable road = mapFragment.getRoadEditable(roadId);
-      this.removeLeavingCars(road);
-      this.updateCarsOnRoad(road);
-      this.handleIncomingCars(road);
+      road.getLanes().stream().map(mapFragment::getLaneEditable).forEach(laneEditable -> {
+        this.removeLeavingCars(laneEditable);
+        this.updateCarsOnLane(laneEditable);
+        this.handleIncomingCars(laneEditable);
+      });
     } catch (Exception e) {
       log.error("Unexpected exception occurred", e);
     }
   }
 
   /**
-   * Removes from Road.carsQueue all cars which decided to leave this road
+   * Removes from Lane.carsQueue all cars which decided to leave this lane
    */
-  private void removeLeavingCars(RoadEditable road) {
-    while (road
-            .getCarAtExit()
+  private void removeLeavingCars(LaneEditable lane) {
+    while (lane.getCarAtExit()
             .map(car -> Objects.isNull(roadId) || !Objects.equals(roadId, car.getDecision().getRoadId()))
             .orElse(false)) {
-      CarEditable car = road.pollCarAtExit().get();
+      CarEditable car = lane.pollCarAtExit().get();
       log.debug("Car: " + car.getCarId() + " with destination road: " + car.getDecision().getRoadId() + " removeLeavingCar from road: " + roadId);
     }
   }
 
   /**
-   * Iterates in reverse over Road.carsQueue and call Car.update()
+   * Iterates in reverse over Lane.carsQueue and call Car.update()
    *
-   * @param road
+   * @param lane
    */
-  private void updateCarsOnRoad(RoadEditable road) {
+  private void updateCarsOnLane(LaneEditable lane) {
     try {
-      List<CarEditable> carsToRemove = road.streamCarsFromExitEditable()
-          .filter(car -> !Objects.equals(car.getDecision().getRoadId(), roadId) || car.update().isEmpty())
+      List<CarEditable> carsToRemove = lane.streamCarsFromExitEditable()
+          .filter(car -> !Objects.equals(car.getDecision().getLaneId(), lane.getLaneId()) || car.update().isEmpty())
           .toList();
       for (CarEditable car : carsToRemove) {
-        road.removeCar(car);
+        lane.removeCar(car);
         //If remove instance which stay on old road draw warning
-        if (!Objects.equals(car.getDecision().getRoadId(), roadId)) {
+        if (!Objects.equals(car.getDecision().getLaneId(), lane.getLaneId())) {
           //#TODO change log to warning when repair junction decider
           // log.trace("Car: " + car.getCarId() + " car remove from road: " + laneId + " due incorrect laneId in decision: " + car.getDecision().getLaneId());
         } else {
-          log.warn("Car: " + car.getCarId() + " car remove from road: " + roadId);
+          log.warn(
+              "Car: " + car.getCarId() + " car remove from road: " + roadId + " lane: " + lane.getLaneId().getValue());
         }
       }
     }catch (Exception e) {
@@ -68,17 +73,29 @@ public class RoadUpdateStageTask implements Runnable {
   }
 
   /**
-   * Sorts Road.incomingCars, inserts incoming cars and calls Car.update()
+   * Sorts Lane.incomingCars, inserts incoming cars and calls Car.update()
    *
-   * @param road
+   * @param lane
    */
-  private void handleIncomingCars(RoadEditable road) {
-    road.pollIncomingCars()
+  private void handleIncomingCars(LaneEditable lane) {
+    lane.pollIncomingCars()
         .sorted(Comparator.<CarEditable>comparingDouble(car -> car.getDecision().getPositionOnRoad()).reversed())
         .forEach(currentCar -> {
-          if (currentCar.update().isPresent()) {
-            road.addCarAtEntry(currentCar);
-            log.trace("Car: " + currentCar.getCarId() + " add at entry of road: " + roadId);
+          Optional<CarUpdateResult> carUpdateResult = currentCar.update();
+          if (carUpdateResult.isPresent()) {
+            CarUpdateResult carUpdate = carUpdateResult.get();
+            if (!carUpdate.getNewLaneId().equals(carUpdate.getOldLaneId()) && carUpdate.getNewRoadId()
+                .equals(carUpdate.getOldRoadId())) {
+              lane.addCarLaneChange(currentCar);
+              log.trace(
+                  "Car: " + currentCar.getCarId() + " car lane change on the same road: " + roadId + ", prevLane: "
+                      + carUpdate.getOldLaneId() + ", newLane: " + carUpdate.getNewLaneId());
+            } else {
+              lane.addCarAtEntry(currentCar);
+              log.trace(
+                  "Car: " + currentCar.getCarId() + " add at entry of road: " + roadId + " lane: " + lane.getLaneId()
+                      .getValue());
+            }
           }
         });
   }

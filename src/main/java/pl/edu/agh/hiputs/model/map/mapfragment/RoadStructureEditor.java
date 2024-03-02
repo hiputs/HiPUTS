@@ -16,6 +16,6 @@ public interface RoadStructureEditor extends RoadStructureReader {
 
   JunctionEditable getJunctionEditable(JunctionId junctionId);
 
-  List<RoadEditable> getRandomRoadsEditable(int count);
+  List<LaneEditable> getRandomLanesEditable(int count);
 
 }
