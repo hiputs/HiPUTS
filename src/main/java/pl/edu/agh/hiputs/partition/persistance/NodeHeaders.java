@@ -6,5 +6,6 @@ enum NodeHeaders {
   latitude,
   is_crossroad,
   patch_id,
+  signalsControlCenter,
   tags;
 }

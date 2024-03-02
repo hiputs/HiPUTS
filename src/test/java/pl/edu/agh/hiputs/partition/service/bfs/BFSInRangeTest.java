@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.edu.agh.hiputs.partition.mapper.util.sort.ByAngleEdgeSorter;
 import pl.edu.agh.hiputs.partition.mapper.util.successor.allocator.OnBendSuccessorAllocator;
 import pl.edu.agh.hiputs.partition.mapper.util.successor.allocator.OnCrossroadSuccessorAllocator;
 import pl.edu.agh.hiputs.partition.mapper.util.successor.pairing.DefaultPairingIncomingWithOutgoings;
@@ -53,7 +54,8 @@ public class BFSInRangeTest {
               new OnCrossroadSuccessorAllocator(
                   new DefaultPairingIncomingWithOutgoings(),
                   new StandardOsmTurnProcessor(),
-                  new FixedAngleRangeTurnMapper()
+                  new FixedAngleRangeTurnMapper(),
+                  new ByAngleEdgeSorter()
               )
           ))
       )

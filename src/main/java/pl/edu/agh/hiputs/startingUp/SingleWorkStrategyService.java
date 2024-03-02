@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
+import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.service.worker.usecase.TrafficLightsFinderService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 
@@ -17,11 +19,14 @@ public class SingleWorkStrategyService implements Strategy {
 
   private final MapFragmentExecutor mapFragmentExecutor;
   private final MonitorLocalService monitorLocalService;
+  private final TrafficLightsFinderService trafficLightsFinderService;
 
   @Override
   public void executeStrategy() throws InterruptedException {
     log.info("Start work in single mode");
-    mapFragmentExecutor.setMapFragment(ExampleMapFragmentProvider.getSimpleMap4());
+    MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap4();
+    mapFragmentExecutor.setMapFragment(mapFragment);
+    mapFragmentExecutor.setJunctionsWithTrafficLights(trafficLightsFinderService.getJunctionIds(mapFragment));
     monitorLocalService.init(mapFragmentExecutor.getMapFragment());
     TrivialGraphBasedVisualizer graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment(), null);
 

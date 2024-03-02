@@ -41,6 +41,7 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
+import pl.edu.agh.hiputs.service.worker.usecase.TrafficLightsFinderService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.utils.DebugUtils;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
@@ -61,6 +62,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private Configuration configuration;
   private final MapFragmentCreator mapFragmentCreator;
   private final SimulationStatisticService simulationStatisticService;
+  private final TrafficLightsFinderService trafficLightsFinderService;
 
   private final ExecutorService simulationExecutor = newSingleThreadExecutor();
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
@@ -123,6 +125,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     waitForMapLoad();
     MapFragment mapFragment = mapFragmentCreator.fromMessage(message, mapFragmentId);
     mapFragmentExecutor.setMapFragment(mapFragment);
+    mapFragmentExecutor.setJunctionsWithTrafficLights(trafficLightsFinderService.getJunctionIds(mapFragment));
     debugUtils.setMapFragment(mapFragment);
 
     createCars();

@@ -3,12 +3,14 @@ package pl.edu.agh.hiputs.model.map.roadstructure;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.RoadId;
+import pl.edu.agh.hiputs.partition.model.lights.control.SignalsControlCenter;
 
 @AllArgsConstructor
 public class Junction implements JunctionReadable, JunctionEditable {
@@ -46,6 +48,12 @@ public class Junction implements JunctionReadable, JunctionEditable {
    */
   private final List<RoadOnJunction> roadOnJunctions;
 
+  /**
+   * Traffic lights manager of the representing junction
+   */
+  @Getter
+  private final Optional<SignalsControlCenter> signalsControlCenter;
+
   public static JunctionBuilder builder() {
     return new JunctionBuilder();
   }
@@ -71,6 +79,7 @@ public class Junction implements JunctionReadable, JunctionEditable {
 
     private Double longitude;
     private Double latitude;
+    private Optional<SignalsControlCenter> signalsControlCenter = Optional.empty();
     private final Set<RoadId> incomingRoadIds = new HashSet<>();
     private final Set<RoadId> outgoingRoadIds = new HashSet<>();
     private final List<RoadOnJunction> roadsOnJunction = new ArrayList<>();
@@ -93,20 +102,24 @@ public class Junction implements JunctionReadable, JunctionEditable {
     public JunctionBuilder addIncomingRoadId(RoadId roadId, boolean isSubordinate) {
       incomingRoadIds.add(roadId);
       roadsOnJunction.add(new RoadOnJunction(roadId, roadsOnJunction.size(), RoadDirection.INCOMING,
-          isSubordinate ? RoadSubordination.SUBORDINATE : RoadSubordination.NOT_SUBORDINATE, TrafficLightColor.GREEN));
+          isSubordinate ? RoadSubordination.SUBORDINATE : RoadSubordination.NOT_SUBORDINATE));
       return this;
     }
 
     public JunctionBuilder addOutgoingRoadId(RoadId roadId) {
       outgoingRoadIds.add(roadId);
       roadsOnJunction.add(
-          new RoadOnJunction(roadId, roadsOnJunction.size(), RoadDirection.OUTGOING, RoadSubordination.NONE,
-              TrafficLightColor.GREEN));
+          new RoadOnJunction(roadId, roadsOnJunction.size(), RoadDirection.OUTGOING, RoadSubordination.NONE));
+      return this;
+    }
+
+    public JunctionBuilder signalsControlCenter(SignalsControlCenter signalsControlCenter) {
+      this.signalsControlCenter = Optional.of(signalsControlCenter);
       return this;
     }
 
     public Junction build() {
-      return new Junction(junctionId, longitude, latitude, incomingRoadIds, outgoingRoadIds, roadsOnJunction);
+      return new Junction(junctionId, longitude, latitude, incomingRoadIds, outgoingRoadIds, roadsOnJunction, signalsControlCenter);
     }
   }
 }

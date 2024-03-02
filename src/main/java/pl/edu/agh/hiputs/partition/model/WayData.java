@@ -3,11 +3,13 @@ package pl.edu.agh.hiputs.partition.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import pl.edu.agh.hiputs.partition.model.graph.EdgeData;
+import pl.edu.agh.hiputs.partition.model.lights.indicator.TrafficIndicatorReadable;
 
 @Getter
 @Builder
@@ -17,6 +19,8 @@ public class WayData implements EdgeData {
   private boolean isOneWay;
   private boolean tagsInOppositeMeaning;
   private Map<String, String> tags;
+
+  // can be initiated before graph building
   @Builder.Default
   private List<LaneData> lanes = new ArrayList<>();
 
@@ -29,4 +33,7 @@ public class WayData implements EdgeData {
   private boolean isPriorityRoad;
   @Setter
   private String patchId;
+  @Setter
+  @Builder.Default
+  private Optional<TrafficIndicatorReadable> trafficIndicator = Optional.empty();
 }

@@ -11,6 +11,8 @@ import pl.edu.agh.hiputs.partition.model.graph.Graph;
 @Order(4)
 public class GraphReverseRoadsCreator implements GraphTransformer{
 
+  // @TODO will be migrated to detector & corrector system in the future
+
   @Override
   public Graph<JunctionData, WayData> transform(Graph<JunctionData, WayData> graph) {
     Graph.GraphBuilder<JunctionData, WayData> newGraphBuilder = new Graph.GraphBuilder<>();

@@ -27,10 +27,4 @@ public class RoadOnJunction {
    * Status of road subordination on junction
    */
   private final RoadSubordination subordination;
-
-  /**
-   * Light color on road (green if no traffic lights)
-   */
-  // TODO: make it possible to change it dynamically - just add @Setter to this field?
-  private TrafficLightColor lightColor;
 }

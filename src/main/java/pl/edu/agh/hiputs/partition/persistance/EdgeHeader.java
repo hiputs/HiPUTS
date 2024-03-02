@@ -8,6 +8,7 @@ enum EdgeHeader {
   is_priority_road,
   is_one_way,
   patch_id,
+  trafficIndicator,
   lanes,
   tags;
 }

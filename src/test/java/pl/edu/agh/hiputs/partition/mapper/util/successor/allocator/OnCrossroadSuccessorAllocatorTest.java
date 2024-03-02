@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pl.edu.agh.hiputs.partition.mapper.util.sort.ByAngleEdgeSorter;
 import pl.edu.agh.hiputs.partition.mapper.util.successor.pairing.DefaultPairingIncomingWithOutgoings;
 import pl.edu.agh.hiputs.partition.mapper.util.turn.mapper.FixedAngleRangeTurnMapper;
 import pl.edu.agh.hiputs.partition.mapper.util.turn.processor.StandardOsmTurnProcessor;
@@ -26,7 +27,7 @@ import pl.edu.agh.hiputs.partition.model.graph.Node;
 public class OnCrossroadSuccessorAllocatorTest {
   private final DefaultPairingIncomingWithOutgoings pairing = Mockito.mock(DefaultPairingIncomingWithOutgoings.class);
   private final OnCrossroadSuccessorAllocator allocator = new OnCrossroadSuccessorAllocator(
-      pairing, new StandardOsmTurnProcessor(), new FixedAngleRangeTurnMapper()
+      pairing, new StandardOsmTurnProcessor(), new FixedAngleRangeTurnMapper(), new ByAngleEdgeSorter()
   );
 
   @ParameterizedTest

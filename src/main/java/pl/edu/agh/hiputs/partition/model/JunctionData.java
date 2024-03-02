@@ -1,11 +1,13 @@
 package pl.edu.agh.hiputs.partition.model;
 
 import java.util.Map;
+import java.util.Optional;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import pl.edu.agh.hiputs.partition.model.graph.NodeData;
+import pl.edu.agh.hiputs.partition.model.lights.control.SignalsControlCenter;
 
 @Getter
 @Builder
@@ -21,6 +23,9 @@ public class JunctionData implements NodeData {
   private boolean isCrossroad;
   @Setter
   private String patchId;
+  @Setter
+  @Builder.Default
+  private Optional<SignalsControlCenter> signalsControlCenter = Optional.empty();
 
   @Override
   public void merge(NodeData other) {
