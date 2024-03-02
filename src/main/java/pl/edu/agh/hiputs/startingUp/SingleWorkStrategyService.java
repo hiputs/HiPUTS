@@ -6,8 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
-import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
+import pl.edu.agh.hiputs.loadbalancer.LocalLoadMonitorService;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.TrafficLightsFinderService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
 import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
@@ -18,25 +19,28 @@ import pl.edu.agh.hiputs.visualization.graphstream.TrivialGraphBasedVisualizer;
 public class SingleWorkStrategyService implements Strategy {
 
   private final MapFragmentExecutor mapFragmentExecutor;
-  private final MonitorLocalService monitorLocalService;
+  private final LocalLoadMonitorService localLoadMonitorService;
+  private final MapRepository mapRepository;
   private final TrafficLightsFinderService trafficLightsFinderService;
 
   @Override
   public void executeStrategy() throws InterruptedException {
     log.info("Start work in single mode");
-    MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap4();
+    MapFragment mapFragment = ExampleMapFragmentProvider.getSimpleMap4(mapRepository);
     mapFragmentExecutor.setMapFragment(mapFragment);
     mapFragmentExecutor.setJunctionsWithTrafficLights(trafficLightsFinderService.getJunctionIds(mapFragment));
-    monitorLocalService.init(mapFragmentExecutor.getMapFragment());
+    localLoadMonitorService.init(mapFragmentExecutor.getMapFragment());
     TrivialGraphBasedVisualizer graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment(), null);
 
     graphBasedVisualizer.showGui();
     sleep(1000);
+    execute(graphBasedVisualizer, -1);
+  }
 
-    while (true) {
-      mapFragmentExecutor.run(-1);
-      graphBasedVisualizer.redrawCars();
-      sleep(5);
-    }
+  private void execute(TrivialGraphBasedVisualizer graphBasedVisualizer, int step) throws InterruptedException {
+    mapFragmentExecutor.run(step);
+    graphBasedVisualizer.redrawCars();
+    sleep(100);
+    execute(graphBasedVisualizer, step + 1);
   }
 }

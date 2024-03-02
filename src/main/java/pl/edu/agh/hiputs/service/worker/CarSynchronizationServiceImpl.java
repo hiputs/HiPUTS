@@ -1,23 +1,30 @@
 package pl.edu.agh.hiputs.service.worker;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
@@ -27,6 +34,7 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.scheduler.TaskExecutorService;
 import pl.edu.agh.hiputs.scheduler.task.InjectIncomingCarsTask;
+import pl.edu.agh.hiputs.scheduler.task.LaneSerializationTask;
 import pl.edu.agh.hiputs.service.worker.usecase.CarSynchronizationService;
 import pl.edu.agh.hiputs.utils.DebugUtils;
 
@@ -38,8 +46,8 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   private final WorkerSubscriptionService subscriptionService;
   private final TaskExecutorService taskExecutorService;
   private final MessageSenderService messageSenderService;
-  private final List<CarTransferMessage> incomingMessages = new ArrayList<>();
-  private final List<CarTransferMessage> futureIncomingMessages = new ArrayList<>();
+  private final BlockingQueue<CarTransferMessage> incomingMessages = new LinkedBlockingQueue<>();
+  private final BlockingQueue<CarTransferMessage> futureIncomingMessages = new LinkedBlockingQueue<>();
 
   @PostConstruct
   void init() {
@@ -47,29 +55,25 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   }
 
   @Override
-  public void sendIncomingSetsOfCarsToNeighbours(TransferDataHandler mapFragment) {
+  public int sendIncomingSetsOfCarsToNeighbours(TransferDataHandler mapFragment) {
     Map<MapFragmentId, List<SerializedCar>> serializedCarMap = mapFragment.pollOutgoingCars()
         .entrySet()
-        .parallelStream()
-        .collect(Collectors.toMap(
-            Entry::getKey,
-            e -> e.getValue()
-                .parallelStream()
-                .map(SerializedCar::new)
-                .collect(Collectors.toList())
-        ));
+        .stream()
+        .collect(Collectors.toMap(Entry::getKey,
+            e -> e.getValue().stream().map(SerializedCar::new).collect(Collectors.toList())));
 
     sendMessages(serializedCarMap);
+    return serializedCarMap.values().stream().map(List::size).reduce(0, Integer::sum);
   }
 
   @Override
-  public List<SerializedCar> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
+  public List<SerializedLane> getSerializedCarByPatch(TransferDataHandler transferDataHandler, PatchId patchId) {
     Patch patch = transferDataHandler.getPatchById(patchId);
+    List<Callable<?>> tasks = patch.streamLanesEditable().map(LaneSerializationTask::new).collect(Collectors.toList());
 
-    return patch.getLaneIds()
-        .parallelStream().map(patch::getLaneEditable).flatMap(LaneEditable::pollIncomingCars)
-        .map(SerializedCar::new)
-        .toList();
+    return ((List<Pair<LaneId, SerializedLane>>) taskExecutorService.executeCallableBatch(tasks)).stream()
+        .map(Pair::getRight)
+        .collect(Collectors.toList());
   }
 
   private void sendMessages(Map<MapFragmentId, List<SerializedCar>> serializedCarMap) {
@@ -84,33 +88,33 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   }
 
   @Override
-  public synchronized void synchronizedGetIncomingSetsOfCars(TransferDataHandler mapFragment) {
+  public void synchronizedGetIncomingSetsOfCars(TransferDataHandler mapFragment) {
     int countOfNeighbours = mapFragment.getNeighbors().size();
-    int readedMessage = 0;
-    while (incomingMessages.size() < countOfNeighbours && readedMessage < countOfNeighbours) {
+    List<Future<?>> injectIncomingCarFutures = new LinkedList<>();
+    int consumedMessages = 0;
+    // List<Runnable> injectIncomingCarTasks = new LinkedList<>();
+
+    while (consumedMessages < countOfNeighbours) {
       try {
-        this.wait(1000);
-        readedMessage += applyMessages(mapFragment, readedMessage);
+        CarTransferMessage msg = incomingMessages.take();
+
+        log.debug("Incoming msg size {}", msg.getCars().size());
+        List<Future<?>> f = taskExecutorService.executeBatchReturnFutures(
+            List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
+        injectIncomingCarFutures.addAll(f);
+        // injectIncomingCarTasks.addAll(List.of(new InjectIncomingCarsTask(msg.getCars(), mapFragment)));
+        consumedMessages += 1;
+
       } catch (InterruptedException e) {
-        log.error(e.getMessage());
+        log.error("Exception when waiting for cars: " + e);
         throw new RuntimeException(e);
       }
     }
 
-    applyMessages(mapFragment, readedMessage);
+    taskExecutorService.waitForAllTaskFinished(injectIncomingCarFutures);
+    // taskExecutorService.executeBatch(injectIncomingCarTasks);
     incomingMessages.clear();
-    incomingMessages.addAll(futureIncomingMessages);
-    futureIncomingMessages.clear();
-  }
-
-  private int applyMessages(TransferDataHandler mapFragment, int start) {
-    List<Runnable> injectIncomingCarTasks = incomingMessages.subList(start, incomingMessages.size())
-        .stream()
-        .map(message -> new InjectIncomingCarsTask(message.getCars(), mapFragment))
-        .collect(Collectors.toList());
-
-    taskExecutorService.executeBatch(injectIncomingCarTasks);
-    return injectIncomingCarTasks.size();
+    futureIncomingMessages.drainTo(incomingMessages);
   }
 
   private String getWeaitingByMessage() {
@@ -133,7 +137,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
   }
 
   @Override
-  public synchronized void notify(Message message) {
+  public void notify(Message message) {
     if (message.getMessageType() != MessagesTypeEnum.CarTransferMessage) {
       return;
     }
@@ -143,8 +147,7 @@ public class CarSynchronizationServiceImpl implements CarSynchronizationService,
       futureIncomingMessages.add(carTransferMessage);
     } else {
       incomingMessages.add(carTransferMessage);
+      // notifyAll();
     }
-
-    notifyAll();
   }
 }

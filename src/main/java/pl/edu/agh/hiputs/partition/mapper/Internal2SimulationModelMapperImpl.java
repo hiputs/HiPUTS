@@ -43,13 +43,11 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
 
     Set<PatchId> neighbouringPatches = new HashSet<>();
 
-    neighbouringPatches.addAll(patch.getOutgoingEdges()
-        .parallelStream()
+    neighbouringPatches.addAll(patch.getOutgoingEdges().stream()
         .map(e -> new PatchId(e.getTarget().getId()))
         .toList());
 
-    neighbouringPatches.addAll(patch.getIncomingEdges()
-        .parallelStream()
+    neighbouringPatches.addAll(patch.getIncomingEdges().stream()
         .map(e -> new PatchId(e.getTarget().getId()))
         .toList());
 
@@ -79,7 +77,8 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
 
   private Junction mapNodeToSimulationModel(Node<JunctionData, WayData> node) {
     JunctionBuilder junctionBuilder = Junction.builder()
-        .junctionId(new JunctionId(node.getId(), getJunctionType(node)))
+        .junctionId(
+            new JunctionId(node.getId(), getJunctionType(node))) //todo tu bylo node.getData().isOsmNode()) u mnie
         .longitude(node.getData().getLon())
         .latitude(node.getData().getLat());
 
@@ -98,7 +97,8 @@ public class Internal2SimulationModelMapperImpl implements Internal2SimulationMo
         .roadId(new RoadId(edge.getId()))
         .lanes(getLanes(edge))
         .length(edge.getData().getLength())
-        .incomingJunctionId(new JunctionId(edge.getSource().getId(), getJunctionType(edge.getSource())))
+        .incomingJunctionId(new JunctionId(edge.getSource().getId(),
+            getJunctionType(edge.getSource()))) //todo tu bylo  edge.getSource().getData().isOsmNode()) u mnie
         .outgoingJunctionId(new JunctionId(edge.getTarget().getId(), getJunctionType(edge.getTarget())))
         .leftNeighbor(getNeighbourNeighborRoadInfo(edge)); //todo parse line from osm if possible
 

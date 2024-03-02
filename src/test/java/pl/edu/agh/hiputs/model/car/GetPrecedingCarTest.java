@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarPrecedingEnvironment;
@@ -22,12 +23,16 @@ import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
+
 @Disabled
 
 public class GetPrecedingCarTest {
 
   private MapFragment mapFragment;
+  @Mock
+  private MapRepository mapRepository;
   private ExampleCarProvider carProvider;
   private RoadId startRoadId;
   private RoadEditable startRoad;
@@ -37,8 +42,8 @@ public class GetPrecedingCarTest {
   private CarProspector prospector;
     @BeforeEach
     public void setup() {
-        mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
-        carProvider = new ExampleCarProvider(mapFragment);
+      mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false, mapRepository);
+      carProvider = new ExampleCarProvider(mapFragment, mapRepository);
       startRoadId = mapFragment.getLocalRoadIds().iterator().next();
       startRoad = mapFragment.getRoadEditable(startRoadId);
       startLaneId = startRoad.getLanes().get(0);
@@ -78,6 +83,7 @@ public class GetPrecedingCarTest {
         () -> Assertions.assertEquals(startRoad.getOutgoingJunctionId(),
             carPrecedingEnvironment.getNextCrossroadId().get()));
   }
+
   @Test
   public void getPrecedingCarWhereCarIsNotFound() {
     setAllJunctionTypeCrossroad();
@@ -86,6 +92,7 @@ public class GetPrecedingCarTest {
     Assertions.assertAll(() -> Assertions.assertFalse(carPrecedingEnvironment.getPrecedingCar().isPresent()),
         () -> Assertions.assertFalse(carPrecedingEnvironment.getNextCrossroadId().isPresent()));
   }
+
   @Test
   public void getPrecedingCarWhereCarIsNotFoundInsaneViewRange() {
     prospector = new CarEnvironmentProvider(10000000);
@@ -100,10 +107,10 @@ public class GetPrecedingCarTest {
             carPrecedingEnvironment.getDistance()));
   }
 
-    @Test
-    public void getPrecedingCarWhereCarIsNotFoundAndAllJunctionAreBend() {
-        car1 = carProvider.generateCar(10.0, startLaneId, 2);
-        this.setAllJunctionTypeBend();
+  @Test
+  public void getPrecedingCarWhereCarIsNotFoundAndAllJunctionAreBend() {
+    car1 = carProvider.generateCar(10.0, startLaneId, 2);
+    this.setAllJunctionTypeBend();
 
     startLane.addCarAtEntry(car1);
       CarPrecedingEnvironment carPrecedingEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
@@ -152,7 +159,6 @@ public class GetPrecedingCarTest {
     ReflectionUtil.setFieldValue(junctionId, "junctionType", JunctionType.BEND);
   }
 
-
   private void setAllJunctionTypeCrossroad() {
     for (RoadId laneId : mapFragment.getLocalRoadIds()) {
       JunctionReadable junction =
@@ -167,8 +173,9 @@ public class GetPrecedingCarTest {
     ReflectionUtil.setFieldValue(junctionId, "junctionType", JunctionType.CROSSROAD);
   }
 
-  private void recalculateJunctionsHashCodes(MapFragment map){
-    Map<JunctionId, PatchId> oldJunctionIdToPatchId = (Map<JunctionId, PatchId>) ReflectionUtil.getFieldValue(map, "junctionIdToPatchId");
+  private void recalculateJunctionsHashCodes(MapFragment map) {
+    Map<JunctionId, PatchId> oldJunctionIdToPatchId =
+        (Map<JunctionId, PatchId>) ReflectionUtil.getFieldValue(map, "junctionIdToPatchId");
     Map<JunctionId, PatchId> newJunctionIdToPatchId = new HashMap<>();
     newJunctionIdToPatchId.putAll(oldJunctionIdToPatchId);
     ReflectionUtil.setFieldValue(map, "junctionIdToPatchId", newJunctionIdToPatchId);

@@ -1,16 +1,16 @@
 package pl.edu.agh.hiputs.model.map.mapfragment;
 
-import static java.lang.Math.min;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,7 +36,8 @@ import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.RoadReadable;
-import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.MapStatistic;
+import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.statistics.worker.SimulationStatisticServiceImpl.MapStatistic;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 /**
@@ -95,6 +96,17 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
    * Mapping from JunctionId to PatchId of Patch containing this Junction
    */
   private final Map<JunctionId, PatchId> junctionIdToPatchId;
+
+  /**
+   * Map of patches sent to neighbours during Load Balancing
+   * should be cleared before each load balancing
+   */
+  private final Map<PatchId, MapFragmentId> sentPatchesIdToMapFragmentId;
+
+  /**
+   * Lis of neighbours removed due to LB process
+   */
+  private final List<MapFragmentId> removedNeighbours;
 
   public static MapFragmentBuilder builder(MapFragmentId mapFragmentId) {
     return new MapFragmentBuilder(mapFragmentId);
@@ -178,44 +190,22 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
 
   @Override
   public List<LaneEditable> getRandomLanesEditable(int count) {
-    List<LaneEditable> lane = new ArrayList<>(count);
+    List<LaneEditable> lanes = new ArrayList<>(count);
     Object[] array = localPatchIds.toArray();
 
     do {
       PatchId patchId = (PatchId) array[ThreadLocalRandom.current().nextInt(0, array.length)];
       Patch patch = knownPatches.get(patchId);
-      lane.addAll(patch.getLaneIds().parallelStream().map(patch::getLaneEditable).toList());
-    } while (lane.size() < count);
+      lanes.addAll(patch.getLaneIds().stream().map(patch::getLaneEditable).toList());
+    } while (lanes.size() < count);
 
-    return new ArrayList<>(lane);
+    return new ArrayList<>(lanes);
+
   }
 
   @Override
   public Set<MapFragmentId> getNeighbors() {
     return getBorderPatches().keySet();
-  }
-
-  @Override
-  public Map<MapFragmentId, Set<CarEditable>> pollOutgoingCars() {
-    return mapFragmentIdToShadowPatchIds.entrySet()
-        .parallelStream()
-        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
-            .parallelStream()
-            .map(knownPatches::get).flatMap(Patch::streamLanesEditable).flatMap(LaneEditable::pollIncomingCars)
-            .collect(Collectors.toSet())));
-  }
-
-  @Override
-  public void acceptIncomingCars(Set<Car> incomingCars) {
-    incomingCars.parallelStream().peek(car -> {
-      LaneEditable road = car.getDecision().getLaneId().getEditable(this);
-      if (road != null) {
-        road.addIncomingCar(car);
-      } else {
-        // log.warn("Not found road {}, patchId {}", car.getDecision().getLaneId(), DebugUtils.getMapRepository().getPatchIdByLaneId( car.getDecision().getLaneId()).getValue());
-      }
-
-    }).toList();
   }
 
   @Override
@@ -227,7 +217,31 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
-  public void acceptShadowPatches(Set<Patch> shadowPatches) {
+  public Map<MapFragmentId, Set<CarEditable>> pollOutgoingCars() {
+    return mapFragmentIdToShadowPatchIds.entrySet()
+        .stream()
+        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
+            .stream()
+            .map(knownPatches::get)
+            .flatMap(Patch::streamLanesEditable)
+            .flatMap(LaneEditable::pollIncomingCars)
+            .collect(Collectors.toSet())));
+  }
+
+  @Override
+  public void acceptIncomingCars(Set<Car> incomingCars) {
+    incomingCars.forEach(car -> {
+      LaneEditable lane = car.getDecision().getLaneId().getEditable(this);
+      if (lane != null) {
+        lane.addIncomingCar(car);
+      } else {
+        log.warn("Not found lane {} for load balanced car {}", car.getDecision().getLaneId(), car.getCarId());
+      }
+    });
+  }
+
+  @Override
+  public synchronized void acceptShadowPatches(Set<Patch> shadowPatches) {
     shadowPatches.forEach(shadowPatch -> knownPatches.put(shadowPatch.getPatchId(), shadowPatch));
   }
 
@@ -236,13 +250,19 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     return knownPatches.values().stream().map(patch -> (PatchReader) patch).collect(Collectors.toSet());
   }
 
-  @Override
-  public Set<PatchReader> getShadowPatchesReadable() {
+  public Set<PatchEditor> getLocalPatchesEditable() {
     return knownPatches.values()
         .stream()
-        .filter(patch -> !localPatchIds.contains(patch.getPatchId()))
-        .map(patch -> (PatchReader) patch)
+        .filter(patch -> localPatchIds.contains(patch.getPatchId()))
+        .map(patch -> (PatchEditor) patch)
         .collect(Collectors.toSet());
+  }
+
+  public List<Patch> getLocalPatches() {
+    return knownPatches.values()
+        .stream()
+        .filter(patch -> localPatchIds.contains(patch.getPatchId()))
+        .collect(Collectors.toList());
   }
 
   public Set<RoadId> getLocalRoadIds() {
@@ -290,9 +310,9 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
         PatchConnectionSearchUtil.findNeighbouringPatches(patch.getPatchId(), this);
     mapFragmentIdToBorderPatchIds.get(neighbourId).addAll(newBorderPatchesAfterTransfer);
 
-    //add removed patch into shadow patches
+    //add migrated patch into shadow patches
     boolean isEndPatch = PatchConnectionSearchUtil.isEndPatch(patch, mapFragmentId, this);
-    if (!isEndPatch){
+    if (!isEndPatch) {
       mapFragmentIdToShadowPatchIds.get(neighbourId).add(patch.getPatchId());
     }
 
@@ -300,84 +320,107 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     List<PatchId> shadowPatchesToRemove =
         PatchConnectionSearchUtil.findShadowPatchesNeighbouringOnlyWithPatch(patch.getPatchId(), this);
 
-    // log.info("shadow -> deleted patches {} -> {}", shadowPatchesToRemove.size(),
-    //     shadowPatchesToRemove
-    //         .stream()
-    //         .map(PatchId::getValue)
-    //         .collect(Collectors.joining(", ")));
-
     shadowPatchesToRemove.forEach(this::removePatch);
-
     mapFragmentIdToShadowPatchIds.forEach((key, value) -> shadowPatchesToRemove.forEach(value::remove));
+
+    if (isEndPatch) {
+      log.debug("Patch is an end patch - will be fully removed from know patches");
+      removePatch(patch.getPatchId());
+    }
     removeEmptyNeighbours(ticketService);
+  }
+
+  private void removePatch(PatchId id) {
+    Patch removedPatch = knownPatches.remove(id);
+    mapFragmentIdToShadowPatchIds.values().forEach(set -> set.remove(id));
+    localPatchIds.remove(id);
+
+    removedPatch.getRoadIds().forEach(roadIdToPatchId::remove);
+    removedPatch.getLaneIds().forEach(laneIdToPatchId::remove);
+    removedPatch.getJunctionIds().forEach(junctionIdToPatchId::remove);
+    log.debug("Known patches after remove {}",
+        knownPatches.entrySet().stream().map(a -> a.getKey().getValue() + ":" + a.getValue().getPatchId().getValue()));
+  }
+
+  private void removeEmptyNeighbours(TicketService ticketService) {
+    List<MapFragmentId> lostConnectNeighbours = mapFragmentIdToBorderPatchIds.entrySet()
+        .stream()
+        .filter(i -> i.getValue().isEmpty())
+        .map(Entry::getKey)
+        .toList();
+    this.removedNeighbours.addAll(lostConnectNeighbours);
+
+    lostConnectNeighbours.forEach(n -> {
+      mapFragmentIdToBorderPatchIds.remove(n);
+      if (ConfigurationService.getConfiguration().isTicketActive()) {
+        ticketService.removeTalker(n);
+      }
+      if (mapFragmentIdToShadowPatchIds.containsKey(n) && mapFragmentIdToShadowPatchIds.get(n).size() == 0) {
+        // log.info("Remove shadow too");
+        mapFragmentIdToShadowPatchIds.remove(n);
+      }
+    });
   }
 
   public void migratePatchToMe(PatchId patchId, MapFragmentId neighbourId, MapRepository mapRepository,
       List<ImmutablePair<PatchId, MapFragmentId>> neighbourPatchIdsWithMapFragmentId, TicketService ticketService) {
-    // log.info("I got patchId {}  from {}", patchId.getValue(), neighbourId.getId());
-    Patch patch = knownPatches.get(patchId);
 
+    neighbourPatchIdsWithMapFragmentId = neighbourPatchIdsWithMapFragmentId.stream().map(id -> {
+      MapFragmentId pairPatchId = getMapFragmentIdByPatchId(id.getLeft());
+      if (pairPatchId != null) {
+        return new ImmutablePair<>(id.getLeft(), pairPatchId);
+      } else {
+        return id;
+      }
+    }).collect(Collectors.toList());
+
+    Patch patch = knownPatches.get(patchId);
     if (patch == null) {
       patch = addPatch(mapRepository, patchId);
     }
     // add to local patches
     localPatchIds.add(patch.getPatchId());
 
-    // add to border patches
-    // if(mapFragmentIdToBorderPatchIds.get(neighbourId) == null){
-    //   log.info("create new collections for nieghbourId {}", neighbourId);
-    // }
     mapFragmentIdToBorderPatchIds.computeIfAbsent(neighbourId, k -> new HashSet<>());
     boolean isLastConnectionPatch = PatchConnectionSearchUtil.isEndPatch(patch, neighbourId, this);
-    // log.info("isLastConnection {}", isLastConnectionPatch);
+
     if (!isLastConnectionPatch) {
       mapFragmentIdToBorderPatchIds.get(neighbourId).add(patchId);
+      log.debug("Received patch {} is new border patch with sender worker", patchId.getValue());
     }
 
-    // log.debug("migrate to local patch {} from worker {}", patchId.getValue(), neighbourId.getId());
-
     // remove patches from border that have become internal after migration
-    List<PatchId> incomePatch =
-        patch.getNeighboringPatches()
-            .parallelStream()
-            .filter(localPatchIds::contains)
-            .filter(candidatePatchId -> {
-                Patch checkingNeighbour = knownPatches.get(candidatePatchId);
-                return checkingNeighbour.getNeighboringPatches()
-                    .stream()
-                    .noneMatch(id -> neighbourId.equals(getMapFragmentIdByPatchId(id)));
+    List<PatchId> internalPatches =
+        patch.getNeighboringPatches().stream().filter(localPatchIds::contains).filter(candidatePatchId -> {
+          Patch checkingNeighbour = knownPatches.get(candidatePatchId);
+          return checkingNeighbour.getNeighboringPatches()
+              .stream()
+              .noneMatch(id -> neighbourId.equals(getMapFragmentIdByPatchId(id)));
         }).toList();
 
-    // log.info("border-> income patches {} -> {}", incomePatch.size(),
-    //     incomePatch.stream().map(PatchId::getValue).collect(Collectors.joining(", ")));
-    incomePatch.forEach(id -> {
+    internalPatches.forEach(id -> {
       mapFragmentIdToBorderPatchIds.get(neighbourId).remove(id);
     });
 
-    //removed patch from shadow patches
     mapFragmentIdToShadowPatchIds.values().forEach(set -> set.remove(patchId));
-    // mapFragmentIdToShadowPatchIds.get(neighbourId).remove(patch.getPatchId());
 
     //add shadow patches - patch should be added to shadow patches
-
-    List<ImmutablePair<PatchId, MapFragmentId>> shadowPatchesToAdd =
-        neighbourPatchIdsWithMapFragmentId
-            .stream()
-            .filter(p -> !p.getRight().equals(mapFragmentId))
-            .filter(p -> !localPatchIds.contains(p.getLeft()))
-            .toList();
+    List<ImmutablePair<PatchId, MapFragmentId>> shadowPatchesToAdd = neighbourPatchIdsWithMapFragmentId.stream()
+        .filter(p -> !p.getRight().equals(mapFragmentId))
+        .filter(p -> !localPatchIds.contains(p.getLeft()))
+        .toList();
 
     shadowPatchesToAdd.forEach(p -> {
       addPatch(mapRepository, p.getLeft());
     });
-
     shadowPatchesToAdd.forEach(pair -> {
-
       mapFragmentIdToShadowPatchIds.computeIfAbsent(pair.getRight(), k -> {
-        ticketService.addNewTalker(k);
+        if (ConfigurationService.getConfiguration().isTicketActive()) {
+          ticketService.addNewTalker(k);
+        }
         return new HashSet<>();
       });
-      // log.info("Add shadow patch {} to nieghbour {}", pair.getLeft().getValue(), pair.getRight().getId());
+      // log.info("Add shadow patch {} to neighbour {}", pair.getLeft().getValue(), pair.getRight().getId());
       mapFragmentIdToShadowPatchIds.values().forEach(p -> p.remove(pair.getLeft()));
       mapFragmentIdToShadowPatchIds.get(pair.getRight()).add(pair.getLeft());
 
@@ -385,59 +428,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       List<PatchId> newBorderPatches = PatchConnectionSearchUtil.findNeighbouringPatches(pair.getLeft(), this);
       mapFragmentIdToBorderPatchIds.get(pair.getRight()).addAll(newBorderPatches);
     });
-
     removeEmptyNeighbours(ticketService);
-  }
-
-  @Override
-  public void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId destination, MapFragmentId source, TicketService ticketService) {
-    // log.info("handle migration patch between neighbours {} -> {}, {}", source.getId(), destination.getId(), patchId.getValue());
-    if (!knownPatches.containsKey(patchId)) {
-      return;
-    }
-
-    // log.info("handle migration patch between neighbours {}", patchId.getValue());
-
-    // change patches between neighbour
-    if (mapFragmentIdToShadowPatchIds.get(source) != null) {
-      mapFragmentIdToShadowPatchIds.get(source).remove(patchId);
-    }
-
-    mapFragmentIdToShadowPatchIds.computeIfAbsent(destination, k -> {
-      ticketService.addNewTalker(k);
-      return new HashSet<>();
-    });
-    mapFragmentIdToShadowPatchIds.get(destination).add(patchId);
-
-    // add new border patches into destination
-    List<PatchId> localPatchesConnectedWith = PatchConnectionSearchUtil.findNeighbouringPatches(patchId, this);
-    mapFragmentIdToBorderPatchIds.computeIfAbsent(destination, k -> new HashSet<>());
-    mapFragmentIdToBorderPatchIds.get(destination).addAll(localPatchesConnectedWith);
-
-    // remove border patches from source when not connected with neighbour
-    if (mapFragmentIdToShadowPatchIds.get(source) == null) {
-      return;
-    }
-
-    final Set<PatchId> allPatchesNeighbouringWithShadowPatches = mapFragmentIdToShadowPatchIds.get(source)
-        .parallelStream()
-        .map(knownPatches::get)
-        .flatMap(p -> p.getNeighboringPatches().stream())
-        .collect(Collectors.toSet());
-
-    final Set<PatchId> newBorderPatchesSet =
-        allPatchesNeighbouringWithShadowPatches.parallelStream().filter(this::isLocalPatch).collect(Collectors.toSet());
-
-    // log.info("****Add borderPatches**** {} { {} }", source.getId(),
-    //     newBorderPatchesSet.stream().map(PatchId::getValue).collect(Collectors.joining(", ")));
-    mapFragmentIdToBorderPatchIds.put(source, newBorderPatchesSet);
-
-    removeEmptyNeighbours(ticketService);
-  }
-
-  @Override
-  public Patch getPatchById(PatchId patchId) {
-    return knownPatches.get(patchId);
   }
 
   @Override
@@ -452,17 +443,18 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       }
     }
 
-    return null;
-
-    // throw new RuntimeException("Not found mapFragmentId");
+    for (Map.Entry<PatchId, MapFragmentId> entry : sentPatchesIdToMapFragmentId.entrySet()) {
+      if (entry.getKey().equals(patchId)) {
+        return entry.getValue();
+      }
+    }
+    return null; // todo refactor
   }
 
   private Patch addPatch(MapRepository mapRepository, PatchId patchId) {
-
     if (knownPatches.containsKey(patchId)) {
       return knownPatches.get(patchId);
     }
-
     Patch addedPatch = mapRepository.getPatch(patchId);
     knownPatches.put(addedPatch.getPatchId(), addedPatch);
 
@@ -472,42 +464,52 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     return addedPatch;
   }
 
-  private void removePatch(PatchId id) {
-
-    // log.info("Remove patch {}", id.getValue());
-    Patch removedPatch = knownPatches.remove(id);
-    mapFragmentIdToShadowPatchIds.values().forEach(set -> set.remove(id));
-    localPatchIds.remove(id);
-
-    removedPatch.getRoadIds().forEach(roadIdToPatchId::remove);
-    removedPatch.getLaneIds().forEach(laneIdToPatchId::remove);
-    removedPatch.getJunctionIds().forEach(junctionIdToPatchId::remove);
-  }
-
-  private void removeEmptyNeighbours(TicketService ticketService) {
-    List<MapFragmentId> lostConnectNeighbours = mapFragmentIdToBorderPatchIds.entrySet()
-        .stream()
-        .filter(i -> i.getValue().isEmpty())
-        .map(Entry::getKey)
-        .toList();
-
-    // log.info("Me {}, Remove empty neighbours {}", mapFragmentId.getId(),
-    //     lostConnectNeighbours.stream().map(MapFragmentId::getId).collect(Collectors.joining(", ")));
-
-    lostConnectNeighbours.forEach(n -> {
-      mapFragmentIdToBorderPatchIds.remove(n);
-      ticketService.removeTalker(n);
-
-      if (mapFragmentIdToShadowPatchIds.get(n).size() == 0) {
-        // log.info("Remove shadow too");
-        mapFragmentIdToShadowPatchIds.remove(n);
-      }
-    });
-  }
-
   @Override
-  public MapFragmentId getMe() {
-    return mapFragmentId;
+  public void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId destination, MapFragmentId source,
+      TicketService ticketService) {
+    log.debug("handle migration patch between neighbours {} -> {}, {}", source.getId(), destination.getId(),
+        patchId.getValue());
+    if (!knownPatches.containsKey(patchId)) {
+      log.debug("There is no patch {} in known patches", patchId.getValue());
+      return;
+    }
+
+    // change patches between neighbour
+    // if (mapFragmentIdToShadowPatchIds.get(source) != null) {
+    //   mapFragmentIdToShadowPatchIds.get(source).remove(patchId);
+    // }
+
+    mapFragmentIdToShadowPatchIds.values().forEach(set -> set.remove(patchId));
+
+    mapFragmentIdToShadowPatchIds.computeIfAbsent(destination, k -> {
+      if (ConfigurationService.getConfiguration().isTicketActive()) {
+        ticketService.addNewTalker(k);
+      }
+      return new HashSet<>();
+    });
+    mapFragmentIdToShadowPatchIds.get(destination).add(patchId);
+
+    // add new border patches into destination
+    List<PatchId> localPatchesConnectedWith = PatchConnectionSearchUtil.findNeighbouringPatches(patchId, this);
+    mapFragmentIdToBorderPatchIds.computeIfAbsent(destination, k -> new HashSet<>());
+    mapFragmentIdToBorderPatchIds.get(destination).addAll(localPatchesConnectedWith);
+
+    // remove border patches from source when not connected with neighbour
+    if (mapFragmentIdToShadowPatchIds.get(source) == null) {
+      return;
+    }
+
+    Set<PatchId> allPatchesNeighbouringWithShadowPatches =
+        mapFragmentIdToShadowPatchIds.get(source).stream().filter(a -> !a.equals(patchId))
+        .map(knownPatches::get)
+        .flatMap(p -> p.getNeighboringPatches().stream())
+        .collect(Collectors.toSet());
+
+    final Set<PatchId> newBorderPatchesSet =
+        allPatchesNeighbouringWithShadowPatches.stream().filter(this::isLocalPatch).collect(Collectors.toSet());
+
+    mapFragmentIdToBorderPatchIds.put(source, newBorderPatchesSet);
+    removeEmptyNeighbours(ticketService);
   }
 
   @Override
@@ -516,8 +518,29 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
   }
 
   @Override
+  public Patch getPatchById(PatchId patchId) {
+    return knownPatches.get(patchId);
+  }
+
+  public List<MapFragmentId> getNeighboursToRemove() {
+    List<MapFragmentId> lostConnectNeighbours = List.copyOf(removedNeighbours);
+    removedNeighbours.clear();
+    return lostConnectNeighbours;
+  }
+
+  @Override
+  public MapFragmentId getMe() {
+    return mapFragmentId;
+  }
+
+  @Override
   public PatchId getPatchIdByRoadId(RoadId roadId) {
     return roadIdToPatchId.get(roadId);
+  }
+
+  @Override
+  public PatchId getPatchIdByLaneId(LaneId laneId) {
+    return laneIdToPatchId.get(laneId);
   }
 
   @Override
@@ -531,14 +554,28 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
     return localPatchIds.size();
   }
 
+  @Override
+  public void updateMapOfSentPatches(PatchId patchReceiver, MapFragmentId mapReceiver) {
+    sentPatchesIdToMapFragmentId.put(patchReceiver, mapReceiver);
+  }
+
+  @Override
+  public synchronized void clearMapOfSentPatches() {
+    sentPatchesIdToMapFragmentId.clear();
+
+  }
+
+  @Override
+  public synchronized Map<PatchId, MapFragmentId> getMapOfSentPatches() {
+    return sentPatchesIdToMapFragmentId;
+
+  }
+
   public void printFullStatistic() {
-    String localPatch = localPatchIds.stream()
-        .map(PatchId::getValue)
-        .collect(Collectors.joining(","));
+    String localPatch = localPatchIds.stream().map(PatchId::getValue).collect(Collectors.joining(","));
 
     String borderPatches = mapFragmentIdToBorderPatchIds.entrySet()
-        .stream()
-        .map(k -> k.getKey().getId() + " -> " + k.getValue().stream().map(PatchId::getValue)
+        .stream().map(k -> k.getKey().getId() + " -> " + k.getValue().stream().map(PatchId::getValue)
             .sorted()
             .collect(Collectors.joining(",")))
         .collect(Collectors.joining("\n"));
@@ -550,11 +587,10 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
             .collect(Collectors.joining(",")))
         .collect(Collectors.joining("\n"));
 
-    String response = "\n************"+ mapFragmentId.getId()+"****************\n"
-        + "local: " + localPatch + "\n" +
-        "border: \n"+ borderPatches + "\n" +
-        "shadow: \n"+ shadowPatches + "\n" +
-        "*********************************************";
+    String response =
+        "\n************" + mapFragmentId.getId() + "****************\n" + "local: " + localPatch + "\n" + "border: \n"
+            + borderPatches + "\n" + "shadow: \n" + shadowPatches + "\n"
+            + "*********************************************";
     log.info(response);
   }
 
@@ -568,18 +604,28 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
             .stream()
             .filter(i -> i.getValue().size() > 0)
             .map(i -> new ImmutablePair<>(i.getKey().getId(), i.getValue().size()))
-            .toList())
+            .toList()).localPatchesIds(localPatchIds.stream().map(PatchId::getValue).toList())
         .step(step)
         .build();
+  }
+
+  @Override
+  public Set<PatchReader> getShadowPatchesReadable() {
+    return knownPatches.values()
+        .stream()
+        .filter(patch -> !localPatchIds.contains(patch.getPatchId()))
+        .map(patch -> (PatchReader) patch)
+        .collect(Collectors.toSet());
   }
 
   public static final class MapFragmentBuilder {
 
     private final MapFragmentId mapFragmentId;
-    private final Map<PatchId, Patch> knownPatches = new HashMap<>();
+    private final Map<PatchId, Patch> knownPatches = new ConcurrentHashMap<>();
     private final Set<PatchId> localPatchIds = new HashSet<>();
     private final Map<MapFragmentId, Set<PatchId>> shadowPatches = new HashMap<>();
     private final Map<PatchId, MapFragmentId> shadowPatchOwnership = new HashMap<>();
+    private final Map<PatchId, MapFragmentId> sentPatchesIdToMapFragmentId = new ConcurrentHashMap<>();
 
     public MapFragmentBuilder(MapFragmentId mapFragmentId) {
       this.mapFragmentId = mapFragmentId;
@@ -624,7 +670,7 @@ public class MapFragment implements TransferDataHandler, RoadStructureReader, Ro
       });
 
       return new MapFragment(mapFragmentId, knownPatches, localPatchIds, borderPatches, shadowPatches, roadToPatch,
-          laneToPatch, junctionToPatch);
+          laneToPatch, junctionToPatch, sentPatchesIdToMapFragmentId, new LinkedList<>());
     }
 
     /**

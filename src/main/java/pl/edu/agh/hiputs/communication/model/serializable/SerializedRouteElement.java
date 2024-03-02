@@ -3,12 +3,14 @@ package pl.edu.agh.hiputs.communication.model.serializable;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class SerializedRouteElement implements Serializable {
 
-  private final String junctionId;
-  private final String outgoingRoadId;
-  private final String junctionType;
+  private String junctionId;
+  private String outgoingRoadId;
+  private String junctionType;
 }

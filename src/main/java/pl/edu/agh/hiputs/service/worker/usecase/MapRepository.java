@@ -2,9 +2,11 @@ package pl.edu.agh.hiputs.service.worker.usecase;
 
 import java.util.List;
 import java.util.Map;
+import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.PatchId;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
+import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 
 public interface MapRepository {
 
@@ -22,4 +24,6 @@ public interface MapRepository {
 
   // only for debug
   PatchId getPatchIdByRoadId(RoadId roadId);
+
+  JunctionReadable getJunctionReadable(JunctionId junctionId);
 }

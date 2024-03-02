@@ -8,13 +8,20 @@ import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 
 public interface PatchTransferService {
 
-  SerializedPatchTransfer prepareSinglePatchItemAndNotifyNeighbour(MapFragmentId receiver, PatchId patchId, TransferDataHandler transferDataHandler);
+  SerializedPatchTransfer prepareSinglePatchItem(MapFragmentId receiver, PatchId patchId,
+      TransferDataHandler transferDataHandler);
 
-  void sendPatchMessage(MapFragmentId receiver, List<SerializedPatchTransfer> serializedPatchTransfers);
+  void sendPatchMessage(MapFragmentId sender, MapFragmentId receiver,
+      List<SerializedPatchTransfer> serializedPatchTransfers);
 
   void handleReceivedPatch(TransferDataHandler transferDataHandler);
 
   void handleNotificationPatch(TransferDataHandler transferDataHandler);
 
-  void retransmitNotification(MapFragmentId selectedCandidate);
+  void retransmitNotification(MapFragmentId selectedCandidate, TransferDataHandler transferDataHandler);
+
+  List<MapFragmentId> neighboursToNotify(MapFragmentId receiver, PatchId patchToSendId,
+      TransferDataHandler transferDataHandler);
+
+  void synchronizedGetRetransmittedNotification(TransferDataHandler transferDataHandler);
 }

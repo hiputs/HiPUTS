@@ -28,6 +28,7 @@ import pl.edu.agh.hiputs.model.map.patch.PatchReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.Road;
 import pl.edu.agh.hiputs.service.worker.ModelValidatorServiceImpl;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
 @Disabled
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +39,9 @@ public class ModelValidatorServiceTest {
 
   @Mock
   private MapFragment mapFragment;
+
+  @Mock
+  private MapRepository mapRepository;
 
   @Test
   void shouldFailCheckMapFragment() {
@@ -100,7 +104,7 @@ public class ModelValidatorServiceTest {
     ModelValidationException exception = null;
 
     try {
-      modelValidatorService.checkModel(false, getSimpleMap2());
+      modelValidatorService.checkModel(false, getSimpleMap2(mapRepository));
     } catch (ModelValidationException e) {
       exception = e;
     }

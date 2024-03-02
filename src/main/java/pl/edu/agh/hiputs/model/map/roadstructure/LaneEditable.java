@@ -56,4 +56,25 @@ public interface LaneEditable extends LaneReadable{
    */
   boolean removeCar(CarEditable car);
 
+  /**
+   * Remove specific car from list and place new one
+   */
+  void replaceCar(CarEditable oldCar, CarEditable newCar);
+
+  /**
+   * Remove all cars from list
+   */
+  void removeAllCars();
+
+  /**
+   * Updates attributes related to speed metrics
+   */
+  void updateCarSpeedMetrics();
+
+  /**
+   * Places a Car in Lane's list of cars based on defined Car's position
+   *
+   * @param car
+   */
+  void placeCarInQueueMiddle(CarEditable car);
 }

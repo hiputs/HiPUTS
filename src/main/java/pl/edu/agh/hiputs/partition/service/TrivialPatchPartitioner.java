@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
@@ -16,6 +18,8 @@ import pl.edu.agh.hiputs.partition.service.util.PatchesGraphExtractor;
 
 @Slf4j
 @Service
+@Component
+@ConditionalOnProperty(value = "patch-partitioner.partitioner-type", havingValue = "trivial")
 public class TrivialPatchPartitioner implements PatchPartitioner {
 
   private final Map<String, Node<PatchData, PatchConnectionData>> patchId2patch = new HashMap<>();

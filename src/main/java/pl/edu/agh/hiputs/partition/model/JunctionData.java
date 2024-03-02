@@ -32,6 +32,9 @@ public class JunctionData implements NodeData {
   @Builder.Default
   private List<Restriction> restrictions = new ArrayList<>();
 
+  @Builder.Default
+  private boolean isOsmNode = true;
+
   @Override
   public void merge(NodeData other) {
     if (other == null) {

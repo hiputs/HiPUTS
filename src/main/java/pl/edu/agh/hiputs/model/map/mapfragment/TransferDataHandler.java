@@ -7,6 +7,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import pl.edu.agh.hiputs.loadbalancer.TicketService;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
+import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.id.PatchId;
@@ -49,7 +50,7 @@ public interface TransferDataHandler {
   void acceptShadowPatches(Set<Patch> shadowPatches);
 
   /**
-   * Return  patches from worker's point of view
+   * Return patches from worker's point of view
    */
   Set<PatchReader> getKnownPatchReadable();
 
@@ -65,11 +66,13 @@ public interface TransferDataHandler {
 
   void migratePatchToNeighbour(Patch patch, MapFragmentId mapFragmentId, TicketService ticketService);
 
-  void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository, List<ImmutablePair<PatchId, MapFragmentId>> patchIdWithMapFragmentId, TicketService ticketService);
+  void migratePatchToMe(PatchId patchId, MapFragmentId mapFragmentId, MapRepository mapRepository,
+      List<ImmutablePair<PatchId, MapFragmentId>> neighbourPatchIdsWithMapFragmentId, TicketService ticketService);
 
   MapFragmentId getMapFragmentIdByPatchId(PatchId patchId);
 
-  void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId source, MapFragmentId destination, TicketService ticketService);
+  void migratePatchBetweenNeighbour(PatchId patchId, MapFragmentId destination, MapFragmentId source,
+      TicketService ticketService);
 
   Patch getPatchById(PatchId patchId);
 
@@ -82,7 +85,24 @@ public interface TransferDataHandler {
 
   PatchId getPatchIdByRoadId(RoadId roadId);
 
+  PatchId getPatchIdByLaneId(LaneId laneId);
+
   void printStaistic();
 
   int getLocalPatchesSize();
+
+  /**
+   * Map of patches sent to neighbours during Load Balancing
+   *
+   * @param patchReceiver
+   * @param mapReceiver
+   */
+  void updateMapOfSentPatches(PatchId patchReceiver, MapFragmentId mapReceiver);
+
+  void clearMapOfSentPatches();
+
+  Map<PatchId, MapFragmentId> getMapOfSentPatches();
+
+  List<MapFragmentId> getNeighboursToRemove();
+
 }

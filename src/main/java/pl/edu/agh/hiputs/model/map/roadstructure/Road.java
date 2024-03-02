@@ -1,22 +1,12 @@
 package pl.edu.agh.hiputs.model.map.roadstructure;
 
 import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.Spliterators;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import pl.edu.agh.hiputs.model.car.CarEditable;
-import pl.edu.agh.hiputs.model.car.CarReadable;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.id.RoadId;
@@ -35,7 +25,8 @@ public class Road implements RoadEditable {
 
   /**
    * List of available lanes in a Road.
-   * Road consist only of lanes going in one direction */
+   * Road consist only of lanes going in one direction
+   */
   @Getter
   @Builder.Default
   private final List<LaneId> lanes = new ArrayList<>();

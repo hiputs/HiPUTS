@@ -39,4 +39,11 @@ public class CoordinatesUtil {
     return EARTH_RADIUS * c * 1000; // convert to meters
   }
 
+  public static boolean isCoordinatesInsideRegion(double coordinateLongitude, double coordinateLatitude,
+      double topLeftPointLongitude, double topLeftPointLatitude, double bottomRightPointLongitude,
+      double bottomRightPointLatitude) {
+    return coordinateLongitude >= topLeftPointLongitude && coordinateLatitude <= topLeftPointLatitude
+        && coordinateLongitude <= bottomRightPointLongitude && coordinateLatitude >= bottomRightPointLatitude;
+  }
+
 }

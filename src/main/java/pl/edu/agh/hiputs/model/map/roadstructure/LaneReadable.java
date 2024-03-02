@@ -60,4 +60,14 @@ public interface LaneReadable {
    * Returns number of vehicle in the current road
    */
   int numberOfCars();
+
+  /**
+   * Returns cars whose speed is less than 1km/h - for metrics
+   */
+  int getStoppedCars();
+
+  /**
+   * Summary speed of cars on this Lane - for metrics
+   */
+  double getSumSpeed();
 }

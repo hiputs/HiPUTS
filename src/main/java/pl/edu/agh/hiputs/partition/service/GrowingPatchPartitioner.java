@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
@@ -24,6 +26,8 @@ import pl.edu.agh.hiputs.partition.service.util.PatchesGraphExtractor;
 
 @Slf4j
 @Service
+@Component
+@ConditionalOnProperty(value = "patchPartitioner.partitionerType", havingValue = "growing")
 public class GrowingPatchPartitioner implements PatchPartitioner {
 
   private final BFSWithRange<JunctionData, WayData> bfsWithRange = new BFSWithRange<>(50.0, new TimeDistance());
@@ -50,7 +54,7 @@ public class GrowingPatchPartitioner implements PatchPartitioner {
           .map(e -> e.getData().getPatchId())
           .toList();
       Set<String> colorsSet = new HashSet<>(colorsList);
-      log.info(String.format("Wykryto %d nowych kolorów", colorsSet.size()));
+      log.info("Wykryto {} nowych kolorów", colorsSet.size());
 
       // jeśli nie napotkam kolorów to koloruje na nowy
       if(colorsSet.size() == 0) {

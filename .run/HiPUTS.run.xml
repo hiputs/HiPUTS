@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="HiPUTS" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot"
+    singleton="false">
+    <option name="ALTERNATIVE_JRE_PATH" value="C:\Program Files\Java\jdk-17.0.2" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <module name="HiPUTS.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="pl.edu.agh.hiputs.HiPUTS" />
+    <option name="VM_PARAMETERS" value="-DNODE_NAME=&quot;node1&quot;" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

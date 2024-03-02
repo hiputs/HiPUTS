@@ -57,7 +57,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
     try {
       saveGraphWithPatches(graph, ExportDescriptor.builder().exportDirAbsolutePath(exportPath.toAbsolutePath().toString()).build());
     } catch (IOException e) {
-      log.error("Error occurred while saving graph with patches: " + e.getMessage());
+      log.error("Error occurred while saving graph with patches: {}", e.getMessage());
     }
   }
 
@@ -104,8 +104,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
             nodesPrinter.printRecord(
                 n.getId(),
                 n.getData().getLon(),
-                n.getData().getLat(),
-                n.getData().isCrossroad(),
+                n.getData().getLat(), n.getData().isCrossroad(), n.getData().isOsmNode(),
                 n.getData().getPatchId(),
                 n.getData().getSignalsControlCenter().map(SignalsControlCenter::getId).orElse(null),
                 mapToCsv(n.getData().getTags()),
@@ -220,6 +219,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
           .lon(Double.parseDouble(record.get(NodeHeaders.longitude)))
           .lat(Double.parseDouble(record.get(NodeHeaders.latitude)))
           .isCrossroad(Boolean.parseBoolean(record.get(NodeHeaders.is_crossroad)))
+          .isOsmNode(Boolean.parseBoolean(record.get(NodeHeaders.is_osm_node)))
           .patchId(record.get(NodeHeaders.patch_id))
           .signalsControlCenter(Optional.empty())
           .tags(csvToMap(record.get(NodeHeaders.tags)))
@@ -358,8 +358,7 @@ public class PatchesGraphReaderWriterImpl implements PatchesGraphReader, Patches
               Optional.empty() : Optional.of(idToTrafficIndicator.get(record.get(EdgeHeader.trafficIndicator))))
           .lanes(csvToCollection(record.get(EdgeHeader.lanes)).stream()
               .map(laneIdToLaneData::get)
-              .toList())
-          .tags(csvToMap(record.get(EdgeHeader.tags)))
+              .toList()).tags(csvToMap(record.isSet(EdgeHeader.tags.name()) ? record.get(EdgeHeader.tags) : ""))
           .build();
       Edge<JunctionData, WayData> edge = new Edge<>(record.get(EdgeHeader.source) + "->" + record.get(EdgeHeader.target), wayData);
       edge.setSource(nodeId2Node.get(record.get(EdgeHeader.source)));

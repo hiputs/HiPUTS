@@ -1,0 +1,52 @@
+carGenerator:
+  newGenerator: false
+  generatorSource: live # "live" or "file"
+  filesPath: src/main/resources/generator
+  generateRouteFiles: false
+
+routeGenerator:
+  RouteGeneratorType: random # shortest_path or random
+
+testMode: false
+workerCount: 2
+coresPerWorkerCount: 1
+enableGUI: true
+enableVisualization: false
+statisticModeActive: true
+appendResults: false
+simulationStep: 100
+readFromOsmDirectly: true
+mapPath: C:\Users\natalia\Desktop\studia\mgr\HiPUTS\data\map.osm
+serverAddress: localhost
+serverPort: 8081
+localHostMode: true
+balancingMode: SIMPLY
+initialNumberOfCarsPerLane: 0
+numberOfCarsPerWorker: 10
+numberOfCarsInBigWorker: 0
+extendCarRouteWhenItEnds: true
+pauseAfterStep: 300
+carViewRange: 300
+defaultMaxSpeed: 20.0
+maxAcceleration: 2.0
+maxDeceleration: 3.5
+idmDistanceHeadway: 2.0
+idmTimeHeadway: 2.0
+idmDelta: 4
+junctionSafeTimeDeltaFactor: 1.25
+giveWayThreshold: 10
+movePermanentThreshold: 50
+simulationTimeStep: 1.0
+newCars: 0
+minCars: 0
+ticketActive: false
+timeBasedCarGenerationConfigPath: src/main/resources/timeBasedCarGenerationConfig.json
+carMinLengthInMeters: 3.0
+carMaxLengthInMeters: 5.0
+carUpSpeedBoundaryInMetersPerSecond: 28
+carUpMaxSpeedBoundaryInMetersPerSecond: 38 # bigger then previous
+mapFragmentPartitioner: quadTree
+patchPartitioner:
+  partitionerType: hexagon
+  carViewRange: 100.0
+  borderHandlingStrategy: maxLaneLengthBuffer
