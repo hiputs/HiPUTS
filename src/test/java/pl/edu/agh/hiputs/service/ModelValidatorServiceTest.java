@@ -1,6 +1,8 @@
 package pl.edu.agh.hiputs.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static pl.edu.agh.hiputs.example.ExampleMapFragmentProvider.getSimpleMap2;
@@ -18,8 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.exception.ModelValidationException;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.JunctionType;
-import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.id.PatchId;
+import pl.edu.agh.hiputs.model.id.RoadId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.patch.PatchReader;
@@ -54,7 +56,7 @@ public class ModelValidatorServiceTest {
       exception = e;
     }
 
-    assertTrue(exception != null);
+    assertNotNull(exception);
     assertEquals(6, exception.getErrors().size());
   }
 
@@ -70,7 +72,7 @@ public class ModelValidatorServiceTest {
       exception = e;
     }
 
-    assertTrue(exception != null);
+    assertNotNull(exception);
     assertEquals(3, exception.getErrors().size());
     assertEquals(exception.toString(),
         "ModelValidationException(errors={outgoingJunction=IS_NULL, incoming junction=IS_NULL, lane length=TOO_SHORT "
@@ -89,7 +91,7 @@ public class ModelValidatorServiceTest {
       exception = e;
     }
 
-    assertTrue(exception != null);
+    assertNotNull(exception);
     assertEquals(2, exception.getErrors().size());
   }
 
@@ -103,7 +105,7 @@ public class ModelValidatorServiceTest {
       exception = e;
     }
 
-    assertTrue(exception == null);
+    assertNull(exception);
   }
 
   private Set<PatchReader> getMockPatchWithJunctionFail() {
@@ -115,7 +117,7 @@ public class ModelValidatorServiceTest {
   }
 
   private Set<PatchReader> getMockPatchWithLainFail() {
-    Road road = new Road(new RoadId("ROAD_ID"), null, null, null, null, null, 0, Optional.empty(), null);
+    Road road = new Road(new RoadId("ROAD_ID"), null, null, null, null, null, 0, Optional.empty());
 
     Patch patch = new Patch(new PatchId("PATCH_ID"), Map.of(), Map.of(road.getRoadId(), road), Map.of(), Set.of());
 

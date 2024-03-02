@@ -11,13 +11,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapper;
+import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapperImpl;
+import pl.edu.agh.hiputs.partition.mapper.helper.service.oneway.StandardOsmAndRoundaboutOnewayProcessor;
 import pl.edu.agh.hiputs.partition.mapper.queue.CorrectorQueue;
 import pl.edu.agh.hiputs.partition.mapper.queue.DetectorQueue;
 import pl.edu.agh.hiputs.partition.mapper.queue.FilterQueue;
 import pl.edu.agh.hiputs.partition.mapper.transformer.GraphLengthFiller;
-import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapper;
-import pl.edu.agh.hiputs.partition.mapper.Osm2InternalModelMapperImpl;
-import pl.edu.agh.hiputs.partition.mapper.helper.service.oneway.StandardOsmAndRoundaboutOnewayProcessor;
 import pl.edu.agh.hiputs.partition.mapper.verifier.StandardRequirementsVerifier;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.WayData;
@@ -45,7 +45,7 @@ public class BFSInRangeTest {
   private final Path osmFilePath = getResourcePath("straightTwoWayRoad.osm");
 
   @BeforeEach
-  private void init() {
+  public void init() {
     InputStream is = null;
     try {
       is = Files.newInputStream(osmFilePath);

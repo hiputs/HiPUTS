@@ -102,7 +102,7 @@ public class Junction implements JunctionReadable, JunctionEditable {
     public JunctionBuilder addIncomingRoadId(RoadId roadId, boolean isSubordinate) {
       incomingRoadIds.add(roadId);
       roadsOnJunction.add(new RoadOnJunction(roadId, roadsOnJunction.size(), RoadDirection.INCOMING,
-          isSubordinate ? RoadSubordination.SUBORDINATED : RoadSubordination.MAIN_ROAD, TrafficLightColor.GREEN));
+          isSubordinate ? RoadSubordination.SUBORDINATED : RoadSubordination.MAIN_ROAD));
       return this;
     }
 

@@ -7,7 +7,6 @@ import de.topobyte.osm4j.core.model.iface.OsmNode;
 import de.topobyte.osm4j.core.model.iface.OsmRelation;
 import de.topobyte.osm4j.core.model.iface.OsmWay;
 import de.topobyte.osm4j.xml.dynsax.OsmXmlIterator;
-
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.edu.agh.hiputs.partition.osm.speed.rule.engine.RuleEngine;
 
 /**
  * This class is responsible for reading road map from osm map, so include filtering nodes that are not included in any raod
@@ -24,8 +22,6 @@ import pl.edu.agh.hiputs.partition.osm.speed.rule.engine.RuleEngine;
 @Service
 @RequiredArgsConstructor
 public class OsmGraphReaderImpl implements OsmGraphReader{
-    private final RuleEngine speedRuleEngine;
-
     public OsmGraph loadOsmData(InputStream osmFileInputStream) {
         List<OsmNode> nodes = new LinkedList<>();
         List<OsmWay> ways = new LinkedList<>();
@@ -56,7 +52,6 @@ public class OsmGraphReaderImpl implements OsmGraphReader{
             }
         }
 
-        speedRuleEngine.findDefaultCountry(nodes);
 
         Set<Long> nodesIdsOnWays = ways.stream()
                 .flatMap(this::getAllNodesIdsOnWay)
@@ -66,7 +61,6 @@ public class OsmGraphReaderImpl implements OsmGraphReader{
                 .filter(osmNode -> nodesIdsOnWays.contains(osmNode.getId()))
                 .collect(Collectors.toList());
 
-        speedRuleEngine.validateSpeedLimits(nodes, ways);
 
         return new OsmGraph(nodes, ways, relations);
     }
