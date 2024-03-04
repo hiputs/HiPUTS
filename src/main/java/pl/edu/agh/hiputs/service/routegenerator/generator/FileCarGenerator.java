@@ -1,5 +1,6 @@
 package pl.edu.agh.hiputs.service.routegenerator.generator;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -9,8 +10,6 @@ import pl.edu.agh.hiputs.model.car.driver.DriverParameters;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.ConfigurationService;
-
-import java.util.List;
 
 @Component
 @AllArgsConstructor

@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 
 @Getter
@@ -42,8 +40,9 @@ public class RouteWithLocation {
   public Optional<LaneId> getOffsetLaneId(int offset) {
     if (currentPosition + offset >= this.routeElements.size() || currentPosition + offset < 0) {
       return Optional.empty();
+    } else {
+      return Optional.of(this.routeElements.get(currentPosition + offset).getOutgoingLaneId());
     }
-    return Optional.of(this.routeElements.get(currentPosition + offset).getOutgoingLaneId());
   }
  
   /**
@@ -51,9 +50,28 @@ public class RouteWithLocation {
    */
   public boolean moveForward(int hops) {
     int futurePosition = currentPosition + hops;
-    if (futurePosition >= routeElements.size() || futurePosition < 0)
+    if (futurePosition >= routeElements.size() || futurePosition < 0) {
       return false;
-    this.currentPosition = futurePosition;
-    return true;
+    } else {
+      this.currentPosition = futurePosition;
+      return true;
+    }
+  }
+
+  public String toString(){
+    return "current position: " + currentPosition + ", " + routeElements.stream()
+        .map(el -> " jun: "+ el.getJunctionId() + " lane: " + el.getOutgoingLaneId() + " -> ").toList();
+  }
+
+  public int getRemainingRouteSize() {
+    return routeElements.size() - currentPosition - 1;
+  }
+
+  public RouteElement getLastRouteElement() {
+    return routeElements.get(routeElements.size() - 1);
+  }
+
+  public synchronized void addRouteElements(List<RouteElement> extension) {
+    routeElements.addAll(extension);
   }
 }

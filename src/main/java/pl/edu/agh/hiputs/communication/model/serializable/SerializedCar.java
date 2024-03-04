@@ -5,8 +5,8 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
 import pl.edu.agh.hiputs.model.car.Car;
 import pl.edu.agh.hiputs.model.car.CarEditable;
 import pl.edu.agh.hiputs.model.car.RouteElement;
@@ -23,57 +23,58 @@ import pl.edu.agh.hiputs.service.ConfigurationService;
 @Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class SerializedCar implements CustomSerializable<Car> {
 
   /**
    * CarId
    */
-  private final String carId;
+  private String carId;
 
   /**
    * Current speed of car.
    */
-  private final double speed;
+  private double speed;
 
   /**
    * Length of the car.
    */
-  private final double length;
+  private double length;
 
   /**
    * Maximum possible speed of the car.
    */
-  private final double maxSpeed;
+  private double maxSpeed;
 
   /**
    * Lane location id
    */
-  private final String laneId;
+  private String laneId;
 
   /**
    * Lane location position
    */
-  private final double positionOnLane;
+  private double positionOnLane;
 
   /**
    * Serialized route
    */
-  private final List<SerializedRouteElement> routeElements;
+  private List<SerializedRouteElement> routeElements;
 
   /**
    * Serialized currentRoutePosition
    */
-  private final int currentRoutePosition;
+  private int currentRoutePosition;
 
   /**
    * Serialized decision
    */
-  private byte[] decision;
+  private SerializedDecision decision;
 
   /**
    * Serialized crossroadDecisionProperties
    */
-  private final byte[] crossroadDecisionProperties;
+  private SerializedCrossroadDecisionProperties crossroadDecisionProperties;
 
   public SerializedCar(CarEditable realObject) {
     carId = realObject.getCarId().getValue();
@@ -91,11 +92,13 @@ public class SerializedCar implements CustomSerializable<Car> {
             routeElement.getOutgoingLaneId().getValue(), routeElement.getJunctionId().getJunctionType().name()))
         .collect(Collectors.toList());
     try {
-      decision = SerializationUtils.serialize(new SerializedDecision(realObject.getDecision()));
+      // decision = SerializationUtils.serialize(new SerializedDecision(realObject.getDecision()));
+      decision = new SerializedDecision(realObject.getDecision());
     } catch (Exception e) {
       log.error("NLP TMP FIXES !!!!");
     }
-    crossroadDecisionProperties = SerializationUtils.serialize(new SerializedCrossroadDecisionProperties(realObject.getCrossRoadDecisionProperties()));
+    crossroadDecisionProperties =
+        new SerializedCrossroadDecisionProperties(realObject.getCrossRoadDecisionProperties());
   }
 
   @Override
@@ -117,8 +120,8 @@ public class SerializedCar implements CustomSerializable<Car> {
         .speed(speed)
         .laneId(new LaneId(laneId))
         .positionOnLane(positionOnLane)
-        .decision(((SerializedDecision)SerializationUtils.deserialize(decision)).toRealObject())
-        .crossroadDecisionProperties(((SerializedCrossroadDecisionProperties) SerializationUtils.deserialize(crossroadDecisionProperties)).toRealObject())
+        .decision((decision).toRealObject())
+        .crossroadDecisionProperties((crossroadDecisionProperties).toRealObject())
         .driver(new Driver(new DriverParameters(ConfigurationService.getConfiguration())))
         .build();
   }

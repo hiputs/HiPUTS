@@ -1,20 +1,22 @@
 package pl.edu.agh.hiputs.service.server;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.configuration.Configuration;
 
-import java.util.*;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WorkerSynchronisationMessageImpl implements WorkerSynchronisationService{
+public class WorkerSynchronisationMessageImpl implements WorkerSynchronisationService {
 
-    private final Map<MessagesTypeEnum, Set<String>> messageTypeWorkerRepository = new HashMap<>();
-    private final Configuration configuration;
+  private final Map<MessagesTypeEnum, Set<String>> messageTypeWorkerRepository = new ConcurrentHashMap<>();
+  private final Configuration configuration;
 
     @Override
     public synchronized void waitForAllWorkers(MessagesTypeEnum state) {

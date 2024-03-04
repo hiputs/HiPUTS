@@ -1,11 +1,13 @@
 package pl.edu.agh.hiputs.model.map.roadstructure;
 
 import java.util.Deque;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterators;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -33,7 +35,7 @@ public class Lane implements LaneEditable {
    * Collection of cars traveling on this lane.
    */
   @Builder.Default
-  private final Deque<CarEditable> cars = new LinkedList<>();
+  private final Deque<CarEditable> cars = new ConcurrentLinkedDeque<>();
 
   /**
    * Reference to lane that is on the left side of this one, for now it should be in opposite direction.
@@ -74,6 +76,20 @@ public class Lane implements LaneEditable {
   @Builder.Default
   private Set<CarEditable> incomingCars = new ConcurrentSkipListSet<>();
 
+  /**
+   * Cars whose speed is less than 1km/h - for metrics
+   */
+  @Getter
+  @Builder.Default
+  private int stoppedCars = 0;
+
+  /**
+   * Summary speed of cars on this Lane - for metrics
+   */
+  @Getter
+  @Builder.Default
+  private double sumSpeed = 0;
+
   @Override
   public Optional<CarReadable> getCarInFrontReadable(CarReadable car) {
     return cars.stream()
@@ -104,7 +120,10 @@ public class Lane implements LaneEditable {
 
   @Override
   public Stream<CarReadable> streamCarsFromExitReadable() {
-    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false);
+
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false)
+        .filter(Objects::nonNull)
+        .map(car -> car);
   }
 
   @Override
@@ -122,14 +141,16 @@ public class Lane implements LaneEditable {
   public void addCarAtEntry(CarEditable car) {
     if(!cars.isEmpty()){
       CarReadable firstCarOnLane = cars.peekFirst();
-      if(firstCarOnLane.getPositionOnLane() < car.getPositionOnLane()){
-        log.debug("Lane: " + laneId + " Try to add car at entry with higher position than first one car on lane, car: "
-              + car.getCarId() + ", position: " + car.getPositionOnLane() + ", speed: " + car.getSpeed() + ", first car: " + firstCarOnLane.getCarId()
-              + ", position: " + firstCarOnLane.getPositionOnLane() + ", speed: " + firstCarOnLane.getSpeed() + ". Collision after crossroad!");
+      if (firstCarOnLane != null && firstCarOnLane.getPositionOnLane() < car.getPositionOnLane()) {
+        log.debug("Lane: {} Try to add car at entry with higher position than first one car on lane, car: {}, "
+                + "position: {}, speed: {}, first car: {}, position: {}, speed: {}. Collision after crossroad!", laneId,
+            car.getCarId(), car.getPositionOnLane(), car.getSpeed(), firstCarOnLane.getCarId(),
+            firstCarOnLane.getPositionOnLane(), firstCarOnLane.getSpeed());
 
         //Move back car to be before car he hit after collision
-        car.setPositionOnLaneAndSpeed(firstCarOnLane.getPositionOnLane()
-            - Math.min(0.1, firstCarOnLane.getPositionOnLane() * 0.1), firstCarOnLane.getSpeed() * 0.9);
+        car.setPositionOnLaneAndSpeed(
+            firstCarOnLane.getPositionOnLane() - Math.min(0.1, firstCarOnLane.getPositionOnLane() * 0.1),
+            firstCarOnLane.getSpeed() * 0.9);
       }
     }
     cars.addFirst(car);
@@ -139,9 +160,9 @@ public class Lane implements LaneEditable {
   public void addNewCar(CarEditable car){
     if(!cars.isEmpty()){
       double position = cars.getFirst().getPositionOnLane() - cars.getFirst().getLength() - 0.3;
-      double speed = cars.getFirst().getSpeed();
+      double speed = cars.getFirst().getSpeed(); //
 
-      if(position > length){
+      if (position > length) {
         car.setPositionOnLaneAndSpeed(0, 10);
       }
 
@@ -149,9 +170,9 @@ public class Lane implements LaneEditable {
         double start = c.getPositionOnLane();
         double end = start + c.getLength();
 
-        if(position >= start && position <= end){
+        if (position >= start && position <= end) {
           position = end + 0.3;
-        } else{
+        } else {
           break;
         }
       }
@@ -172,9 +193,9 @@ public class Lane implements LaneEditable {
   }
 
   @Override
-  public Stream<CarEditable> pollIncomingCars() {
+  public synchronized Stream<CarEditable> pollIncomingCars() {
     Set<CarEditable> oldIncomingCars = incomingCars;
-    this.incomingCars = new HashSet<>();
+    this.incomingCars = new ConcurrentSkipListSet<>();
     return oldIncomingCars.stream();
   }
 
@@ -188,8 +209,47 @@ public class Lane implements LaneEditable {
     return StreamSupport.stream(Spliterators.spliteratorUnknownSize(cars.descendingIterator(), 0), false);
   }
 
+  @Override
   public boolean removeCar(CarEditable car) {
     return this.cars.remove(car);
+  }
+
+  @Override
+  public synchronized void placeCarInQueueMiddle(CarEditable car) {
+    LinkedList<CarEditable> carsList = new LinkedList<>(cars);
+    Iterator<CarEditable> iterCars = cars.iterator();
+    int idx = 0;
+
+    while (iterCars.hasNext() && iterCars.next().getPositionOnLane() < car.getPositionOnLane()) {
+      idx += 1;
+    }
+    carsList.add(idx, car);
+    cars.clear();
+    cars.addAll(carsList);
+  }
+
+  @Override
+  public synchronized void replaceCar(CarEditable oldCar, CarEditable newCar) {
+    removeCar(oldCar);
+    placeCarInQueueMiddle(newCar);
+  }
+
+  @Override
+  public void removeAllCars() {
+    cars.clear();
+  }
+
+  @Override
+  public void updateCarSpeedMetrics() {
+    stoppedCars = 0;
+    sumSpeed = 0;
+    for (CarEditable car : cars) {
+      sumSpeed += car.getSpeed();
+      if (car.getSpeed() <= 0.27) //0.27 m/s is less than 1 km/h
+      {
+        stoppedCars += 1;
+      }
+    }
   }
 }
 

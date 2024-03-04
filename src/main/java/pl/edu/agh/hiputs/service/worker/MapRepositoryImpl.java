@@ -103,8 +103,7 @@ public class MapRepositoryImpl implements MapRepository, Subscriber, MapReposito
 
   @Override
   public PatchId getPatchIdByLaneId(LaneId laneId) {
-    return patches.values()
-        .parallelStream()
+    return patches.values().stream()
         .filter(p -> p.getLaneIds().contains(laneId))
         .findFirst()
         .get()

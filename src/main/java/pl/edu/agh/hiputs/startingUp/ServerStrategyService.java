@@ -6,7 +6,8 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimul
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.FinishSimulationStatisticMessage;
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.WorkerConnectionMessage;
 import static pl.edu.agh.hiputs.visualization.connection.topic.TopicConfiguration.VISUALIZATION_STATE_CHANGE_TOPIC;
-import static proto.model.RUNNING_STATE.*;
+import static proto.model.RUNNING_STATE.CLOSED;
+import static proto.model.RUNNING_STATE.STARTED;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,22 +25,21 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
-import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage;
+import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ShutDownMessage;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
 import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
 import pl.edu.agh.hiputs.communication.service.server.ConnectionInitializationService;
 import pl.edu.agh.hiputs.communication.service.server.MessageSenderServerService;
 import pl.edu.agh.hiputs.communication.service.server.WorkerRepository;
-import pl.edu.agh.hiputs.loadbalancer.utils.GraphCoherencyUtil;
 import pl.edu.agh.hiputs.configuration.Configuration;
+import pl.edu.agh.hiputs.loadbalancer.utils.GraphCoherencyUtil;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
@@ -48,9 +48,10 @@ import pl.edu.agh.hiputs.partition.persistance.PatchesGraphReader;
 import pl.edu.agh.hiputs.partition.persistance.PatchesGraphWriter;
 import pl.edu.agh.hiputs.partition.service.MapFragmentPartitioner;
 import pl.edu.agh.hiputs.partition.service.MapStructureLoader;
-import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.service.server.WorkerSynchronisationService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepositoryServerHandler;
+import pl.edu.agh.hiputs.statistics.SimulationPoint;
+import pl.edu.agh.hiputs.statistics.server.StatisticSummaryService;
 import pl.edu.agh.hiputs.visualization.connection.VisualizationSynchronisationService;
 
 @Slf4j
@@ -70,52 +71,61 @@ public class ServerStrategyService implements Strategy {
 
   private final MapRepositoryServerHandler mapRepository;
   private final PatchesGraphReader patchesGraphReader;
-
   private final PatchesGraphWriter patchesGraphWriter;
-
   private final WorkerRepository workerRepository;
 
   private final VisualizationSynchronisationService visualizationSynchronisationService;
 
   private final KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
   private final GraphCoherencyUtil graphCoherencyUtil;
+  @Autowired
+  private ApplicationContext context;
 
   @Override
   public void executeStrategy() throws InterruptedException {
     log.info("Running server");
+    statisticSummaryService.startStage(SimulationPoint.SERVER_APP);
+    statisticSummaryService.startStage(SimulationPoint.SERVER_INITIALIZATION);
     connectionInitializationService.init();
     workerPrepareExecutor.submit(new PrepareWorkerTask());
 
     log.info("Start waiting for all workers be in state WorkerConnection");
     workerSynchronisationService.waitForAllWorkers(WorkerConnectionMessage);
+    log.info("All workers are in state WorkerConnection");
 
     if (configuration.isEnableVisualization()) {
       kafkaListenerEndpointRegistry.getListenerContainer(VISUALIZATION_STATE_CHANGE_TOPIC).start();
       visualizationSynchronisationService.waitForVisualizationStateChangeMessage(STARTED);
     }
 
-    Path mapPackagePath = configuration.isReadFromOsmDirectly()
-        ? generateDeploymentPackageName(Path.of(configuration.getMapPath()))
-        : Path.of(configuration.getMapPath());
+    statisticSummaryService.startStage(SimulationPoint.SERVER_INIT_MAP);
+    Path mapPackagePath =
+        configuration.isReadFromOsmDirectly() ? generateDeploymentPackageName(Path.of(configuration.getMapPath()))
+            : Path.of(configuration.getMapPath());
 
-    Graph<PatchData, PatchConnectionData> patchesGraph = configuration.isReadFromOsmDirectly()
-        ? createAndSavePatchesPackage(mapPackagePath)
-        : patchesGraphReader.readGraphWithPatches(mapPackagePath);
+    Graph<PatchData, PatchConnectionData> patchesGraph =
+        configuration.isReadFromOsmDirectly() ? createAndSavePatchesPackage(mapPackagePath)
+            : patchesGraphReader.readGraphWithPatches(mapPackagePath);
 
     mapRepository.setPatchesGraph(patchesGraph);
+    statisticSummaryService.endStage(SimulationPoint.SERVER_INIT_MAP);
 
-
-
+    statisticSummaryService.startStage(SimulationPoint.SERVER_MAP_PARTITION);
     if (configuration.isReadFromOsmDirectly()) {
-      messageSenderServerService.broadcast(MapReadyToReadMessage.builder().mapPackagePath(mapPackagePath.toString()).build());
+      messageSenderServerService.broadcast(
+          MapReadyToReadMessage.builder().mapPackagePath(mapPackagePath.toString()).build());
     }
 
-    Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents = mapFragmentPartitioner.partition(patchesGraph);
+    Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents =
+        mapFragmentPartitioner.partition(patchesGraph);
 
     calculateAndDistributeConfiguration(mapFragmentsContents);
+    statisticSummaryService.endStage(SimulationPoint.SERVER_MAP_PARTITION);
 
     log.info("Waiting for all workers be in state CompletedInitialization");
     workerSynchronisationService.waitForAllWorkers(CompletedInitializationMessage);
+
+    statisticSummaryService.endStage(SimulationPoint.SERVER_INITIALIZATION);
 
     // if(!graphCoherencyUtil.validateEndModel()){
     //   log.error("the graph is not consistent");
@@ -123,7 +133,7 @@ public class ServerStrategyService implements Strategy {
     //   Thread.sleep(1000);
     //   shutDown();
     // }
-
+    statisticSummaryService.startStage(SimulationPoint.SERVER_SIMULATION);
     distributeRunSimulationMessage(mapFragmentsContents);
 
     if (configuration.isEnableVisualization()) {
@@ -134,6 +144,8 @@ public class ServerStrategyService implements Strategy {
     workerSynchronisationService.waitForAllWorkers(FinishSimulationMessage);
     log.info("Simulation finished");
 
+    statisticSummaryService.endStage(SimulationPoint.SERVER_SIMULATION);
+
     if (configuration.isEnableVisualization()) {
       visualizationSynchronisationService.changeSimulationState(CLOSED);
     }
@@ -141,27 +153,31 @@ public class ServerStrategyService implements Strategy {
     if (configuration.isStatisticModeActive()) {
       workerSynchronisationService.waitForAllWorkers(FinishSimulationStatisticMessage);
       log.info("Start generating summary");
+      statisticSummaryService.endStage(SimulationPoint.SERVER_APP);
+
       generateReport();
     }
 
     messageSenderServerService.broadcast(new ShutDownMessage());
-    Thread.sleep(1000);
+    Thread.sleep(500);
     shutDown();
   }
 
-  private void calculateAndDistributeConfiguration(Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents) {
+  private void calculateAndDistributeConfiguration(
+      Collection<Graph<PatchData, PatchConnectionData>> mapFragmentsContents) {
     Iterator<String> workerIdsIterator = workerRepository.getAllWorkersIds().iterator();
     Iterator<Graph<PatchData, PatchConnectionData>> mapFragmentContentIterator = mapFragmentsContents.iterator();
 
     Map<String, String> patchId2workerId = new HashMap<>();
     // map which patch belongs where
-    while(workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
+    while (workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
       String workerId = workerIdsIterator.next();
       Graph<PatchData, PatchConnectionData> mapFragmentContent = mapFragmentContentIterator.next();
 
-      patchId2workerId.putAll(
-          mapFragmentContent.getNodes().keySet().stream().collect(Collectors.toMap(Function.identity(), e -> workerId))
-      );
+      patchId2workerId.putAll(mapFragmentContent.getNodes()
+          .keySet()
+          .stream()
+          .collect(Collectors.toMap(Function.identity(), e -> workerId)));
     }
 
     workerIdsIterator = workerRepository.getAllWorkersIds().iterator();
@@ -169,15 +185,17 @@ public class ServerStrategyService implements Strategy {
 
     //prepare serverInitMessage for each worker
     Map<String, ServerInitializationMessage> workerId2ServerInitializationMessage = new HashMap<>();
-    boolean bigWorkerSelected = false;
+    boolean bigWorkerSelected = configuration.getNumberOfCarsInBigWorker() > 0;
 
-    while(workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
+    while (workerIdsIterator.hasNext() && mapFragmentContentIterator.hasNext()) {
       String workerId = workerIdsIterator.next();
       Graph<PatchData, PatchConnectionData> mapFragmentContent = mapFragmentContentIterator.next();
 
       //calculate shadow patches
-      Set<String> shadowPatchesIds = mapFragmentContent.getNodes().values()
-          .stream().flatMap(n -> Stream.concat(n.getIncomingEdges().stream(), n.getOutgoingEdges().stream()))
+      Set<String> shadowPatchesIds = mapFragmentContent.getNodes()
+          .values()
+          .stream()
+          .flatMap(n -> Stream.concat(n.getIncomingEdges().stream(), n.getOutgoingEdges().stream()))
           .distinct()
           .flatMap(e -> Stream.of(e.getSource(), e.getTarget()))
           .map(Node::getId)
@@ -188,12 +206,12 @@ public class ServerStrategyService implements Strategy {
       Map<String, List<String>> workerId2shadowPatchesIds = new HashMap<>();
       shadowPatchesIds.forEach(patchId -> {
         String neighbourWorkerId = patchId2workerId.get(patchId);
-          if (workerId2shadowPatchesIds.containsKey(neighbourWorkerId)) {
-            workerId2shadowPatchesIds.get(neighbourWorkerId).add(patchId);
-          } else {
-            workerId2shadowPatchesIds.put(neighbourWorkerId, Stream.of(patchId).collect(Collectors.toList()));
-          }
-        });
+        if (workerId2shadowPatchesIds.containsKey(neighbourWorkerId)) {
+          workerId2shadowPatchesIds.get(neighbourWorkerId).add(patchId);
+        } else {
+          workerId2shadowPatchesIds.put(neighbourWorkerId, Stream.of(patchId).collect(Collectors.toList()));
+        }
+      });
 
       List<WorkerDataDto> workerDataDtos = workerId2shadowPatchesIds.entrySet()
           .stream()
@@ -202,23 +220,22 @@ public class ServerStrategyService implements Strategy {
               .address(workerRepository.get(e.getKey()).getAddress())
               .port(workerRepository.get(e.getKey()).getPort())
               .build()))
-          .toList();
+          .collect(Collectors.toList());
 
       ServerInitializationMessage serverInitializationMessage = ServerInitializationMessage.builder()
           .patchIds(mapFragmentContent.getNodes().keySet().stream().toList())
           .workerInfo(workerDataDtos)
-          .bigWorker(!bigWorkerSelected)
+          .bigWorker(bigWorkerSelected)
           .build();
 
-      if(!bigWorkerSelected){
-        bigWorkerSelected = true;
+      if (bigWorkerSelected) {
+        bigWorkerSelected = false;
       }
       workerId2ServerInitializationMessage.put(workerId, serverInitializationMessage);
     }
 
-    workerId2ServerInitializationMessage.entrySet().forEach(
-        e -> messageSenderServerService.send(e.getKey(), e.getValue())
-    );
+    workerId2ServerInitializationMessage.entrySet()
+        .forEach(e -> messageSenderServerService.send(e.getKey(), e.getValue()));
   }
 
   private void generateReport() {
@@ -250,22 +267,20 @@ public class ServerStrategyService implements Strategy {
     return patchesGraph;
   }
 
-  private Path generateDeploymentPackageName(Path osmFilePath) {
-    String fileName = osmFilePath.getFileName().toString().split("\\.")[0];
-    return Paths.get(osmFilePath.getParent().toAbsolutePath().toString(), fileName + "_" + UUID.randomUUID());
-  }
-
   private void createDeploymentPackageDir(Path deploymentPackagePath) {
     if (!deploymentPackagePath.toFile().mkdir()) {
       throw new RuntimeException(String.format("Directory with path %s cannot be created", deploymentPackagePath));
     }
   }
 
-  @Autowired
-  private ApplicationContext context;
   private void shutDown() {
-    int exitCode = SpringApplication.exit(context, (ExitCodeGenerator) () -> 0);
+    int exitCode = SpringApplication.exit(context, () -> 0);
     System.exit(exitCode);
+  }
+
+  private Path generateDeploymentPackageName(Path osmFilePath) {
+    String fileName = osmFilePath.getFileName().toString().split("\\.")[0];
+    return Paths.get(osmFilePath.getParent().toAbsolutePath().toString(), fileName + "_" + UUID.randomUUID());
   }
 
   private class PrepareWorkerTask implements Runnable {
@@ -273,7 +288,7 @@ public class ServerStrategyService implements Strategy {
     @Override
     public void run() {
       try {
-        Thread.sleep(1000);
+        Thread.sleep(50);
         workerStrategyService.executeStrategy();
       } catch (InterruptedException e) {
         log.error("Worker not started", e);

@@ -4,7 +4,9 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 
 public interface CarGeneratorService {
 
-    void generateCars(MapFragment fragment, int step);
+  void manageCars(MapFragment fragment, int step);
+
+  void generateInitialCars(MapFragment mapFragment);
 
 }
 

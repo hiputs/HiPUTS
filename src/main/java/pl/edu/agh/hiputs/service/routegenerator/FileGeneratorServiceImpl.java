@@ -1,5 +1,14 @@
 package pl.edu.agh.hiputs.service.routegenerator;
 
+import static java.text.MessageFormat.format;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jgrapht.alg.util.Pair;
@@ -13,12 +22,6 @@ import pl.edu.agh.hiputs.service.routegenerator.generator.FileInputGenerator;
 import pl.edu.agh.hiputs.service.routegenerator.generator.TimeBasedCarGeneratorConfig;
 import pl.edu.agh.hiputs.service.routegenerator.generator.routegenerator.RouteFileEntry;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
-
-import java.io.*;
-import java.util.List;
-import java.util.Random;
-
-import static java.text.MessageFormat.format;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,7 +41,7 @@ public class FileGeneratorServiceImpl implements FileGeneratorService {
   public void generateFiles(MapFragment fragment) {
     var startStep = timeBasedCarGeneratorConfig.getConfigEntries().stream().findFirst().get().getStartStep();
     var endStep = timeBasedCarGeneratorConfig.getConfigEntries().get(timeBasedCarGeneratorConfig.getConfigEntries().size() - 1).getEndStep();
-    fragment.localPatches().forEach(patch -> generateFileForPatch(patch, fragment, startStep, endStep));
+    fragment.getLocalPatches().forEach(patch -> generateFileForPatch(patch, fragment, startStep, endStep));
   }
 
   private void generateFileForPatch(Patch patch, MapFragment mapFragment, int startStep, int endstep) {

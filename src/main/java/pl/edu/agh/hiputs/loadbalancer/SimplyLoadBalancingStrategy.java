@@ -3,7 +3,6 @@ package pl.edu.agh.hiputs.loadbalancer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
 import pl.edu.agh.hiputs.loadbalancer.utils.TimeToCarCostUtil;
@@ -12,15 +11,14 @@ import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
-public class SimplyLoadBalancingService implements LoadBalancingStrategy {
+public class SimplyLoadBalancingStrategy implements LoadBalancingStrategy {
 
   private static final double ALLOW_LOAD_IMBALANCE = 1.05;
   private static final double LOW_THRESHOLD = 1.25;
   private final SimulationStatisticService simulationStatisticService;
 
-  private final LocalLoadStatisticService localLoadStatisticService;
+  private final LocalLoadMonitorService localLoadMonitorService;
   private final SelectNeighbourToBalancingService selectNeighbourToBalancingService;
 
   @Override
@@ -29,14 +27,14 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy {
     int age = actualStep;
     loadBalancingDecision.setAge(age);
 
-    LoadBalancingHistoryInfo info = localLoadStatisticService.getMyLastLoad();
+    LoadBalancingHistoryInfo info = localLoadMonitorService.getMyLastLoad(actualStep);
     double myCost = MapFragmentCostCalculatorUtil.calculateCost(info);
 
     simulationStatisticService.saveLoadBalancingStatistic(info.getTimeCost(), info.getCarCost(), myCost, age,
         info.getWaitingTime());
     age++;
 
-    if (transferDataHandler.getNeighbors().isEmpty() || age < 3 || transferDataHandler.getLocalPatchesSize() < 5) {
+    if (transferDataHandler.getNeighbors().isEmpty() || age < 5 || transferDataHandler.getLocalPatchesSize() < 5) {
       loadBalancingDecision.setLoadBalancingRecommended(false);
       return loadBalancingDecision;
     }
@@ -52,7 +50,7 @@ public class SimplyLoadBalancingService implements LoadBalancingStrategy {
       boolean shouldBalancing = myCost / candidate.getRight() > ALLOW_LOAD_IMBALANCE;
       boolean shouldExtremeBalancing = myCost / candidate.getRight() >  LOW_THRESHOLD;
 
-      log.info("should {}, mycost {} candidate cost {}", shouldBalancing, myCost, candidate.getRight());
+      log.debug("should {}, mycost {} candidate cost {}", shouldBalancing, myCost, candidate.getRight());
 
       loadBalancingDecision.setLoadBalancingRecommended(shouldBalancing);
       loadBalancingDecision.setExtremelyLoadBalancing(shouldExtremeBalancing);

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
@@ -17,12 +18,16 @@ import pl.edu.agh.hiputs.model.car.RouteWithLocation;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.tasks.LaneUpdateStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
 @Disabled
 @ExtendWith(MockitoExtension.class)
 public class LaneUpdateStageTaskTest {
+
+  @Mock
+  private MapRepository mapRepository;
 
   private MapFragment mapFragment;
   private LaneId laneId1, laneId2;
@@ -35,7 +40,7 @@ public class LaneUpdateStageTaskTest {
 
   @BeforeEach
   public void setup() {
-    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
+    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false, mapRepository);
     laneId1 = mapFragment.getLocalLaneIds().iterator().next();
     lane1 = mapFragment.getLaneEditable(laneId1);
     laneId2 = mapFragment.getJunctionReadable(lane1.getOutgoingJunctionId()).streamOutgoingLaneIds().findFirst().get();

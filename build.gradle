@@ -3,15 +3,22 @@ plugins {
     id 'org.springframework.boot' version '2.6.2'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'com.google.protobuf' version '0.8.19'
+    id 'application'
 }
 
 group 'pl.edu.agh.hiputs'
 version 'HiPUTS-0.0.0.1-SNAPSHOT'
 
+mainClassName = 'pl.edu.agh.hiputs.HiPUTS'
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+}
+
+bootJar {
+    archiveFileName = "HiPUTS.jar"
 }
 
 repositories {
@@ -52,6 +59,9 @@ dependencies {
     implementation 'de.topobyte:osm4j-pbf:0.2.0'
     implementation 'de.topobyte:osm4j-tbo:0.1.0'
     implementation 'de.topobyte:osm4j-geometry:0.2.0'
+    implementation 'org.projectlombok:lombok:1.18.18'
+
+    implementation 'com.esotericsoftware:kryo:5.2.1'
 
     implementation group: 'io.confluent', name: 'kafka-protobuf-serializer', version: '7.1.1'
 

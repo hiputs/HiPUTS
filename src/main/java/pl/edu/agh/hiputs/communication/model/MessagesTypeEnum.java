@@ -1,5 +1,25 @@
 package pl.edu.agh.hiputs.communication.model;
 
+import java.util.Arrays;
+import java.util.List;
+import pl.edu.agh.hiputs.communication.model.messages.LoadInfoMessage;
+import pl.edu.agh.hiputs.communication.model.messages.MapReadyToReadMessage;
+import pl.edu.agh.hiputs.communication.model.messages.NeighbourConnectionMessage;
+import pl.edu.agh.hiputs.communication.model.messages.SerializedPatchTransfer;
+import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedCrossroadDecisionProperties;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedDecision;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedRouteElement;
+import pl.edu.agh.hiputs.communication.model.serializable.WorkerDataDto;
+import pl.edu.agh.hiputs.statistics.SimulationPoint;
+import pl.edu.agh.hiputs.statistics.worker.IterationStatisticsServiceImpl.IterationInfo;
+import pl.edu.agh.hiputs.statistics.worker.SimulationStatisticServiceImpl.DecisionStatistic;
+import pl.edu.agh.hiputs.statistics.worker.SimulationStatisticServiceImpl.LoadBalancingCostStatistic;
+import pl.edu.agh.hiputs.statistics.worker.SimulationStatisticServiceImpl.LoadBalancingStatistic;
+import pl.edu.agh.hiputs.statistics.worker.SimulationStatisticServiceImpl.MapStatistic;
+
 import pl.edu.agh.hiputs.visualization.communication.messages.StopSimulationMessage;
 
 public enum MessagesTypeEnum {
@@ -40,7 +60,7 @@ public enum MessagesTypeEnum {
 
   //worker - worker messages
   /**
-   *  Transfer incoming cars set after decision stage
+   * Transfer incoming cars set after decision stage
    */
   CarTransferMessage,
   /**
@@ -55,6 +75,11 @@ public enum MessagesTypeEnum {
    * Notify adjacent areas to upload the patch
    */
   PatchTransferNotificationMessage,
+
+  /**
+   * Pack of notifications informing adjacent areas to upload the patch
+   */
+  GroupOfPatchTransferNotificationMessage,
 
   /**
    * Info adjacent areas about load
@@ -94,5 +119,33 @@ public enum MessagesTypeEnum {
   /**
    * Visualization State change message
    */
-  VisualizationStateChangeMessage
+  VisualizationStateChangeMessage;
+
+  public static List<MessagesTypeEnum> getWorkerMessages() {
+    return Arrays.asList(CarTransferMessage, BorderSynchronizationMessage, PatchTransferMessage,
+        PatchTransferNotificationMessage, GroupOfPatchTransferNotificationMessage, LoadInfo, AvailableTicketMessage,
+        SelectTicketMessage);
+  }
+
+  public static List<Class> getMessagesClasses() {
+    return Arrays.asList(pl.edu.agh.hiputs.communication.model.messages.CarTransferMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.BorderSynchronizationMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.PatchTransferMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.PatchTransferNotificationMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.GroupOfPatchTransferNotificationMessage.class,
+        LoadInfoMessage.class, pl.edu.agh.hiputs.communication.model.messages.AvailableTicketMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.SelectTicketMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.ShutDownMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.CompletedInitializationMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage.class, MapReadyToReadMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.RunSimulationMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.FinishSimulationMessage.class,
+        pl.edu.agh.hiputs.communication.model.messages.FinishSimulationStatisticMessage.class,
+        NeighbourConnectionMessage.class, WorkerDataDto.class, ConnectionDto.class, NeighbourConnectionDto.class,
+        SerializedCar.class, SerializedRouteElement.class, SerializedLane.class, SerializedPatchTransfer.class,
+        LoadBalancingStatistic.class, DecisionStatistic.class, LoadBalancingCostStatistic.class, IterationInfo.class,
+        MapStatistic.class, SimulationPoint.class, SerializedDecision.class, SerializedCrossroadDecisionProperties.class
+    );
+  }
 }

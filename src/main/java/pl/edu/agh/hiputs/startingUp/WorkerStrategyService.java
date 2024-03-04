@@ -10,18 +10,11 @@ import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.StopSimulat
 import static pl.edu.agh.hiputs.communication.model.MessagesTypeEnum.VisualizationStateChangeMessage;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -33,18 +26,15 @@ import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageReceiverService;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
-import pl.edu.agh.hiputs.example.ExampleCarProvider;
-import pl.edu.agh.hiputs.loadbalancer.MonitorLocalService;
 import pl.edu.agh.hiputs.configuration.Configuration;
-import pl.edu.agh.hiputs.model.car.Car;
-import pl.edu.agh.hiputs.model.car.CarEditable;
+import pl.edu.agh.hiputs.loadbalancer.LocalLoadMonitorService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
-import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
-import pl.edu.agh.hiputs.service.server.StatisticSummaryService;
+import pl.edu.agh.hiputs.service.routegenerator.CarGeneratorService;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.service.worker.usecase.SimulationStatisticService;
 import pl.edu.agh.hiputs.simulation.MapFragmentExecutor;
+import pl.edu.agh.hiputs.statistics.SimulationPoint;
 import pl.edu.agh.hiputs.utils.DebugUtils;
 import pl.edu.agh.hiputs.utils.MapFragmentCreator;
 import pl.edu.agh.hiputs.visualization.connection.producer.CarsProducer;
@@ -60,21 +50,22 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   private final MapRepository mapRepository;
   private final MapFragmentExecutor mapFragmentExecutor;
   private final Configuration configuration;
-  private TrivialGraphBasedVisualizer graphBasedVisualizer;
   private final MessageSenderService messageSenderService;
   private final MessageReceiverService messageReceiverService;
   private final MapFragmentCreator mapFragmentCreator;
-  private final SimulationStatisticService simulationStatisticService;
+  private final CarGeneratorService carGeneratorService;
   private final ExecutorService simulationExecutor = newSingleThreadExecutor();
   private final MapFragmentId mapFragmentId = MapFragmentId.random();
-  private final MonitorLocalService monitorLocalService;
-  private final StatisticSummaryService statisticSummaryService;
-
+  private final SimulationStatisticService simulationStatisticService;
   private final DebugUtils debugUtils;
+  private final LocalLoadMonitorService localLoadMonitorService;
   private final CarsProducer carsProducer;
   private final SimulationNewNodesProducer simulationNewNodesProducer;
+  private TrivialGraphBasedVisualizer graphBasedVisualizer;
   private boolean isSimulationStopped = false;
   private proto.model.VisualizationStateChangeMessage visualizationStateChangeMessage;
+  @Autowired
+  private ApplicationContext context;
 
   @PostConstruct
   void init() {
@@ -89,22 +80,19 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
   @Override
   public void executeStrategy() {
     try {
+      simulationStatisticService.startStage(SimulationPoint.WORKER_INITIALIZATION);
       configuration.setMapFragmentId(mapFragmentId);
       messageSenderService.sendServerMessage(
           new WorkerConnectionMessage("127.0.0.1", messageReceiverService.getPort(), mapFragmentId.getId()));
 
+      simulationStatisticService.startStage(SimulationPoint.WORKER_MAP_BUILD);
+      log.info("Building map...");
       mapRepository.readMapAndBuildModel();
+      log.info("Map build.");
+      simulationStatisticService.endStage(SimulationPoint.WORKER_MAP_BUILD);
     } catch (Exception e) {
       log.error("Worker fail", e);
     }
-  }
-
-  private void enabledGUI() throws InterruptedException {
-    log.info("Starting GUI");
-    graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment(), mapRepository);
-
-    graphBasedVisualizer.showGui();
-    sleep(300);
   }
 
   @Override
@@ -118,14 +106,12 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       case ResumeSimulationMessage -> resumeSimulation();
       case VisualizationStateChangeMessage -> changeVisualizationState(
           (pl.edu.agh.hiputs.visualization.communication.messages.VisualizationStateChangeMessage) message);
-      default -> log.warn("Unhandled message " + message.getMessageType());
+      default -> log.warn("Unhandled message {}", message.getMessageType());
     }
   }
 
-  @Autowired
-  private ApplicationContext context;
   private void shutDown() {
-    int exitCode = SpringApplication.exit(context, (ExitCodeGenerator) () -> 0);
+    int exitCode = SpringApplication.exit(context, () -> 0);
     System.exit(exitCode);
   }
 
@@ -138,8 +124,13 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       simulationNewNodesProducer.sendSimulationNotOsmNodesTransferMessage(mapFragment);
     }
     debugUtils.setMapFragment(mapFragment);
+    // carGeneratorService.setMapFragment(mapFragment);
 
-    createCars();
+    simulationStatisticService.startStage(SimulationPoint.WORKER_INITIAL_CAR_GENERATION);
+    log.info("Starting generating cars...");
+    carGeneratorService.generateInitialCars(mapFragment);
+    log.info("Cars generated.");
+    simulationStatisticService.endStage(SimulationPoint.WORKER_INITIAL_CAR_GENERATION);
 
     if (configuration.isEnableGUI()) {
       try {
@@ -154,33 +145,25 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     } catch (IOException e) {
       log.error("Fail send CompletedInitializationMessage", e);
     }
+    simulationStatisticService.endStage(SimulationPoint.WORKER_INITIALIZATION);
+  }
+
+  private void enabledGUI() throws InterruptedException {
+    log.info("Starting GUI");
+    graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment(), mapRepository);
+
+    graphBasedVisualizer.showGui();
+    sleep(300);
   }
 
   private void waitForMapLoad() {
     while (!mapRepository.isReady()) {
       try {
-        sleep(100); //active waiting for load map from disk
+        sleep(10); //active waiting for load map from disk
       } catch (InterruptedException e) {
         log.warn("Error util waiting for map will be load", e);
       }
     }
-  }
-
-  private void createCars() {
-    final ExampleCarProvider exampleCarProvider = new ExampleCarProvider(mapFragmentExecutor.getMapFragment(), mapRepository);
-    mapFragmentExecutor.getMapFragment().getLocalLaneIds().forEach(laneId -> {
-        List<Car> generatedCars = IntStream.range(0, configuration.getInitialNumberOfCarsPerLane())
-            .mapToObj(x -> exampleCarProvider.generateCar(laneId, 100))
-            .filter(Objects::nonNull)
-            .sorted(Comparator.comparing(Car::getPositionOnLane))
-            .collect(Collectors.toList());
-        Collections.reverse(generatedCars);
-        generatedCars.forEach(car -> {
-          LaneEditable lane = mapFragmentExecutor.getMapFragment().getLaneEditable(car.getLaneId());
-          exampleCarProvider.limitSpeedPreventCollisionOnStart(car, lane);
-          lane.addNewCar(car);
-        });
-    });
   }
 
   private void runSimulation() {
@@ -203,21 +186,15 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
     this.visualizationStateChangeMessage = stateChangeMessage.getVisualizationStateChangeMessage();
   }
 
-  private int calculatePauseAfterStep(long stepElapsedTime) {
-    double timeMultiplier = visualizationStateChangeMessage.getTimeMultiplier();
-    double simulationTimeStep = configuration.getSimulationTimeStep();
-    return (int) Math.max(0, (timeMultiplier * simulationTimeStep * 1000) - stepElapsedTime);
-  }
-
   @Override
   public void run() {
+    localLoadMonitorService.init(mapFragmentExecutor.getMapFragment());
+    simulationStatisticService.startStage(SimulationPoint.WORKER_SIMULATION);
     int i = 0;
     long startTime = 0;
     long stepElapsedTime;
     try {
       int n = configuration.getSimulationStep();
-      monitorLocalService.init(mapFragmentExecutor.getMapFragment());
-      statisticSummaryService.startTiming();
       while (i < n) {
         if (isSimulationStopped) {
           sleep(100);
@@ -233,7 +210,7 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
         if (configuration.isEnableGUI()) {
           graphBasedVisualizer.redrawCars();
         }
-        if(configuration.isEnableVisualization()) {
+        if (configuration.isEnableVisualization()) {
           carsProducer.sendCars(mapFragmentExecutor.getMapFragment(), i, visualizationStateChangeMessage);
           stepElapsedTime = System.currentTimeMillis() - startTime;
           sleep(calculatePauseAfterStep(stepElapsedTime));
@@ -248,10 +225,17 @@ public class WorkerStrategyService implements Strategy, Runnable, Subscriber {
       try {
         log.info("Worker finish simulation");
         messageSenderService.sendServerMessage(new FinishSimulationMessage(mapFragmentId.getId()));
+        simulationStatisticService.endStage(SimulationPoint.WORKER_SIMULATION);
         simulationStatisticService.sendStatistic(mapFragmentId);
       } catch (IOException e) {
         log.error("Error with send finish simulation message", e);
       }
     }
+  }
+
+  private int calculatePauseAfterStep(long stepElapsedTime) {
+    double timeMultiplier = visualizationStateChangeMessage.getTimeMultiplier();
+    double simulationTimeStep = configuration.getSimulationTimeStep();
+    return (int) Math.max(0, (timeMultiplier * simulationTimeStep * 1000) - stepElapsedTime);
   }
 }

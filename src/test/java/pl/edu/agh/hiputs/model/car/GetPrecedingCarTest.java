@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import pl.edu.agh.hiputs.example.ExampleCarProvider;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.driver.deciders.CarProspector;
@@ -20,28 +21,32 @@ import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.model.map.roadstructure.Junction;
 import pl.edu.agh.hiputs.model.map.roadstructure.JunctionReadable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
+
 @Disabled
 
 public class GetPrecedingCarTest {
 
   private MapFragment mapFragment;
+  @Mock
+  private MapRepository mapRepository;
   private ExampleCarProvider carProvider;
   private LaneId startLaneId;
   private LaneEditable startLane;
   private Car car1, car2;
   private CarProspector prospector;
-    @BeforeEach
-    public void setup() {
-        mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
-        carProvider = new ExampleCarProvider(mapFragment);
-        startLaneId = mapFragment.getLocalLaneIds().iterator().next();
-        startLane = mapFragment.getLaneEditable(startLaneId);
-        car1 = carProvider.generateCar(10.0, startLaneId, 3);
-        car2 = carProvider.generateCar(60.0, startLaneId, 4);
-        prospector = new CarProspectorImpl();
-    }
 
+  @BeforeEach
+  public void setup() {
+    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false, mapRepository);
+    carProvider = new ExampleCarProvider(mapFragment, mapRepository);
+    startLaneId = mapFragment.getLocalLaneIds().iterator().next();
+    startLane = mapFragment.getLaneEditable(startLaneId);
+    car1 = carProvider.generateCar(10.0, startLaneId, 3);
+    car2 = carProvider.generateCar(60.0, startLaneId, 4);
+    prospector = new CarProspectorImpl();
+  }
 
   @Test
   public void getPrecedingCarWhereCarIsFound() {
@@ -71,6 +76,7 @@ public class GetPrecedingCarTest {
         //in this case we get precedingCar and nextCrossroadId
         () -> Assertions.assertEquals(startLane.getOutgoingJunctionId(), carEnvironment.getNextCrossroadId().get()));
   }
+
   @Test
   public void getPrecedingCarWhereCarIsNotFound() {
     setAllJunctionTypeCrossroad();
@@ -79,6 +85,7 @@ public class GetPrecedingCarTest {
     Assertions.assertAll(() -> Assertions.assertFalse(carEnvironment.getPrecedingCar().isPresent()),
         () -> Assertions.assertFalse(carEnvironment.getNextCrossroadId().isPresent()));
   }
+
   @Test
   public void getPrecedingCarWhereCarIsNotFoundInsaneViewRange() {
     prospector = new CarProspectorImpl(10000000);
@@ -91,10 +98,10 @@ public class GetPrecedingCarTest {
         () -> Assertions.assertEquals(startLane.getLength() - car1.getPositionOnLane(), carEnvironment.getDistance()));
   }
 
-    @Test
-    public void getPrecedingCarWhereCarIsNotFoundAndAllJunctionAreBend() {
-        car1 = carProvider.generateCar(10.0, startLaneId, 2);
-        this.setAllJunctionTypeBend();
+  @Test
+  public void getPrecedingCarWhereCarIsNotFoundAndAllJunctionAreBend() {
+    car1 = carProvider.generateCar(10.0, startLaneId, 2);
+    this.setAllJunctionTypeBend();
 
     startLane.addCarAtEntry(car1);
     CarEnvironment carEnvironment = prospector.getPrecedingCarOrCrossroad(car1, mapFragment);
@@ -142,7 +149,6 @@ public class GetPrecedingCarTest {
     ReflectionUtil.setFieldValue(junctionId, "junctionType", JunctionType.BEND);
   }
 
-
   private void setAllJunctionTypeCrossroad() {
     for (LaneId laneId : mapFragment.getLocalLaneIds()) {
       JunctionReadable junction =
@@ -157,8 +163,9 @@ public class GetPrecedingCarTest {
     ReflectionUtil.setFieldValue(junctionId, "junctionType", JunctionType.CROSSROAD);
   }
 
-  private void recalculateJunctionsHashCodes(MapFragment map){
-    Map<JunctionId, PatchId> oldJunctionIdToPatchId = (Map<JunctionId, PatchId>) ReflectionUtil.getFieldValue(map, "junctionIdToPatchId");
+  private void recalculateJunctionsHashCodes(MapFragment map) {
+    Map<JunctionId, PatchId> oldJunctionIdToPatchId =
+        (Map<JunctionId, PatchId>) ReflectionUtil.getFieldValue(map, "junctionIdToPatchId");
     Map<JunctionId, PatchId> newJunctionIdToPatchId = new HashMap<>();
     newJunctionIdToPatchId.putAll(oldJunctionIdToPatchId);
     ReflectionUtil.setFieldValue(map, "junctionIdToPatchId", newJunctionIdToPatchId);

@@ -2,15 +2,17 @@ package pl.edu.agh.hiputs.model.car.driver.deciders.overtaking;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import pl.edu.agh.hiputs.model.car.CarEditable;
-import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.car.CarReadable;
+import pl.edu.agh.hiputs.model.car.driver.deciders.follow.CarEnvironment;
 import pl.edu.agh.hiputs.model.id.JunctionId;
 import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.RoadStructureReader;
 import pl.edu.agh.hiputs.model.map.roadstructure.HorizontalSign;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
 
+@Slf4j
 @RequiredArgsConstructor
 public class OvertakingDecider {
 
@@ -99,10 +101,8 @@ public class OvertakingDecider {
           && car.getSpeed() - (precedingCarSpeed + precedingCarAcceleration) >= minDeltaSpeed) {
         return true;
       }
-      if (precedingCarAcceleration <= accelerationThreshold
-          && estimatePotentialCarSpeed(car) - (precedingCarSpeed + precedingCarAcceleration) >= minDeltaSpeed) {
-        return true;
-      }
+      return precedingCarAcceleration <= accelerationThreshold
+          && estimatePotentialCarSpeed(car) - (precedingCarSpeed + precedingCarAcceleration) >= minDeltaSpeed;
     }
     return false;
   }
@@ -202,6 +202,7 @@ public class OvertakingDecider {
     while (!foundAllInformation(nextJunctionId, carBeforeOvertakenCar, oppositeCar)) {
       nextLaneId = currentCar.getRouteWithLocation().getOffsetLaneId(++offset);
       if (nextLaneId.isEmpty()) {
+        log.debug("Car: {} end of generated route;", currentCar.getCarId());
         break;
       }
       nextLane = roadStructureReader.getLaneReadable(nextLaneId.get());

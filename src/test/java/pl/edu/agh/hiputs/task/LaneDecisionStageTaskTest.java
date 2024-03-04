@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.edu.agh.hiputs.example.ExampleMapFragmentProvider;
 import pl.edu.agh.hiputs.model.car.Car;
@@ -16,6 +17,8 @@ import pl.edu.agh.hiputs.model.id.LaneId;
 import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneEditable;
 import pl.edu.agh.hiputs.model.map.roadstructure.LaneReadable;
+import pl.edu.agh.hiputs.service.routegenerator.CarGeneratorService;
+import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 import pl.edu.agh.hiputs.tasks.LaneDecisionStageTask;
 import pl.edu.agh.hiputs.utils.ReflectionUtil;
 
@@ -30,9 +33,14 @@ public class LaneDecisionStageTaskTest {
   private LaneId laneId;
   private LaneId nextLaneId;
 
+  @Mock
+  private MapRepository mapRepository;
+  @Mock
+  private CarGeneratorService carGeneratorService;
+
   @BeforeEach
   public void setup() {
-    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false);
+    mapFragment = ExampleMapFragmentProvider.getSimpleMap1(false, mapRepository);
     laneId = mapFragment.getLocalLaneIds().stream().findAny().get();
     car = createTestCar();
   }
@@ -42,11 +50,13 @@ public class LaneDecisionStageTaskTest {
     //given
     setLaneId(car, laneId);
     setPositionOnLane(car, 0);
+    boolean carReplaced = false;
 
     mapFragment.getLaneEditable(laneId).addCarAtEntry(car);
 
     //when
-    LaneDecisionStageTask laneDecisionStageTask = new LaneDecisionStageTask(mapFragment, laneId);
+    LaneDecisionStageTask laneDecisionStageTask =
+        new LaneDecisionStageTask(mapFragment, laneId, carGeneratorService, carReplaced);
     laneDecisionStageTask.run();
 
     //then
@@ -59,6 +69,7 @@ public class LaneDecisionStageTaskTest {
   public void laneDecisionStageTaskWithJumpsBetweenLanesTest() {
     //given
     LaneEditable laneReadWrite = mapFragment.getLaneEditable(laneId);
+    boolean carReplaced = false;
 
     setLaneId(car, laneId);
     setPositionOnLane(car, laneReadWrite.getLength() - DISTANCE_TO_LANE_END);
@@ -66,7 +77,8 @@ public class LaneDecisionStageTaskTest {
     laneReadWrite.addCarAtEntry(car);
 
     //when
-    LaneDecisionStageTask laneDecisionStageTask = new LaneDecisionStageTask(mapFragment, laneId);
+    LaneDecisionStageTask laneDecisionStageTask =
+        new LaneDecisionStageTask(mapFragment, laneId, carGeneratorService, carReplaced);
     laneDecisionStageTask.run();
 
     //then

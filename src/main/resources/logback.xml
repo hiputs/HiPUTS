@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-  <property name="defaultPattern" value="[%date] [%thread] %highlight(%-5level) [%logger{10}] %msg%n"/>
+  <property name="defaultPattern" value="[%date] [%thread] %highlight(%-5level) [%logger{10}] %msg%n" />
 
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
@@ -12,29 +12,40 @@
   <!-- Insert the current time formatted as "yyyyMMdd'T'HHmmss" under
        the key "bySecond" into the logger context. This value will be
        available to all subsequent configuration elements. -->
-  <timestamp key="bySecond" datePattern="yyyy-MM-dd'T'HH-mm-ss"/>
+  <timestamp key="bySecond" datePattern="yyyy-MM-dd'T'HH-mm-ss" />
 
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <!-- use the previously created timestamp to create a uniquely
          named log file -->
-    <file>logs/${bySecond}.log</file>
+    <file>logs/${NODE_NAME:-n}-${bySecond}.log</file>
     <encoder>
       <pattern>[%date] [%thread] %-5level %logger{35} - %msg%n</pattern>
     </encoder>
   </appender>
 
-
-  <root level="info">
-    <appender-ref ref="CONSOLE"/>
-  </root>
+  <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+    <discardingThreshold>15
+    </discardingThreshold> <!-- default 20, means drop lower event when has 20% capacity remaining -->
+    <appender-ref ref="FILE" />
+    <queueSize>512</queueSize> <!-- default 256 -->
+    <includeCallerData>false</includeCallerData><!-- default false -->
+    <maxFlushTime>5000</maxFlushTime> <!-- 5 s -->
+    <neverBlock>false</neverBlock><!-- default false, set to true to cause
+            the Appender not block the application and just drop the messages -->
+  </appender>
 
   <!--
   To log any package on another level use <logger> bellow
   -->
-  <!--
-  <logger name="pl.edu.agh.hiputs.example" level="debug" additivity="false">
-    <appender-ref ref="FILE"/>
-  </logger>
-  -->
+  <root level="info">
+    <appender-ref ref="CONSOLE" />
+    <appender-ref ref="ASYNC_FILE" />
+  </root>
+
+
+  <!--  <logger name="pl.edu.agh.hiputs" level="info">-->
+  <!--   -->
+  <!--  </logger>-->
+
 
 </configuration>

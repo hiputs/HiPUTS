@@ -1,9 +1,14 @@
 package pl.edu.agh.hiputs.communication.model.messages;
 
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 
-@Value
+// @Value
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoadInfoMessage implements Message {
 
   long carCost;

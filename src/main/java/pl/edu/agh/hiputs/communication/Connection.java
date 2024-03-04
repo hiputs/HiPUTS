@@ -1,15 +1,14 @@
 package pl.edu.agh.hiputs.communication;
 
-import java.io.DataInputStream;
+import com.esotericsoftware.kryo.io.Output;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
+import pl.edu.agh.hiputs.communication.service.KryoService;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 
 /**
@@ -20,20 +19,23 @@ import pl.edu.agh.hiputs.model.id.MapFragmentId;
 @Slf4j
 public class Connection {
 
-  private DataOutputStream output;
+  private Output output;
+  private final KryoService kryo;
   private final MapFragmentId id;
 
   public Connection(ConnectionDto message) {
     id = new MapFragmentId(message.getId());
-    for(int i = 0; i < 10; i++){
+    kryo = new KryoService();
+
+    for (int i = 0; i < 10; i++) {
       try {
         Socket socket = new Socket(message.getAddress(), message.getPort());
-        output = new DataOutputStream(socket.getOutputStream());
+        output = new Output(new DataOutputStream(socket.getOutputStream()));
         return;
       } catch (IOException e) {
         log.warn("Error connection with neighbour {}", message.getId());
         try {
-          Thread.sleep(1000 * (i+1));
+          Thread.sleep(1000 * (i + 1));
         } catch (InterruptedException ex) {
           log.error("Thread error");
         }
@@ -42,17 +44,36 @@ public class Connection {
     log.warn("Error connection with neighbour {}", message.getId());
   }
 
-  public synchronized void send(Message message) throws IOException {
+  public synchronized int send(Message message) throws IOException {
     if (Objects.isNull(output)) {
-      log.info("Connection with worker " + id + " not exist");
-      return;
+      log.info("Connection with worker {} not exist", id);
+      return 0;
     }
-    byte[] bytes = SerializationUtils.serialize(message);
-    int size = bytes.length;
+    // byte[] bytes = SerializationUtils.serialize(message);
+    // Output bout = new Output(new ByteArrayOutputStream());
+    // kryo.getKryo().writeClassAndObject(bout, message);
+    // bout.flush();
+    // bout.close();
+    //
+    // int size = bout.getBuffer().length;
+    // //
+    // output.writeInt(size);
+    // output.flush();
+    // output.write(bout.getBuffer());
+    // output.flush();
 
-    output.writeInt(size);
+    kryo.getKryo().writeClassAndObject(output, message);
+    // kryo.getSerializer(message.getClass()).
+    // kryo.writeObject(output.toBytes().length);
+    int size = output.getBuffer().length;
     output.flush();
-    output.write(bytes);
-    output.flush();
+
+    log.debug("Msg sent");
+
+    return size;
+  }
+
+  public void closeConnection() {
+    output.close();
   }
 }

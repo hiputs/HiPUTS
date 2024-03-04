@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
 import pl.edu.agh.hiputs.configuration.Configuration;
 
+import com.esotericsoftware.kryo.io.Input;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -14,6 +15,12 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import pl.edu.agh.hiputs.communication.model.messages.WorkerConnectionMessage;
+import pl.edu.agh.hiputs.communication.service.KryoService;
+import pl.edu.agh.hiputs.service.ConfigurationService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
@@ -44,7 +51,7 @@ public class ConnectionInitializationService {
         if (serverSocket.isClosed()) {
           log.error("Server fail");
         } else {
-          log.info("Server listening on port: " + serverSocket.getLocalPort());
+          log.info("Server listening on port: {}", serverSocket.getLocalPort());
         }
 
         while (true) {
@@ -72,10 +79,10 @@ public class ConnectionInitializationService {
     @Override
     public void run() {
       try {
-        log.info(String.format("New connection from: %s:%s", clientConnectionSocket.getInetAddress().getHostAddress(),
-            clientConnectionSocket.getPort()));
+        log.info("New connection from: {}:{}", clientConnectionSocket.getInetAddress().getHostAddress(),
+            clientConnectionSocket.getPort());
 
-        DataInputStream input = new DataInputStream(clientConnectionSocket.getInputStream());
+        Input input = new Input(new DataInputStream(clientConnectionSocket.getInputStream()));
         WorkerConnectionMessage workerConnectionMessage = getWorkerConnectionMessage(input);
         workerConnectionMessage.setAddress(clientConnectionSocket.getInetAddress().getHostAddress());
 
@@ -85,16 +92,14 @@ public class ConnectionInitializationService {
         workerRepository.addWorker(workerConnectionMessage.getWorkerId(), workerConnection);
         messagePropagationService.propagateMessage(workerConnectionMessage, workerConnectionMessage.getWorkerId());
       } catch (Exception exception) {
-        log.error(String.format("Error during initialization connection with: %s:%s",
-            clientConnectionSocket.getInetAddress().getHostAddress(), clientConnectionSocket.getPort()), exception);
+        log.error("Error during initialization connection with: {}:{}",
+            clientConnectionSocket.getInetAddress().getHostAddress(), clientConnectionSocket.getPort(), exception);
       }
     }
 
-    private WorkerConnectionMessage getWorkerConnectionMessage(DataInputStream inputStream)
-        throws IOException, ClassNotFoundException {
-      int length = inputStream.readInt();
-      byte[] bytes = inputStream.readNBytes(length);
-      return  (WorkerConnectionMessage) SerializationUtils.deserialize(bytes);
+    private WorkerConnectionMessage getWorkerConnectionMessage(Input input) throws IOException, ClassNotFoundException {
+      KryoService kryo = new KryoService();
+      return (WorkerConnectionMessage) kryo.getKryo().readClassAndObject(input);
     }
   }
 }

@@ -1,5 +1,10 @@
 package pl.edu.agh.hiputs.service.routegenerator.generator.routegenerator;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.ThreadPoolExecutor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jgrapht.alg.util.Pair;
@@ -13,10 +18,6 @@ import pl.edu.agh.hiputs.service.pathfinder.CHBidirectionalDijkstra;
 import pl.edu.agh.hiputs.service.pathfinder.PathFinder;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.*;
-
 @Slf4j
 @Component
 @AllArgsConstructor
@@ -28,7 +29,7 @@ public class ShortestPathRouteGenerator implements RouteGenerator{
   @Override
   public List<RouteWithLocation> generateRoutesFromMapFragment(Patch startPatch, int numberOfRoutes, MapFragment mapFragment) {
     CHBidirectionalDijkstra pathFinder = new CHBidirectionalDijkstra(mapFragment, executor);
-    return generateRoutes(startPatch, numberOfRoutes, mapFragment.localPatches(), pathFinder);
+    return generateRoutes(startPatch, numberOfRoutes, mapFragment.getLocalPatches(), pathFinder);
   }
 
   @Override

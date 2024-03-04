@@ -2,40 +2,42 @@ package pl.edu.agh.hiputs.communication.model.messages;
 
 import java.io.Serializable;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.serializable.ConnectionDto;
-import pl.edu.agh.hiputs.communication.model.serializable.CustomSerializable;
-import pl.edu.agh.hiputs.communication.model.serializable.SerializedCar;
+import pl.edu.agh.hiputs.communication.model.serializable.SerializedLane;
 
 @Builder
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SerializedPatchTransfer implements Serializable {
 
   /**
    * Transferred patch id
    */
-  private final String patchId;
+  private String patchId;
 
   /**
    * Source mapFragmentId
    */
-  private final String mapFragmentId;
+  private String mapFragmentId;
 
   /**
    * Connection to other neighbours
    */
-  private final List<ConnectionDto> neighbourConnectionMessage;
+  private List<ConnectionDto> neighbourConnectionMessage;
 
   /**
-   * Pair of shadow patches and map fragmentId
+   * Pair of shadow patches and map fragmentId (patch neighbours)
    */
-  private final List<ImmutablePair<String, String>> patchIdWithMapFragmentId;
+  private List<ImmutablePair<String, String>> patchIdWithMapFragmentId;
 
   /**
-   * Car from patch - we have patch structure in repository, but we haven't knowledge about current cars position
+   * Cars from patch - we have patch structure in repository, but we haven't knowledge about current cars position
    */
-  private final List<byte[]> cars;
+  private List<SerializedLane> serializedLanes;
 }

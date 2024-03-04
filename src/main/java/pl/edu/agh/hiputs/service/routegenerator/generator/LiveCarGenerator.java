@@ -1,5 +1,7 @@
 package pl.edu.agh.hiputs.service.routegenerator.generator;
 
+import java.util.List;
+import java.util.Random;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -12,9 +14,6 @@ import pl.edu.agh.hiputs.model.map.mapfragment.MapFragment;
 import pl.edu.agh.hiputs.model.map.patch.Patch;
 import pl.edu.agh.hiputs.service.routegenerator.generator.routegenerator.RouteGenerator;
 import pl.edu.agh.hiputs.service.worker.usecase.MapRepository;
-
-import java.util.List;
-import java.util.Random;
 
 @Component
 @AllArgsConstructor

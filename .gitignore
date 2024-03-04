@@ -5,6 +5,10 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+data/map*
+statistic*/
+
+
 ### STS ###
 .apt_generated
 .classpath
