@@ -23,8 +23,8 @@ import pl.edu.agh.hiputs.communication.model.messages.SelectTicketMessage;
 import pl.edu.agh.hiputs.communication.model.messages.ServerInitializationMessage;
 import pl.edu.agh.hiputs.communication.service.worker.MessageSenderService;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Slf4j
 @Service
@@ -35,7 +35,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
   private final WorkerSubscriptionService subscriptionService;
   private final MessageSenderService messageSenderService;
 
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
 
 
   private MapFragmentId[] ticketPool;
@@ -54,7 +54,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
     subscriptionService.subscribe(this, MessagesTypeEnum.SelectTicketMessage);
     subscriptionService.subscribe(this, MessagesTypeEnum.AvailableTicketMessage);
 
-    TICKET_POOL_SIZE = Math.min(TICKET_POOL_SIZE, configurationService.getConfiguration().getWorkerCount() * 2);
+    TICKET_POOL_SIZE = Math.min(TICKET_POOL_SIZE, configuration.getWorkerCount() * 2);
     ticketPool = new MapFragmentId[TICKET_POOL_SIZE];
     executor.execute(new TicketInfinityLoop());
   }
@@ -120,7 +120,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
             continue;
           }
 
-          if(neighbour.hashCode() > configurationService.getConfiguration().getMapFragmentId().hashCode()){// wait for message because older send theirs possibility
+          if(neighbour.hashCode() > configuration.getMapFragmentId().hashCode()){// wait for message because older send theirs possibility
             continue;
           }
 
@@ -134,7 +134,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
 
     private void startSyncTicketNegotiaton(MapFragmentId neighbour) {
       try {
-        MapFragmentId me = configurationService.getConfiguration().getMapFragmentId();
+        MapFragmentId me = configuration.getMapFragmentId();
       //  log.info("Start negotiation between {} and me {}", neighbour.getId(), me.getId());
         messageSenderService.send(neighbour, new AvailableTicketMessage(me.getId(), getFreeTicket()));
         final SelectTicketMessage selectTicketMessage = selectTicketQueue.take();
@@ -150,7 +150,7 @@ public class TicketServiceImpl implements TicketService, Subscriber {
       MapFragmentId neighbour = new MapFragmentId(message.getMapFragmentId());
       try {
         //log.info("Select ticket {} neighbour {}", selectTicket, neighbour.getId());
-        messageSenderService.send(neighbour, new SelectTicketMessage(configurationService.getConfiguration().getMapFragmentId().getId(), selectTicket));
+        messageSenderService.send(neighbour, new SelectTicketMessage(configuration.getMapFragmentId().getId(), selectTicket));
       } catch (IOException e) {
         log.error("Send message error");
       }

@@ -1,7 +1,7 @@
 package pl.edu.agh.hiputs.model.car.driver;
 
 import lombok.Value;
-import pl.edu.agh.hiputs.model.Configuration;
+import pl.edu.agh.hiputs.configuration.Configuration;
 
 @Value
 public class DriverParameters {

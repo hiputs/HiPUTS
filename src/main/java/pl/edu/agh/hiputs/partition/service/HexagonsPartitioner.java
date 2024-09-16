@@ -1,47 +1,48 @@
 package pl.edu.agh.hiputs.partition.service;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 import pl.edu.agh.hiputs.partition.model.JunctionData;
 import pl.edu.agh.hiputs.partition.model.PatchConnectionData;
 import pl.edu.agh.hiputs.partition.model.PatchData;
 import pl.edu.agh.hiputs.partition.model.WayData;
+import pl.edu.agh.hiputs.partition.model.geom.*;
+import pl.edu.agh.hiputs.partition.model.geom.HexagonGrid.HexagonLineSegment;
 import pl.edu.agh.hiputs.partition.model.graph.Edge;
 import pl.edu.agh.hiputs.partition.model.graph.Graph;
 import pl.edu.agh.hiputs.partition.model.graph.Node;
-import pl.edu.agh.hiputs.partition.model.geom.GeomUtil;
-import pl.edu.agh.hiputs.partition.model.geom.HexagonCoordinate;
-import pl.edu.agh.hiputs.partition.model.geom.HexagonGrid;
-import pl.edu.agh.hiputs.partition.model.geom.HexagonGrid.HexagonLineSegment;
-import pl.edu.agh.hiputs.partition.model.geom.LineSegment;
 import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever;
 import pl.edu.agh.hiputs.partition.service.util.MapBoundariesRetriever.MapBoundaries;
 import pl.edu.agh.hiputs.partition.service.util.PatchesGraphExtractor;
-import pl.edu.agh.hiputs.partition.model.geom.Point;
-import pl.edu.agh.hiputs.partition.model.geom.StandardEquationLine;
 import pl.edu.agh.hiputs.utils.CoordinatesUtil;
 
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @Slf4j
-@AllArgsConstructor
+@Component
+@ConditionalOnProperty(value = "patch-partitioner.partitioner-type", havingValue = "hexagon")
 public class HexagonsPartitioner implements PatchPartitioner {
 
   @NonNull
   private final BorderEdgesHandlingStrategy borderEdgesHandlingStrategy;
   private double carViewRange;
+
+  public HexagonsPartitioner(
+    @NonNull @Value("${patch-partitioner.border-handling-strategy}") BorderEdgesHandlingStrategy borderEdgesHandlingStrategy,
+    @Value("${patch-partitioner.car-view-range}") Double carViewRange
+  ) {
+    this.borderEdgesHandlingStrategy = borderEdgesHandlingStrategy;
+    this.carViewRange = carViewRange;
+  }
 
   @Override
   public Graph<PatchData, PatchConnectionData> partition(Graph<JunctionData, WayData> graph) {

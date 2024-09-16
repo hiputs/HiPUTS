@@ -4,8 +4,10 @@ import java.util.LinkedList;
 import java.util.List;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
+@EnableConfigurationProperties
 public class HiPUTS {
 
   public static final List<String> globalInitArgs = new LinkedList<>();

@@ -53,13 +53,13 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
 
   @Override
   public void sendCarsOnBorderToNeighbours(TransferDataHandler mapFragment) {
-    log.info("Step 9-0-1");
+    log.debug("Step 9-0-1");
     Set<Patch> distinctBorderPatches = mapFragment.getBorderPatches()
         .values()
         .stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toSet());
-    log.info("Step 9-0-2");
+    log.debug("Step 9-0-2");
     Map<PatchId, List<byte[]>> serializedBorderPatches = distinctBorderPatches
         .parallelStream()
         .map(p -> new ImmutablePair<PatchId, List<byte[]>>(p.getPatchId(), p.parallelStreamLanesEditable()
@@ -67,16 +67,16 @@ public class CarsOnBorderSynchronizationServiceImpl implements CarsOnBorderSynch
             .map(SerializationUtils::serialize)
             .toList()))
         .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
-    log.info("Step 9-0-3");
+    log.debug("Step 9-0-3");
     Map<MapFragmentId, BorderSynchronizationMessage> messages = mapFragment.getBorderPatches()
         .entrySet()
         .parallelStream()
         .map(entry -> new ImmutablePair<>(entry.getKey(), createMessageFrom(entry.getValue(), serializedBorderPatches)))
         .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
-    log.info("Step 9-0-4");
+    log.debug("Step 9-0-4");
     long start = System.currentTimeMillis();
     sendMessages(messages);
-    log.info("Step 9-0-4 time = {}", System.currentTimeMillis() - start);
+    log.debug("Step 9-0-4 time = {}", System.currentTimeMillis() - start);
   }
 
   @Override

@@ -21,17 +21,19 @@ public class SingleWorkStrategyService implements Strategy {
   @Override
   public void executeStrategy() throws InterruptedException {
     log.info("Start work in single mode");
-    mapFragmentExecutor.setMapFragment(ExampleMapFragmentProvider.getSimpleMap4());
+    mapFragmentExecutor.setMapFragment(ExampleMapFragmentProvider.getSimpleMap4(false));
     monitorLocalService.init(mapFragmentExecutor.getMapFragment());
     TrivialGraphBasedVisualizer graphBasedVisualizer = new TrivialGraphBasedVisualizer(mapFragmentExecutor.getMapFragment(), null);
 
     graphBasedVisualizer.showGui();
     sleep(1000);
+    execute(graphBasedVisualizer, -1);
+  }
 
-    while (true) {
-      mapFragmentExecutor.run(-1);
-      graphBasedVisualizer.redrawCars();
-      sleep(5);
-    }
+  private void execute(TrivialGraphBasedVisualizer graphBasedVisualizer, int step) throws InterruptedException {
+    mapFragmentExecutor.run(step);
+    graphBasedVisualizer.redrawCars();
+    sleep(100);
+    execute(graphBasedVisualizer, step + 1);
   }
 }

@@ -14,12 +14,11 @@ import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.messages.LoadInfoMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.worker.WorkerSubscriptionService;
-import pl.edu.agh.hiputs.loadbalancer.model.BalancingMode;
 import pl.edu.agh.hiputs.loadbalancer.model.LoadBalancingHistoryInfo;
 import pl.edu.agh.hiputs.loadbalancer.utils.MapFragmentCostCalculatorUtil;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.model.id.MapFragmentId;
 import pl.edu.agh.hiputs.model.map.mapfragment.TransferDataHandler;
-import pl.edu.agh.hiputs.service.ConfigurationService;
 
 @Service
 @RequiredArgsConstructor
@@ -31,12 +30,13 @@ public class SelectNeighbourToBalancingService implements Subscriber {
   private final Map<MapFragmentId, LoadBalancingHistoryInfo> loadRepository = new HashMap<>();
   private final WorkerSubscriptionService subscriptionService;
   private final TicketService ticketService;
+  private final Configuration configuration;
 
   private int age = 0;
 
   public ImmutablePair<MapFragmentId, Double> selectNeighbourToBalancing(TransferDataHandler transferDataHandler, int age) {
     this.age = age;
-    return ConfigurationService.getConfiguration().isTicketActive()
+    return configuration.isTicketActive()
         ? getByTicket(transferDataHandler)
         : getLowesCost(transferDataHandler);
   }

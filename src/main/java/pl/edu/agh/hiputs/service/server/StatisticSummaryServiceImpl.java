@@ -12,13 +12,12 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
 import pl.edu.agh.hiputs.communication.Subscriber;
 import pl.edu.agh.hiputs.communication.model.MessagesTypeEnum;
 import pl.edu.agh.hiputs.communication.model.messages.FinishSimulationStatisticMessage;
 import pl.edu.agh.hiputs.communication.model.messages.Message;
 import pl.edu.agh.hiputs.communication.service.server.SubscriptionService;
-import pl.edu.agh.hiputs.service.ConfigurationService;
+import pl.edu.agh.hiputs.configuration.Configuration;
 import pl.edu.agh.hiputs.service.worker.SimulationStatisticServiceImpl.MapStatistic;
 
 @Slf4j
@@ -39,7 +38,7 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
 
   private static final String SUMMARY_TXT = "summary.txt";
   private final SubscriptionService subscriptionService;
-  private final ConfigurationService configurationService;
+  private final Configuration configuration;
 
   private long startTime;
   private final List<FinishSimulationStatisticMessage> repository = new ArrayList<>();
@@ -166,9 +165,9 @@ public class StatisticSummaryServiceImpl implements StatisticSummaryService, Sub
   }
 
   private List<StringBuffer> createEmptyStringBufferWithHeaders() {
-    List<StringBuffer> lines = new ArrayList<>((int) configurationService.getConfiguration().getSimulationStep());
+    List<StringBuffer> lines = new ArrayList<>((int) configuration.getSimulationStep());
 
-    LongStream.range(0, configurationService.getConfiguration().getSimulationStep() + 1)
+    LongStream.range(0, configuration.getSimulationStep() + 1)
         .forEach(i -> lines.add(new StringBuffer()));
 
     repository.forEach(repo -> {
