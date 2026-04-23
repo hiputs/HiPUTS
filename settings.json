@@ -6,7 +6,7 @@
   "statisticModeActive": true,
   "appendResults": true,
   "simulationStep": 100,
-  "mapPath": "C:\\Users\\natalia\\Desktop\\studia\\mgr\\HiPUTS\\data\\square-map2",
+  "mapPath": "data\\map.osm",
   "serverAddress": "127.0.0.1",
   "serverPort": 8081,
   "localHostMode": false,
